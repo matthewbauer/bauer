@@ -3,85 +3,96 @@
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacsMacport;
     });
-    myEmacs = customEmacsPackages.emacsWithPackages (epkgs: (with epkgs.melpaPackages; [
-      nixStable
-      ghc
-
-      ace-jump-mode
-      ace-window
-      ag
-      aggressive-indent
-      apropospriate-theme
-      avy
-      buffer-move
-      coffee-mode
-      company
-      company-flx
-      counsel
-      counsel-projectile
-      crontab-mode
-      diffview
-      dumb-jump
-      esh-help
-      eshell-fringe-status
-      eshell-prompt-extras
-      expand-region
-      esup
-      flycheck
-      gist
-      gitattributes-mode
-      gitconfig-mode
-      github-clone
-      gitignore-mode
-      go-eldoc
-      go-mode
-      golden-ratio
-      haml-mode
-      haskell-mode
-      iedit
-      imenu-anywhere
-      imenu-list
-      indium
-      intero
-      ivy
-      flx
-      less-css-mode
-      lua-mode
-      magit
-      magit-gh-pulls
-      markdown-mode
-      multi-line
-      multiple-cursors
-      mwim
-      neotree
-      org-bullets
-      page-break-lines
-      php-mode
-      projectile
-      rainbow-delimiters
-      restart-emacs
-      # rtags
-      rust-mode
-      sass-mode
-      scss-mode
-      smart-tabs-mode
-      smartparens
-      swiper
-      tern
-      tiny
-      toc-org
-      transpose-frame
-      use-package
-      web-mode
-      which-key
-      whitespace-cleanup-mode
-      wrap-region
-      xterm-color
-      (runCommand "default.el" {} ''
-        mkdir -p $out/share/emacs/site-lisp
-        cp ${./default.el} $out/share/emacs/site-lisp/default.el
-      '')
-    ]));
+    myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
+      [
+        (runCommand "default.el" {} ''
+          mkdir -p $out/share/emacs/site-lisp
+          cp ${./default.el} $out/share/emacs/site-lisp/default.el
+        '')
+        nixStable
+        ghc
+        # rtags
+        # mu
+        # notmuch
+      ]
+      ++ (with epkgs; [
+        avy
+        company
+        counsel
+        flx
+        flycheck
+        go-mode
+        haml-mode
+        haskell-mode
+        ivy
+        projectile
+        swiper
+        use-package
+      ])
+      ++ (with epkgs.melpaStablePackages; [
+        ace-jump-mode
+        ace-window
+        ag
+        aggressive-indent
+        buffer-move
+        coffee-mode
+        diffview
+        dumb-jump
+        expand-region
+        esup
+        gist
+        gitattributes-mode
+        gitconfig-mode
+        github-clone
+        gitignore-mode
+        go-eldoc
+        golden-ratio
+        iedit
+        imenu-anywhere
+        imenu-list
+        indium
+        intero
+        less-css-mode
+        lua-mode
+        markdown-mode
+        multi-line
+        multiple-cursors
+        mwim
+        neotree
+        org-bullets
+        page-break-lines
+        php-mode
+        projectile
+        rainbow-delimiters
+        restart-emacs
+        rust-mode
+        sass-mode
+        scss-mode
+        smart-tabs-mode
+        smartparens
+        swiper
+        tern
+        toc-org
+        web-mode
+        which-key
+        whitespace-cleanup-mode
+        wrap-region
+        xterm-color
+      ])
+      ++ (with epkgs.melpaPackages; [
+        apropospriate-theme
+        company-flx
+        counsel-projectile
+        crontab-mode
+        esh-help
+        eshell-fringe-status
+        eshell-prompt-extras
+        magit
+        magit-gh-pulls
+        tiny
+        transpose-frame
+      ])
+    );
     userPackages = buildEnv {
       postBuild =
         ''
@@ -130,7 +141,6 @@
         editorconfig-core-c
         emscripten
         ffmpeg
-        # fasd
         fetchmail
         findutils
         gcc
@@ -162,12 +172,10 @@
         less
         man
         myEmacs
-        # mu
         mutt
         mplayer
         mariadb
         moreutils
-        # notmuch
         nano
         nasm
         nox
@@ -196,7 +204,6 @@
         qemu
         ripgrep
         rsync
-        # rtags
         ruby
         rustc
         retroarch
