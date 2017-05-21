@@ -106,6 +106,7 @@
       pathsToLink = [
         "/bin"
         "/etc/profile.d"
+        "/etc/ssl"
         "/Applications"
         "/share/doc"
         "/share/man"
