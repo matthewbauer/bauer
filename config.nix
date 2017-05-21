@@ -4,6 +4,9 @@
       emacs = emacsMacport;
     });
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs: (with epkgs.melpaPackages; [
+      nixStable
+      ghc
+
       ace-jump-mode
       ace-window
       ag
