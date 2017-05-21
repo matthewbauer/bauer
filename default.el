@@ -243,8 +243,7 @@ even beep.)"
 (defun is-current-file-tramp ()
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
-(eval-when-compile
-  (require 'use-package))
+(require 'use-package)
 (setq use-package-ensure-function 'ignore)
 
 (defvar lisp-modes '(emacs-lisp-mode
@@ -344,7 +343,7 @@ even beep.)"
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 (use-package apropospriate-theme
-  :demand
+  :defer 1
   :config
   (load-theme 'apropospriate-dark t))
 
@@ -927,8 +926,8 @@ POINT ?"
 
 (use-package golden-ratio
   :diminish golden-ratio-mode
-  :commands golden-ratio-mode
-  :init
+  :defer 2
+  :config
   (golden-ratio-mode 1))
 
 (use-package grep
