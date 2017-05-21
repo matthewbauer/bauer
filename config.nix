@@ -84,7 +84,7 @@
         ''
           if [ -x $out/bin/install-info -a -w $out/share/info ]; then
             shopt -s nullglob
-            for i in $out/share/info/*.info $out/share/info/*.info.gz; do
+            for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
                 $out/bin/install-info $i $out/share/info/dir
             done
           fi
@@ -94,7 +94,6 @@
         "/etc/profile.d"
         "/Applications"
         "/share/doc"
-        "/share/emacs"
         "/share/man"
         "/share/info"
         "/share/zsh"
