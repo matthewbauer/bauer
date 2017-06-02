@@ -3,7 +3,7 @@
 export LANG=en_US
 export LC_ALL=en_US
 
-export NIX_REMOTE=daemon
+# export NIX_REMOTE=daemon
 
 export INFOPATH=$PREFIX/share/info
 export DICPATH=$PREFIX/share/hunspell

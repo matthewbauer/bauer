@@ -1,5 +1,6 @@
 {
   packageOverrides = pkgs: with pkgs; rec {
+    nix = nixStable;
     myConfig = {
       gitconfig = ./gitconfig;
       gitignore = ./gitignore;
@@ -14,7 +15,7 @@
     });
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
       let pkgs = ([
-        nixUnstable
+        nix
         ghc
         rtags
         haskellPackages.ghc-mod
@@ -65,7 +66,6 @@
         less-css-mode
         lua-mode
         magit
-        magit-gh-pulls
         markdown-mode
         multi-line
         multiple-cursors
@@ -154,6 +154,7 @@
             wrapProgram $out/bin/zsh \
               --set ZDOTDIR $out/etc
           '';
+        meta.priority = 10;
         pathsToLink = [
           "/bin"
           "/etc/profile.d"
@@ -199,6 +200,7 @@
             go2nix
             gnugrep
             gnumake
+            offlineimap
             gnuplot
             gnused
             gnupg1compat
@@ -218,7 +220,7 @@
             nano
             nasm
             nox
-            nixUnstable
+            nix
             nix-prefetch-scripts
             # nix-index
             nix-repl

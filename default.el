@@ -919,12 +919,11 @@ POINT ?"
   :defer 1
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
-         ("C-x C-b" . ivy-switch-buffer)
-         :map ivy-minibuffer-map
-         ("C-j" . ivy-call))
+         ("C-x C-b" . ivy-switch-buffer))
   :diminish ivy-mode
   :commands ivy-mode
   :config
+  (bind-key "C-j" #'ivy-call ivy-minibuffer-map)
   (ivy-mode 1))
 
 (use-package less-css-mode
@@ -1006,7 +1005,6 @@ POINT ?"
 
     (unless (memq major-mode
                   '(emacs-lisp-mode inferior-emacs-lisp-mode ielm-mode))
-      (turn-on-cldoc-mode)
       (bind-key "M-q" #'slime-reindent-defun lisp-mode-map)
       (bind-key "M-l" #'slime-selector lisp-mode-map)))
 
@@ -1038,11 +1036,6 @@ POINT ?"
          ("C-x G" . magit-dispatch-popup))
   :init
   (setq magit-completing-read-function 'ivy-completing-read))
-
-(use-package magit-gh-pulls
-  :commands turn-on-magit-gh-pulls
-  :init
-  (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
 
 (use-package markdown-mode
   :mode "\\.\\(md\\|markdown\\)\\'"
