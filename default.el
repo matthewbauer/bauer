@@ -803,11 +803,6 @@ POINT ?"
   :init
   (add-hook 'eshell-mode-hook 'eshell-fringe-status-mode))
 
-(use-package eshell-prompt-extras
-  :commands epe-theme-lambda
-  :init
-  (setq eshell-prompt-function 'epe-theme-lambda))
-
 (use-package expand-region
   :commands er/expand-region
   :config (setq expand-region-contract-fast-key "j")

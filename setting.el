@@ -202,7 +202,7 @@
  '(magit-highlight-whitespace nil)
  '(magit-mode-hook
    (quote
-    (magit-load-config-extensions magit-xref-setup bug-reference-mode turn-on-magit-gh-pulls)))
+    (magit-load-config-extensions magit-xref-setup bug-reference-mode)))
  '(magit-no-confirm t)
  '(magit-process-connection-type nil)
  '(magit-process-find-password-functions (quote (magit-process-password-auth-source)))

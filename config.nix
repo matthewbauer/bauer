@@ -97,11 +97,13 @@
       ])
       ++ (with epkgs.melpaPackages; [
         apropospriate-theme
+        c-eldoc
         company-flx
         counsel-projectile
+        jdee
         esh-help
-        eshell-fringe-status
         eshell-prompt-extras
+        kill-or-bury-alive
         transpose-frame
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; } ''
           mkdir -p $out/share/emacs/site-lisp
