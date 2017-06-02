@@ -2,8 +2,19 @@
 ;;
 ;;
 
-(add-to-list 'load-path (expand-file-name "~/.nix-profile/share/emacs/site-lisp"))
-(add-to-list 'exec-path (expand-file-name "~/.nix-profile/bin"))
+;;; Code:
+
+(eval-when-compile
+  (require 'use-package))
+(require 'diminish)                ;; if you use :diminish
+(require 'bind-key)                ;; if you use any :bind variant
+(setq use-package-ensure-function 'ignore)
+
+(setenv "NIX_REMOTE" "daemon")
+(setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+(setenv "EDITOR" "emacsclient -nw")
+(setenv "PATH" "~/.nix-profile/bin")
+(setenv "MANPATH" "~/.nix-profile/share/man")
 
 ;;
 ;; builtins
@@ -45,6 +56,21 @@
                 minibuffer-setup-hook))
   (add-hook hook (lambda () (setq show-trailing-whitespace nil))))
 
+(defmacro with-region-or-buffer (func)
+  "When called with no active region, call FUNC on current buffer."
+  `(defadvice ,func (before with-region-or-buffer activate compile)
+     (interactive
+      (if mark-active
+          (list (region-beginning) (region-end))
+        (list (point-min) (point-max))))))
+
+;; unbind unused keys
+(global-unset-key "\C-z") ; don’t suspend on C-z
+(global-unset-key [?\s-p]) ; printing crashes occasionally
+
+(windmove-default-keybindings 'meta) ; move using meta
+(fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
+
 ;; enable narrowing commands
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
@@ -59,47 +85,6 @@
 
 ;; dired - reuse current buffer by pressing 'a'
 (put 'dired-find-alternate-file 'disabled nil)
-
-(defmacro with-region-or-buffer (func)
-  "When called with no active region, call FUNC on current buffer."
-  `(defadvice ,func (before with-region-or-buffer activate compile)
-     (interactive
-      (if mark-active
-          (list (region-beginning) (region-end))
-        (list (point-min) (point-max))))))
-
-;; make a shell script executable automatically on save
-(add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
-
-;; Compilation from Emacs
-(defun colorize-compilation-buffer ()
-  "Colorize a compilation mode buffer."
-  (interactive)
-  ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
-  (when (eq major-mode 'compilation-mode)
-    (let ((inhibit-read-only t))
-      (ansi-color-apply-on-region (point-min) (point-max)))))
-
-;; Colorize output of Compilation Mode, see
-;; http://stackoverflow.com/a/3072831/355252
-(add-hook 'compilation-filter-hook #'colorize-compilation-buffer)
-
-;; unbind unused keys
-(global-unset-key "\C-z")
-(global-unset-key [?\s-p])
-
-(windmove-default-keybindings 'meta)
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; don't disable narrowing
-(put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
-(put 'narrow-to-defun 'disabled nil)
-
-;; don't disable case change features
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
 
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
@@ -130,21 +115,17 @@ i.e. change right window to bottom, or change bottom window to right."
                   (split-window-horizontally))
                 (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))))
 
-(add-hook 'kill-emacs-query-functions
-          'custom-prompt-customize-unsaved-options)
-
-(defun bjm/kill-this-buffer ()
+(defun kill-this-buffer ()
   "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
-
-(global-set-key (kbd "C-x k") 'bjm/kill-this-buffer)
 
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
 
 (defun sort-package-declarations ()
+  "Sort following package declarations alphabetically."
   (interactive)
   (cl-flet ((next-use-package
              () (if (re-search-forward "^(use-package " nil t)
@@ -169,7 +150,7 @@ If the buffer is read-only, Emacs will beep and refrain from deleting
 the line, but put the line in the kill ring anyway.  This means that
 you can use this command to copy text from a read-only buffer.
 \(If the variable `kill-read-only-ok' is non-nil, then this won't
-even beep.)"
+ even beep.)"
   (interactive
    (keep-lines-read-args "Kill lines containing match for regexp"))
   (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
@@ -184,6 +165,7 @@ even beep.)"
     (flush-lines regexp rstart rend interactive)))
 
 (defun toggle-window-split ()
+  "Toggle window split from vertically to horizontally and vice versa."
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
@@ -212,39 +194,16 @@ even beep.)"
 
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
 
-(add-hook 'eshell-mode-hook '(lambda ()
-                               (local-set-key (kbd "C-a") 'eshell-bol-maybe-my)
-                               (local-set-key (kbd "M-_") 'kai-eshell-insert-last-word)))
-
-(defun bol-maybe-general-my (prompt &optional alt-bol-fcn)
-  (interactive)
-  (if (and (string-match (concat "^" (regexp-quote prompt)
-                                 " *$")
-                         (buffer-substring-no-properties
-                          (line-beginning-position)
-                          (point)))
-           (not (bolp)))
-      (beginning-of-line)
-    (if alt-bol-fcn
-        (funcall alt-bol-fcn)
-      (beginning-of-line)
-      (search-forward-regexp prompt))))
-
-(defun eshell-bol-maybe-my ()
-  (interactive)
-  (bol-maybe-general-my (funcall eshell-prompt-function)))
-
-(defun kai-eshell-insert-last-word (n)
-  (interactive "p")
-  (insert (car (reverse
-                (split-string
-                 (eshell-previous-input-string (- n 1)))))))
-
 (defun is-current-file-tramp ()
+  "Is the current file in a tramp remote setup?"
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
-(require 'use-package)
-(setq use-package-ensure-function 'ignore)
+(defun toggle-fullscreen ()
+  "Toggle full screen."
+  (interactive)
+  (set-frame-parameter
+   nil 'fullscreen
+   (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -262,62 +221,25 @@ even beep.)"
           lisp-modes))
 
 (defsubst hook-into-modes (func &rest modes)
+  "Add hook to modes.
+FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
+
+(use-package kill-or-bury-alive
+  :bind (("C-x k" . kill-or-bury-alive)
+         ("C-c r" . kill-or-bury-alive-purge-buffers)))
 
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
 
-(defun kill-matching-lines (regexp &optional rstart rend interactive)
-  "Kill lines containing matches for REGEXP.
-
-See `flush-lines' or `keep-lines' for behavior of this command.
-
-If the buffer is read-only, Emacs will beep and refrain from deleting
-the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer.
-\(If the variable `kill-read-only-ok' is non-nil, then this won't
-even beep.)"
-  (interactive
-   (keep-lines-read-args "Kill lines containing match for regexp"))
-  (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
-    (with-current-buffer (clone-buffer nil nil)
-      (let ((inhibit-read-only t))
-        (keep-lines regexp rstart rend interactive)
-        (kill-region (or rstart (line-beginning-position))
-                     (or rend (point-max))))
-      (kill-buffer)))
-  (unless (and buffer-read-only kill-read-only-ok)
-    ;; Delete lines or make the "Buffer is read-only" error.
-    (flush-lines regexp rstart rend interactive)))
-(defun kill-matching-lines (regexp &optional rstart rend interactive)
-  "Kill lines containing matches for REGEXP.
-
-See `flush-lines' or `keep-lines' for behavior of this command.
-
-If the buffer is read-only, Emacs will beep and refrain from deleting
-the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer.
-\(If the variable `kill-read-only-ok' is non-nil, then this won't
-even beep.)"
-  (interactive
-   (keep-lines-read-args "Kill lines containing match for regexp"))
-  (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
-    (with-current-buffer (clone-buffer nil nil)
-      (let ((inhibit-read-only t))
-        (keep-lines regexp rstart rend interactive)
-        (kill-region (or rstart (line-beginning-position))
-                     (or rend (point-max))))
-      (kill-buffer)))
-  (unless (and buffer-read-only kill-read-only-ok)
-    ;; Delete lines or make the "Buffer is read-only" error.
-    (flush-lines regexp rstart rend interactive)))
 (use-package ace-window
   :bind ("M-o" . ace-window))
 
 (use-package ag
   :commands ag
-  :if (executable-find "ag")
-  :bind ("C-?" . ag-project))
+  :bind ("C-?" . ag-project)
+  :init
+  (setq ag-executable "@ag@/bin/ag"))
 
 (use-package aggressive-indent
   :diminish aggressive-indent-mode
@@ -339,6 +261,15 @@ even beep.)"
         (align beg end-mark)))))
 
 (use-package ansi-color
+  :preface
+  ;; Compilation from Emacs
+  (defun colorize-compilation-buffer ()
+    "Colorize a compilation mode buffer."
+    (interactive)
+    ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
+    (when (eq major-mode 'compilation-mode)
+      (let ((inhibit-read-only t))
+        (ansi-color-apply-on-region (point-min) (point-max)))))
   :init
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
@@ -532,14 +463,13 @@ even beep.)"
                  (c-block-comment-prefix . ""))))
 
 (use-package coffee-mode
-  :mode (("\\.coffee\\'"   . coffee-mode)))
+  :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
   :bind ("<C-tab>" . company-complete)
   :diminish company-mode
   :commands (company-mode global-company-mode)
   :init
-  ;; (global-company-mode 1)
   (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-flx
@@ -590,9 +520,6 @@ even beep.)"
   :config
   (counsel-projectile-toggle 1))
 
-(use-package crontab-mode
-  :mode "\\.?cron\\(tab\\)?\\'")
-
 (use-package css-mode
   :mode "\\.css\\'"
   :commands css-mode
@@ -608,7 +535,7 @@ even beep.)"
   :commands (diffview-current diffview-region diffview-message))
 
 (use-package dired
-  :bind ("C-c J" . dired-double-jump)
+  :bind (("C-c J" . dired-double-jump))
   :preface
   (defvar mark-files-cache (make-hash-table :test #'equal))
 
@@ -642,6 +569,8 @@ even beep.)"
       (call-interactively #'other-window)))
 
   :config
+  (bind-key "r" #'browse-url-of-dired-file dired-mode-map)
+
   (bind-key "l" #'dired-up-directory dired-mode-map)
 
   (bind-key "<tab>" #'my-dired-switch-window dired-mode-map)
@@ -857,15 +786,17 @@ POINT ?"
 
   :config
 
-  (require 'esh-opt)
+  (with-eval-after-load "esh-opt"
+    (autoload 'epe-theme-lambda "eshell-prompt-extras")
+    (setq eshell-highlight-prompt nil
+	  eshell-prompt-function 'epe-theme-lambda))
 
   (setenv "PAGER" "cat")
   (setenv "EDITOR" "emacsclient -nq")
 
   (add-hook 'eshell-mode-hook
             (lambda ()
-              (define-key eshell-mode-map [(control ?u)] nil)
-              )))
+              (define-key eshell-mode-map [(control ?u)] nil))))
 
 (use-package eshell-fringe-status
   :commands eshell-fringe-status-mode
@@ -883,29 +814,19 @@ POINT ?"
   :bind (("C-c k" . er/expand-region)))
 
 (use-package flycheck
-  :commands global-flycheck-mode
-  :init (add-hook 'after-init-hook #'global-flycheck-mode))
+  :defer 2
+  :config (global-flycheck-mode))
 
 (use-package flyspell
   :commands flyspell-mode
   :init
-  (add-hook 'text-mode-hook 'flyspell-mode)
-  )
+  (add-hook 'text-mode-hook 'flyspell-mode))
 
 (use-package gist
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer gist-region-or-buffer-private))
 
-(use-package gitattributes-mode
-  :mode "\\.gitattributes\\'")
-
-(use-package gitconfig-mode
-  :mode "\\.gitconfig\\'")
-
-(use-package github-clone
-  :commands github-clone)
-
-(use-package gitignore-mode)
+(use-package ghc-mod)
 
 (use-package gnus
   :commands gnus
@@ -913,7 +834,7 @@ POINT ?"
   :init
   (add-hook 'kill-emacs-hook (lambda ()
                                (when (boundp 'gnus-group-exit)
-                                 (gnus-group-exit))))
+				 (gnus-group-exit))))
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode))
 
 (use-package go-eldoc
@@ -923,12 +844,6 @@ POINT ?"
 
 (use-package go-mode
   :mode "\\.go\\'")
-
-(use-package golden-ratio
-  :diminish golden-ratio-mode
-  :defer 2
-  :config
-  (golden-ratio-mode 1))
 
 (use-package grep
   :bind (("M-s d" . find-grep-dired)
@@ -1010,17 +925,11 @@ POINT ?"
   :diminish ivy-mode
   :commands ivy-mode
   :config
-  (ivy-mode 1)
-  (use-package flx
-    :disabled
-    :demand
-    :config
-    (setq ivy-re-builders-alist '((t . ivy--regex-fuzzy)))))
+  (ivy-mode 1))
 
 (use-package less-css-mode
   :mode "\\.json\\'"
-  :commands less-css-mode
-  )
+  :commands less-css-mode)
 
 (use-package lisp-mode
   :preface
@@ -1039,9 +948,6 @@ POINT ?"
     (unless lisp-mode-initialized
       (setq lisp-mode-initialized t)
 
-      ;; (use-package redshank
-      ;;   :demand)
-
       (use-package elisp-slime-nav
         :disabled)
 
@@ -1056,10 +962,7 @@ POINT ?"
           :disabled
           :init
           (add-hook 'emacs-lisp-mode-hook
-                    #'(lambda () (require 'eldoc-extension)) t))
-        ;; (eldoc-add-command 'paredit-backward-delete
-        ;;                    'paredit-close-round)
-        )
+                    #'(lambda () (require 'eldoc-extension)) t)))
 
       (use-package ert)
 
@@ -1077,10 +980,6 @@ POINT ?"
         (add-to-list 'elint-standard-variables 'buffer-file-coding-system)
         (add-to-list 'elint-standard-variables 'emacs-major-version)
         (add-to-list 'elint-standard-variables 'window-system))
-
-      ;; (use-package highlight-cl
-      ;;   :init
-      ;;   (apply #'hook-into-modes 'highlight-cl-add-font-lock-keywords lisp-mode-hooks))
 
       (defun my-elisp-indent-or-complete (&optional arg)
         (interactive "p")
@@ -1101,11 +1000,6 @@ POINT ?"
           (byte-recompile-file buffer-file-name))))
 
     (auto-fill-mode 1)
-    ;; (paredit-mode 1)
-    ;; (redshank-mode 1)
-    ;; (elisp-slime-nav-mode 1)
-
-    ;; (local-set-key (kbd "<return>") 'paredit-newline)
     (bind-key "<tab>" #'my-elisp-indent-or-complete emacs-lisp-mode-map)
 
     (add-hook 'after-save-hook 'check-parens nil t)
@@ -1140,14 +1034,12 @@ POINT ?"
 
 (use-package magit
   :commands (magit-clone)
-  :if (executable-find "git")
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup))
   :init
   (setq magit-completing-read-function 'ivy-completing-read))
 
 (use-package magit-gh-pulls
-  :if (executable-find "git")
   :commands turn-on-magit-gh-pulls
   :init
   (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls))
@@ -1184,8 +1076,7 @@ or the current buffer directory."
            (ignore-errors
            ;;; Pick one: projectile or find-file-in-project
                                         ; (projectile-project-root)
-             (ffip-project-root)
-             ))
+             (ffip-project-root)))
           (file-name (buffer-file-name))
           (neo-smart-open t))
       (if (and (fboundp 'neo-global--window-exists-p)
@@ -1253,7 +1144,8 @@ or the current buffer directory."
 
 (use-package rg
   :commands rg
-  :if (executable-find "rg"))
+  :init
+  (setq ripgrep-executable "@ripgrep@/bin/rg"))
 
 (use-package rtags
   :commands (rtags-start-process-unless-running rtags-enable-standard-keybindings)
@@ -1268,6 +1160,8 @@ or the current buffer directory."
    'c++-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
 	     (rtags-start-process-unless-running))))
+
+  (setq rtags-path "@rtags@/bin")
 
   :config
   ;; Keybindings
@@ -1351,9 +1245,6 @@ or the current buffer directory."
   :init
   (add-hook 'term-mode-hook (lambda () (linum-mode -1)))
   (add-hook 'js2-mode-hook 'tern-mode))
-
-(use-package tiny
-  :commands tiny)
 
 (use-package toc-org
   :commands toc-org-enable
@@ -1470,3 +1361,4 @@ or the current buffer directory."
   :mode "\\.yaml\\'")
 
 (provide 'default)
+;;; default.el ends here

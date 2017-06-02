@@ -1,59 +1,71 @@
 {
   packageOverrides = pkgs: with pkgs; rec {
+    myConfig = {
+      gitconfig = ./gitconfig;
+      gitignore = ./gitignore;
+      zshrc = ./zshrc.sh;
+      bashrc = ./bashrc.sh;
+      profile = ./profile.sh;
+      etc-profile = ./etc-profile.sh;
+      emacs = ./default.el;
+    };
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
-      emacs = emacsMacport;
+      emacs = emacs;
     });
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-      [
-        (runCommand "default.el" {} ''
-          mkdir -p $out/share/emacs/site-lisp
-          cp ${./default.el} $out/share/emacs/site-lisp/default.el
-        '')
-        nixStable
+      let pkgs = ([
+        nixUnstable
         ghc
-        # rtags
-        # mu
-        # notmuch
+        rtags
+        haskellPackages.ghc-mod
       ]
-      ++ (with epkgs; [
+      ++ (with epkgs.elpaPackages; [
+        ace-window
+        aggressive-indent
+        auctex
         avy
+        bug-hunter
+        coffee-mode
         company
-        counsel
-        flx
-        flycheck
-        go-mode
-        haml-mode
-        haskell-mode
+        dash
+        docbook
+        electric-spacing
         ivy
-        projectile
-        swiper
-        use-package
+        js2-mode
+        json-mode
+        minimap
+        other-frame-window
+        python
+        undo-tree
       ])
       ++ (with epkgs.melpaStablePackages; [
         ace-jump-mode
-        ace-window
         ag
-        aggressive-indent
+        bind-key
         buffer-move
-        coffee-mode
+        counsel
+        diminish
         diffview
         dumb-jump
-        expand-region
         esup
+        expand-region
+        flx
+        shut-up
+        flycheck
         gist
-        gitattributes-mode
-        gitconfig-mode
-        github-clone
-        gitignore-mode
-        go-eldoc
-        golden-ratio
+        go-mode
+        haml-mode
+        haskell-mode
         iedit
         imenu-anywhere
         imenu-list
         indium
         intero
+        irony
         less-css-mode
         lua-mode
+        magit
+        magit-gh-pulls
         markdown-mode
         multi-line
         multiple-cursors
@@ -63,6 +75,7 @@
         page-break-lines
         php-mode
         projectile
+        projectile
         rainbow-delimiters
         restart-emacs
         rust-mode
@@ -71,168 +84,182 @@
         smart-tabs-mode
         smartparens
         swiper
+        swiper
         tern
         toc-org
+        use-package
         web-mode
         which-key
         whitespace-cleanup-mode
         wrap-region
         xterm-color
+        yaml-mode
       ])
       ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         company-flx
         counsel-projectile
-        crontab-mode
         esh-help
         eshell-fringe-status
         eshell-prompt-extras
-        magit
-        magit-gh-pulls
-        tiny
         transpose-frame
-      ])
-    );
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; } ''
+          mkdir -p $out/share/emacs/site-lisp
+          cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
+          substituteAllInPlace $out/share/emacs/site-lisp/default.el
+          loadPaths=""
+          for f in ${toString pkgs}; do
+            loadPaths="$loadPaths -L $f/share/emacs/site-lisp/elpa/* -L $f/share/emacs/site-lisp"
+          done
+          $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
+        '')]
+      );
+    myZdotDir = env: runCommand "my-zdot-dir" {} ''
+      mkdir -p $out
+      cp ${myConfig.zshrc env} $out/.zshrc
+    '';
     userPackages = buildEnv {
-      postBuild =
-        ''
-          if [ -x $out/bin/install-info -a -w $out/share/info ]; then
-            shopt -s nullglob
-            for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
-                $out/bin/install-info $i $out/share/info/dir
-            done
-          fi
-        '';
-      pathsToLink = [
-        "/bin"
-        "/etc/profile.d"
-        "/etc/ssl"
-        "/Applications"
-        "/share/doc"
-        "/share/man"
-        "/share/info"
-        "/share/zsh"
-        "/share/bash-completion"
-        "/share/hunspell"
-      ];
-      extraOutputsToInstall = [ "man" "info" "doc" "devdoc" ];
-      name = "user-packages";
-      paths = [
-        myEmacs
-        aspell
-        anki
-        bashInteractive
-        bc
-        bison
-        bzip2
-        cabal-install
-        cabal2nix
-        cacert
-        cargo
-        checkbashisms
-        cmake
-        coreutils
-        curl
-        clang
-        ctags
-        # darwin.DarwinTools
-        # darwin.basic_cmds
-        # darwin.developer_cmds
-        diffutils
-        editorconfig-core-c
-        emscripten
-        ffmpeg
-        fetchmail
-        findutils
-        gcc
-        geany
-        gdb
-        ghc
-        git
-        gitAndTools.hub
-        gimp
-        groff
-        go2nix
-        gnugrep
-        gnumake
-        gnuplot
-        gnused
-        gnupg1compat
-        gnutar
-        gnutls
-        go
-        gzip
-        imagemagick
-        jq
-        haskellPackages.intero
-        haskellPackages.ghc-mod
-        hunspell
-        hunspellDicts.en-us
-        html-tidy
-        lua
-        less
-        man
-        myEmacs
-        mutt
-        mplayer
-        mariadb
-        moreutils
-        nano
-        nasm
-        nox
-        # netcat
-        # nixUnstable
-        nixStable
-        nix-prefetch-scripts
-        # nix-index
-        nix-repl
-        nix-zsh-completions
-        ninja
-        nmap
-        nodePackages.tern
-        nodejs
-        # node2nix
-        oh-my-zsh
-        openssh
-        openssl
-        pandoc
-        patch
-        pypi2nix
-        python
-        perl
-        php
-        pwgen
-        qemu
-        ripgrep
-        rsync
-        ruby
-        rustc
-        retroarch
-        screen
-        silver-searcher
-        stack
-        subversion
-        time
-        texinfoInteractive
-        tree
-        transmission
-        # unrar
-        unzip
-        vim
-        w3m
-        wget
-        weechat
-        # v8
-        xz
-        ycmd
-        zip
-        zsh
-        jdk
-        (runCommand "profile" {} ''
-mkdir -p $out/etc/profile.d
-cp ${./my-profile.sh} $out/etc/profile.d/my-profile.sh
-        '')
-      ];
+      buildInputs = [ makeWrapper ];
+      postBuild = ''
+        if [ -w $out/share/info ]; then
+           shopt -s nullglob
+           for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
+             ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
+           done
+            fi
+
+	    mkdir -p $out/etc
+
+	    cp ${myConfig.gitconfig} $out/etc/gitconfig
+	    substituteInPlace $out/etc/gitconfig \
+	      --replace @gitignore@ ${myConfig.gitignore} \
+	      --replace @out@ $out
+
+	    cp ${myConfig.bashrc} $out/etc/bashrc
+	    substituteInPlace $out/etc/bashrc \
+	      --replace @out@ $out
+
+	    cp ${myConfig.zshrc} $out/etc/.zshrc
+	    substituteInPlace $out/etc/.zshrc \
+	      --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
+	      --replace @out@ $out
+
+            cp ${myConfig.etc-profile} $out/etc/profile
+	    substituteInPlace $out/etc/profile \
+	      --replace @out@ $out
+
+	    wrapProgram $out/bin/bash \
+              --add-flags "--rcfile $out/etc/bashrc"
+
+            wrapProgram $out/bin/zsh \
+              --set ZDOTDIR $out/etc
+          '';
+        pathsToLink = [
+          "/bin"
+          "/etc/profile.d"
+          "/etc/bash_completion.d"
+          "/Applications"
+          "/share/doc"
+          "/share/man"
+          "/share/info"
+          "/share/zsh"
+          "/share/bash-completion"
+          "/share/hunspell"
+	];
+	extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
+	name = "user-packages";
+	paths = [
+            bash-completion
+	    zsh-completions
+	    aspell
+            myEmacs
+	    gawk
+            bashInteractive
+            bc
+            bzip2
+            cabal-install
+            cabal2nix
+            cargo
+            checkbashisms
+            cmake
+            coreutils
+            curl
+            clang
+            diffutils
+            editorconfig-core-c
+            emscripten
+            ffmpeg
+            findutils
+	    ripgrep
+	    ag
+            gcc
+            ghc
+            git
+            gitAndTools.hub
+            go2nix
+            gnugrep
+            gnumake
+            gnuplot
+            gnused
+            gnupg1compat
+            gnutar
+            gnutls
+            go
+            gzip
+            jdk
+            jq
+            haskellPackages.intero
+            hunspell
+            hunspellDicts.en-us
+            lua
+            less
+            man
+            mutt
+            nano
+            nasm
+            nox
+            nixUnstable
+            nix-prefetch-scripts
+            # nix-index
+            nix-repl
+            nix-zsh-completions
+            ninja
+	    rtags
+            nmap
+            nodePackages.tern
+            nodejs
+            openssh
+            openssl
+            pandoc
+            patch
+            pypi2nix
+            python
+            perl
+            php
+            pwgen
+            rsync
+            ruby
+            rustc
+            screen
+            stack
+            time
+            tree
+            unzip
+            vim
+            w3m
+            wget
+            v8
+            xz
+            zip
+            zsh
+            (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
+	      mkdir -p $out/etc/profile.d
+	      cp ${myConfig.profile} $out/etc/profile.d/my-profile.sh
+	      substituteInPlace $out/etc/profile.d/my-profile.sh \
+	        --replace @emacs@ ${myEmacs} \
+	        --replace @cacert@ ${cacert}
+            '')
+        ];
+      };
     };
-  };
-}
+  }
