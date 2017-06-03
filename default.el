@@ -231,7 +231,6 @@
  '(projectile-verbose nil)
  '(reb-re-syntax (quote string))
  '(require-final-newline t)
- '(restart-emacs-restore-frames nil)
  '(ring-bell-function (quote ignore))
  '(rtags-completions-enabled t)
  '(rtags-display-result-backend (quote ivy))
