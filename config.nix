@@ -117,10 +117,6 @@
           $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
         '')]
       );
-    myZdotDir = env: runCommand "my-zdot-dir" {} ''
-      mkdir -p $out
-      cp ${myConfig.zshrc env} $out/.zshrc
-    '';
     userPackages = buildEnv {
       buildInputs = [ makeWrapper ];
       postBuild = ''
@@ -147,6 +143,7 @@
 	    substituteInPlace $out/etc/.zshrc \
 	      --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
 	      --replace @out@ $out
+            cp $out/etc/.zshrc $out/etc/zshrc
 
             cp ${myConfig.etc-profile} $out/etc/profile
 	    substituteInPlace $out/etc/profile \
