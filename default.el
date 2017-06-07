@@ -97,10 +97,8 @@
  '(eshell-buffer-maximum-lines 20000)
  '(eshell-buffer-shorthand t)
  '(eshell-cd-on-directory t)
- '(eshell-cmpl-autolist t)
  '(eshell-cmpl-cycle-completions nil)
  '(eshell-cmpl-cycle-cutoff-length 2)
- '(eshell-cmpl-expand-before-complete t)
  '(eshell-cmpl-ignore-case t)
  '(eshell-complete-export-definition t)
  '(eshell-cp-interactive-query t)
@@ -125,7 +123,6 @@
  '(eshell-prompt-function (quote epe-theme-lambda))
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
- '(eshell-send-direct-to-subprocesses nil)
  '(eshell-visual-commands
    (quote
     ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm" "nano")))
@@ -490,6 +487,20 @@ you can use this command to copy text from a read-only buffer.
   (set-frame-parameter
    nil 'fullscreen
    (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
+
+;; Allow editing of binary .plist files.
+(add-to-list 'jka-compr-compression-info-list
+             ["\\.plist$"
+              "converting text XML to binary plist"
+              "plutil"
+              ("-convert" "binary1" "-o" "-" "-")
+              "converting binary plist to text XML"
+              "plutil"
+              ("-convert" "xml1" "-o" "-" "-")
+              nil nil "bplist"])
+
+;;It is necessary to perform an update!
+(jka-compr-update)
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -1080,6 +1091,9 @@ POINT ?"
   (setenv "EDITOR" "emacsclient -nq")
 
   (add-hook 'eshell-mode-hook
+            '(lambda () (define-key eshell-mode-map "\t" 'pcomplete-list)))
+
+  (add-hook 'eshell-mode-hook
             (lambda ()
               (define-key eshell-mode-map [(control ?u)] nil))))
 
@@ -1330,12 +1344,12 @@ POINT ?"
    ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 
 (use-package mwim
-  :commands (mwim-beginning-of-line mwim-end)
+  :commands (mwim-beginning-of-code-or-line mwim-end-of-code-or-line)
   ;; :bind (("C-a" . mwim-beginning-of-code-or-line)
   ;;        ("C-e" . mwim-end-of-code-or-line))
   :init
-  (global-set-key [remap move-beginning-of-line] #'mwim-beginning)
-  (global-set-key [remap move-end-of-line] #'mwim-end)
+  (global-set-key [remap move-beginning-of-line] #'mwim-beginning-of-code-or-line)
+  (global-set-key [remap move-end-of-line] #'mwim-end-of-code-or-line)
   )
 
 (use-package neotree
