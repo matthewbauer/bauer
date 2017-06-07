@@ -1026,9 +1026,13 @@ FUNC is run when MODES are loaded."
                     'esh-help-eldoc-command))))
 
 (use-package eshell
-  :bind (("C-x e" . eshell))
+  :bind (("C-x e" . eshell-new))
   :commands (eshell eshell-command)
   :preface
+  (defun eshell-new ()
+    (interactive)
+    (setq-local eshell-buffer-name (concat "*eshell<" default-directory ">*"))
+    (eshell))
   (defun eshell/emacs (&rest args)
     "Open a file in Emacs.  Some habits die hard.
 ARGS unused"
