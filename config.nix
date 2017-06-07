@@ -136,6 +136,7 @@
 	    cp ${myConfig.gitconfig} $out/etc/gitconfig
 	    substituteInPlace $out/etc/gitconfig \
 	      --replace @gitignore@ ${myConfig.gitignore} \
+              --replace @gnupg@ ${gnupg1compat}/bin/gpg \
 	      --replace @out@ $out
 
 	    cp ${myConfig.bashrc} $out/etc/bashrc
