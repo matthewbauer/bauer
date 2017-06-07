@@ -1549,7 +1549,7 @@ or the current buffer directory."
   :demand)
 
 (use-package web-mode
-  :mode "\\.html\\'")
+  :mode ("\\.html\\'" "\\.jsp\\'"))
 
 (use-package which-key
   :diminish which-key-mode
