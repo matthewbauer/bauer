@@ -69,6 +69,7 @@
         markdown-mode
         multi-line
         multiple-cursors
+        mmm-mode
         mwim
         neotree
         org-bullets
