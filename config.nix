@@ -13,6 +13,18 @@
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacs;
     });
+    jdee-server = stdenv.mkDerivation {
+      src = fetchFromGitHub {
+        owner = "jdee-emacs";
+        repo = "jdee-server";
+        rev = "446b262bdacb88e68f81af601a2ee0adfea41e24";
+        sha256 = "0qakixx9cvd7m1dsilmwq99gk3g10mfxvf19pqkq24vvixavd8w5";
+      };
+      name = "jdee-server";
+      buildInputs = [ maven ];
+      buildPhase = "mvn -DskipTests=true assembly:assembly";
+      installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
+    };
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
       let pkgs = ([
         nix
@@ -106,7 +118,8 @@
         eshell-prompt-extras
         kill-or-bury-alive
         transpose-frame
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; } ''
+        mediawiki
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; jdeeserver = jdee-server; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el

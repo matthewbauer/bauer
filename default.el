@@ -1025,6 +1025,10 @@ FUNC is run when MODES are loaded."
               (setq eldoc-documentation-function
                     'esh-help-eldoc-command))))
 
+(use-package jdee
+  :init
+  (setq jdee-server-dir "@jdeeserver@"))
+
 (use-package eshell
   :bind (("C-x e" . eshell-new))
   :commands (eshell eshell-command)
