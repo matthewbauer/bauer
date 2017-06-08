@@ -209,6 +209,7 @@
 	    ag
             gcc
             ghc
+            haskellPackages.ghc-mod
             git
             gitAndTools.hub
             go2nix

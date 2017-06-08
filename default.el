@@ -9,11 +9,11 @@
 (require 'diminish)                ;; if you use :diminish
 (require 'bind-key)                ;; if you use any :bind variant
 
-(setenv "NIX_REMOTE" "daemon")
+;; (setenv "NIX_REMOTE" "daemon")
 (setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
 (setenv "EDITOR" "emacsclient -nw")
-(setenv "PATH" "~/.nix-profile/bin")
-(setenv "MANPATH" "~/.nix-profile/share/man")
+;; (setenv "PATH" "~/.nix-profile/bin")
+;; (setenv "MANPATH" "~/.nix-profile/share/man")
 
 (custom-set-variables
  '(ad-redefinition-action (quote accept))
