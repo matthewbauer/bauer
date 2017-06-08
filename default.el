@@ -372,6 +372,13 @@
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 
+(defun sudo-find-file (&optional arg)
+  "Edit a file as root."
+  (interactive "p")
+  (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
 
