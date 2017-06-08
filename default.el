@@ -1035,7 +1035,7 @@ FUNC is run when MODES are loaded."
   :preface
   (defun eshell-new ()
     (interactive)
-    (setq-local eshell-buffer-name (concat "*eshell<" default-directory ">*"))
+    (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))
     (eshell))
   (defun eshell/emacs (&rest args)
     "Open a file in Emacs.  Some habits die hard.
