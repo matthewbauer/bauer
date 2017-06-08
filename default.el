@@ -1381,7 +1381,7 @@ or the current buffer directory."
               (neotree-find file-name))))))
   :bind (("<f8>" . neotree-project-dir-toggle))
   :config
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+  (setq neo-theme 'arrow))
 
 (use-package nix-mode
   :mode "\\.nix\\'")
