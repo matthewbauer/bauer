@@ -22,7 +22,7 @@
       };
       name = "jdee-server";
       buildInputs = [ maven ];
-      buildPhase = "mvn -DskipTests=true assembly:assembly";
+      buildPhase = "mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly";
       installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
     };
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
