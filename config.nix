@@ -119,7 +119,7 @@
         kill-or-bury-alive
         transpose-frame
         mediawiki
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; jdeeserver = jdee-server; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs aspell; jdeeserver = jdee-server; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
@@ -226,8 +226,6 @@
             jdk
             jq
             haskellPackages.intero
-            hunspell
-            hunspellDicts.en-us
             lua
             less
             man

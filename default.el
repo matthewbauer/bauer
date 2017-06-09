@@ -162,7 +162,6 @@
  '(initial-major-mode (quote fundamental-mode))
  '(initial-scratch-message "")
  '(ispell-extra-args (quote ("--sug-mode=ultra")))
- '(ispell-program-name "aspell")
  '(ispell-quietly t)
  '(ivy-count-format "\"\"")
  '(ivy-display-style nil)
@@ -1217,7 +1216,9 @@ POINT ?"
   :commands intero-mode
   :init (add-hook 'haskell-mode-hook 'intero-mode))
 
-(use-package ispell)
+(use-package ispell
+  :init
+  (setq ispell-program-name "@aspell@/bin/aspell"))
 
 (use-package ivy
   :defer 1
