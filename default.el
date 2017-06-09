@@ -1130,7 +1130,7 @@ POINT ?"
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer gist-region-or-buffer-private))
 
-(use-package ghc-mod)
+(use-package ghc)
 
 (use-package gnus
   :commands gnus
