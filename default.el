@@ -483,6 +483,8 @@ you can use this command to copy text from a read-only buffer.
 
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
 
+(require 'tramp)
+
 (defun is-current-file-tramp ()
   "Is the current file in a tramp remote setup?"
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
