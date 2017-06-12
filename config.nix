@@ -40,7 +40,6 @@
         bug-hunter
         coffee-mode
         company
-        dash
         docbook
         electric-spacing
         ivy
@@ -72,7 +71,6 @@
         iedit
         imenu-anywhere
         imenu-list
-        indium
         intero
         irony
         less-css-mode
@@ -97,7 +95,6 @@
         smart-tabs-mode
         smartparens
         swiper
-        swiper
         tern
         toc-org
         use-package
@@ -107,27 +104,46 @@
         wrap-region
         xterm-color
         yaml-mode
+
+        # epkgs.melpaStablePackages.dash
+        # epkgs.melpaStablePackages.f
+        # epkgs.melpaStablePackages.s
       ])
       ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         c-eldoc
+        css-eldoc
+        go-eldoc
         company-flx
         counsel-projectile
+        indium
         jdee
         esh-help
         eshell-prompt-extras
         kill-or-bury-alive
         transpose-frame
         mediawiki
+        rg
+
+        # with-editor
+        # memoize
+        # websocket
+        # gh
+        # exec-path-from-shell
+        # marshal
+        # ht
+        # git-commit
+        # magit-popup
+        # pcache
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs aspell; jdeeserver = jdee-server; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
-          loadPaths=""
-          for f in ${toString pkgs}; do
-            loadPaths="$loadPaths -L $f/share/emacs/site-lisp/elpa/* -L $f/share/emacs/site-lisp"
-          done
-          $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
+          # loadPaths=""
+          # for f in ${toString pkgs}; do
+          #   loadPaths="$loadPaths -L $f/share/emacs/site-lisp/elpa/* -L $f/share/emacs/site-lisp"
+          # done
+          # $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
         '')]
       );
     userPackages = buildEnv {
