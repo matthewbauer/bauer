@@ -1029,7 +1029,7 @@ FUNC is run when MODES are loaded."
 ;;   :init
 ;;   (setq jdee-server-dir "@jdeeserver@"))
 
-(use-package realgud)
+;; (use-package realgud)
 
 (use-package autodisass-java-bytecode)
 
@@ -1037,13 +1037,12 @@ FUNC is run when MODES are loaded."
   :init
   (add-hook 'java-mode-hook
             (lambda ()
-              (google-set-c-style)
-              (google-make-newline-indent)
               (meghanada-mode t)
               (smartparens-mode t)
               (rainbow-delimiters-mode t)
               (highlight-symbol-mode t)
-              (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
+              ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
+              ))
 
   :config
   (setq indent-tabs-mode nil)
@@ -1055,9 +1054,7 @@ FUNC is run when MODES are loaded."
   :bind
   (:map meghanada-mode-map
         ("C-S-t" . meghanada-switch-testcase)
-        ("M-RET" . meghanada-local-variable)
-        ("C-M-." . helm-imenu)
-        ("C-z" . hydra-meghanada/body))
+        ("M-RET" . meghanada-local-variable))
 
   :commands (meghanada-mode))
 
@@ -1688,6 +1685,12 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
+
+(use-package smart-hungry-delete
+  :bind (("<backspace>" . smart-hungry-delete-backward-char)
+         ("C-d" . smart-hungry-delete-forward-char))
+  :config (smart-hungry-delete-add-default-hooks)
+  )
 
 (provide 'default)
 ;;; default.el ends here

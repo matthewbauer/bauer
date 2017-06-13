@@ -110,6 +110,10 @@
         # epkgs.melpaStablePackages.s
       ])
       ++ (with epkgs.melpaPackages; [
+        autodisass-java-bytecode
+        smart-hungry-delete
+        meghanada
+        # realgud
         apropospriate-theme
         c-eldoc
         css-eldoc
