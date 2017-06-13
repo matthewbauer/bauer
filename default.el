@@ -371,30 +371,6 @@
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 
-
-(set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-(require 'tramp)
-(defun sudo-edit-current-file ()
-  (interactive)
-  (let ((position (point)))
-    (find-alternate-file
-     (if (file-remote-p (buffer-file-name))
-         (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-           (tramp-make-tramp-file-name
-            "sudo"
-            (tramp-file-name-user vec)
-            (tramp-file-name-host vec)
-            (tramp-file-name-localname vec)))
-       (concat "/sudo:root@localhost:" (buffer-file-name))))
-    (goto-char position)))
-
-(defun sudo-find-file (&optional arg)
-  "Edit a file as root."
-  (interactive "p")
-  (if (or arg (not buffer-file-name))
-      (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
 
@@ -429,8 +405,6 @@ i.e. change right window to bottom, or change bottom window to right."
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
-
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."
@@ -510,6 +484,30 @@ you can use this command to copy text from a read-only buffer.
 
 (require 'tramp)
 
+(set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+(defun sudo-edit-current-file ()
+  (interactive)
+  (let ((position (point)))
+    (find-alternate-file
+     (if (file-remote-p (buffer-file-name))
+         (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+           (tramp-make-tramp-file-name
+            "sudo"
+            (tramp-file-name-user vec)
+            (tramp-file-name-host vec)
+            (tramp-file-name-localname vec)))
+       (concat "/sudo:root@localhost:" (buffer-file-name))))
+    (goto-char position)))
+
+(defun sudo-find-file (&optional arg)
+  "Edit a file as root."
+  (interactive "p")
+  (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
 (defun is-current-file-tramp ()
   "Is the current file in a tramp remote setup?"
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
@@ -520,6 +518,57 @@ you can use this command to copy text from a read-only buffer.
   (set-frame-parameter
    nil 'fullscreen
    (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
+
+(defvar get-buffer-compile-command (lambda (file) (cons file 1)))
+(make-variable-buffer-local 'get-buffer-compile-command)
+
+(setq-default compile-command "")
+
+(defun compile-dwim (&optional arg)
+  "Compile Do What I Mean.
+    Compile using `compile-command'.
+    When `compile-command' is empty prompt for its default value.
+    With prefix C-u always prompt for the default value of
+    `compile-command'.
+    With prefix C-u C-u prompt for buffer local compile command with
+    suggestion from `get-buffer-compile-command'.  An empty input removes
+    the local compile command for the current buffer."
+  (interactive "P")
+  (cond
+   ((and arg (> (car arg) 4))
+    (let ((cmd (read-from-minibuffer
+                "Buffer local compile command: "
+                (funcall get-buffer-compile-command
+                         (or (file-relative-name (buffer-file-name)) ""))
+                nil nil 'compile-history)))
+      (cond ((equal cmd "")
+             (kill-local-variable 'compile-command)
+             (kill-local-variable 'compilation-directory))
+            (t
+             (set (make-local-variable 'compile-command) cmd)
+             (set (make-local-variable 'compilation-directory)
+                  default-directory))))
+    (when (not (equal compile-command ""))
+      ;; `compile' changes the default value of
+      ;; compilation-directory but this is a buffer local
+      ;; compilation
+      (let ((dirbak (default-value 'compilation-directory)))
+        (compile compile-command)
+        (setq-default compilation-directory dirbak))))
+   ((or (and arg (<= (car arg) 4))
+        (equal compile-command ""))
+    (setq-default compile-command (read-from-minibuffer
+                                   "Compile command: "
+                                   (if (equal compile-command "")
+                                       "make " compile-command)
+                                   nil nil 'compile-history))
+    (setq-default compilation-directory default-directory)
+    (when (not (equal (default-value 'compile-command) ""))
+      (compile (default-value 'compile-command))))
+   (t
+    (recompile))))
+
+(global-set-key (kbd "<f5>") 'compile-dwim)
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -1677,6 +1726,7 @@ or the current buffer directory."
   (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package wrap-region
+  :disabled
   :diminish wrap-region-mode
   :commands wrap-region-mode
   :init
