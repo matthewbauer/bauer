@@ -483,6 +483,12 @@ you can use this command to copy text from a read-only buffer.
 
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
 
+(add-hook 'comint-mode-hook (lambda ()
+                              (toggle-truncate-lines 1)
+                              (make-local-variable 'jit-lock-defer-timer)
+                              (set (make-local-variable 'jit-lock-defer-time) 0.25)
+                              ))
+
 (require 'tramp)
 
 (defun is-current-file-tramp ()
@@ -1446,11 +1452,11 @@ or the current buffer directory."
   (add-hook
    'c-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
-	     (rtags-start-process-unless-running))))
+                  (rtags-start-process-unless-running))))
   (add-hook
    'c++-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
-	     (rtags-start-process-unless-running))))
+                  (rtags-start-process-unless-running))))
 
   (setq rtags-path "@rtags@/bin")
 
