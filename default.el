@@ -371,6 +371,23 @@
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 
+
+(set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+(require 'tramp)
+(defun sudo-edit-current-file ()
+  (interactive)
+  (let ((position (point)))
+    (find-alternate-file
+     (if (file-remote-p (buffer-file-name))
+         (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+           (tramp-make-tramp-file-name
+            "sudo"
+            (tramp-file-name-user vec)
+            (tramp-file-name-host vec)
+            (tramp-file-name-localname vec)))
+       (concat "/sudo:root@localhost:" (buffer-file-name))))
+    (goto-char position)))
+
 (defun sudo-find-file (&optional arg)
   "Edit a file as root."
   (interactive "p")
@@ -412,6 +429,8 @@ i.e. change right window to bottom, or change bottom window to right."
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
+
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."

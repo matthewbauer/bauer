@@ -13,6 +13,11 @@
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacs;
     });
+    # aspell = runCommand "aspell" { aspell = pkgs.aspell; } ''
+    #   mkdir -p $out/share/emacs/site-lisp
+    #   cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
+    #   wrapProgram
+    # '';
     jdee-server = stdenv.mkDerivation {
       src = fetchFromGitHub {
         owner = "jdee-emacs";
