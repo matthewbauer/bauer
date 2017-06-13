@@ -1025,22 +1025,22 @@ FUNC is run when MODES are loaded."
               (setq eldoc-documentation-function
                     'esh-help-eldoc-command))))
 
-;; (use-package jdee
-;;   :init
-;;   (setq jdee-server-dir "@jdeeserver@"))
+(use-package jdee
+  :init
+  (setq jdee-server-dir "@jdeeserver@"))
 
 ;; (use-package realgud)
 
 (use-package autodisass-java-bytecode)
 
 (use-package meghanada
+  :disabled
   :init
   (add-hook 'java-mode-hook
             (lambda ()
               (meghanada-mode t)
               (smartparens-mode t)
               (rainbow-delimiters-mode t)
-              (highlight-symbol-mode t)
               ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
               ))
 
