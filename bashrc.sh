@@ -36,6 +36,8 @@ export SHELL_SESSION_HISTORY=0
 # fi
 
 # prompt
+GREEN="\[$(tput setaf 2)\]"
+YELLOW="\[$(/usr/bin/tput setaf 3)\]"
 BLUE="\[$(/usr/bin/tput setaf 4)\]"
 RESET="\[$(/usr/bin/tput sgr0)\]"
-export PS1="${BLUE}\w $ ${RESET}"
+export PS1="${BLUE}\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
