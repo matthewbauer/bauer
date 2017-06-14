@@ -33,5 +33,5 @@ if [[ -z "$LC_CTYPE" && -z "$LC_ALL" ]]; then
 fi
 
 export HISTFILE=$HOME/.history
-export HISTSIZE=10000
-export SAVEHIST=10000
+export HISTSIZE=16000
+export SAVEHIST=15000

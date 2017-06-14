@@ -56,6 +56,9 @@ setopt auto_cd
 setopt multios
 setopt prompt_subst
 
+setopt auto_name_dirs
+setopt no_beep
+
 zstyle ':completion:*:*:*:*:*' menu select
 
 # case insensitive (all), partial-word and substring completion
@@ -131,20 +134,7 @@ ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗"
 ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
 
-######################### zsh options ################################
-setopt ALWAYS_TO_END           # Push that cursor on completions.
-setopt AUTO_NAME_DIRS          # change directories  to variable names
-setopt AUTO_PUSHD              # push directories on every cd
-setopt NO_BEEP                 # self explanatory
-
 ######################### history options ############################
-setopt EXTENDED_HISTORY
-setopt HIST_EXPIRE_DUPS_FIRST
-setopt HIST_VERIFY
-setopt INC_APPEND_HISTORY
-HISTSIZE=16000
-SAVEHIST=15000
-HISTFILE=~/.history
 
 if [[ $TERM == "xterm-256color" ]]; then
     #Mac OSX/BSD bindings for Home/End/Del

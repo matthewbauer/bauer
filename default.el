@@ -1739,18 +1739,46 @@ or the current buffer directory."
      ("`" "`" nil (markdown-mode ruby-mode shell-script-mode)))))
 
 (use-package xterm-color
-  :init
+  :demand
+  :config
+  (require 'eshell)
+  (setenv "TERM" "xterm-256color")
   ;; Comint and Shell
-  (setq comint-output-filter-functions
-        (remove 'ansi-color-process-output comint-output-filter-functions))
-  (defun init-eshell-xterm-color ()
-    "Initialize xterm coloring for eshell"
-    (setq-local xterm-color-preserve-properties t)
-    (make-local-variable 'eshell-preoutput-filter-functions)
-    (setq-local eshell-output-filter-functions
-                (remove 'eshell-handle-ansi-color
-                        eshell-output-filter-functions)))
-  (add-hook 'eshell-mode-hook 'init-eshell-xterm-color))
+  (progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
+         (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
+  ;; (setq comint-output-filter-functions
+  ;;       (remove 'ansi-color-process-output comint-output-filter-functions))
+  ;; (defun init-eshell-xterm-color ()
+  ;;   "Initialize xterm coloring for eshell"
+  ;;   (setq-local xterm-color-preserve-properties t)
+  ;;   (make-local-variable 'eshell-preoutput-filter-functions)
+  ;;   (setq-local eshell-output-filter-functions
+  ;;               (remove 'eshell-handle-ansi-color
+  ;;                       eshell-output-filter-functions)))
+  ;; (add-hook 'eshell-mode-hook 'init-eshell-xterm-color)
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (setq xterm-color-preserve-properties t)))
+
+  ;; (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+  ;; (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
+
+  (setq compilation-environment '("TERM=xterm-256color"))
+
+  (add-hook 'compilation-start-hook
+            (lambda (proc)
+              ;; We need to differentiate between compilation-mode buffers
+              ;; and running as part of comint (which at this point we assume
+              ;; has been configured separately for xterm-color)
+              (when (eq (process-filter proc) 'compilation-filter)
+                ;; This is a process associated with a compilation-mode buffer.
+                ;; We may call `xterm-color-filter' before its own filter function.
+                (set-process-filter
+                 proc
+                 (lambda (proc string)
+                   (funcall 'compilation-filter proc
+                            (xterm-color-filter string)))))))
+  )
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
