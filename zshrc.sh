@@ -76,7 +76,6 @@ zstyle ':completion::complete:*' use-cache 1
 zstyle ':completion::complete:*' cache-path ~/.cache
 
 # Apply theming defaults
-PS1="%n@%m:%~%# "
 
 typeset -AHg FX FG BG
 
@@ -128,7 +127,7 @@ function parse_git_dirty() {
 ZSH_SPECTRUM_TEXT=${ZSH_SPECTRUM_TEXT:-Arma virumque cano Troiae qui primus ab oris}
 
 local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ )"
-PROMPT='${ret_status} %{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info)'
+PROMPT='${ret_status} %{$fg[blue]%}%m:%{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info)'
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗"
