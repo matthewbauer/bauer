@@ -25,6 +25,7 @@
  '(backward-delete-char-untabify-method (quote hungry))
  '(byte-compile-verbose nil)
  '(c-eldoc-includes "" t)
+ '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
    (quote
@@ -56,6 +57,11 @@
  '(cperl-lazy-help-time 3)
  '(create-lockfiles nil)
  '(css-indent-offset 2)
+ '(debug-ignored-errors
+   (quote
+    ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
+ '(debug-on-error nil)
+ '(debug-on-signal t)
  '(dired-dwim-target t)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
@@ -97,8 +103,10 @@
  '(eshell-buffer-maximum-lines 20000)
  '(eshell-buffer-shorthand t)
  '(eshell-cd-on-directory t)
+ '(eshell-cmpl-autolist t)
  '(eshell-cmpl-cycle-completions nil)
  '(eshell-cmpl-cycle-cutoff-length 2)
+ '(eshell-cmpl-expand-before-complete t)
  '(eshell-cmpl-ignore-case t)
  '(eshell-complete-export-definition t)
  '(eshell-cp-interactive-query t)
@@ -120,7 +128,7 @@
    (quote
     (eshell-handle-ansi-color eshell-handle-control-codes eshell-watch-for-password-prompt eshell-truncate-buffer)))
  '(eshell-plain-echo-behavior nil)
- '(eshell-prompt-function (quote epe-theme-lambda))
+ '(eshell-prompt-function (quote epe-theme-lambda) t)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
  '(eshell-visual-commands
@@ -274,6 +282,7 @@
  '(sp-base-key-bindings (quote paredit))
  '(sp-hybrid-kill-entire-symbol nil)
  '(term-input-autoexpand t)
+ '(term-input-ignoredups t)
  '(term-input-ring-file-name t)
  '(tls-checktrust t)
  '(undo-limit 800000)
@@ -282,7 +291,7 @@
  '(uniquify-separator "/")
  '(use-package-always-defer t)
  '(use-package-always-ensure nil)
- '(use-package-ensure-function 'ignore)
+ '(use-package-ensure-function (quote ignore))
  '(use-package-enable-imenu-support t)
  '(use-package-expand-minimally t)
  '(use-package-verbose nil)
@@ -1628,7 +1637,8 @@ or the current buffer directory."
   (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
   :config
-  (require 'smartparens-config))
+  (require 'smartparens-config)
+  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil))
 
 (use-package swiper
   :bind (("\C-s" . swiper)
