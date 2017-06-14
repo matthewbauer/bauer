@@ -1119,6 +1119,7 @@ FUNC is run when MODES are loaded."
                     'esh-help-eldoc-command))))
 
 (use-package jdee
+  :disabled
   :init
   (setq jdee-server-dir "@jdeeserver@"))
 
