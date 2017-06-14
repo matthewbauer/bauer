@@ -210,6 +210,21 @@
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
+ '(org-capture-templates
+   '(("a" "Appointment" entry (file  "~/Dropbox/orgfiles/gcal.org" "Appointments")
+      "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
+     ("n" "Note" entry (file+headline "~/Dropbox/orgfiles/notes.org" "Notes")
+      "* Note %?\n%T")
+     ("l" "Link" entry (file+headline "~/Dropbox/orgfiles/links.org" "Links")
+      "* %? %^L %^g \n%T" :prepend t)
+     ("b" "Blog idea" entry (file+headline "~/Dropbox/orgfiles/i.org" "Blog Topics:")
+      "* %?\n%T" :prepend t)
+     ("t" "To Do Item" entry (file+headline "~/Dropbox/orgfiles/i.org" "To Do Items")
+      "* %?\n%T" :prepend t)
+     ("j" "Journal" entry (file+datetree "~/Dropbox/journal.org")
+      "* %?\nEntered on %U\n  %i\n  %a")
+     ("s" "Screencast" entry (file "~/Dropbox/orgfiles/screencastnotes.org")
+      "* %?\n%i\n")))
  '(network-security-level (quote medium))
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
@@ -328,6 +343,8 @@
 (prefer-coding-system 'utf-8)
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
+
+(server-start)
 
 ;; Enable emoji, and stop the UI from freezing when trying to display them.
 (when (fboundp 'set-fontset-font)
@@ -1499,8 +1516,12 @@ or the current buffer directory."
 
 (use-package org
   ;; :mode "\\.\\(org\\)\\'"
+  :commands org-capture
   :init
-  (add-hook 'org-mode-hook 'auto-fill-mode))
+  (add-hook 'org-mode-hook 'auto-fill-mode)
+  (global-set-key (kbd "C-c c")
+                  'org-capture)
+  )
 
 (use-package org-bullets
   :commands org-bullets-mode
@@ -1804,7 +1825,8 @@ or the current buffer directory."
   :bind ("C-c t" . term))
 
 (use-package noflet
-  :init
+  :commands noflet
+  :preface
   (defadvice org-capture-finalize
       (after delete-capture-frame activate)
     "Advise capture-finalize to close the frame"
@@ -1816,6 +1838,7 @@ or the current buffer directory."
     "Advise capture-destroy to close the frame"
     (if (equal "capture" (frame-parameter nil 'name))
         (delete-frame)))
+
   (defun make-capture-frame ()
     "Create a new frame and run org-capture."
     (interactive)
@@ -1823,7 +1846,7 @@ or the current buffer directory."
     (select-frame-by-name "capture")
     (delete-other-windows)
     (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-      (org-capture)))
+            (org-capture)))
   )
 
 (provide 'default)
