@@ -13,11 +13,13 @@
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacs;
     });
-    # aspell = runCommand "aspell" { aspell = pkgs.aspell; } ''
-    #   mkdir -p $out/share/emacs/site-lisp
-    #   cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
-    #   wrapProgram
-    # '';
+    myAspell = runCommand "aspell" { buildInputs = [ makeWrapper ]; } ''
+      mkdir -p $out/bin
+      makeWrapper ${aspell}/bin/aspell $out/bin/aspell \
+        --add-flags "--conf=${writeText "aspell.conf" ''
+dict-dir ${aspellDicts.en}/lib/aspell
+        ''}"
+    '';
     jdee-server = stdenv.mkDerivation {
       src = fetchFromGitHub {
         owner = "jdee-emacs";
@@ -144,7 +146,7 @@
         # git-commit
         # magit-popup
         # pcache
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs aspell; jdeeserver = jdee-server; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
@@ -204,14 +206,13 @@
           "/share/info"
           "/share/zsh"
           "/share/bash-completion"
-          "/share/hunspell"
 	];
 	extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
 	name = "user-packages";
 	paths = [
             bash-completion
 	    zsh-completions
-	    aspell
+	    myAspell
             myEmacs
 	    gawk
             bashInteractive
