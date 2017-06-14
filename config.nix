@@ -215,7 +215,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
             cmake
             coreutils
             curl
-            clang
             diffutils
             editorconfig-core-c
             emscripten
@@ -223,7 +222,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
             findutils
 	    ripgrep
 	    ag
-            gcc
             ghc
             haskellPackages.ghc-mod
             git
