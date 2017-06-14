@@ -106,9 +106,7 @@
  '(eshell-cmpl-autolist t)
  '(eshell-cmpl-cycle-completions nil)
  '(eshell-cmpl-cycle-cutoff-length 2)
- '(eshell-cmpl-expand-before-complete t)
  '(eshell-cmpl-ignore-case t)
- '(eshell-complete-export-definition t)
  '(eshell-cp-interactive-query t)
  '(eshell-cp-overwrite-files nil)
  '(eshell-default-target-is-dot t)
@@ -1139,10 +1137,10 @@ FUNC is run when MODES are loaded."
   :bind (("C-x e" . eshell-new))
   :commands (eshell eshell-command)
   :preface
-  (defun eshell-new ()
+  (defun eshell-new (&optional arg)
     (interactive)
     (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))
-    (eshell))
+    (eshell arg))
   (defun eshell/emacs (&rest args)
     "Open a file in Emacs.  Some habits die hard.
 ARGS unused"
@@ -1751,7 +1749,6 @@ or the current buffer directory."
 (use-package xterm-color
   :demand
   :config
-  (require 'eshell)
   (setenv "TERM" "xterm-256color")
   ;; Comint and Shell
   (progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
@@ -1766,9 +1763,9 @@ or the current buffer directory."
   ;;               (remove 'eshell-handle-ansi-color
   ;;                       eshell-output-filter-functions)))
   ;; (add-hook 'eshell-mode-hook 'init-eshell-xterm-color)
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (setq xterm-color-preserve-properties t)))
+  ;; (add-hook 'eshell-mode-hook
+  ;;           (lambda ()
+  ;;             (setq xterm-color-preserve-properties t)))
 
   ;; (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
   ;; (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
@@ -1794,9 +1791,11 @@ or the current buffer directory."
   :mode "\\.yaml\\'")
 
 (use-package smart-hungry-delete
-  :bind (("<backspace>" . smart-hungry-delete-backward-char)
-         ("C-d" . smart-hungry-delete-forward-char))
-  :config (smart-hungry-delete-add-default-hooks)
+  :commands smart-hungry-delete-add-default-hooks
+  :bind (:map prog-mode-map
+              ("<backspace>" . smart-hungry-delete-backward-char)
+              ("C-d" . smart-hungry-delete-forward-char))
+  :init (smart-hungry-delete-add-default-hooks)
   )
 
 (provide 'default)
