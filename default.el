@@ -1601,6 +1601,7 @@ or the current buffer directory."
 
 (use-package shell
   :commands (shell shell-mode)
+  :bind ("C-c C-s" . shell)
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
   (setenv "PAGER" "cat")
@@ -1797,6 +1798,9 @@ or the current buffer directory."
               ("C-d" . smart-hungry-delete-forward-char))
   :init (smart-hungry-delete-add-default-hooks)
   )
+
+(use-package term
+  :bind ("C-c t" . term))
 
 (provide 'default)
 ;;; default.el ends here
