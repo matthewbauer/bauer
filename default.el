@@ -321,8 +321,8 @@
 (column-number-mode t)
 ;; (global-auto-revert-mode t)
 (when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+;; (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+;; (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (display-time)
 (auto-compression-mode t)
 (prefer-coding-system 'utf-8)
@@ -489,36 +489,6 @@ you can use this command to copy text from a read-only buffer.
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)
                               ))
 
-(require 'tramp)
-
-(set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-(defun sudo-edit-current-file ()
-  (interactive)
-  (let ((position (point)))
-    (find-alternate-file
-     (if (file-remote-p (buffer-file-name))
-         (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-           (tramp-make-tramp-file-name
-            "sudo"
-            (tramp-file-name-user vec)
-            (tramp-file-name-host vec)
-            (tramp-file-name-localname vec)))
-       (concat "/sudo:root@localhost:" (buffer-file-name))))
-    (goto-char position)))
-
-(defun sudo-find-file (&optional arg)
-  "Edit a file as root."
-  (interactive "p")
-  (if (or arg (not buffer-file-name))
-      (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-
-(defun is-current-file-tramp ()
-  "Is the current file in a tramp remote setup?"
-  (tramp-tramp-file-p (buffer-file-name (current-buffer))))
-
 (defun toggle-fullscreen ()
   "Toggle full screen."
   (interactive)
@@ -600,6 +570,37 @@ FUNC is run when MODES are loaded."
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
          ("C-c r" . kill-or-bury-alive-purge-buffers)))
+
+
+(use-package tramp
+  :defer 2
+  :config
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  (defun sudo-edit-current-file ()
+    (interactive)
+    (let ((position (point)))
+      (find-alternate-file
+       (if (file-remote-p (buffer-file-name))
+           (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+             (tramp-make-tramp-file-name
+              "sudo"
+              (tramp-file-name-user vec)
+              (tramp-file-name-host vec)
+              (tramp-file-name-localname vec)))
+         (concat "/sudo:root@localhost:" (buffer-file-name))))
+      (goto-char position)))
+
+  (defun sudo-find-file (&optional arg)
+    "Edit a file as root."
+    (interactive "p")
+    (if (or arg (not buffer-file-name))
+        (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (defun is-current-file-tramp ()
+    "Is the current file in a tramp remote setup?"
+    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
+  )
 
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
@@ -1801,6 +1802,29 @@ or the current buffer directory."
 
 (use-package term
   :bind ("C-c t" . term))
+
+(use-package noflet
+  :init
+  (defadvice org-capture-finalize
+      (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-frame)))
+
+  (defadvice org-capture-destroy
+      (after delete-capture-frame activate)
+    "Advise capture-destroy to close the frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-frame)))
+  (defun make-capture-frame ()
+    "Create a new frame and run org-capture."
+    (interactive)
+    (make-frame '((name . "capture")))
+    (select-frame-by-name "capture")
+    (delete-other-windows)
+    (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+      (org-capture)))
+  )
 
 (provide 'default)
 ;;; default.el ends here

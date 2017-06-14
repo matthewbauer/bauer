@@ -135,17 +135,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         transpose-frame
         mediawiki
         rg
-
-        # with-editor
-        # memoize
-        # websocket
-        # gh
-        # exec-path-from-shell
-        # marshal
-        # ht
-        # git-commit
-        # magit-popup
-        # pcache
+        noflet
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
