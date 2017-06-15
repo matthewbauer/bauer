@@ -122,11 +122,6 @@
  '(eshell-history-size 10000)
  '(eshell-list-files-after-cd t)
  '(eshell-ln-interactive-query t)
- '(eshell-modules-list
-   (quote
-    (eshell-alias eshell-banner eshell-basic eshell-cmpl eshell-dirs eshell-glob
-                  eshell-hist eshell-ls eshell-pred eshell-prompt eshell-script eshell-term
-                  eshell-tramp eshell-unix eshell-xtra)))
  '(eshell-mv-interactive-query t)
  '(eshell-output-filter-functions
    (quote
@@ -341,7 +336,7 @@
 (savehist-mode 1)
 (column-number-mode t)
 ;; (global-auto-revert-mode t)
-(when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+;; (when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 ;; (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 ;; (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (display-time)
@@ -1694,28 +1689,10 @@ or the current buffer directory."
 (use-package tramp
   :defer 2
   :config
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
   (add-to-list 'tramp-default-proxies-alist
                '(nil "\\`root\\'" "/ssh:%h:"))
   (add-to-list 'tramp-default-proxies-alist
                '((regexp-quote (system-name)) nil nil))
-  (add-to-list 'tramp-methods
-               '("lbsudo"
-                 (tramp-login-program        "sudo")
-                 (tramp-login-args           (("-u" "%u")
-                                              ("-s") ("-H") ("-p" "Password:")))
-                 (tramp-login-env            (("SHELL") ("/bin/logbash")))
-                 (tramp-remote-shell         "/bin/logbash")
-                 (tramp-copy-program         nil)
-                 (tramp-copy-args            nil)
-                 (tramp-copy-keep-date       nil)
-                 (tramp-password-end-of-line nil)))
-
-  (add-to-list 'tramp-default-method-alist '(".*\\.amazon\\.com" "\\`root\\'" "lbsudo"))
-  (add-to-list 'tramp-default-user-alist '("\\`lbsudo\\'" nil "root"))
-
-  (tramp-set-completion-function
-   "lbsudo" tramp-completion-function-alist-su)
 
   (defun sudo-edit-current-file ()
     (interactive)
