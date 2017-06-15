@@ -40,4 +40,12 @@ GREEN="\[$(tput setaf 2)\]"
 YELLOW="\[$(/usr/bin/tput setaf 3)\]"
 BLUE="\[$(/usr/bin/tput setaf 4)\]"
 RESET="\[$(/usr/bin/tput sgr0)\]"
-export PS1="${BLUE}\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
+
+case "$TERM" in
+    "dumb")
+        PS1="\W > "
+        ;;
+    *)
+        PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
+        ;;
+esac

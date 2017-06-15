@@ -1,5 +1,20 @@
 . @out@/etc/profile
 
+if [[ "$TERM" == "dumb" ]]
+then
+  unsetopt zle
+  unsetopt prompt_cr
+  unsetopt prompt_subst
+  if whence -w precmd >/dev/null; then
+      unfunction precmd
+  fi
+  if whence -w preexec >/dev/null; then
+      unfunction preexec
+  fi
+  PS1='$ '
+  return
+fi
+
 # Tell zsh how to find installed completions
 fpath+=(@out@/share/zsh/site-functions @out@/share/zsh/$ZSH_VERSION/functions)
 
@@ -128,7 +143,7 @@ ZSH_SPECTRUM_TEXT=${ZSH_SPECTRUM_TEXT:-Arma virumque cano Troiae qui primus ab o
 
 local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ )"
 #PROMPT='${ret_status} %{$fg[blue]%}%m:%{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info) $'
-PROMPT='%{$fg[blue]%}%m:%{$fg[cyan]%}%c%{$reset_color%} $'
+PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$reset_color%} $'
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗"
