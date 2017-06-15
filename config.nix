@@ -214,7 +214,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
             checkbashisms
             cmake
             coreutils
-            curl
             diffutils
             editorconfig-core-c
             emscripten
