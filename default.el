@@ -1,6 +1,8 @@
-;;
-;;
-;;
+;;; default -- @matthewbauer’s Emacs config
+
+;;; Commentary:
+
+;;; This should be used in conjunction with Nixpkgs in config.
 
 ;;; Code:
 
@@ -379,6 +381,7 @@
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
+(global-unset-key (kbd "C-M-SPC")) ; emojis
 
 (windmove-default-keybindings 'meta) ; move using meta
 (fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
@@ -589,42 +592,6 @@ you can use this command to copy text from a read-only buffer.
   "Add hook to modes.
 FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
-
-(use-package kill-or-bury-alive
-  :bind (("C-x k" . kill-or-bury-alive)
-         ("C-c r" . kill-or-bury-alive-purge-buffers)))
-
-
-(use-package tramp
-  :defer 2
-  :config
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-  (defun sudo-edit-current-file ()
-    (interactive)
-    (let ((position (point)))
-      (find-alternate-file
-       (if (file-remote-p (buffer-file-name))
-           (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-             (tramp-make-tramp-file-name
-              "sudo"
-              (tramp-file-name-user vec)
-              (tramp-file-name-host vec)
-              (tramp-file-name-localname vec)))
-         (concat "/sudo:root@localhost:" (buffer-file-name))))
-      (goto-char position)))
-
-  (defun sudo-find-file (&optional arg)
-    "Edit a file as root."
-    (interactive "p")
-    (if (or arg (not buffer-file-name))
-        (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
-      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  (defun is-current-file-tramp ()
-    "Is the current file in a tramp remote setup?"
-    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
-  )
-
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
 
@@ -673,6 +640,8 @@ FUNC is run when MODES are loaded."
   :defer 1
   :config
   (load-theme 'apropospriate-dark t))
+
+(use-package autodisass-java-bytecode)
 
 (use-package buffer-move
   :bind
@@ -1124,40 +1093,6 @@ FUNC is run when MODES are loaded."
               (setq eldoc-documentation-function
                     'esh-help-eldoc-command))))
 
-(use-package jdee
-  :disabled
-  :init
-  (setq jdee-server-dir "@jdeeserver@"))
-
-;; (use-package realgud)
-
-(use-package autodisass-java-bytecode)
-
-(use-package meghanada
-  :disabled
-  :init
-  (add-hook 'java-mode-hook
-            (lambda ()
-              (meghanada-mode t)
-              (smartparens-mode t)
-              (rainbow-delimiters-mode t)
-              ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
-              ))
-
-  :config
-  (setq indent-tabs-mode nil)
-  (setq tab-width 2)
-  (setq c-basic-offset 2)
-  (setq meghanada-server-remote-debug t)
-  (setq meghanada-javac-xlint "-Xlint:all,-processing")
-
-  :bind
-  (:map meghanada-mode-map
-        ("C-S-t" . meghanada-switch-testcase)
-        ("M-RET" . meghanada-local-variable))
-
-  :commands (meghanada-mode))
-
 (use-package eshell
   :bind (("C-x e" . eshell-new))
   :commands (eshell eshell-command)
@@ -1248,11 +1183,11 @@ POINT ?"
   :init
   (add-hook 'text-mode-hook 'flyspell-mode))
 
+(use-package ghc)
+
 (use-package gist
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer gist-region-or-buffer-private))
-
-(use-package ghc)
 
 (use-package gnus
   :commands gnus
@@ -1353,6 +1288,18 @@ POINT ?"
   :config
   (bind-key "C-j" #'ivy-call ivy-minibuffer-map)
   (ivy-mode 1))
+
+(use-package jdee
+  :disabled
+  :init
+  (setq jdee-server-dir "@jdeeserver@"))
+
+;; (use-package realgud)
+
+
+(use-package kill-or-bury-alive
+  :bind (("C-x k" . kill-or-bury-alive)
+         ("C-c r" . kill-or-bury-alive-purge-buffers)))
 
 (use-package less-css-mode
   :mode "\\.json\\'"
@@ -1469,6 +1416,31 @@ POINT ?"
   :mode "\\.\\(md\\|markdown\\)\\'"
   :commands markdown-mode)
 
+(use-package meghanada
+  :disabled
+  :init
+  (add-hook 'java-mode-hook
+            (lambda ()
+              (meghanada-mode t)
+              (smartparens-mode t)
+              (rainbow-delimiters-mode t)
+              ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
+              ))
+
+  :config
+  (setq indent-tabs-mode nil)
+  (setq tab-width 2)
+  (setq c-basic-offset 2)
+  (setq meghanada-server-remote-debug t)
+  (setq meghanada-javac-xlint "-Xlint:all,-processing")
+
+  :bind
+  (:map meghanada-mode-map
+        ("C-S-t" . meghanada-switch-testcase)
+        ("M-RET" . meghanada-local-variable))
+
+  :commands (meghanada-mode))
+
 (use-package minimap
   :commands minimap-mode)
 
@@ -1520,6 +1492,31 @@ or the current buffer directory."
 
 (use-package nix-mode
   :mode "\\.nix\\'")
+
+(use-package noflet
+  :commands noflet
+  :preface
+  (defadvice org-capture-finalize
+      (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-frame)))
+
+  (defadvice org-capture-destroy
+      (after delete-capture-frame activate)
+    "Advise capture-destroy to close the frame"
+    (if (equal "capture" (frame-parameter nil 'name))
+        (delete-frame)))
+
+  (defun make-capture-frame ()
+    "Create a new frame and run org-capture."
+    (interactive)
+    (make-frame '((name . "capture")))
+    (select-frame-by-name "capture")
+    (delete-other-windows)
+    (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+            (org-capture)))
+  )
 
 (use-package org
   ;; :mode "\\.\\(org\\)\\'"
@@ -1585,11 +1582,11 @@ or the current buffer directory."
   (add-hook
    'c-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
-                  (rtags-start-process-unless-running))))
+             (rtags-start-process-unless-running))))
   (add-hook
    'c++-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
-                  (rtags-start-process-unless-running))))
+             (rtags-start-process-unless-running))))
 
   (setq rtags-path "@rtags@/bin")
 
@@ -1653,6 +1650,14 @@ or the current buffer directory."
   :init
   (add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode)))
 
+(use-package smart-hungry-delete
+  :commands smart-hungry-delete-add-default-hooks
+  :bind (:map prog-mode-map
+              ("<backspace>" . smart-hungry-delete-backward-char)
+              ("C-d" . smart-hungry-delete-forward-char))
+  :init (smart-hungry-delete-add-default-hooks)
+  )
+
 (use-package smart-tabs-mode
   :init
   (add-hook 'prog-mode-hook 'smart-tabs-mode)
@@ -1672,6 +1677,9 @@ or the current buffer directory."
   :bind (("\C-s" . swiper)
          ("\C-r" . swiper)))
 
+(use-package term
+  :bind ("C-c t" . term))
+
 (use-package tern
   :commands tern-mode
   :init
@@ -1682,6 +1690,58 @@ or the current buffer directory."
   :commands toc-org-enable
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
+
+(use-package tramp
+  :defer 2
+  :config
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  (add-to-list 'tramp-default-proxies-alist
+               '(nil "\\`root\\'" "/ssh:%h:"))
+  (add-to-list 'tramp-default-proxies-alist
+               '((regexp-quote (system-name)) nil nil))
+  (add-to-list 'tramp-methods
+               '("lbsudo"
+                 (tramp-login-program        "sudo")
+                 (tramp-login-args           (("-u" "%u")
+                                              ("-s") ("-H") ("-p" "Password:")))
+                 (tramp-login-env            (("SHELL") ("/bin/logbash")))
+                 (tramp-remote-shell         "/bin/logbash")
+                 (tramp-copy-program         nil)
+                 (tramp-copy-args            nil)
+                 (tramp-copy-keep-date       nil)
+                 (tramp-password-end-of-line nil)))
+
+  (add-to-list 'tramp-default-method-alist '(".*\\.amazon\\.com" "\\`root\\'" "lbsudo"))
+  (add-to-list 'tramp-default-user-alist '("\\`lbsudo\\'" nil "root"))
+
+  (tramp-set-completion-function
+   "lbsudo" tramp-completion-function-alist-su)
+
+  (defun sudo-edit-current-file ()
+    (interactive)
+    (let ((position (point)))
+      (find-alternate-file
+       (if (file-remote-p (buffer-file-name))
+           (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+             (tramp-make-tramp-file-name
+              "sudo"
+              (tramp-file-name-user vec)
+              (tramp-file-name-host vec)
+              (tramp-file-name-localname vec)))
+         (concat "/sudo:root@localhost:" (buffer-file-name))))
+      (goto-char position)))
+
+  (defun sudo-find-file (&optional arg)
+    "Edit a file as root."
+    (interactive "p")
+    (if (or arg (not buffer-file-name))
+        (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (defun is-current-file-tramp ()
+    "Is the current file in a tramp remote setup?"
+    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
+  )
 
 (use-package transpose-frame
   :bind ("C-x t" . transpose-frame))
@@ -1819,42 +1879,6 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
-
-(use-package smart-hungry-delete
-  :commands smart-hungry-delete-add-default-hooks
-  :bind (:map prog-mode-map
-              ("<backspace>" . smart-hungry-delete-backward-char)
-              ("C-d" . smart-hungry-delete-forward-char))
-  :init (smart-hungry-delete-add-default-hooks)
-  )
-
-(use-package term
-  :bind ("C-c t" . term))
-
-(use-package noflet
-  :commands noflet
-  :preface
-  (defadvice org-capture-finalize
-      (after delete-capture-frame activate)
-    "Advise capture-finalize to close the frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
-
-  (defadvice org-capture-destroy
-      (after delete-capture-frame activate)
-    "Advise capture-destroy to close the frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
-
-  (defun make-capture-frame ()
-    "Create a new frame and run org-capture."
-    (interactive)
-    (make-frame '((name . "capture")))
-    (select-frame-by-name "capture")
-    (delete-other-windows)
-    (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-            (org-capture)))
-  )
 
 (provide 'default)
 ;;; default.el ends here
