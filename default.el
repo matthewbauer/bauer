@@ -15,6 +15,9 @@
 ;; (setenv "PATH" "~/.nix-profile/bin")
 ;; (setenv "MANPATH" "~/.nix-profile/share/man")
 
+(setenv "LANG" "en_US.UTF-8")
+(setenv "LC_ALL" "en_US.UTF-8")
+
 (custom-set-variables
  '(ad-redefinition-action (quote accept))
  '(apropos-do-all t)
