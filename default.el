@@ -348,7 +348,9 @@
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
 
-(server-start)
+(require 'server)
+(when (not server-process)
+  (server-start))
 
 ;; Enable emoji, and stop the UI from freezing when trying to display them.
 (when (fboundp 'set-fontset-font)
