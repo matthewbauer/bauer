@@ -1285,12 +1285,10 @@ POINT ?"
   (ivy-mode 1))
 
 (use-package jdee
-  :disabled
   :init
   (setq jdee-server-dir "@jdeeserver@"))
 
 ;; (use-package realgud)
-
 
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
