@@ -361,7 +361,6 @@
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
-(global-unset-key (kbd "C-M-SPC")) ; emojis
 
 (windmove-default-keybindings 'meta) ; move using meta
 (fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
@@ -617,7 +616,7 @@ FUNC is run when MODES are loaded."
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 (use-package apropospriate-theme
-  :defer 1
+  :demand
   :config
   (load-theme 'apropospriate-dark t))
 
@@ -1155,7 +1154,7 @@ POINT ?"
   :bind (("C-c k" . er/expand-region)))
 
 (use-package flycheck
-  :defer 2
+  :demand
   :config (global-flycheck-mode))
 
 (use-package flyspell
@@ -1259,7 +1258,7 @@ POINT ?"
   (setq ispell-program-name "@aspell@/bin/aspell"))
 
 (use-package ivy
-  :defer 1
+  :demand
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer))
@@ -1518,7 +1517,7 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :defer 5
+  :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
   (projectile-global-mode))
@@ -1670,7 +1669,7 @@ or the current buffer directory."
   (add-hook 'org-mode-hook 'toc-org-enable))
 
 (use-package tramp
-  :defer 2
+  :demand
   :config
   (add-to-list 'tramp-default-proxies-alist
                '(nil "\\`root\\'" "/ssh:%h:"))
@@ -1713,8 +1712,8 @@ or the current buffer directory."
   :mode ("\\.html\\'" "\\.jsp\\'"))
 
 (use-package which-key
+  :demand
   :diminish which-key-mode
-  :defer 3
   :config (which-key-mode))
 
 (use-package whitespace
