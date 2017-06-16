@@ -141,7 +141,7 @@
  '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
  '(flycheck-global-modes
    (quote
-    (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode)))
+    (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode org-mode)))
  '(flycheck-idle-change-delay 0.8)
  '(flycheck-standard-error-navigation t)
  '(flyspell-abbrev-p nil)
