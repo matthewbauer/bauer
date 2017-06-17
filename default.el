@@ -28,6 +28,7 @@
  '(auto-revert-check-vc-info t)
  '(auto-revert-use-notify t)
  '(auto-revert-verbose nil)
+ '(async-shell-command-buffer 'new-buffer)
  '(backward-delete-char-untabify-method (quote hungry))
  '(byte-compile-verbose nil)
  '(c-eldoc-includes "" t)
@@ -211,6 +212,9 @@
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
+ '(minibuffer-prompt-properties
+   (quote
+    (read-only t cursor-intangible t face minibuffer-prompt)))
  '(network-security-level (quote medium))
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
@@ -322,7 +326,7 @@
 (delete-selection-mode t)
 (savehist-mode 1)
 (column-number-mode t)
-;; (global-auto-revert-mode t)
+(global-auto-revert-mode t)
 (when (and (fboundp 'menu-bar-mode) (not (eq system-type 'darwin))) (menu-bar-mode -1))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
@@ -419,6 +423,7 @@ i.e. change right window to bottom, or change bottom window to right."
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
+(global-set-key (kbd "C-c o") 'browse-url-at-point)
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."
@@ -1095,6 +1100,8 @@ ARGS unused"
       ;; different places in the filesystem.
       (mapc #'find-file (mapcar #'expand-file-name args))))
 
+  (defalias 'eshell/emacsclient 'eshell/emacs)
+
   (defun eshell/vi (&rest args)
     "Invoke `find-file' on the file.
 \"vi +42 foo\" also goes to line 42 in the buffer.
@@ -1135,6 +1142,9 @@ POINT ?"
     "Keymap used in isearch in Eshell.")
 
   :config
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
 
   (with-eval-after-load "esh-opt"
     (autoload 'epe-theme-lambda "eshell-prompt-extras")
