@@ -1272,7 +1272,10 @@ POINT ?"
 
 (use-package jdee
   :init
-  (setq jdee-server-dir "@jdeeserver@"))
+  (setq jdee-server-dir "@jdeeserver@")
+  (setq jdee-ant-home "@ant@/lib/ant")
+  (setq jdee-ant-program "@ant@/bin/ant")
+  (setq jdee-ant-enable-find t))
 
 ;; (use-package realgud)
 

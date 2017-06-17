@@ -136,7 +136,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         mediawiki
         rg
         noflet
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs; jdeeserver = jdee-server; aspell = myAspell; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
