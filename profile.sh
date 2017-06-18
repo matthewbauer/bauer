@@ -36,4 +36,4 @@ export HISTFILE=$HOME/.history
 export HISTSIZE=16000
 export SAVEHIST=15000
 
-PS1="\W > "
+PS1=" > "
