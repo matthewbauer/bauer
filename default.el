@@ -229,14 +229,6 @@
  '(projectile-enable-idle-timer t)
  '(projectile-idle-timer-hook nil)
  '(projectile-ignored-project-function (quote file-remote-p))
- '(projectile-mode-line
-   (quote
-    (:eval
-     (if
-         (projectile-project-p)
-         (format " P[%s]"
-                 (projectile-project-name))
-       ""))))
  '(projectile-switch-project-action (quote projectile-dired))
  '(projectile-verbose nil)
  '(reb-re-syntax (quote string))
@@ -1609,6 +1601,7 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
+  :diminish projectile-mode
   :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
