@@ -430,6 +430,27 @@ save it in `ffap-file-at-point-line-number' variable."
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 
+(defun run-command (dir cmd &rest args)
+  "Run inside DIR the command CMD with ARGS."
+  (let* ((default-directory dir)
+         (buffer (get-buffer-create (concat "*" cmd "*")))
+         (proc (apply #'start-file-process cmd buffer
+                      cmd args))
+         (comint-mode-hook nil)
+         (comint-scroll-show-maximum-output nil)
+         )
+    (set-process-query-on-exit-flag proc nil)
+    ;; (display-buffer buffer '(nil (allow-no-window . t)))
+    (with-current-buffer buffer
+      ;; (require 'shell)
+      ;; (shell-mode)
+      (comint-mode)
+      (defun my-sentinel (process signal)
+        (if (memq (process-status process) '(exit signal))
+            (kill-buffer (process-buffer process))))
+      (set-process-sentinel proc 'my-sentinel)
+      (set-process-filter proc 'comint-output-filter))))
+
 (setq auto-revert-check-vc-info t)
 
 (defun my-disable-auto-revert-vc-in-tramp ()
