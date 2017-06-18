@@ -111,10 +111,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         wrap-region
         xterm-color
         yaml-mode
-
-        # epkgs.melpaStablePackages.dash
-        # epkgs.melpaStablePackages.f
-        # epkgs.melpaStablePackages.s
       ])
       ++ (with epkgs.melpaPackages; [
         autodisass-java-bytecode
@@ -136,7 +132,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         mediawiki
         rg
         noflet
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant; jdeeserver = jdee-server; aspell = myAspell; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el

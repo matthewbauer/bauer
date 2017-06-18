@@ -41,9 +41,28 @@ YELLOW="\[$(/usr/bin/tput setaf 3)\]"
 BLUE="\[$(/usr/bin/tput setaf 4)\]"
 RESET="\[$(/usr/bin/tput sgr0)\]"
 
+
+function set-eterm-dir {
+    echo -e "\033AnSiTu" "$LOGNAME" # $LOGNAME is more portable than using whoami.
+    echo -e "\033AnSiTc" "$(pwd)"
+    if [ $(uname) = "SunOS" ]; then
+	# The -f option does something else on SunOS and is not needed anyway.
+        hostname_options="";
+    else
+        hostname_options="-f";
+    fi
+    echo -e "\033AnSiTh" "$(hostname $hostname_options)" # Using the -f option can
+    # cause problems on some OSes.
+    history -a # Write history to disk.
+}
+
 case "$TERM" in
-    "dumb")
+    dumb)
         PS1="\W > "
+        ;;
+    eterm-color)
+        PROMPT_COMMAND=set-eterm-dir
+        PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
         ;;
     *)
         PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"

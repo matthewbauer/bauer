@@ -1,19 +1,37 @@
 . @out@/etc/profile
 
-if [[ "$TERM" == "dumb" ]]
-then
-  unsetopt zle
-  unsetopt prompt_cr
-  unsetopt prompt_subst
-  if whence -w precmd >/dev/null; then
-      unfunction precmd
-  fi
-  if whence -w preexec >/dev/null; then
-      unfunction preexec
-  fi
-  PS1='$ '
-  return
-fi
+case "$TERM" in
+     dumb)
+          unsetopt zle
+          unsetopt prompt_cr
+          unsetopt prompt_subst
+          if whence -w precmd >/dev/null; then
+              unfunction precmd
+          fi
+          if whence -w preexec >/dev/null; then
+              unfunction preexec
+          fi
+          PS1='$ '
+          return
+          ;;
+
+     eterm-color)
+
+         precmd() {
+             echo -e "\033AnSiTu" "$LOGNAME" # $LOGNAME is more portable than using whoami.
+             echo -e "\033AnSiTc" "$(pwd)"
+             if [ $(uname) = "SunOS" ]; then
+	         # The -f option does something else on SunOS and is not needed anyway.
+                 hostname_options="";
+             else
+                 hostname_options="-f";
+             fi
+             echo -e "\033AnSiTh" "$(hostname $hostname_options)" # Using the -f option can
+             # cause problems on some OSes.
+         }
+
+         ;;
+esac
 
 # Tell zsh how to find installed completions
 fpath+=(@out@/share/zsh/site-functions @out@/share/zsh/$ZSH_VERSION/functions)

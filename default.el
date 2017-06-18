@@ -30,7 +30,6 @@
  '(auto-revert-verbose nil)
  '(async-shell-command-buffer 'new-buffer)
  '(backward-delete-char-untabify-method (quote hungry))
- '(byte-compile-verbose nil)
  '(c-eldoc-includes "" t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
@@ -67,7 +66,6 @@
  '(debug-ignored-errors
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
- '(debug-on-error nil)
  '(debug-on-signal t)
  '(dired-dwim-target t)
  '(dired-recursive-copies (quote always))
@@ -83,9 +81,13 @@
       (window-height . 0.33))
      ("." nil
       (reusable-frames . visible)))))
+ '(display-buffer-reuse-frames t)
  '(dumb-jump-quiet t)
  '(dumb-jump-selector (quote ivy))
  '(enable-recursive-minibuffers t)
+ '(epg-gpg-program "@gpg@/bin/gpg")
+ '(epg-gpgconf-program "@gpg@/bin/gpgconf")
+ '(epg-gpgsm-program "@gpg@/bin/gpgsm")
  '(erc-autoaway-idle-seconds 600)
  '(erc-autoaway-use-emacs-idle t)
  '(erc-autojoin-timing (quote ident))
@@ -133,7 +135,8 @@
  '(eshell-rm-interactive-query t)
  '(eshell-visual-commands
    (quote
-    ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm" "nano")))
+    ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
+     "nano" "nethack")))
  '(eval-expression-debug-on-error t)
  '(explicit-bash-args (quote ("-c" "export EMACS=; stty echo; bash")))
  '(explicit-shell-file-name "bash")
@@ -335,6 +338,7 @@
 (prefer-coding-system 'utf-8)
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
+(temp-buffer-resize-mode 0)
 
 (require 'server)
 (when (not server-process)
@@ -364,6 +368,43 @@
           (list (region-beginning) (region-end))
         (list (point-min) (point-max))))))
 
+(add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+
+(defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
+  (if (string= ad-return-value "/")
+      (setq ad-return-value nil)))
+(ad-activate 'ffap-file-at-point)
+
+(defvar ffap-file-at-point-line-number nil
+  "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+(defadvice ffap-file-at-point (after ffap-store-line-number activate)
+  "Search `ffap-string-at-point' for a line number pattern and
+save it in `ffap-file-at-point-line-number' variable."
+  (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+         (name
+          (or (condition-case nil
+                  (and (not (string-match "//" string)) ; foo.com://bar
+                       (substitute-in-file-name string))
+                (error nil))
+              string))
+         (line-number-string
+          (and (string-match ":[0-9]+" name)
+               (substring name (1+ (match-beginning 0)) (match-end 0))))
+         (line-number
+          (and line-number-string
+               (string-to-number line-number-string))))
+    (if (and line-number (> line-number 0))
+        (setq ffap-file-at-point-line-number line-number)
+      (setq ffap-file-at-point-line-number nil))))
+
+(defadvice find-file-at-point (after ffap-goto-line-number activate)
+  "If `ffap-file-at-point-line-number' is non-nil goto this line."
+  (when ffap-file-at-point-line-number
+    (with-no-warnings
+      (goto-line ffap-file-at-point-line-number))
+    (setq ffap-file-at-point-line-number nil)))
+
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
@@ -388,6 +429,14 @@
 
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+
+(setq auto-revert-check-vc-info t)
+
+(defun my-disable-auto-revert-vc-in-tramp ()
+  (when (and buffer-file-name (file-remote-p buffer-file-name))
+    (setq-local auto-revert-check-vc-info nil)))
+
+(add-hook 'find-file-hook #'my-disable-auto-revert-vc-in-tramp)
 
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
@@ -423,7 +472,7 @@ i.e. change right window to bottom, or change bottom window to right."
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
-(global-set-key (kbd "C-c o") 'browse-url-at-point)
+(global-set-key (kbd "C-c l") 'browse-url-at-point)
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."
@@ -1100,6 +1149,16 @@ ARGS unused"
       ;; different places in the filesystem.
       (mapc #'find-file (mapcar #'expand-file-name args))))
 
+  ;; I prefer to just use dired
+  ;; directory navigatoin should be done through
+  ;; it. eshell should just be commands
+  (defun eshell/cd (&rest args)
+    "Make cd just open dired."
+    (if (null args)
+        (bury-buffer)
+      (mapc #'find-file (mapcar #'expand-file-name args)))
+    )
+
   (defalias 'eshell/emacsclient 'eshell/emacs)
 
   (defun eshell/vi (&rest args)
@@ -1152,9 +1211,6 @@ POINT ?"
 
   (setenv "PAGER" "cat")
   (setenv "EDITOR" "emacsclient -nq")
-
-  (add-hook 'eshell-mode-hook
-            '(lambda () (define-key eshell-mode-map "\t" 'pcomplete-list)))
 
   (add-hook 'eshell-mode-hook
             (lambda ()
@@ -1670,7 +1726,62 @@ or the current buffer directory."
          ("\C-r" . swiper)))
 
 (use-package term
-  :bind ("C-c t" . term))
+  :bind ("C-c t" . term)
+  :init
+  (defadvice ansi-term (before force-bash)
+    (interactive (list explicit-shell-file-name)))
+  (ad-activate 'ansi-term)
+
+  (defadvice term (before force-bash)
+    (interactive (list explicit-shell-file-name)))
+  (ad-activate 'term)
+
+  (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
+    (if (memq (process-status proc) '(signal exit))
+        (let ((buffer (process-buffer proc)))
+          ad-do-it
+          (kill-buffer buffer))
+      ad-do-it))
+  (ad-activate 'term-sentinel)
+
+  (defun my-term-paste (&optional string)
+    (interactive)
+    (process-send-string
+     (get-buffer-process (current-buffer))
+     (if string string (current-kill 0))))
+
+  (defun my-term ()
+    (interactive)
+    (set-buffer (make-term "my-term" "bash"))
+    (term-mode)
+    (term-line-mode)
+    (term-set-escape-char ?\C-x)
+    (switch-to-buffer "*my-term*"))
+
+  (defun remote-term (new-buffer-name cmd &rest switches)
+    (setq term-ansi-buffer-name (concat "*" new-buffer-name "*"))
+    (setq term-ansi-buffer-name (generate-new-buffer-name term-ansi-buffer-name))
+    (setq term-ansi-buffer-name (apply 'make-term term-ansi-buffer-name cmd nil switches))
+    (set-buffer term-ansi-buffer-name)
+    (term-mode)
+    (term-char-mode)
+    (term-set-escape-char ?\C-x)
+    (switch-to-buffer term-ansi-buffer-name))
+
+  (defun nethack ()
+    (interactive)
+    (set-buffer (make-term "nethack" "@nethack@/bin/nethack"))
+    (term-mode)
+    (term-char-mode)
+    (term-set-escape-char ?\C-x)
+    (switch-to-buffer "*nethack*"))
+
+  (defun my-term-hook ()
+    (goto-address-mode)
+    (define-key term-raw-map "\C-y" 'my-term-paste))
+  (add-hook 'term-mode-hook 'my-term-hook)
+
+  )
 
 (use-package tern
   :commands tern-mode
@@ -1686,10 +1797,59 @@ or the current buffer directory."
 (use-package tramp
   :demand
   :config
+  (defadvice pcomplete (around avoid-remote-connections activate)
+    (let ((file-name-handler-alist (copy-alist file-name-handler-alist)))
+      (setq file-name-handler-alist
+            (delete (rassoc 'tramp-completion-file-name-handler
+                            file-name-handler-alist) file-name-handler-alist))
+      ad-do-it))
+
   (add-to-list 'tramp-default-proxies-alist
                '(nil "\\`root\\'" "/ssh:%h:"))
   (add-to-list 'tramp-default-proxies-alist
                '((regexp-quote (system-name)) nil nil))
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  (defvar sudo-tramp-prefix
+    "/sudo:"
+    (concat "Prefix to be used by sudo commands when building tramp path "))
+  (defun sudo-file-name (filename)
+    (set 'splitname (split-string filename ":"))
+    (if (> (length splitname) 1)
+        (progn (set 'final-split (cdr splitname))
+               (set 'sudo-tramp-prefix "/sudo:")
+               )
+      (progn (set 'final-split splitname)
+             (set 'sudo-tramp-prefix (concat sudo-tramp-prefix "root@localhost:")))
+      )
+    (set 'final-fn (concat sudo-tramp-prefix (mapconcat (lambda (e) e) final-split ":")))
+    (message "splitname is %s" splitname)
+    (message "sudo-tramp-prefix is %s" sudo-tramp-prefix)
+    (message "final-split is %s" final-split)
+    (message "final-fn is %s" final-fn)
+    (message "%s" final-fn)
+    )
+
+  (defun sudo-find-file (filename &optional wildcards)
+    "Calls find-file with filename with sudo-tramp-prefix prepended"
+    (interactive "fFind file with sudo ")
+    (let ((sudo-name (sudo-file-name filename)))
+      (apply 'find-file
+             (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
+
+  (defun sudo-reopen-file ()
+    "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
+    (interactive)
+    (let*
+        ((file-name (expand-file-name buffer-file-name))
+         (sudo-name (sudo-file-name file-name)))
+      (progn
+        (setq buffer-file-name sudo-name)
+        (rename-buffer sudo-name)
+        (setq buffer-read-only nil)
+        (message (concat "File name set to " sudo-name)))))
+
+  ;;(global-set-key (kbd "C-c o") 'sudo-find-file)
+  (global-set-key (kbd "C-c o s") 'sudo-reopen-file)
 
   (defun sudo-edit-current-file ()
     (interactive)
@@ -1705,12 +1865,13 @@ or the current buffer directory."
          (concat "/sudo:root@localhost:" (buffer-file-name))))
       (goto-char position)))
 
-  (defun sudo-find-file (&optional arg)
-    "Edit a file as root."
-    (interactive "p")
-    (if (or arg (not buffer-file-name))
-        (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
-      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+  ;; (defun sudo-find-file (&optional arg)
+  ;;   "Edit a file as root."
+  ;;   (interactive "p")
+  ;;   (if (or arg (not buffer-file-name))
+  ;;       (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+  ;;     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (defun is-current-file-tramp ()
     "Is the current file in a tramp remote setup?"
