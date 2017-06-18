@@ -153,29 +153,29 @@ dict-dir ${aspellDicts.en}/lib/aspell
            done
             fi
 
-	    mkdir -p $out/etc
+            mkdir -p $out/etc
 
-	    cp ${myConfig.gitconfig} $out/etc/gitconfig
-	    substituteInPlace $out/etc/gitconfig \
-	      --replace @gitignore@ ${myConfig.gitignore} \
+            cp ${myConfig.gitconfig} $out/etc/gitconfig
+            substituteInPlace $out/etc/gitconfig \
+              --replace @gitignore@ ${myConfig.gitignore} \
               --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-	      --replace @out@ $out
+              --replace @out@ $out
 
-	    cp ${myConfig.bashrc} $out/etc/bashrc
-	    substituteInPlace $out/etc/bashrc \
-	      --replace @out@ $out
+            cp ${myConfig.bashrc} $out/etc/bashrc
+            substituteInPlace $out/etc/bashrc \
+              --replace @out@ $out
 
-	    cp ${myConfig.zshrc} $out/etc/.zshrc
-	    substituteInPlace $out/etc/.zshrc \
-	      --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-	      --replace @out@ $out
+            cp ${myConfig.zshrc} $out/etc/.zshrc
+            substituteInPlace $out/etc/.zshrc \
+              --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
+              --replace @out@ $out
             cp $out/etc/.zshrc $out/etc/zshrc
 
             cp ${myConfig.etc-profile} $out/etc/profile
-	    substituteInPlace $out/etc/profile \
-	      --replace @out@ $out
+            substituteInPlace $out/etc/profile \
+              --replace @out@ $out
 
-	    wrapProgram $out/bin/bash \
+            wrapProgram $out/bin/bash \
               --add-flags "--rcfile $out/etc/bashrc"
 
             wrapProgram $out/bin/zsh \
@@ -192,15 +192,16 @@ dict-dir ${aspellDicts.en}/lib/aspell
           "/share/info"
           "/share/zsh"
           "/share/bash-completion"
-	];
-	extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
-	name = "user-packages";
-	paths = [
+        ];
+        extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
+        name = "user-packages";
+        paths = [
             bash-completion
-	    zsh-completions
-	    myAspell
+            zsh-completions
+            myAspell
             myEmacs
-	    gawk
+            gcc
+            gawk
             bashInteractive
             bc
             bzip2
@@ -215,8 +216,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
             emscripten
             ffmpeg
             findutils
-	    ripgrep
-	    ag
+            ripgrep
+            ag
             ghc
             haskellPackages.ghc-mod
             git
