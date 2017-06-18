@@ -24,6 +24,7 @@
 (custom-set-variables
  '(ad-redefinition-action (quote accept))
  '(apropos-do-all t)
+ '(async-shell-command-buffer (quote new-buffer))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-use-notify t)
@@ -45,6 +46,8 @@
  '(company-tooltip-limit 10)
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
+ '(compilation-auto-jump-to-first-error nil)
+ '(compilation-read-command nil)
  '(compilation-scroll-output (quote first-error))
  '(completions-format (quote vertical))
  '(counsel-find-file-at-point t)
@@ -60,9 +63,10 @@
  '(cperl-info-on-command-no-prompt t)
  '(cperl-invalid-face nil)
  '(cperl-lazy-help-time 3)
- '(custom-buffer-done-kill t)
  '(create-lockfiles nil)
  '(css-indent-offset 2)
+ '(custom-buffer-done-kill t)
+ '(create-lockfiles nil)
  '(debug-ignored-errors
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
@@ -137,6 +141,8 @@
    (quote
     ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack")))
+ '(eshell-visual-options (quote (("git" "--paginate"))))
+ '(eshell-visual-subcommands (quote (("git" "log" "diff" "show"))))
  '(eval-expression-debug-on-error t)
  '(explicit-bash-args (quote ("-c" "export EMACS=; stty echo; bash")))
  '(explicit-shell-file-name "bash")
@@ -215,9 +221,14 @@
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
+ '(max-mini-window-height 4)
+ '(minibuffer-auto-raise t)
+ '(minibuffer-depth-indicate-mode t)
+ '(minibuffer-electric-default-mode t)
  '(minibuffer-prompt-properties
    (quote
     (read-only t cursor-intangible t face minibuffer-prompt)))
+ '(mouse-wheel-scroll-amount (quote (1 ((shift) . 4) ((control)))))
  '(network-security-level (quote medium))
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
@@ -233,6 +244,7 @@
  '(projectile-verbose nil)
  '(reb-re-syntax (quote string))
  '(require-final-newline t)
+ '(resize-mini-windows t)
  '(ring-bell-function (quote ignore))
  '(rtags-completions-enabled t)
  '(rtags-display-result-backend (quote ivy))
