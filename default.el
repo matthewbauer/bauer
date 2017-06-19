@@ -445,6 +445,7 @@ save it in `ffap-file-at-point-line-number' variable."
          )
     (set-process-query-on-exit-flag proc nil)
     ;; (display-buffer buffer '(nil (allow-no-window . t)))
+    (pop-to-buffer-same-window buffer)
     (with-current-buffer buffer
       ;; (require 'shell)
       ;; (shell-mode)
@@ -454,14 +455,6 @@ save it in `ffap-file-at-point-line-number' variable."
             (kill-buffer (process-buffer process))))
       (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
-
-(setq auto-revert-check-vc-info t)
-
-(defun my-disable-auto-revert-vc-in-tramp ()
-  (when (and buffer-file-name (file-remote-p buffer-file-name))
-    (setq-local auto-revert-check-vc-info nil)))
-
-(add-hook 'find-file-hook #'my-disable-auto-revert-vc-in-tramp)
 
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
@@ -1161,6 +1154,7 @@ FUNC is run when MODES are loaded."
     (interactive)
     (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))
     (eshell arg))
+
   (defun eshell/emacs (&rest args)
     "Open a file in Emacs.  Some habits die hard.
 ARGS unused"
@@ -1173,16 +1167,6 @@ ARGS unused"
       ;; when you try to open a bunch of different files in wildly
       ;; different places in the filesystem.
       (mapc #'find-file (mapcar #'expand-file-name args))))
-
-  ;; I prefer to just use dired
-  ;; directory navigatoin should be done through
-  ;; it. eshell should just be commands
-  (defun eshell/cd (&rest args)
-    "Make cd just open dired."
-    (if (null args)
-        (bury-buffer)
-      (mapc #'find-file (mapcar #'expand-file-name args)))
-    )
 
   (defalias 'eshell/emacsclient 'eshell/emacs)
 
@@ -1229,6 +1213,24 @@ POINT ?"
   (add-hook 'eshell-mode-hook
             (lambda ()
               (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
+
+  ;; I prefer to just use dired
+  ;; directory navigatoin should be done through
+  ;; it. eshell should just be commands
+  ;; (defun eshell/cd (&rest args)
+  ;;   "Make cd just open dired."
+  ;;   (interactive)
+  ;;   (mapc #'find-file (mapcar #'expand-file-name args)))
+
+  (defun eshell/cd (&optional dir)
+    "Make cd just open dired."
+    (interactive)
+    (let* ((dir (if dir dir "~"))
+           (default-directory (expand-file-name dir default-directory))
+           (buffer (get-buffer-create (concat "*eshell<" (expand-file-name default-directory) ">*"))))
+      (pop-to-buffer-same-window buffer)
+      (unless (derived-mode-p 'eshell-mode)
+        (eshell-mode))))
 
   (with-eval-after-load "esh-opt"
     (autoload 'epe-theme-lambda "eshell-prompt-extras")
