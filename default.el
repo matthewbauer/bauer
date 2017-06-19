@@ -47,8 +47,6 @@
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
- '(compilation-read-command nil)
- '(compilation-scroll-output (quote first-error))
  '(completions-format (quote vertical))
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
