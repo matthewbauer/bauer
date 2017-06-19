@@ -432,7 +432,7 @@ save it in `ffap-file-at-point-line-number' variable."
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 
-(defun run-command (dir cmd &rest args)
+(defun run-command-in-new-frame (dir cmd &rest args)
   "Run inside DIR the command CMD with ARGS."
   (let* ((default-directory dir)
          (buffer (get-buffer-create (concat "*" cmd "*")))
@@ -441,7 +441,10 @@ save it in `ffap-file-at-point-line-number' variable."
          (comint-mode-hook nil)
          (comint-scroll-show-maximum-output nil)
          )
+    (makunbound 'my-frame)
+    (set 'my-frame (make-frame))
     (set-process-query-on-exit-flag proc nil)
+    (switch-to-buffer buffer)
     ;; (display-buffer buffer '(nil (allow-no-window . t)))
     (pop-to-buffer-same-window buffer)
     (with-current-buffer buffer
@@ -449,8 +452,9 @@ save it in `ffap-file-at-point-line-number' variable."
       ;; (shell-mode)
       (comint-mode)
       (defun my-sentinel (process signal)
-        (if (memq (process-status process) '(exit signal))
-            (kill-buffer (process-buffer process))))
+        (when (memq (process-status process) '(exit signal))
+          (kill-buffer (process-buffer process))
+          (delete-frame my-frame)))
       (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
 
