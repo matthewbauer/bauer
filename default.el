@@ -518,6 +518,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (global-set-key (kbd "C-c C-e") 'eval-and-replace)
 
+
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
 
@@ -797,7 +798,7 @@ This functions should be added to the hooks of major modes for programming."
    ((pcomplete-match "checkout" 1)
     (pcomplete-here* (pcmpl-git-get-refs "heads")))))
 
-(define-key org-mode-map "'" #'endless/apostrophe)
+;; (define-key org-mode-map "'" #'endless/apostrophe)
 ;; (eval-after-load 'markdown-mode
 ;;   '(define-key markdown-mode-map "'"
 ;;      #'endless/apostrophe))
@@ -1179,6 +1180,8 @@ FUNC is run when MODES are loaded."
       (call-interactively #'other-window)))
 
   :config
+  (define-key dired-mode-map (kbd "C-c C-c") 'compile)
+
   (bind-key "r" #'browse-url-of-dired-file dired-mode-map)
 
   (bind-key "l" #'dired-up-directory dired-mode-map)
