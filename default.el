@@ -1342,7 +1342,7 @@ FUNC is run when MODES are loaded."
                     'esh-help-eldoc-command))))
 
 (use-package eshell
-  :bind (("C-x e" . eshell-new))
+  :bind (("C-c s" . eshell-new))
   :commands (eshell eshell-command)
   :preface
   (defun eshell-new (&optional arg)
@@ -1943,7 +1943,7 @@ or the current buffer directory."
   :config
   (require 'smartparens-config)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (show-smartparens-mode +1))
+  (show-smartparens-mode +use))
 
 (use-package swiper
   :bind (("\C-s" . swiper)
