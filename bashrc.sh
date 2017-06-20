@@ -68,3 +68,10 @@ case "$TERM" in
         PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
         ;;
 esac
+
+set -o emacs
+
+if [[ $- == *i* ]]; then
+  bind '"\e/": dabbrev-expand'
+  bind '"\ee": edit-and-execute-command'
+fi

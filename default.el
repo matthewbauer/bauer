@@ -29,6 +29,7 @@
  '(auto-revert-check-vc-info t)
  '(auto-revert-use-notify t)
  '(auto-revert-verbose nil)
+ '(auto-save-visited-file-name t)
  '(async-shell-command-buffer 'new-buffer)
  '(backward-delete-char-untabify-method (quote hungry))
  '(c-eldoc-includes "" t)
@@ -40,7 +41,6 @@
  '(company-idle-delay 0.5)
  '(company-minimum-prefix-length 2)
  '(company-occurrence-weight-function (quote company-occurrence-prefer-any-closest))
- '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-tooltip-flip-when-above t)
  '(company-tooltip-limit 10)
@@ -138,7 +138,8 @@
  '(eshell-visual-commands
    (quote
     ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
-     "nano" "nethack")))
+     "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
+     "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar")))
  '(eshell-visual-options (quote (("git" "--paginate"))))
  '(eshell-visual-subcommands (quote (("git" "log" "diff" "show"))))
  '(eval-expression-debug-on-error t)
@@ -167,16 +168,19 @@
            (buffer-file-name))
         "%b")))) t)
  '(gc-cons-threshold 100000000)
+ '(global-auto-revert-non-file-buffers t)
  '(history-delete-duplicates t)
  '(history-length 20000)
  '(iedit-toggle-key-default nil)
  '(imenu-auto-rescan t)
+ '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
  '(indent-tabs-mode nil)
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(initial-major-mode (quote fundamental-mode))
  '(initial-scratch-message "")
  '(ispell-extra-args (quote ("--sug-mode=ultra")))
+ '(ispell-silently-savep t)
  '(ispell-quietly t)
  '(ivy-count-format "\"\"")
  '(ivy-display-style nil)
@@ -194,6 +198,8 @@
  '(mac-command-key-is-meta t)
  '(mac-command-modifier 'meta)
  '(mac-option-key-is-meta nil)
+ '(mac-option-modifier 'super)
+ '(mac-right-option-modifier nil)
  '(mac-frame-tabbing t)
  '(mac-system-move-file-to-trash-use-finder t)
  '(magit-clone-set-remote\.pushDefault t)
@@ -293,6 +299,7 @@
  '(term-input-ignoredups t)
  '(term-input-ring-file-name t)
  '(tls-checktrust t)
+ '(tls-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %h"))
  '(undo-limit 800000)
  '(uniquify-after-kill-buffer-p t)
  '(uniquify-ignore-buffers-re "^\\*")
@@ -407,6 +414,45 @@ save it in `ffap-file-at-point-line-number' variable."
       (goto-line ffap-file-at-point-line-number))
     (setq ffap-file-at-point-line-number nil)))
 
+(defun rotate-windows ()
+  "Rotate your windows"
+  (interactive)
+  (cond ((not (> (count-windows)1))
+         (message "You can't rotate a single window!"))
+        (t
+         (setq i 1)
+         (setq numWindows (count-windows))
+         (while  (< i numWindows)
+           (let* (
+                  (w1 (elt (window-list) i))
+                  (w2 (elt (window-list) (+ (% i numWindows) 1)))
+
+                  (b1 (window-buffer w1))
+                  (b2 (window-buffer w2))
+
+                  (s1 (window-start w1))
+                  (s2 (window-start w2))
+                  )
+             (set-window-buffer w1  b2)
+             (set-window-buffer w2 b1)
+             (set-window-start w1 s2)
+             (set-window-start w2 s1)
+             (setq i (1+ i)))))))
+
+(defun delete-file-and-buffer ()
+  "Kill the current buffer and deletes the file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (when filename
+      (if (vc-backend filename)
+          (vc-delete-file filename)
+        (progn
+          (delete-file filename)
+          (message "Deleted file %s" filename)
+          (kill-buffer))))))
+
+(global-set-key (kbd "C-c D")  'delete-file-and-buffer)
+
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
@@ -431,6 +477,8 @@ save it in `ffap-file-at-point-line-number' variable."
 
 ;; make executable after save
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+
+(add-hook 'makefile-mode-hook 'indent-tabs-mode)
 
 (defun run-command-in-new-frame (dir cmd &rest args)
   "Run inside DIR the command CMD with ARGS."
@@ -457,6 +505,18 @@ save it in `ffap-file-at-point-line-number' variable."
           (delete-frame my-frame)))
       (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
+
+(defun eval-and-replace ()
+  "Replace the preceding sexp with its value."
+  (interactive)
+  (backward-kill-sexp)
+  (condition-case nil
+      (prin1 (eval (read (current-kill 0)))
+             (current-buffer))
+    (error (message "Invalid expression")
+           (insert (current-kill 0)))))
+
+(global-set-key (kbd "C-c C-e") 'eval-and-replace)
 
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
@@ -627,6 +687,136 @@ you can use this command to copy text from a read-only buffer.
     (recompile))))
 
 (global-set-key (kbd "<f5>") 'compile-dwim)
+
+(require 'thingatpt)
+
+(defun thing-at-point-goto-end-of-integer ()
+  "Go to end of integer at point."
+  (let ((inhibit-changing-match-data t))
+    ;; Skip over optional sign
+    (when (looking-at "[+-]")
+      (forward-char 1))
+    ;; Skip over digits
+    (skip-chars-forward "[[:digit:]]")
+    ;; Check for at least one digit
+    (unless (looking-back "[[:digit:]]")
+      (error "No integer here"))))
+(put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
+
+(defun thing-at-point-goto-beginning-of-integer ()
+  "Go to end of integer at point."
+  (let ((inhibit-changing-match-data t))
+    ;; Skip backward over digits
+    (skip-chars-backward "[[:digit:]]")
+    ;; Check for digits and optional sign
+    (unless (looking-at "[+-]?[[:digit:]]")
+      (error "No integer here"))
+    ;; Skip backward over optional sign
+    (when (looking-back "[+-]")
+      (backward-char 1))))
+(put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
+
+(defun thing-at-point-bounds-of-integer-at-point ()
+  "Get boundaries of integer at point."
+  (save-excursion
+    (let (beg end)
+      (thing-at-point-goto-beginning-of-integer)
+      (setq beg (point))
+      (thing-at-point-goto-end-of-integer)
+      (setq end (point))
+      (cons beg end))))
+(put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
+
+(defun thing-at-point-integer-at-point ()
+  "Get integer at point."
+  (let ((bounds (bounds-of-thing-at-point 'integer)))
+    (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
+(put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
+
+(defun increment-integer-at-point (&optional inc)
+  "Increment integer at point by one.
+
+With numeric prefix arg INC, increment the integer by INC amount."
+  (interactive "p")
+  (let ((inc (or inc 1))
+        (n (thing-at-point 'integer))
+        (bounds (bounds-of-thing-at-point 'integer)))
+    (delete-region (car bounds) (cdr bounds))
+    (insert (int-to-string (+ n inc)))))
+
+(defun decrement-integer-at-point (&optional dec)
+  "Decrement integer at point by one.
+
+With numeric prefix arg DEC, decrement the integer by DEC amount."
+  (interactive "p")
+  (increment-integer-at-point (- (or dec 1))))
+
+(global-set-key (kbd "C-c +") 'increment-integer-at-point)
+(global-set-key (kbd "C-c =") 'increment-integer-at-point)
+(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
+
+(defun font-lock-comment-annotations ()
+  "Highlight a bunch of well known comment annotations.
+
+This functions should be added to the hooks of major modes for programming."
+  (font-lock-add-keywords
+   nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
+          1 font-lock-warning-face t))))
+
+(add-hook 'prog-mode-hook 'font-lock-comment-annotations)
+
+(defconst pcmpl-git-commands
+  '("add" "bisect" "branch" "checkout" "clone"
+    "commit" "diff" "fetch" "grep"
+    "init" "log" "merge" "mv" "pull" "push" "rebase"
+    "reset" "rm" "show" "status" "tag" )
+  "List of `git' commands")
+
+(defvar pcmpl-git-ref-list-cmd "git for-each-ref refs/ --format='%(refname)'"
+  "The `git' command to run to get a list of refs")
+
+(defun pcmpl-git-get-refs (type)
+  "Return a list of `git' refs filtered by TYPE"
+  (with-temp-buffer
+    (insert (shell-command-to-string pcmpl-git-ref-list-cmd))
+    (goto-char (point-min))
+    (let ((ref-list))
+      (while (re-search-forward (concat "^refs/" type "/\\(.+\\)$") nil t)
+        (add-to-list 'ref-list (match-string 1)))
+      ref-list)))
+
+(defun pcomplete/git ()
+  "Completion for `git'"
+  ;; Completion for the command argument.
+  (pcomplete-here* pcmpl-git-commands)
+  ;; complete files/dirs forever if the command is `add' or `rm'
+  (cond
+   ((pcomplete-match (regexp-opt '("add" "rm")) 1)
+    (while (pcomplete-here (pcomplete-entries))))
+   ;; provide branch completion for the command `checkout'.
+   ((pcomplete-match "checkout" 1)
+    (pcomplete-here* (pcmpl-git-get-refs "heads")))))
+
+(define-key org-mode-map "'" #'endless/apostrophe)
+;; (eval-after-load 'markdown-mode
+;;   '(define-key markdown-mode-map "'"
+;;      #'endless/apostrophe))
+
+(defun endless/apostrophe (opening)
+  "Insert ’ in prose or `self-insert-command' in code.
+With prefix argument OPENING, insert ‘’ instead and
+leave point in the middle.
+Inside a code-block, just call `self-insert-command'."
+  (interactive "P")
+  (if (and (derived-mode-p 'org-mode)
+           (org-in-block-p '("src" "latex" "html")))
+      (call-interactively #'self-insert-command)
+    (if (looking-at "['’][=_/\\*]?")
+        (goto-char (match-end 0))
+      (if (null opening)
+          (insert "’")
+        (insert "‘’")
+        (forward-char -1)))))
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -1749,7 +1939,8 @@ or the current buffer directory."
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
   :config
   (require 'smartparens-config)
-  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil))
+  (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
+  (show-smartparens-mode +1))
 
 (use-package swiper
   :bind (("\C-s" . swiper)
@@ -1805,6 +1996,14 @@ or the current buffer directory."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*nethack*"))
+
+  ;; (defun angband ()
+  ;;   (interactive)
+  ;;   (set-buffer (make-term "angband" "@angband@/bin/angband"))
+  ;;   (term-mode)
+  ;;   (term-char-mode)
+  ;;   (term-set-escape-char ?\C-x)
+  ;;   (switch-to-buffer "*angband*"))
 
   (defun my-term-hook ()
     (goto-address-mode)
@@ -1910,9 +2109,6 @@ or the current buffer directory."
 
 (use-package transpose-frame
   :bind ("C-x t" . transpose-frame))
-
-(use-package uniquify
-  :demand)
 
 (use-package web-mode
   :mode ("\\.html\\'" "\\.jsp\\'"))
@@ -2041,6 +2237,12 @@ or the current buffer directory."
                    (funcall 'compilation-filter proc
                             (xterm-color-filter string)))))))
   )
+
+(use-package elpy
+  :mode ("\\.py\\’" . elpy-mode)
+  :config
+  (elpy-enable)
+  (elpy-use-ipython))
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
