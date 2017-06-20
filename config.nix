@@ -37,7 +37,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nix
         ghc
         rtags
-        haskellPackages.ghc-mod
       ]
       ++ (with epkgs.elpaPackages; [
         ace-window
@@ -133,7 +132,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         rg
         noflet
         elpy
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack angband; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
@@ -220,7 +219,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
             ripgrep
             ag
             ghc
-            haskellPackages.ghc-mod
             git
             gitAndTools.hub
             go2nix
@@ -240,7 +238,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
             lua
             less
             man
-            mutt
             nano
             nasm
             nox
