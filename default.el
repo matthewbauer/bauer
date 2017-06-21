@@ -1305,19 +1305,17 @@ FUNC is run when MODES are loaded."
 
 (use-package emacs-lisp-mode
   :init
-  (progn
-    (use-package eldoc
-      :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
-    (use-package macrostep
-      :disabled
-      :bind ("C-c e" . macrostep-expand))
-    (use-package ert
-      :disabled
-      :config (add-to-list 'emacs-lisp-mode-hook 'ert--activate-font-lock-keywords)))
+  (use-package eldoc
+    :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
+  (use-package macrostep
+    :disabled
+    :bind ("C-c e" . macrostep-expand))
+  (use-package ert
+    :disabled
+    :config (add-to-list 'emacs-lisp-mode-hook 'ert--activate-font-lock-keywords))
   :config
-  (progn
-    (setq tab-always-indent 'complete)
-    (add-to-list 'completion-styles 'initials t))
+  (setq tab-always-indent 'complete)
+  (add-to-list 'completion-styles 'initials t)
   :bind (("M-." . find-function-at-point)
          ("M-&" . complete-symbol))
   :interpreter (("emacs" . emacs-lisp-mode)))
