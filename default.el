@@ -503,7 +503,7 @@ save it in `ffap-file-at-point-line-number' variable."
         (when (memq (process-status process) '(exit signal))
           (kill-buffer (process-buffer process))
           (delete-frame my-frame)))
-      (set-process-sentinel proc 'my-sentinel)
+      ;; (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
 
 (defun eval-and-replace ()
@@ -1415,15 +1415,18 @@ POINT ?"
   ;;   (interactive)
   ;;   (mapc #'find-file (mapcar #'expand-file-name args)))
 
-  (defun eshell/cd (&optional dir)
-    "Make cd just open dired."
-    (interactive)
-    (let* ((dir (if dir dir "~"))
-           (default-directory (expand-file-name dir default-directory))
-           (buffer (get-buffer-create (concat "*eshell<" (expand-file-name default-directory) ">*"))))
-      (pop-to-buffer-same-window buffer)
-      (unless (derived-mode-p 'eshell-mode)
-        (eshell-mode))))
+  (add-hook 'eshell-mode-hook (lambda ()
+                                (defun eshell/cd (&optional dir)
+                                  "Make cd just open dired."
+                                  (interactive)
+                                  (let* ((dir (if dir dir "~"))
+                                         (default-directory (expand-file-name
+                                                             (concat dir "/") default-directory))
+                                         (buffer (get-buffer-create (concat "*eshell<" (expand-file-name default-directory) ">*"))))
+                                    (pop-to-buffer-same-window buffer)
+                                    (unless (derived-mode-p 'eshell-mode)
+                                      (eshell-mode))))
+                                ))
 
   (with-eval-after-load "esh-opt"
     (autoload 'epe-theme-lambda "eshell-prompt-extras")
