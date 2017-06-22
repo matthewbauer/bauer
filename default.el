@@ -1944,7 +1944,7 @@ or the current buffer directory."
   :config
   (require 'smartparens-config)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (show-smartparens-mode +use))
+  (show-smartparens-mode +1))
 
 (use-package swiper
   :bind (("\C-s" . swiper)
