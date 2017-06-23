@@ -37,6 +37,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nix
         ghc
         rtags
+        emacsPackages.proofgeneral
+        emacsPackages.ess
       ]
       ++ (with epkgs.elpaPackages; [
         ace-window
@@ -132,6 +134,10 @@ dict-dir ${aspellDicts.en}/lib/aspell
         rg
         noflet
         elpy
+        hydra
+        bm
+        diff-hl
+        hideshowvis
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el

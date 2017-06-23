@@ -451,7 +451,7 @@ save it in `ffap-file-at-point-line-number' variable."
           (message "Deleted file %s" filename)
           (kill-buffer))))))
 
-(global-set-key (kbd "C-c D")  'delete-file-and-buffer)
+(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
 
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
@@ -1720,10 +1720,12 @@ POINT ?"
 
 (use-package multiple-cursors
   :commands (mc/mark-next-like-this mc/mark-previous-like-this)
+  :init
+  (global-unset-key (kbd "M-<down-mouse-1>"))
   :bind
   (("<C-S-down>" . mc/mark-next-like-this)
    ("<C-S-up>" . mc/mark-previous-like-this)
-   ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
+   ("M-<mouse-1>" . mc/add-cursor-on-click)))
 
 (use-package mwim
   :commands (mwim-beginning-of-code-or-line mwim-end-of-code-or-line)
@@ -2250,6 +2252,250 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
+
+(use-package hydra
+  :bind (("s-f" . hydra-projectile/body)
+         ("C-x t" . hydra-toggle/body)
+         ("C-M-o" . hydra-window/body))
+  :config
+  (hydra-add-font-lock)
+
+  (require 'windmove)
+
+  (defun hydra-move-splitter-left (arg)
+    "Move window splitter left."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (shrink-window-horizontally arg)
+      (enlarge-window-horizontally arg)))
+
+  (defun hydra-move-splitter-right (arg)
+    "Move window splitter right."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'right))
+        (enlarge-window-horizontally arg)
+      (shrink-window-horizontally arg)))
+
+  (defun hydra-move-splitter-up (arg)
+    "Move window splitter up."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (enlarge-window arg)
+      (shrink-window arg)))
+
+  (defun hydra-move-splitter-down (arg)
+    "Move window splitter down."
+    (interactive "p")
+    (if (let ((windmove-wrap-around))
+          (windmove-find-other-window 'up))
+        (shrink-window arg)
+      (enlarge-window arg)))
+
+  (defhydra hydra-toggle (:color teal)
+    "
+_a_ abbrev-mode:      %`abbrev-mode
+_d_ debug-on-error    %`debug-on-error
+_f_ auto-fill-mode    %`auto-fill-function
+_t_ truncate-lines    %`truncate-lines
+
+"
+    ("a" abbrev-mode nil)
+    ("d" toggle-debug-on-error nil)
+    ("f" auto-fill-mode nil)
+    ("t" toggle-truncate-lines nil)
+    ("q" nil "cancel"))
+
+  (key-chord-define-global
+   "ds"
+   (defhydra hydra-zoom ()
+     "zoom"
+     ("j" text-scale-increase "in")
+     ("k" text-scale-decrease "out")
+     ("0" (text-scale-set 0) "reset")
+     ("1" (text-scale-set 0) :bind nil)
+     ("2" (text-scale-set 0) :bind nil :color blue)))
+
+  (defhydra hydra-error (global-map "M-g")
+    "goto-error"
+    ("h" flycheck-list-errors "first")
+    ("j" flycheck-next-error "next")
+    ("k" flycheck-previous-error "prev")
+    ("v" recenter-top-bottom "recenter")
+    ("q" nil "quit"))
+
+  (defhydra hydra-window (:color amaranth)
+    "
+Move Point^^^^   Move Splitter   ^Ace^                       ^Split^
+--------------------------------------------------------------------------------
+_w_, _<up>_      Shift + Move    _C-a_: ace-window           _2_: split-window-below
+_a_, _<left>_                    _C-s_: ace-window-swap      _3_: split-window-right
+_s_, _<down>_                    _C-d_: ace-window-delete    ^ ^
+_d_, _<right>_                   ^   ^                       ^ ^
+You can use arrow-keys or WASD.
+"
+    ("2" split-window-below nil)
+    ("3" split-window-right nil)
+    ("a" windmove-left nil)
+    ("s" windmove-down nil)
+    ("w" windmove-up nil)
+    ("d" windmove-right nil)
+    ("A" hydra-move-splitter-left nil)
+    ("S" hydra-move-splitter-down nil)
+    ("W" hydra-move-splitter-up nil)
+    ("D" hydra-move-splitter-right nil)
+    ("<left>" windmove-left nil)
+    ("<down>" windmove-down nil)
+    ("<up>" windmove-up nil)
+    ("<right>" windmove-right nil)
+    ("<S-left>" hydra-move-splitter-left nil)
+    ("<S-down>" hydra-move-splitter-down nil)
+    ("<S-up>" hydra-move-splitter-up nil)
+    ("<S-right>" hydra-move-splitter-right nil)
+    ("C-a" ace-window nil)
+    ("u" hydra--universal-argument nil)
+    ("C-s" (lambda () (interactive) (ace-window 4)) nil)
+    ("C-d" (lambda () (interactive) (ace-window 16)) nil)
+    ("q" nil "quit"))
+
+  (defhydra hydra-org-template (:color blue :hint nil)
+    "
+_c_enter  _q_uote     _e_macs-lisp    _L_aTeX:
+_l_atex   _E_xample   _p_erl          _i_ndex:
+_a_scii   _v_erse     _P_erl tangled  _I_NCLUDE:
+_s_rc     ^ ^         plant_u_ml      _H_TML:
+_h_tml    ^ ^         ^ ^             _A_SCII:
+"
+    ("s" (hot-expand "<s"))
+    ("E" (hot-expand "<e"))
+    ("q" (hot-expand "<q"))
+    ("v" (hot-expand "<v"))
+    ("c" (hot-expand "<c"))
+    ("l" (hot-expand "<l"))
+    ("h" (hot-expand "<h"))
+    ("a" (hot-expand "<a"))
+    ("L" (hot-expand "<L"))
+    ("i" (hot-expand "<i"))
+    ("e" (progn
+           (hot-expand "<s")
+           (insert "emacs-lisp")
+           (forward-line)))
+    ("p" (progn
+           (hot-expand "<s")
+           (insert "perl")
+           (forward-line)))
+    ("u" (progn
+           (hot-expand "<s")
+           (insert "plantuml :file CHANGE.png")
+           (forward-line)))
+    ("P" (progn
+           (insert "#+HEADERS: :results output :exports both :shebang \"#!/usr/bin/env perl\"\n")
+           (hot-expand "<s")
+           (insert "perl")
+           (forward-line)))
+    ("I" (hot-expand "<I"))
+    ("H" (hot-expand "<H"))
+    ("A" (hot-expand "<A"))
+    ("<" self-insert-command "ins")
+    ("o" nil "quit"))
+
+  (defun hot-expand (str)
+    "Expand org template."
+    (insert str)
+    (org-try-structure-completion))
+
+  (with-eval-after-load "org"
+    (define-key org-mode-map "<"
+      (lambda () (interactive)
+        (if (looking-back "^")
+            (hydra-org-template/body)
+          (self-insert-command 1))))))
+
+(use-package diff-hl
+  :demand
+  :commands global-diff-hl-mode
+  :init (global-diff-hl-mode t)
+  :config
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  )
+
+(use-package origami
+  :disabled
+  :commands origami-mode
+  :init
+  (add-hook 'prog-mode-hook 'origami-mode))
+
+(use-package bm
+  :demand
+
+  :init
+  ;; restore on load (even before you require bm)
+  (setq bm-restore-repository-on-load t)
+
+
+  :config
+  ;; Allow cross-buffer 'next'
+  (setq bm-cycle-all-buffers t)
+
+  ;; where to store persistant files
+  (setq bm-repository-file "~/.emacs.d/bm-repository")
+
+  ;; save bookmarks
+  (setq-default bm-buffer-persistence t)
+
+  ;; Loading the repository from file when on start up.
+  (add-hook' after-init-hook 'bm-repository-load)
+
+  ;; Restoring bookmarks when on file find.
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
+
+  ;; Saving bookmarks
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
+
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when Emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook #'(lambda nil
+                                 (bm-buffer-save-all)
+                                 (bm-repository-save)))
+
+  ;; The `after-save-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state.
+  (add-hook 'after-save-hook #'bm-buffer-save)
+
+  ;; Restoring bookmarks
+  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'after-revert-hook #'bm-buffer-restore)
+
+  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state. This hook might cause trouble when using packages
+  ;; that automatically reverts the buffer (like vc after a check-in).
+  ;; This can easily be avoided if the package provides a hook that is
+  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
+  ;; Then new bookmarks can be saved before the buffer is reverted.
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
+
+
+  :bind (("<f2>" . bm-next)
+         ("S-<f2>" . bm-previous)
+         ("C-<f2>" . bm-toggle))
+  )
+
+(use-package yafolding
+  :disabled
+  :commands (yafolding-mode)
+  :init (add-hook 'prog-mode-hook 'yafolding-mode))
+
+(use-package hideshowvis
+  :commands (hideshowvis-minor-mode hideshowvis-symbols)
+  :init
+  ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
+  )
 
 (provide 'default)
 ;;; default.el ends here
