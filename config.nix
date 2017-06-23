@@ -138,7 +138,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bm
         diff-hl
         hideshowvis
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
+      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack fortune; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
@@ -157,36 +157,38 @@ dict-dir ${aspellDicts.en}/lib/aspell
            for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
              ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
            done
-            fi
+        fi
 
-            mkdir -p $out/etc
+        mkdir -p $out/etc
 
-            cp ${myConfig.gitconfig} $out/etc/gitconfig
-            substituteInPlace $out/etc/gitconfig \
-              --replace @gitignore@ ${myConfig.gitignore} \
-              --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-              --replace @out@ $out
+        cp ${myConfig.gitconfig} $out/etc/gitconfig
+        substituteInPlace $out/etc/gitconfig \
+        --replace @gitignore@ ${myConfig.gitignore} \
+        --replace @gnupg@ ${gnupg1compat}/bin/gpg \
+        --replace @out@ $out
 
-            cp ${myConfig.bashrc} $out/etc/bashrc
-            substituteInPlace $out/etc/bashrc \
-              --replace @out@ $out
+        cp ${myConfig.bashrc} $out/etc/bashrc
+        substituteInPlace $out/etc/bashrc \
+        --replace @fortune@ ${fortune} \
+        --replace @out@ $out
 
-            cp ${myConfig.zshrc} $out/etc/.zshrc
-            substituteInPlace $out/etc/.zshrc \
-              --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-              --replace @out@ $out
-            cp $out/etc/.zshrc $out/etc/zshrc
+        cp ${myConfig.zshrc} $out/etc/.zshrc
+        substituteInPlace $out/etc/.zshrc \
+        --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
+        --replace @fortune@ ${fortune} \
+        --replace @out@ $out
+        cp $out/etc/.zshrc $out/etc/zshrc
 
-            cp ${myConfig.etc-profile} $out/etc/profile
-            substituteInPlace $out/etc/profile \
-              --replace @out@ $out
+        cp ${myConfig.etc-profile} $out/etc/profile
+        substituteInPlace $out/etc/profile \
+        --replace @out@ $out
 
-            wrapProgram $out/bin/bash \
-              --add-flags "--rcfile $out/etc/bashrc"
+        wrapProgram $out/bin/bash \
+        --add-flags "--rcfile $out/etc/bashrc"
 
-            wrapProgram $out/bin/zsh \
-              --set ZDOTDIR $out/etc
-          '';
+        wrapProgram $out/bin/zsh \
+        --set ZDOTDIR $out/etc
+        '';
         meta.priority = 10;
         pathsToLink = [
           "/bin"
@@ -281,12 +283,14 @@ dict-dir ${aspellDicts.en}/lib/aspell
             xz
             zip
             zsh
+            fortune
             (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-	      mkdir -p $out/etc/profile.d
-	      cp ${myConfig.profile} $out/etc/profile.d/my-profile.sh
-	      substituteInPlace $out/etc/profile.d/my-profile.sh \
-	        --replace @emacs@ ${myEmacs} \
-	        --replace @cacert@ ${cacert}
+              mkdir -p $out/etc/profile.d
+              cp ${myConfig.profile} $out/etc/profile.d/my-profile.sh
+              substituteInPlace $out/etc/profile.d/my-profile.sh \
+                --replace @emacs@ ${myEmacs} \
+                --replace @fortune@ ${fortune} \
+                --replace @cacert@ ${cacert}
             '')
         ];
       };

@@ -18,7 +18,8 @@ export DICPATH=$PREFIX/share/hunspell
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
 
-alias ls="ls -G --color"
+# alias ls="ls -G --color"
+alias ls="TERM=ansi ls --color=always"
 alias l="ls -lF"
 alias ..="cd .."
 alias ...="cd ../.."
@@ -36,4 +37,10 @@ export HISTFILE=$HOME/.history
 export HISTSIZE=16000
 export SAVEHIST=15000
 
+if [ "$TERM" = dumb ] && [ "$INSIDE_EMACS" ]; then
+    export TERM=dumb-emacs-ansi COLORTERM=1
+fi
+
 # PS1=" > "
+
+# @fortune@/bin/fortune

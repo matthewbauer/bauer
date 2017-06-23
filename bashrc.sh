@@ -59,3 +59,5 @@ if [[ $- == *i* ]]; then
   bind '"\e/": dabbrev-expand'
   bind '"\ee": edit-and-execute-command'
 fi
+
+@fortune@/bin/fortune
