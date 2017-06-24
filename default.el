@@ -159,6 +159,8 @@
  '(flyspell-incorrect-hook nil)
  '(flyspell-issue-welcome-flag nil)
  '(flyspell-use-meta-tab nil)
+ '(fortune-dir "@fortune@/share/games/fortunes")
+ '(fortune-file "@fortune@/share/games/fortunes/food")
  '(frame-title-format
    (quote
     ((:eval
@@ -323,9 +325,6 @@
     (yas-ido-prompt yas-completing-prompt yas-no-prompt)))
  '(yas-triggers-in-field t)
  '(yas-wrap-around-region t))
-
-(setq fortune-dir "@fortune@/share/games/fortunes")
-(setq fortune-file "@fortune@/share/games/fortunes/food")
 
 ;;
 ;; builtins
@@ -1813,7 +1812,8 @@ or the current buffer directory."
 
 (use-package page-break-lines
   :init
-  (add-hook 'doc-mode-hook 'page-break-lines-mode))
+  (add-hook 'doc-mode-hook 'page-break-lines-mode)
+  (add-hook 'help-mode-hook 'page-break-lines-mode))
 
 (use-package php-mode
   :mode "\\.php\\'")
