@@ -554,7 +554,8 @@ i.e. change right window to bottom, or change bottom window to right."
 
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
-(global-set-key (kbd "C-x ~") (lambda () (interactive) (dired "~")))
+(global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
+(global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
 (global-set-key (kbd "C-c l") 'browse-url-at-point)
 
 (defun sort-package-declarations ()
@@ -1819,7 +1820,6 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :diminish projectile-mode
   :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
