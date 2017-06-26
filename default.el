@@ -160,7 +160,6 @@
    (quote
     (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode org-mode)))
  '(flycheck-idle-change-delay 0.8)
- '(flycheck-standard-error-navigation t)
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
  '(flyspell-highlight-properties nil)
@@ -259,7 +258,7 @@
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer t)
  '(projectile-mode-line
-   '(:eval (if (projectile-project-p)
+   '(:eval (if (and (not (file-remote-p default-directory)) (projectile-project-p))
                (format " Projectile[%s]"
                        (projectile-project-name))
              "")))
@@ -517,19 +516,19 @@ save it in `ffap-file-at-point-line-number' variable."
          (comint-mode-hook nil)
          (comint-scroll-show-maximum-output nil)
          )
-    (makunbound 'my-frame)
-    (set 'my-frame (make-frame))
+    ;; (makunbound 'my-frame)
+    ;; (set 'my-frame (make-frame))
     (set-process-query-on-exit-flag proc nil)
-    (switch-to-buffer buffer)
+    ;; (switch-to-buffer buffer)
     ;; (display-buffer buffer '(nil (allow-no-window . t)))
-    (pop-to-buffer-same-window buffer)
+    (pop-to-buffer buffer)
     (with-current-buffer buffer
       ;; (require 'shell)
       ;; (shell-mode)
       (comint-mode)
       (defun my-sentinel (process signal)
         (when (memq (process-status process) '(exit signal))
-          (kill-buffer (process-buffer process))
+          ;; (kill-buffer (process-buffer process))
           (delete-frame my-frame)))
       ;; (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
@@ -655,7 +654,7 @@ you can use this command to copy text from a read-only buffer.
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
 
 (add-hook 'comint-mode-hook (lambda ()
-                              (toggle-truncate-lines 1)
+                              ;; (toggle-truncate-lines 1)
                               (make-local-variable 'jit-lock-defer-timer)
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)
                               ))
@@ -1783,9 +1782,12 @@ POINT ?"
   :commands (mc/mark-next-like-this mc/mark-previous-like-this)
   :init
   (global-unset-key (kbd "M-<down-mouse-1>"))
+
   :bind
-  (("<C-S-down>" . mc/mark-next-like-this)
-   ("<C-S-up>" . mc/mark-previous-like-this)
+  (("<C-S-down>" . mc/mark-next-like-this) ;; broken by macOS
+   ("<C-S-up>" . mc/mark-previous-like-this) ;; keybinds
+   ("C->" . mc/mark-next-like-this)
+   ("C-<" . mc/mark-previous-like-this)
    ("M-<mouse-1>" . mc/add-cursor-on-click)))
 
 (use-package mwim
