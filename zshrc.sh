@@ -207,4 +207,4 @@ if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]] && [[ -z "$INSIDE_EMACS" ]]; then
     update_terminal_cwd
 fi
 
-@fortune@/bin/fortune
+# @fortune@/bin/fortune

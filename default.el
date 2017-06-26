@@ -1515,8 +1515,8 @@ POINT ?"
   (setenv "PAGER" "cat")
   (setenv "EDITOR" "emacsclient -nq")
 
-  (defadvice eshell (before dotemacs activate)
-    (setq eshell-banner-message (concat (shell-command-to-string "@fortune@/bin/fortune") "\n")))
+  ;; (defadvice eshell (before dotemacs activate)
+  ;;   (setq eshell-banner-message (concat (shell-command-to-string "@fortune@/bin/fortune") "\n")))
 
   (add-hook 'eshell-mode-hook
             (lambda ()

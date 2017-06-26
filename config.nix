@@ -44,16 +44,15 @@ dict-dir ${aspellDicts.en}/lib/aspell
       ])
       ++ (with epkgs.elpaPackages; [
         org
-        windesize
         tiny
         rainbow-mode
         realgud
-        dired-du-mode
+        dired-du
         all
         easy-kill
         excorporate
         ggtags
-        gnuorb
+        gnorb
         gnugo
         chess
         muse
@@ -157,7 +156,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bm
         diff-hl
         hideshowvis
-        dired-x
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack fortune; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el

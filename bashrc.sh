@@ -60,4 +60,4 @@ if [[ $- == *i* ]]; then
   bind '"\ee": edit-and-execute-command'
 fi
 
-@fortune@/bin/fortune
+# @fortune@/bin/fortune
