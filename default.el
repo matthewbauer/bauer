@@ -76,8 +76,6 @@
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
  '(dired-omit-verbose nil)
- '(dired-omit-files
-   (concat dired-omit-files "\\|^.DS_STORE$\\|\\.git$\\|^.projectile$"))
  '(dired-dwim-target t)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
@@ -1267,10 +1265,6 @@ FUNC is run when MODES are loaded."
   (bind-key "M-!" #'async-shell-command dired-mode-map)
   (unbind-key "M-G" dired-mode-map)
 
-  (defadvice dired-omit-startup (after diminish-dired-omit activate)
-    "Make sure to remove \"Omit\" from the modeline."
-    (diminish 'dired-omit-mode) dired-mode-map)
-
   (defadvice dired-next-line (around dired-next-line+ activate)
     "Replace current buffer if file is a directory."
     ad-do-it
@@ -1336,9 +1330,10 @@ FUNC is run when MODES are loaded."
 
 (use-package dired-x
   :commands dired-omit-mode
+  :disabled
   :init
   ;; toggle `dired-omit-mode' with C-x M-o
-  (add-hook 'dired-mode-hook #'dired-omit-mode)
+  (add-hook 'dired-mode-hook 'dired-omit-mode)
   )
 
 (use-package dumb-jump
@@ -1391,16 +1386,10 @@ FUNC is run when MODES are loaded."
   (elpy-enable)
   (elpy-use-ipython))
 
+(use-package eldoc
+  :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
+
 (use-package emacs-lisp-mode
-  :init
-  (use-package eldoc
-    :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
-  (use-package macrostep
-    :disabled
-    :bind ("C-c e" . macrostep-expand))
-  (use-package ert
-    :disabled
-    :config (add-to-list 'emacs-lisp-mode-hook 'ert--activate-font-lock-keywords))
   :config
   (setq tab-always-indent 'complete)
   (add-to-list 'completion-styles 'initials t)
@@ -1683,23 +1672,13 @@ POINT ?"
     (unless lisp-mode-initialized
       (setq lisp-mode-initialized t)
 
-      (use-package elisp-slime-nav
-        :disabled)
-
       (use-package edebug
         :demand)
 
       (use-package eldoc
         :commands eldoc-mode
         :demand
-        :config
-        (use-package eldoc-extension
-          :disabled
-          :init
-          (add-hook 'emacs-lisp-mode-hook
-                    #'(lambda () (require 'eldoc-extension)) t)))
-
-      (use-package ert)
+        )
 
       (use-package elint
         :commands 'elint-initialize
@@ -1770,7 +1749,6 @@ POINT ?"
   :commands (magit-clone)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup))
-  :init
   )
 
 (use-package markdown-mode
@@ -1908,13 +1886,14 @@ or the current buffer directory."
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
-
   (projectile-global-mode)
 
   (require 'easymenu)
 
   (easy-menu-define projectile-menu projectile-mode-map "Projectile"
     '("Projectile"
+      :active projectile-project-p
+      :visible projectile-project-p
       ["Find file" projectile-find-file]
       ["Find file in known projects" projectile-find-file-in-known-projects]
       ["Find test file" projectile-find-test-file]
@@ -1951,7 +1930,8 @@ or the current buffer directory."
       "--"
       ["Project info" projectile-project-info]
       ["About" projectile-version]
-      "Search Files (Grep)..."))
+      )
+    )
   )
 
 (use-package python-mode
