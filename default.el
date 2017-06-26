@@ -23,6 +23,7 @@
 
 (custom-set-variables
  '(ad-redefinition-action (quote accept))
+ '(ag-executable "@ag@/bin/ag")
  '(apropos-do-all t)
  '(async-shell-command-buffer (quote new-buffer))
  '(auth-source-save-behavior t)
@@ -32,6 +33,10 @@
  '(auto-save-visited-file-name t)
  '(async-shell-command-buffer 'new-buffer)
  '(backward-delete-char-untabify-method (quote hungry))
+ '(bm-buffer-persistence t)
+ '(bm-restore-repository-on-load t)
+ '(bm-cycle-all-buffers t)
+ '(bm-repository-file "~/.emacs.d/bm-repository")
  '(c-eldoc-includes "" t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
@@ -47,6 +52,7 @@
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
+ '(compilation-environment '("TERM=xterm-256color"))
  '(completions-format (quote vertical))
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
@@ -69,6 +75,9 @@
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
+ '(dired-omit-verbose nil)
+ '(dired-omit-files
+   (concat dired-omit-files "\\|^.DS_STORE$\\|\\.git$\\|^.projectile$"))
  '(dired-dwim-target t)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
@@ -143,8 +152,9 @@
  '(eshell-visual-options (quote (("git" "--paginate"))))
  '(eshell-visual-subcommands (quote (("git" "log" "diff" "show"))))
  '(eval-expression-debug-on-error t)
- '(explicit-bash-args (quote ("-c" "export EMACS=; stty echo; bash")))
+ '(explicit-bash-args (quote ("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash")))
  '(explicit-shell-file-name "bash")
+ '(expand-region-contract-fast-key "j")
  '(fased-completing-read-function (quote nil))
  '(fill-column 80)
  '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
@@ -185,11 +195,15 @@
  '(ispell-extra-args (quote ("--sug-mode=ultra")))
  '(ispell-silently-savep t)
  '(ispell-quietly t)
+ '(ispell-program-name "@aspell@/bin/aspell")
  '(ivy-count-format "\"\"")
  '(ivy-display-style nil)
  '(ivy-minibuffer-faces nil)
  '(ivy-use-virtual-buffers t)
- '(js-indent-level 2)
+ '(jdee-server-dir "@jdeeserver@")
+ '(jdee-ant-home "@ant@/lib/ant")
+ '(jdee-ant-program "@ant@/bin/ant")
+ '(jdee-ant-enable-find t) '(js-indent-level 2)
  '(js2-basic-offset 2)
  '(js2-bounce-indent-p nil)
  '(js2-mode-show-parse-errors nil)
@@ -206,7 +220,7 @@
  '(mac-frame-tabbing t)
  '(mac-system-move-file-to-trash-use-finder t)
  '(magit-clone-set-remote\.pushDefault t)
- '(magit-completing-read-function (quote magit-builtin-completing-read))
+ '(magit-completing-read-function 'ivy-completing-read)
  '(magit-delete-by-moving-to-trash t)
  '(magit-diff-options nil)
  '(magit-ediff-dwim-show-on-hunks t)
@@ -237,6 +251,7 @@
     (read-only t cursor-intangible t face minibuffer-prompt)))
  '(mouse-wheel-scroll-amount (quote (1 ((shift) . 4) ((control)))))
  '(network-security-level (quote medium))
+ '(neo-theme 'arrow)
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
@@ -245,6 +260,11 @@
  '(projectile-completion-system (quote ivy))
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer t)
+ '(projectile-mode-line
+   '(:eval (if (projectile-project-p)
+               (format " Projectile[%s]"
+                       (projectile-project-name))
+             "")))
  '(projectile-idle-timer-hook nil)
  '(projectile-ignored-project-function (quote file-remote-p))
  '(projectile-switch-project-action (quote projectile-dired))
@@ -253,6 +273,8 @@
  '(require-final-newline t)
  '(resize-mini-windows t)
  '(ring-bell-function (quote ignore))
+ '(ripgrep-executable "@ripgrep@/bin/rg")
+ '(rtags-path "@rtags@/bin")
  '(rtags-completions-enabled t)
  '(rtags-display-result-backend (quote ivy))
  '(rtags-imenu-syntax-highlighting 10)
@@ -321,6 +343,11 @@
  '(visible-bell nil)
  '(visible-cursor nil)
  '(whitespace-line-column 80)
+ '(whitespace-auto-cleanup t)
+ '(whitespace-line-column 110)
+ '(whitespace-rescan-timer-time nil)
+ '(whitespace-silent t)
+ '(whitespace-style '(face trailing lines space-before-tab empty))
  '(yas-prompt-functions
    (quote
     (yas-ido-prompt yas-completing-prompt yas-no-prompt)))
@@ -802,11 +829,6 @@ This functions should be added to the hooks of major modes for programming."
    ((pcomplete-match "checkout" 1)
     (pcomplete-here* (pcmpl-git-get-refs "heads")))))
 
-;; (define-key org-mode-map "'" #'endless/apostrophe)
-;; (eval-after-load 'markdown-mode
-;;   '(define-key markdown-mode-map "'"
-;;      #'endless/apostrophe))
-
 (defun endless/apostrophe (opening)
   "Insert ’ in prose or `self-insert-command' in code.
 With prefix argument OPENING, insert ‘’ instead and
@@ -852,8 +874,7 @@ FUNC is run when MODES are loaded."
 (use-package ag
   :commands ag
   :bind ("C-?" . ag-project)
-  :init
-  (setq ag-executable "@ag@/bin/ag"))
+  )
 
 (use-package aggressive-indent
   :commands aggressive-indent-mode
@@ -896,21 +917,7 @@ FUNC is run when MODES are loaded."
 (use-package bm
   :demand
 
-  :init
-  ;; restore on load (even before you require bm)
-  (setq bm-restore-repository-on-load t)
-
-
   :config
-  ;; Allow cross-buffer 'next'
-  (setq bm-cycle-all-buffers t)
-
-  ;; where to store persistant files
-  (setq bm-repository-file "~/.emacs.d/bm-repository")
-
-  ;; save bookmarks
-  (setq-default bm-buffer-persistence t)
-
   ;; Loading the repository from file when on start up.
   (add-hook' after-init-hook 'bm-repository-load)
 
@@ -1181,8 +1188,6 @@ FUNC is run when MODES are loaded."
          ("<f1> v" . counsel-describe-variable)
          ("C-x C-f" . counsel-find-file)
          ("<f1> l" . counsel-find-library)
-         ("<f2> i" . counsel-info-lookup-symbol)
-         ("<f2> u" . counsel-unicode-char)
          ("C-c g" . counsel-git)
          ("C-c j" . counsel-git-grep)
          ("C-c k" . counsel-ag)
@@ -1332,11 +1337,9 @@ FUNC is run when MODES are loaded."
 (use-package dired-x
   :commands dired-omit-mode
   :init
-  (setq dired-omit-verbose nil)
   ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook #'dired-omit-mode)
-  (setq dired-omit-files
-        (concat dired-omit-files "\\|^.DS_STORE$\\|\\.git$\\|^.projectile$")))
+  )
 
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
@@ -1344,7 +1347,6 @@ FUNC is run when MODES are loaded."
          ("M-g x" . dumb-jump-go-prefer-external)
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
-
   (dumb-jump-mode))
 
 (use-package edebug
@@ -1493,14 +1495,6 @@ POINT ?"
             (lambda ()
               (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
 
-  ;; I prefer to just use dired
-  ;; directory navigatoin should be done through
-  ;; it. eshell should just be commands
-  ;; (defun eshell/cd (&rest args)
-  ;;   "Make cd just open dired."
-  ;;   (interactive)
-  ;;   (mapc #'find-file (mapcar #'expand-file-name args)))
-
   (add-hook 'eshell-mode-hook (lambda ()
                                 (defun eshell/cd (&optional dir)
                                   "Make cd just open dired."
@@ -1530,7 +1524,7 @@ POINT ?"
 
 (use-package expand-region
   :commands er/expand-region
-  :config (setq expand-region-contract-fast-key "j")
+  :config
   :bind (("C-c k" . er/expand-region)))
 
 (use-package flycheck
@@ -1647,9 +1641,7 @@ POINT ?"
   :commands intero-mode
   :init (add-hook 'haskell-mode-hook 'intero-mode))
 
-(use-package ispell
-  :init
-  (setq ispell-program-name "@aspell@/bin/aspell"))
+(use-package ispell)
 
 (use-package ivy
   :demand
@@ -1662,14 +1654,9 @@ POINT ?"
   (bind-key "C-j" #'ivy-call ivy-minibuffer-map)
   (ivy-mode 1))
 
-(use-package jdee
-  :init
-  (setq jdee-server-dir "@jdeeserver@")
-  (setq jdee-ant-home "@ant@/lib/ant")
-  (setq jdee-ant-program "@ant@/bin/ant")
-  (setq jdee-ant-enable-find t))
+(use-package jdee)
 
-;; (use-package realgud)
+(use-package realgud)
 
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
@@ -1784,7 +1771,7 @@ POINT ?"
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup))
   :init
-  (setq magit-completing-read-function 'ivy-completing-read))
+  )
 
 (use-package markdown-mode
   :mode "\\.\\(md\\|markdown\\)\\'"
@@ -1800,13 +1787,6 @@ POINT ?"
               (rainbow-delimiters-mode t)
               ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
               ))
-
-  :config
-  (setq indent-tabs-mode nil)
-  (setq tab-width 2)
-  (setq c-basic-offset 2)
-  (setq meghanada-server-remote-debug t)
-  (setq meghanada-javac-xlint "-Xlint:all,-processing")
 
   :bind
   (:map meghanada-mode-map
@@ -1863,8 +1843,7 @@ or the current buffer directory."
           (if file-name
               (neotree-find file-name))))))
   :bind (("<f8>" . neotree-project-dir-toggle))
-  :config
-  (setq neo-theme 'arrow))
+  )
 
 (use-package nix-mode
   :mode "\\.nix\\'")
@@ -1928,11 +1907,7 @@ or the current buffer directory."
   :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
-  (setq projectile-mode-line
-        '(:eval (if (projectile-project-p)
-                    (format " Projectile[%s]"
-                            (projectile-project-name))
-                  "")))
+
 
   (projectile-global-mode)
 
@@ -2004,9 +1979,7 @@ or the current buffer directory."
   :commands restart-emacs)
 
 (use-package rg
-  :commands rg
-  :init
-  (setq ripgrep-executable "@ripgrep@/bin/rg"))
+  :commands rg)
 
 (use-package rtags
   :commands (rtags-start-process-unless-running rtags-enable-standard-keybindings)
@@ -2021,8 +1994,6 @@ or the current buffer directory."
    'c++-mode-common-hook
    (lambda () (if (not (is-current-file-tramp))
              (rtags-start-process-unless-running))))
-
-  (setq rtags-path "@rtags@/bin")
 
   :config
   ;; Keybindings
@@ -2072,7 +2043,6 @@ or the current buffer directory."
   (setenv "LANG" "en")
 
   :config
-  (setq explicit-bash-args '("-c" "export INSIDE_EMACS=; stty echo; bash"))
   (defun make-shell-command-behave-interactively (orig-fun &rest args)
     (let ((shell-command-switch "-ic"))
       (apply orig-fun args)))
@@ -2162,20 +2132,10 @@ or the current buffer directory."
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*nethack*"))
 
-  ;; (defun angband ()
-  ;;   (interactive)
-  ;;   (set-buffer (make-term "angband" "@angband@/bin/angband"))
-  ;;   (term-mode)
-  ;;   (term-char-mode)
-  ;;   (term-set-escape-char ?\C-x)
-  ;;   (switch-to-buffer "*angband*"))
-
   (defun my-term-hook ()
     (goto-address-mode)
     (define-key term-raw-map "\C-y" 'my-term-paste))
-  (add-hook 'term-mode-hook 'my-term-hook)
-
-  )
+  (add-hook 'term-mode-hook 'my-term-hook))
 
 (use-package tern
   :commands tern-mode
@@ -2236,11 +2196,10 @@ or the current buffer directory."
     (let*
         ((file-name (expand-file-name buffer-file-name))
          (sudo-name (sudo-file-name file-name)))
-      (progn
-        (setq buffer-file-name sudo-name)
-        (rename-buffer sudo-name)
-        (setq buffer-read-only nil)
-        (message (concat "File name set to " sudo-name)))))
+      (setq buffer-file-name sudo-name)
+      (rename-buffer sudo-name)
+      (setq buffer-read-only nil)
+      (message (concat "File name set to " sudo-name))))
 
   ;;(global-set-key (kbd "C-c o") 'sudo-find-file)
   (global-set-key (kbd "C-c o s") 'sudo-reopen-file)
@@ -2258,13 +2217,6 @@ or the current buffer directory."
               (tramp-file-name-localname vec)))
          (concat "/sudo:root@localhost:" (buffer-file-name))))
       (goto-char position)))
-
-  ;; (defun sudo-find-file (&optional arg)
-  ;;   "Edit a file as root."
-  ;;   (interactive "p")
-  ;;   (if (or arg (not buffer-file-name))
-  ;;       (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
-  ;;     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (defun is-current-file-tramp ()
@@ -2334,14 +2286,7 @@ or the current buffer directory."
   :config
   (remove-hook 'find-file-hooks 'whitespace-buffer)
   (remove-hook 'kill-buffer-hook 'whitespace-buffer)
-
-  ;; For some reason, having these in settings.el gets ignored if whitespace
-  ;; loads lazily.
-  (setq whitespace-auto-cleanup t
-        whitespace-line-column 110
-        whitespace-rescan-timer-time nil
-        whitespace-silent t
-        whitespace-style '(face trailing lines space-before-tab empty)))
+  )
 
 (use-package whitespace-cleanup-mode
   :commands whitespace-cleanup-mode
@@ -2366,26 +2311,8 @@ or the current buffer directory."
   :config
   (setenv "TERM" "xterm-256color")
   ;; Comint and Shell
-  (progn (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-         (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions)))
-  ;; (setq comint-output-filter-functions
-  ;;       (remove 'ansi-color-process-output comint-output-filter-functions))
-  ;; (defun init-eshell-xterm-color ()
-  ;;   "Initialize xterm coloring for eshell"
-  ;;   (setq-local xterm-color-preserve-properties t)
-  ;;   (make-local-variable 'eshell-preoutput-filter-functions)
-  ;;   (setq-local eshell-output-filter-functions
-  ;;               (remove 'eshell-handle-ansi-color
-  ;;                       eshell-output-filter-functions)))
-  ;; (add-hook 'eshell-mode-hook 'init-eshell-xterm-color)
-  ;; (add-hook 'eshell-mode-hook
-  ;;           (lambda ()
-  ;;             (setq xterm-color-preserve-properties t)))
-
-  ;; (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
-  ;; (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
-
-  (setq compilation-environment '("TERM=xterm-256color"))
+  (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
+  (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions))
 
   (add-hook 'compilation-start-hook
             (lambda (proc)
