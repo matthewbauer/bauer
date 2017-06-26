@@ -44,3 +44,5 @@ fi
 # PS1=" > "
 
 # @fortune@/bin/fortune
+
+export SHELL_SESSION_HISTORY=1

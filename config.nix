@@ -37,10 +37,30 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nix
         ghc
         rtags
-        emacsPackages.proofgeneral
-        emacsPackages.ess
       ]
+      ++ (with emacsPackages; [
+        proofgeneral
+        ess
+      ])
       ++ (with epkgs.elpaPackages; [
+        org
+        windesize
+        tiny
+        rainbow-mode
+        realgud
+        dired-du-mode
+        all
+        easy-kill
+        excorporate
+        ggtags
+        gnuorb
+        gnugo
+        chess
+        muse
+        w3
+        windresize
+        vlf
+
         ace-window
         aggressive-indent
         auctex
@@ -116,8 +136,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
       ++ (with epkgs.melpaPackages; [
         autodisass-java-bytecode
         smart-hungry-delete
-        meghanada
-        # realgud
+        # meghanada
         apropospriate-theme
         c-eldoc
         css-eldoc
@@ -138,6 +157,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bm
         diff-hl
         hideshowvis
+        dired-x
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack fortune; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el

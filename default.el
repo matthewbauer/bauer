@@ -171,6 +171,7 @@
         "%b")))) t)
  '(gc-cons-threshold 100000000)
  '(global-auto-revert-non-file-buffers t)
+ '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
  '(history-length 20000)
  '(iedit-toggle-key-default nil)
@@ -841,6 +842,7 @@ Inside a code-block, just call `self-insert-command'."
   "Add hook to modes.
 FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
+
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
 
@@ -854,7 +856,6 @@ FUNC is run when MODES are loaded."
   (setq ag-executable "@ag@/bin/ag"))
 
 (use-package aggressive-indent
-  :diminish aggressive-indent-mode
   :commands aggressive-indent-mode
   :init
   (apply #'hook-into-modes 'aggressive-indent-mode lisp-mode-hooks))
@@ -891,6 +892,65 @@ FUNC is run when MODES are loaded."
   (load-theme 'apropospriate-dark t))
 
 (use-package autodisass-java-bytecode)
+
+(use-package bm
+  :demand
+
+  :init
+  ;; restore on load (even before you require bm)
+  (setq bm-restore-repository-on-load t)
+
+
+  :config
+  ;; Allow cross-buffer 'next'
+  (setq bm-cycle-all-buffers t)
+
+  ;; where to store persistant files
+  (setq bm-repository-file "~/.emacs.d/bm-repository")
+
+  ;; save bookmarks
+  (setq-default bm-buffer-persistence t)
+
+  ;; Loading the repository from file when on start up.
+  (add-hook' after-init-hook 'bm-repository-load)
+
+  ;; Restoring bookmarks when on file find.
+  (add-hook 'find-file-hooks 'bm-buffer-restore)
+
+  ;; Saving bookmarks
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
+
+  ;; Saving the repository to file when on exit.
+  ;; kill-buffer-hook is not called when Emacs is killed, so we
+  ;; must save all bookmarks first.
+  (add-hook 'kill-emacs-hook #'(lambda nil
+                                 (bm-buffer-save-all)
+                                 (bm-repository-save)))
+
+  ;; The `after-save-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state.
+  (add-hook 'after-save-hook #'bm-buffer-save)
+
+  ;; Restoring bookmarks
+  (add-hook 'find-file-hooks   #'bm-buffer-restore)
+  (add-hook 'after-revert-hook #'bm-buffer-restore)
+
+  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
+  ;; but it makes the bookmark data in repository more in sync with the file
+  ;; state. This hook might cause trouble when using packages
+  ;; that automatically reverts the buffer (like vc after a check-in).
+  ;; This can easily be avoided if the package provides a hook that is
+  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
+  ;; Then new bookmarks can be saved before the buffer is reverted.
+  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
+
+
+  :bind (("<f2>" . bm-next)
+         ("S-<f2>" . bm-previous)
+         ("C-<f2>" . bm-toggle))
+  )
 
 (use-package buffer-move
   :bind
@@ -1145,6 +1205,14 @@ FUNC is run when MODES are loaded."
       (add-hook hook 'rainbow-mode)))
   (use-package css-eldoc))
 
+(use-package diff-hl
+  :demand
+  :commands global-diff-hl-mode
+  :init (global-diff-hl-mode t)
+  :config
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  )
+
 (use-package diffview
   :commands (diffview-current diffview-region diffview-message))
 
@@ -1261,6 +1329,15 @@ FUNC is run when MODES are loaded."
                "\\)")))
         (funcall dired-omit-regexp-orig)))))
 
+(use-package dired-x
+  :commands dired-omit-mode
+  :init
+  (setq dired-omit-verbose nil)
+  ;; toggle `dired-omit-mode' with C-x M-o
+  (add-hook 'dired-mode-hook #'dired-omit-mode)
+  (setq dired-omit-files
+        (concat dired-omit-files "\\|^.DS_STORE$\\|\\.git$\\|^.projectile$")))
+
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
          ("M-g j" . dumb-jump-go)
@@ -1305,6 +1382,12 @@ FUNC is run when MODES are loaded."
             (edebug-defun)
             (message "Edebug: %s" fn)))
         (widen)))))
+
+(use-package elpy
+  :mode ("\\.py\\’" . elpy-mode)
+  :config
+  (elpy-enable)
+  (elpy-use-ipython))
 
 (use-package emacs-lisp-mode
   :init
@@ -1519,10 +1602,24 @@ POINT ?"
   :mode "\\.hs\\'")
 
 (use-package hideshow
-  :diminish hs-minor-mode
   :commands (hs-minor-mode)
   :init
   (add-hook 'prog-mode-hook 'hs-minor-mode))
+
+(use-package hideshowvis
+  :commands (hideshowvis-minor-mode hideshowvis-symbols)
+  :init
+  ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
+  )
+
+(use-package hydra
+  :disabled
+  :bind (("s-f" . hydra-projectile/body)
+         ("C-x t" . hydra-toggle/body)
+         ("C-M-o" . hydra-window/body))
+  :config
+  (hydra-add-font-lock)
+  )
 
 (use-package ibuffer
   :bind ("C-x b" . ibuffer))
@@ -1811,10 +1908,18 @@ or the current buffer directory."
   :init
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
+(use-package origami
+  :disabled
+  :commands origami-mode
+  :init
+  (add-hook 'prog-mode-hook 'origami-mode))
+
 (use-package page-break-lines
+  :commands page-break-lines-mode
   :init
   (add-hook 'doc-mode-hook 'page-break-lines-mode)
-  (add-hook 'help-mode-hook 'page-break-lines-mode))
+  (add-hook 'help-mode-hook 'page-break-lines-mode)
+  (add-hook 'help-mode-hook 'emacs-lisp-mode))
 
 (use-package php-mode
   :mode "\\.php\\'")
@@ -1823,7 +1928,56 @@ or the current buffer directory."
   :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
-  (projectile-global-mode))
+  (setq projectile-mode-line
+        '(:eval (if (projectile-project-p)
+                    (format " Projectile[%s]"
+                            (projectile-project-name))
+                  "")))
+
+  (projectile-global-mode)
+
+  (require 'easymenu)
+
+  (easy-menu-define projectile-menu projectile-mode-map "Projectile"
+    '("Projectile"
+      ["Find file" projectile-find-file]
+      ["Find file in known projects" projectile-find-file-in-known-projects]
+      ["Find test file" projectile-find-test-file]
+      ["Find directory" projectile-find-dir]
+      ["Find file in directory" projectile-find-file-in-directory]
+      ["Find other file" projectile-find-other-file]
+      ["Switch to buffer" projectile-switch-to-buffer]
+      ["Jump between implementation file and test file" projectile-toggle-between-implementation-and-test]
+      ["Kill project buffers" projectile-kill-buffers]
+      ["Recent files" projectile-recentf]
+      ["Edit .dir-locals.el" projectile-edit-dir-locals]
+      "--"
+      ["Open project in dired" projectile-dired]
+      ["Switch to project" projectile-switch-project]
+      ["Switch to open project" projectile-switch-open-project]
+      ["Discover projects in directory" projectile-discover-projects-in-directory]
+      ["Search in project (grep)" projectile-grep]
+      ["Search in project (ag)" projectile-ag]
+      ["Replace in project" projectile-replace]
+      ["Multi-occur in project" projectile-multi-occur]
+      ["Browse dirty projects" projectile-browse-dirty-projects]
+      "--"
+      ["Run shell" projectile-run-shell]
+      ["Run eshell" projectile-run-eshell]
+      ["Run term" projectile-run-term]
+      "--"
+      ["Cache current file" projectile-cache-current-file]
+      ["Invalidate cache" projectile-invalidate-cache]
+      ["Regenerate [e|g]tags" projectile-regenerate-tags]
+      "--"
+      ["Compile project" projectile-compile-project]
+      ["Test project" projectile-test-project]
+      ["Run project" projectile-run-project]
+      "--"
+      ["Project info" projectile-project-info]
+      ["About" projectile-version]
+      "Search Files (Grep)..."))
+  )
 
 (use-package python-mode
   :mode ("\\.py\\'" . python-mode)
@@ -1945,7 +2099,6 @@ or the current buffer directory."
 
 (use-package smartparens
   :commands smartparens-mode
-  :diminish smartparens-mode
   :init
   (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
@@ -2191,7 +2344,6 @@ or the current buffer directory."
         whitespace-style '(face trailing lines space-before-tab empty)))
 
 (use-package whitespace-cleanup-mode
-  :diminish whitespace-cleanup-mode
   :commands whitespace-cleanup-mode
   :init
   (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
@@ -2250,107 +2402,13 @@ or the current buffer directory."
                             (xterm-color-filter string)))))))
   )
 
-(use-package elpy
-  :mode ("\\.py\\’" . elpy-mode)
-  :config
-  (elpy-enable)
-  (elpy-use-ipython))
-
-(use-package yaml-mode
-  :mode "\\.yaml\\'")
-
-(use-package hydra
-  :disabled
-  :bind (("s-f" . hydra-projectile/body)
-         ("C-x t" . hydra-toggle/body)
-         ("C-M-o" . hydra-window/body))
-  :config
-  (hydra-add-font-lock)
-  )
-
-(use-package diff-hl
-  :demand
-  :commands global-diff-hl-mode
-  :init (global-diff-hl-mode t)
-  :config
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-  )
-
-(use-package origami
-  :disabled
-  :commands origami-mode
-  :init
-  (add-hook 'prog-mode-hook 'origami-mode))
-
-(use-package bm
-  :demand
-
-  :init
-  ;; restore on load (even before you require bm)
-  (setq bm-restore-repository-on-load t)
-
-
-  :config
-  ;; Allow cross-buffer 'next'
-  (setq bm-cycle-all-buffers t)
-
-  ;; where to store persistant files
-  (setq bm-repository-file "~/.emacs.d/bm-repository")
-
-  ;; save bookmarks
-  (setq-default bm-buffer-persistence t)
-
-  ;; Loading the repository from file when on start up.
-  (add-hook' after-init-hook 'bm-repository-load)
-
-  ;; Restoring bookmarks when on file find.
-  (add-hook 'find-file-hooks 'bm-buffer-restore)
-
-  ;; Saving bookmarks
-  (add-hook 'kill-buffer-hook #'bm-buffer-save)
-
-  ;; Saving the repository to file when on exit.
-  ;; kill-buffer-hook is not called when Emacs is killed, so we
-  ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook #'(lambda nil
-                                 (bm-buffer-save-all)
-                                 (bm-repository-save)))
-
-  ;; The `after-save-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state.
-  (add-hook 'after-save-hook #'bm-buffer-save)
-
-  ;; Restoring bookmarks
-  (add-hook 'find-file-hooks   #'bm-buffer-restore)
-  (add-hook 'after-revert-hook #'bm-buffer-restore)
-
-  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state. This hook might cause trouble when using packages
-  ;; that automatically reverts the buffer (like vc after a check-in).
-  ;; This can easily be avoided if the package provides a hook that is
-  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
-  ;; Then new bookmarks can be saved before the buffer is reverted.
-  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
-
-
-  :bind (("<f2>" . bm-next)
-         ("S-<f2>" . bm-previous)
-         ("C-<f2>" . bm-toggle))
-  )
-
 (use-package yafolding
   :disabled
   :commands (yafolding-mode)
   :init (add-hook 'prog-mode-hook 'yafolding-mode))
 
-(use-package hideshowvis
-  :commands (hideshowvis-minor-mode hideshowvis-symbols)
-  :init
-  ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
-  )
+(use-package yaml-mode
+  :mode "\\.yaml\\'")
 
 (provide 'default)
 ;;; default.el ends here
