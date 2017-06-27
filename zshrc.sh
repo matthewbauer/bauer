@@ -158,7 +158,7 @@ ZSH_SPECTRUM_TEXT=${ZSH_SPECTRUM_TEXT:-Arma virumque cano Troiae qui primus ab o
 
 local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ )"
 #PROMPT='${ret_status} %{$fg[blue]%}%m:%{$fg[cyan]%}%c%{$reset_color%} $(git_prompt_info) $'
-PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$reset_color%} $ '
+PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$fg[yellow]%} $%{$reset_color%} '
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗"
