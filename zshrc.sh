@@ -121,6 +121,8 @@ for color in {000..255}; do
     BG[$color]="%{[48;5;${color}m%}"
 done
 
+export RPROMPT=
+
 # Outputs current branch info in prompt format
 function git_prompt_info() {
   local ref
