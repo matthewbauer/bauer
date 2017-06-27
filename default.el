@@ -2133,6 +2133,11 @@ or the current buffer directory."
 (use-package tramp
   :demand
   :config
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+
   (defadvice pcomplete (around avoid-remote-connections activate)
     (let ((file-name-handler-alist (copy-alist file-name-handler-alist)))
       (setq file-name-handler-alist
