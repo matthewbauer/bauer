@@ -29,7 +29,7 @@ case "$TERM" in
 esac
 
 # Tell zsh how to find installed completions
-fpath+=(@out@/share/zsh/site-functions @out@/share/zsh/$ZSH_VERSION/functions)
+fpath+=(@out@/share/zsh/site-functions)
 
 autoload -U compaudit compinit && compinit
 

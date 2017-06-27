@@ -1,6 +1,7 @@
 {
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
+
     myConfig = {
       gitconfig = ./gitconfig;
       gitignore = ./gitignore;
@@ -10,9 +11,11 @@
       etc-profile = ./etc-profile.sh;
       emacs = ./default.el;
     };
+
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacs;
     });
+
     myAspell = runCommand "aspell" { buildInputs = [ makeWrapper ]; } ''
       mkdir -p $out/bin
       makeWrapper ${aspell}/bin/aspell $out/bin/aspell \
@@ -20,6 +23,7 @@
 dict-dir ${aspellDicts.en}/lib/aspell
         ''}"
     '';
+
     jdee-server = stdenv.mkDerivation {
       src = fetchFromGitHub {
         owner = "jdee-emacs";
@@ -32,6 +36,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
       buildPhase = "mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly";
       installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
     };
+
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
       let pkgs = ([
         nix
@@ -156,6 +161,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bm
         diff-hl
         hideshowvis
+        try
+        counsel-dash
       ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack fortune; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
@@ -167,6 +174,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
           # $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
         '')]
       );
+
     userPackages = buildEnv {
       buildInputs = [ makeWrapper ];
       postBuild = ''
@@ -310,7 +318,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 --replace @fortune@ ${fortune} \
                 --replace @cacert@ ${cacert}
             '')
-        ];
-      };
+      ];
     };
-  }
+  };
+
+}

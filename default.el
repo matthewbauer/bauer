@@ -36,7 +36,6 @@
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
- '(bm-repository-file "~/.emacs.d/bm-repository")
  '(c-eldoc-includes "" t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
@@ -337,6 +336,7 @@
  '(vc-allow-async-revert t)
  '(vc-command-messages t)
  '(vc-git-diff-switches (quote ("-w" "-U3")))
+ '(view-read-only t)
  '(visible-bell nil)
  '(visible-cursor nil)
  '(whitespace-line-column 80)
@@ -2318,6 +2318,10 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
+
+(use-package try)
+
+(use-package counsel-dash)
 
 (provide 'default)
 ;;; default.el ends here
