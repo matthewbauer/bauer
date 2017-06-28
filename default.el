@@ -171,7 +171,6 @@
    (quote
     (eshell-handle-ansi-color eshell-handle-control-codes eshell-watch-for-password-prompt eshell-truncate-buffer)))
  '(eshell-plain-echo-behavior nil)
- '(eshell-prompt-function (quote epe-theme-lambda) t)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
  '(eshell-visual-commands
@@ -673,16 +672,6 @@ you can use this command to copy text from a read-only buffer.
 
 (global-unset-key (kbd "C-x C-e"))
 
-(defun my-shell-command-hook ()
-  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)
-  )
-
-(apply #'hook-into-modes 'my-shell-command-hook lisp-mode-hooks)
-
-(add-hook 'shell-mode-hook
-          (lambda ()
-            (define-key (current-local-map) (kbd "C-x C-e") 'shell-command-at-point)))
-
 (defun toggle-fullscreen ()
   "Toggle full screen."
   (interactive)
@@ -885,6 +874,12 @@ Inside a code-block, just call `self-insert-command'."
   "Add hook to modes.
 FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
+
+(defun my-shell-command-hook ()
+  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)
+  )
+
+(apply #'hook-into-modes 'my-shell-command-hook lisp-mode-hooks)
 
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
@@ -2032,7 +2027,12 @@ or the current buffer directory."
 
 (use-package sh-script
   :mode (("\\.*bashrc$" . sh-mode)
-         ("\\.*bash_profile" . sh-mode)))
+         ("\\.*bash_profile" . sh-mode))
+  :config
+  (add-hook 'sh-mode-hook
+            (lambda ()
+              (define-key (current-local-map) (kbd "C-x C-e") 'shell-command-at-point)))
+  )
 
 (use-package shell
   :commands (shell shell-mode)
