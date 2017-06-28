@@ -663,6 +663,26 @@ you can use this command to copy text from a read-only buffer.
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)
                               ))
 
+(defun shell-command-at-point ()
+  (interactive)
+  (setq start-point (save-excursion
+                      (beginning-of-line)
+                      (point)))
+  (shell-command (buffer-substring start-point (point)))
+  )
+
+(global-unset-key (kbd "C-x C-e"))
+
+(defun my-shell-command-hook ()
+  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)
+  )
+
+(apply #'hook-into-modes 'my-shell-command-hook lisp-mode-hooks)
+
+(add-hook 'shell-mode-hook
+          (lambda ()
+            (define-key (current-local-map) (kbd "C-x C-e") 'shell-command-at-point)))
+
 (defun toggle-fullscreen ()
   "Toggle full screen."
   (interactive)
