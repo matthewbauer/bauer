@@ -21,7 +21,39 @@
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "SHELL" "@out@/bin/bash")
 
-(custom-set-variables
+(require 'custom)
+
+(defun set-defaults (&rest args)
+  (dolist (entry args)
+    (let* ((symbol (indirect-variable (nth 0 entry))))
+      (unless (or (get symbol 'standard-value)
+                  (memq (get symbol 'custom-autoload) '(nil noset)))
+        ;; This symbol needs to be autoloaded, even just for a `set'.
+        (custom-load-symbol symbol))))
+
+  (dolist (entry args)
+    (let* ((symbol (indirect-variable (nth 0 entry)))
+           (value (nth 1 entry))
+           (now (nth 2 entry))
+           (requests (nth 3 entry))
+           (comment (nth 4 entry)))
+      (custom-push-theme 'theme-value symbol 'user 'set value)
+
+      (when requests
+        (put symbol 'custom-requests requests)
+        (mapc 'require requests))
+
+      (setq set (or (get symbol 'custom-set) 'custom-set-default))
+
+      ;; (put symbol 'default-value (list value))
+      (put symbol 'standard-value (list value))
+      (put symbol 'saved-variable-comment comment)
+      (put symbol 'force-value t)
+
+      (funcall set symbol (eval value))
+      )))
+
+(set-defaults
  '(ad-redefinition-action (quote accept))
  '(ag-executable "@ag@/bin/ag")
  '(apropos-do-all t)
@@ -74,6 +106,7 @@
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
+ '(dtrt-indent-mode t nil (dtrt-indent))
  '(dired-omit-verbose nil)
  '(dired-dwim-target t)
  '(dired-recursive-copies (quote always))
@@ -158,7 +191,6 @@
  '(flycheck-global-modes
    (quote
     (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode org-mode)))
- '(flycheck-idle-change-delay 0.8)
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
  '(flyspell-highlight-properties nil)
@@ -238,10 +270,7 @@
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
- '(max-mini-window-height 4)
- '(minibuffer-auto-raise t)
  '(minibuffer-depth-indicate-mode t)
- '(minibuffer-electric-default-mode t)
  '(minibuffer-prompt-properties
    (quote
     (read-only t cursor-intangible t face minibuffer-prompt)))
@@ -252,6 +281,9 @@
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
  '(parens-require-spaces t)
+ '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                      ("marmalade" . "https://marmalade-repo.org/packages/")
+                      ("melpa" . "https://melpa.org/packages/")))
  '(parse-sexp-ignore-comments t)
  '(projectile-completion-system (quote ivy))
  '(projectile-enable-caching t)
@@ -275,33 +307,6 @@
  '(rtags-display-result-backend (quote ivy))
  '(rtags-imenu-syntax-highlighting 10)
  '(ruby-insert-encoding-magic-comment nil)
- '(safe-local-variable-values
-   (quote
-    ((eval c-set-offset
-           (quote access-label)
-           (quote -))
-     (eval c-set-offset
-           (quote substatement-open)
-           0)
-     (eval c-set-offset
-           (quote arglist-cont-nonempty)
-           (quote +))
-     (eval c-set-offset
-           (quote arglist-cont)
-           0)
-     (eval c-set-offset
-           (quote arglist-intro)
-           (quote +))
-     (eval c-set-offset
-           (quote inline-open)
-           0)
-     (eval c-set-offset
-           (quote defun-open)
-           0)
-     (eval c-set-offset
-           (quote innamespace)
-           0)
-     (indicate-empty-lines . t))))
  '(same-window-buffer-names
    (quote
     ("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*")))
@@ -310,7 +315,6 @@
  '(savehist-autosave-interval 60)
  '(send-mail-function (quote smtpmail-send-it))
  '(sentence-end-double-space nil)
- '(sh-learn-basic-offset t)
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair (quote always))
@@ -2325,6 +2329,28 @@ or the current buffer directory."
 (use-package try)
 
 (use-package counsel-dash)
+
+(use-package company-irony
+  :commands company-irony
+  :init
+  (eval-after-load 'company
+    '(add-to-list 'company-backends 'company-irony))
+  )
+
+(use-package flycheck-irony
+  :commands flycheck-irony-setup
+  :init
+  (eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  )
+
+(use-package irony
+  :commands irony-mode
+  :init
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  )
 
 (provide 'default)
 ;;; default.el ends here
