@@ -19,7 +19,7 @@
 
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
-(setenv "SHELL" "/bin/bash")
+(setenv "SHELL" "@out@/bin/bash")
 
 (custom-set-variables
  '(ad-redefinition-action (quote accept))
@@ -905,14 +905,14 @@ FUNC is run when MODES are loaded."
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 (use-package apropospriate-theme
-  :demand
+  :defer 1
   :config
   (load-theme 'apropospriate-dark t))
 
 (use-package autodisass-java-bytecode)
 
 (use-package bm
-  :demand
+  :defer 6
 
   :config
   ;; Loading the repository from file when on start up.
@@ -1208,10 +1208,8 @@ FUNC is run when MODES are loaded."
   (use-package css-eldoc))
 
 (use-package diff-hl
-  :demand
   :commands global-diff-hl-mode
   :init (global-diff-hl-mode t)
-  :config
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
@@ -1516,7 +1514,7 @@ POINT ?"
   :bind (("C-c k" . er/expand-region)))
 
 (use-package flycheck
-  :demand
+  :defer 4
   :config (global-flycheck-mode))
 
 (use-package flyspell
@@ -1632,7 +1630,7 @@ POINT ?"
 (use-package ispell)
 
 (use-package ivy
-  :demand
+  :defer 2
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer))
@@ -1884,7 +1882,7 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :demand
+  :defer 3
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
@@ -2067,7 +2065,7 @@ or the current buffer directory."
   :preface
   (defun my-term ()
     (interactive)
-    (set-buffer (make-term "my-term" "bash"))
+    (set-buffer (make-term "my-term" "zsh"))
     (term-mode)
     (term-line-mode)
     (term-set-escape-char ?\C-x)
@@ -2131,7 +2129,7 @@ or the current buffer directory."
   (add-hook 'org-mode-hook 'toc-org-enable))
 
 (use-package tramp
-  :demand
+  :defer 5
   :config
   (setq vc-ignore-dir-regexp
         (format "\\(%s\\)\\|\\(%s\\)"

@@ -21,6 +21,8 @@ shopt -s histappend histreedit histverify
 export SHELL_SESSION_HISTORY=0
 
 if [ "${BASH_VERSINFO}" -ge 4 ] && ([ -z "$INSIDE_EMACS" ] || [ "$EMACS_BASH_COMPLETE" = "t" ]); then
+    . @out@/share/bash-completion/bash_completion
+
     # Check whether we're running a version of Bash that has support for
     # programmable completion. If we do, enable all modules installed in
     # the system (and user profile).
@@ -56,8 +58,8 @@ esac
 set -o emacs
 
 if [[ $- == *i* ]]; then
-  bind '"\e/": dabbrev-expand'
-  bind '"\ee": edit-and-execute-command'
+    bind '"\e/": dabbrev-expand'
+    bind '"\ee": edit-and-execute-command'
 fi
 
 # @fortune@/bin/fortune
