@@ -136,29 +136,30 @@ dict-dir ${aspellDicts.en}/lib/aspell
         wrap-region
         xterm-color
         yaml-mode
+        helm
+        rg
+        go-eldoc
+        indium
+        kill-or-bury-alive
+        elpy
+        bm
+        diff-hl
+        hydra
+        counsel-dash
       ])
       ++ (with epkgs.melpaPackages; [
-        autodisass-java-bytecode
         smart-hungry-delete
         # meghanada
         apropospriate-theme
         c-eldoc
         css-eldoc
-        go-eldoc
         company-flx
         counsel-projectile
-        indium
         jdee
         esh-help
         eshell-prompt-extras
-        kill-or-bury-alive
         transpose-frame
-        mediawiki
         noflet
-        elpy
-        hydra
-        bm
-        diff-hl
         hideshowvis
         try
         counsel-dash
