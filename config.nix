@@ -233,7 +233,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
           "/share/bash-completion"
         ];
         extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
-        name = "user-packages";
+        name = "bauer";
         paths = [
             bash-completion
             zsh-completions
