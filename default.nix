@@ -3,6 +3,6 @@
 with nixpkgs;
 
 let config = import ./config.nix;
-    pkgs = pkgs // config.packageOverrides;
+    pkgs_ = config.packageOverrides pkgs;
 in
-  userPackages
+  pkgs_.userPackages
