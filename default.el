@@ -2410,5 +2410,9 @@ or the current buffer directory."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
+(use-package ess)
+
+(use-package proofgeneral)
+
 (provide 'default)
 ;;; default.el ends here
