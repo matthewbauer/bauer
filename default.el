@@ -342,6 +342,7 @@
  '(vc-command-messages t)
  '(vc-git-diff-switches (quote ("-w" "-U3")))
  '(view-read-only t)
+ '(view-inhibit-help-message t)
  '(visible-bell nil)
  '(visible-cursor nil)
  '(whitespace-line-column 80)
