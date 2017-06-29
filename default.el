@@ -45,7 +45,7 @@
 
       (setq set (or (get symbol 'custom-set) 'custom-set-default))
 
-      ;; (put symbol 'default-value (list value))
+      (put symbol 'default-value (list value))
       (put symbol 'standard-value (list value))
       (put symbol 'saved-variable-comment comment)
       (put symbol 'force-value t)
@@ -276,6 +276,8 @@
  '(mouse-wheel-scroll-amount (quote (1 ((shift) . 4) ((control)))))
  '(network-security-level (quote medium))
  '(neo-theme 'arrow)
+ '(neo-smart-open t)
+ '(neo-fixed-size nil)
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
@@ -1450,7 +1452,10 @@ FUNC is run when MODES are loaded."
             (lambda ()
               (make-local-variable 'eldoc-documentation-function)
               (setq eldoc-documentation-function
-                    'esh-help-eldoc-command))))
+                    'esh-help-eldoc-command)
+              (setenv "LANG" "en_US.UTF-8")
+              (setenv "LC_ALL" "en_US.UTF-8")
+              )))
 
 (use-package eshell
   :bind (("C-c s" . eshell-new))
@@ -1933,8 +1938,7 @@ or the current buffer directory."
 
   (easy-menu-define projectile-menu projectile-mode-map "Projectile"
     '("Projectile"
-      :active projectile-project-p
-      :visible projectile-project-p
+      :active nil ;; disable menu bar
       ["Find file" projectile-find-file]
       ["Find file in known projects" projectile-find-file-in-known-projects]
       ["Find test file" projectile-find-test-file]
