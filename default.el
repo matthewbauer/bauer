@@ -411,6 +411,8 @@
 
 (bind-key "C-c C-k" 'eval-buffer)
 
+(bind-key "C-c C-u" 'rename-uniquely)
+
 (require 'ffap)
 
 (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
