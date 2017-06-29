@@ -409,6 +409,10 @@
 
 (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
 
+(bind-key "C-c C-k" 'eval-buffer)
+
+(require 'ffap)
+
 (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
   (if (string= ad-return-value "/")
       (setq ad-return-value nil)))
@@ -436,6 +440,7 @@ save it in `ffap-file-at-point-line-number' variable."
     (if (and line-number (> line-number 0))
         (setq ffap-file-at-point-line-number line-number)
       (setq ffap-file-at-point-line-number nil))))
+(ad-activate 'ffap-file-at-point)
 
 (defadvice find-file-at-point (after ffap-goto-line-number activate)
   "If `ffap-file-at-point-line-number' is non-nil goto this line."
@@ -443,6 +448,7 @@ save it in `ffap-file-at-point-line-number' variable."
     (with-no-warnings
       (goto-line ffap-file-at-point-line-number))
     (setq ffap-file-at-point-line-number nil)))
+(ad-activate 'ffap-file-at-point)
 
 (defun rotate-windows ()
   "Rotate your windows"
@@ -1163,11 +1169,23 @@ FUNC is run when MODES are loaded."
   :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
-  :bind ("<C-tab>" . company-complete)
+  :preface
+  (defun my-complete ()
+    (interactive)
+    (cond ((eq major-mode 'jdee-mode)
+           (jdee-complete-menu))
+          (t
+           (counsel-company))
+          )
+    )
+  :bind (("<C-tab>" . my-complete)
+         ;;        ([remap completion-at-point] . my-complete)
+         )
   :diminish company-mode
-  :commands (company-mode global-company-mode)
+  :commands (company-mode global-company-mode company-complete-common)
   :init
-  (add-hook 'after-init-hook 'global-company-mode))
+  (add-hook 'after-init-hook 'global-company-mode)
+  )
 
 (use-package company-flx
   :after company
@@ -1659,7 +1677,9 @@ POINT ?"
   (bind-key "C-j" #'ivy-call ivy-minibuffer-map)
   (ivy-mode 1))
 
-(use-package jdee)
+(use-package jdee
+  :bind (:keymap jdee-mode-map
+                 ("<s-mouse-1>" . jdee-open-class-at-event)))
 
 (use-package realgud)
 
@@ -2371,6 +2391,17 @@ or the current buffer directory."
   (add-hook 'c-mode-hook 'irony-mode)
   (add-hook 'objc-mode-hook 'irony-mode)
   )
+
+(use-package bury-successful-compilation
+  :commands bury-successful-compilation
+  :init
+  (bury-successful-compilation 1))
+
+(use-package keyfreq
+  :commands (keyfreq-mode keyfreq-autosave-mode)
+  :init
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
 
 (provide 'default)
 ;;; default.el ends here
