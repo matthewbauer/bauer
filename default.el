@@ -30,13 +30,13 @@
                   (memq (get symbol 'custom-autoload) '(nil noset)))
         ;; This symbol needs to be autoloaded, even just for a `set'.
         (custom-load-symbol symbol))))
-
   (dolist (entry args)
     (let* ((symbol (indirect-variable (nth 0 entry)))
            (value (nth 1 entry))
            (now (nth 2 entry))
            (requests (nth 3 entry))
            (comment (nth 4 entry)))
+
       (custom-push-theme 'theme-value symbol 'user 'set value)
 
       (when requests
@@ -45,10 +45,10 @@
 
       (setq set (or (get symbol 'custom-set) 'custom-set-default))
 
-      (put symbol 'default-value (list value))
+      ;; (put symbol 'default-value (list value))
+      ;; (put symbol 'saved-value (list value))
       (put symbol 'standard-value (list value))
-      (put symbol 'saved-variable-comment comment)
-      (put symbol 'force-value t)
+      ;; (put symbol 'force-value t)
 
       (funcall set symbol (eval value))
       )))
@@ -283,9 +283,9 @@
  '(nsm-save-host-names t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                      ("marmalade" . "https://marmalade-repo.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")))
  '(parse-sexp-ignore-comments t)
+ '(proof-splash-enable nil)
  '(projectile-completion-system (quote ivy))
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer t)
@@ -382,9 +382,9 @@
   (global-prettify-symbols-mode))
 (temp-buffer-resize-mode 0)
 
-(require 'server)
-(when (not server-process)
-  (server-start))
+;; (require 'server)
+;; (when (not server-process)
+;;   (server-start))
 
 ;; Enable emoji, and stop the UI from freezing when trying to display them.
 (when (fboundp 'set-fontset-font)
@@ -1522,9 +1522,9 @@ POINT ?"
     "Keymap used in isearch in Eshell.")
 
   :config
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
+  ;; (add-hook 'eshell-mode-hook
+  ;;           (lambda ()
+  ;;             (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
 
   (add-hook 'eshell-mode-hook (lambda ()
                                 (defun eshell/cd (&optional dir)
@@ -2118,7 +2118,8 @@ or the current buffer directory."
     (interactive)
     (set-buffer (make-term "my-term" "zsh"))
     (term-mode)
-    (term-line-mode)
+    ;; (term-line-mode)
+    (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
   :bind ("C-c t" . my-term)
@@ -2410,9 +2411,11 @@ or the current buffer directory."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
-(use-package ess)
+(use-package ess
+  :demand)
 
-(use-package proofgeneral)
+(use-package proof-site
+  :demand)
 
 (provide 'default)
 ;;; default.el ends here
