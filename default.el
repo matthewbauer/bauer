@@ -912,18 +912,19 @@ FUNC is run when MODES are loaded."
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 (use-package apropospriate-theme
-  :defer 1
+  :demand
   :config
   (load-theme 'apropospriate-dark t))
 
 (use-package autodisass-java-bytecode)
 
 (use-package bm
-  :defer 6
-
-  :config
+  :disabled
+  :commands (bm-repository-load bm-buffer-restore bm-buffer-save-all
+                                bm-repository-save bm-buffer-save)
+  :init
   ;; Loading the repository from file when on start up.
-  (add-hook' after-init-hook 'bm-repository-load)
+  (add-hook 'after-init-hook 'bm-repository-load)
 
   ;; Restoring bookmarks when on file find.
   (add-hook 'find-file-hooks 'bm-buffer-restore)
@@ -1538,7 +1539,7 @@ POINT ?"
   :bind (("C-c k" . er/expand-region)))
 
 (use-package flycheck
-  :defer 4
+  :demand
   :config (global-flycheck-mode))
 
 (use-package flyspell
@@ -1654,7 +1655,7 @@ POINT ?"
 (use-package ispell)
 
 (use-package ivy
-  :defer 2
+  :demand
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer))
@@ -1907,7 +1908,7 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :defer 3
+  :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
@@ -2160,7 +2161,7 @@ or the current buffer directory."
   (add-hook 'org-mode-hook 'toc-org-enable))
 
 (use-package tramp
-  :defer 5
+  :demand
   :config
   (setq vc-ignore-dir-regexp
         (format "\\(%s\\)\\|\\(%s\\)"
