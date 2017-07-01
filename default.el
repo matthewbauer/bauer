@@ -60,7 +60,6 @@
  '(async-shell-command-buffer (quote new-buffer))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
- '(auto-revert-use-notify t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(async-shell-command-buffer 'new-buffer)
@@ -290,9 +289,10 @@
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer t)
  '(projectile-mode-line
-   '(:eval (if (and (not (file-remote-p default-directory)) (projectile-project-p))
-               (format " Projectile[%s]"
-                       (projectile-project-name))
+   '(:eval (if (and
+                (projectile-project-p)
+                (not (file-remote-p default-directory)))
+               (format " Projectile[%s]" (projectile-project-name))
              "")))
  '(projectile-idle-timer-hook nil)
  '(projectile-ignored-project-function (quote file-remote-p))
@@ -319,7 +319,6 @@
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair (quote always))
- '(sp-base-key-bindings (quote paredit))
  '(sp-hybrid-kill-entire-symbol nil)
  '(term-input-autoexpand t)
  '(term-input-ignoredups t)
@@ -371,7 +370,10 @@
 (delete-selection-mode t)
 (savehist-mode 1)
 (column-number-mode t)
+
+;; (setq auto-revert-use-notify t)
 (global-auto-revert-mode t)
+
 (when (and (fboundp 'menu-bar-mode) (not (eq system-type 'darwin))) (menu-bar-mode -1))
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
@@ -412,48 +414,11 @@
 
 (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
 
+(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+
 (bind-key "C-c C-k" 'eval-buffer)
 
 (bind-key "C-c C-u" 'rename-uniquely)
-
-(require 'ffap)
-
-(defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
-  (if (string= ad-return-value "/")
-      (setq ad-return-value nil)))
-(ad-activate 'ffap-file-at-point)
-
-(defvar ffap-file-at-point-line-number nil
-  "Variable to hold line number from the last `ffap-file-at-point' call.")
-
-(defadvice ffap-file-at-point (after ffap-store-line-number activate)
-  "Search `ffap-string-at-point' for a line number pattern and
-save it in `ffap-file-at-point-line-number' variable."
-  (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
-         (name
-          (or (condition-case nil
-                  (and (not (string-match "//" string)) ; foo.com://bar
-                       (substitute-in-file-name string))
-                (error nil))
-              string))
-         (line-number-string
-          (and (string-match ":[0-9]+" name)
-               (substring name (1+ (match-beginning 0)) (match-end 0))))
-         (line-number
-          (and line-number-string
-               (string-to-number line-number-string))))
-    (if (and line-number (> line-number 0))
-        (setq ffap-file-at-point-line-number line-number)
-      (setq ffap-file-at-point-line-number nil))))
-(ad-activate 'ffap-file-at-point)
-
-(defadvice find-file-at-point (after ffap-goto-line-number activate)
-  "If `ffap-file-at-point-line-number' is non-nil goto this line."
-  (when ffap-file-at-point-line-number
-    (with-no-warnings
-      (goto-line ffap-file-at-point-line-number))
-    (setq ffap-file-at-point-line-number nil)))
-(ad-activate 'ffap-file-at-point)
 
 (defun rotate-windows ()
   "Rotate your windows"
@@ -492,11 +457,21 @@ save it in `ffap-file-at-point-line-number' variable."
           (message "Deleted file %s" filename)
           (kill-buffer))))))
 
-(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+(add-to-list 'jka-compr-compression-info-list
+             ["\\.plist$"
+              "converting text XML to binary plist"
+              "plutil"
+              ("-convert" "binary1" "-o" "-" "-")
+              "converting binary plist to text XML"
+              "plutil"
+              ("-convert" "xml1" "-o" "-" "-")
+              nil nil "bplist"])
+(jka-compr-update)
 
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
+(global-unset-key (kbd "C-x C-e"))
 
 (windmove-default-keybindings 'meta) ; move using meta
 (fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
@@ -547,18 +522,6 @@ save it in `ffap-file-at-point-line-number' variable."
       ;; (set-process-sentinel proc 'my-sentinel)
       (set-process-filter proc 'comint-output-filter))))
 
-(defun eval-and-replace ()
-  "Replace the preceding sexp with its value."
-  (interactive)
-  (backward-kill-sexp)
-  (condition-case nil
-      (prin1 (eval (read (current-kill 0)))
-             (current-buffer))
-    (error (message "Invalid expression")
-           (insert (current-kill 0)))))
-
-(global-set-key (kbd "C-c C-e") 'eval-and-replace)
-
 
 (defun window-toggle-split-direction ()
   "Switch window split from horizontally to vertically, or vice versa.
@@ -596,46 +559,7 @@ i.e. change right window to bottom, or change bottom window to right."
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
 (global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
 (global-set-key (kbd "C-c l") 'browse-url-at-point)
-
-(defun sort-package-declarations ()
-  "Sort following package declarations alphabetically."
-  (interactive)
-  (cl-flet ((next-use-package
-             () (if (re-search-forward "^(use-package " nil t)
-                    (goto-char (match-beginning 0))
-                  (goto-char (point-max)))))
-    (sort-subr
-     nil
-     #'next-use-package
-     #'(lambda ()
-         (goto-char (line-end-position))
-         (next-use-package))
-     #'(lambda ()
-         (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
-         (match-string 1)))))
-
-(defun kill-matching-lines (regexp &optional rstart rend interactive)
-  "Kill lines containing matches for REGEXP.
-
-See `flush-lines' or `keep-lines' for behavior of this command.
-
-If the buffer is read-only, Emacs will beep and refrain from deleting
-the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer.
-\(If the variable `kill-read-only-ok' is non-nil, then this won't
- even beep.)"
-  (interactive
-   (keep-lines-read-args "Kill lines containing match for regexp"))
-  (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
-    (with-current-buffer (clone-buffer nil nil)
-      (let ((inhibit-read-only t))
-        (keep-lines regexp rstart rend interactive)
-        (kill-region (or rstart (line-beginning-position))
-                     (or rend (point-max))))
-      (kill-buffer)))
-  (unless (and buffer-read-only kill-read-only-ok)
-    ;; Delete lines or make the "Buffer is read-only" error.
-    (flush-lines regexp rstart rend interactive)))
+(global-set-key (kbd "C-x 5 3") 'iconify-frame)
 
 (defun toggle-window-split ()
   "Toggle window split from vertically to horizontally and vice versa."
@@ -665,30 +589,39 @@ you can use this command to copy text from a read-only buffer.
 
 (define-key ctl-x-4-map "t" 'toggle-window-split)
 
-(global-set-key (kbd "C-x 5 3") 'iconify-frame)
-
-(add-hook 'comint-mode-hook (lambda ()
-                              ;; (toggle-truncate-lines 1)
-                              (make-local-variable 'jit-lock-defer-timer)
-                              (set (make-local-variable 'jit-lock-defer-time) 0.25)
-                              ))
-
-(defun shell-command-at-point ()
+(defun eval-and-replace ()
+  "Replace the preceding sexp with its value."
   (interactive)
-  (setq start-point (save-excursion
-                      (beginning-of-line)
-                      (point)))
-  (shell-command (buffer-substring start-point (point)))
-  )
+  (backward-kill-sexp)
+  (condition-case nil
+      (prin1 (eval (read (current-kill 0)))
+             (current-buffer))
+    (error (message "Invalid expression")
+           (insert (current-kill 0)))))
 
-(global-unset-key (kbd "C-x C-e"))
+(global-set-key (kbd "C-c C-e") 'eval-and-replace)
 
-(defun toggle-fullscreen ()
-  "Toggle full screen."
-  (interactive)
-  (set-frame-parameter
-   nil 'fullscreen
-   (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
+(defun increment-integer-at-point (&optional inc)
+  "Increment integer at point by one.
+
+With numeric prefix arg INC, increment the integer by INC amount."
+  (interactive "p")
+  (let ((inc (or inc 1))
+        (n (thing-at-point 'integer))
+        (bounds (bounds-of-thing-at-point 'integer)))
+    (delete-region (car bounds) (cdr bounds))
+    (insert (int-to-string (+ n inc)))))
+
+(defun decrement-integer-at-point (&optional dec)
+  "Decrement integer at point by one.
+
+With numeric prefix arg DEC, decrement the integer by DEC amount."
+  (interactive "p")
+  (increment-integer-at-point (- (or dec 1))))
+
+(global-set-key (kbd "C-c +") 'increment-integer-at-point)
+(global-set-key (kbd "C-c =") 'increment-integer-at-point)
+(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
 
 (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
 (make-variable-buffer-local 'get-buffer-compile-command)
@@ -741,6 +674,67 @@ you can use this command to copy text from a read-only buffer.
 
 (global-set-key (kbd "<f5>") 'compile-dwim)
 
+(defun sort-package-declarations ()
+  "Sort following package declarations alphabetically."
+  (interactive)
+  (cl-flet ((next-use-package
+             () (if (re-search-forward "^(use-package " nil t)
+                    (goto-char (match-beginning 0))
+                  (goto-char (point-max)))))
+    (sort-subr
+     nil
+     #'next-use-package
+     #'(lambda ()
+         (goto-char (line-end-position))
+         (next-use-package))
+     #'(lambda ()
+         (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
+         (match-string 1)))))
+
+(defun kill-matching-lines (regexp &optional rstart rend interactive)
+  "Kill lines containing matches for REGEXP.
+
+See `flush-lines' or `keep-lines' for behavior of this command.
+
+If the buffer is read-only, Emacs will beep and refrain from deleting
+the line, but put the line in the kill ring anyway.  This means that
+you can use this command to copy text from a read-only buffer.
+\(If the variable `kill-read-only-ok' is non-nil, then this won't
+ even beep.)"
+  (interactive
+   (keep-lines-read-args "Kill lines containing match for regexp"))
+  (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
+    (with-current-buffer (clone-buffer nil nil)
+      (let ((inhibit-read-only t))
+        (keep-lines regexp rstart rend interactive)
+        (kill-region (or rstart (line-beginning-position))
+                     (or rend (point-max))))
+      (kill-buffer)))
+  (unless (and buffer-read-only kill-read-only-ok)
+    ;; Delete lines or make the "Buffer is read-only" error.
+    (flush-lines regexp rstart rend interactive)))
+
+(add-hook 'comint-mode-hook (lambda ()
+                              ;; (toggle-truncate-lines 1)
+                              (make-local-variable 'jit-lock-defer-timer)
+                              (set (make-local-variable 'jit-lock-defer-time) 0.25)
+                              ))
+
+(defun shell-command-at-point ()
+  (interactive)
+  (setq start-point (save-excursion
+                      (beginning-of-line)
+                      (point)))
+  (shell-command (buffer-substring start-point (point)))
+  )
+
+(defun toggle-fullscreen ()
+  "Toggle full screen."
+  (interactive)
+  (set-frame-parameter
+   nil 'fullscreen
+   (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
+
 (require 'thingatpt)
 
 (defun thing-at-point-goto-end-of-integer ()
@@ -785,28 +779,6 @@ you can use this command to copy text from a read-only buffer.
   (let ((bounds (bounds-of-thing-at-point 'integer)))
     (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
 (put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
-
-(defun increment-integer-at-point (&optional inc)
-  "Increment integer at point by one.
-
-With numeric prefix arg INC, increment the integer by INC amount."
-  (interactive "p")
-  (let ((inc (or inc 1))
-        (n (thing-at-point 'integer))
-        (bounds (bounds-of-thing-at-point 'integer)))
-    (delete-region (car bounds) (cdr bounds))
-    (insert (int-to-string (+ n inc)))))
-
-(defun decrement-integer-at-point (&optional dec)
-  "Decrement integer at point by one.
-
-With numeric prefix arg DEC, decrement the integer by DEC amount."
-  (interactive "p")
-  (increment-integer-at-point (- (or dec 1))))
-
-(global-set-key (kbd "C-c +") 'increment-integer-at-point)
-(global-set-key (kbd "C-c =") 'increment-integer-at-point)
-(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
 
 (defun font-lock-comment-annotations ()
   "Highlight a bunch of well known comment annotations.
@@ -1250,8 +1222,10 @@ FUNC is run when MODES are loaded."
   (use-package css-eldoc))
 
 (use-package diff-hl
-  :commands global-diff-hl-mode
-  :init (global-diff-hl-mode t)
+  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh)
+  :init
+  (add-hook 'prog-mode-hook 'diff-hl-mode)
+  (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
@@ -1903,8 +1877,7 @@ or the current buffer directory."
   :commands org-capture
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
-  (global-set-key (kbd "C-c c")
-                  'org-capture)
+  (global-set-key (kbd "C-c c") 'org-capture)
   )
 
 (use-package org-bullets
@@ -2101,6 +2074,7 @@ or the current buffer directory."
 (use-package smartparens
   :commands smartparens-mode
   :init
+  (setq sp-base-key-bindings (quote paredit))
   (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
   :config
@@ -2411,11 +2385,58 @@ or the current buffer directory."
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
-(use-package ess
-  :demand)
+(use-package ess-site
+  :commands (R)
+  )
 
 (use-package proof-site
   :demand)
+
+(use-package ffap
+  :config
+  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
+    (if (string= ad-return-value "/")
+        (setq ad-return-value nil)))
+  (ad-activate 'ffap-file-at-point)
+
+  (defvar ffap-file-at-point-line-number nil
+    "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
+    "Search `ffap-string-at-point' for a line number pattern and
+save it in `ffap-file-at-point-line-number' variable."
+    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+           (name
+            (or (condition-case nil
+                    (and (not (string-match "//" string)) ; foo.com://bar
+                         (substitute-in-file-name string))
+                  (error nil))
+                string))
+           (line-number-string
+            (and (string-match ":[0-9]+" name)
+                 (substring name (1+ (match-beginning 0)) (match-end 0))))
+           (line-number
+            (and line-number-string
+                 (string-to-number line-number-string))))
+      (if (and line-number (> line-number 0))
+          (setq ffap-file-at-point-line-number line-number)
+        (setq ffap-file-at-point-line-number nil))))
+  (ad-activate 'ffap-file-at-point)
+
+  (defadvice find-file-at-point (after ffap-goto-line-number activate)
+    "If `ffap-file-at-point-line-number' is non-nil goto this line."
+    (when ffap-file-at-point-line-number
+      (with-no-warnings
+        (goto-line ffap-file-at-point-line-number))
+      (setq ffap-file-at-point-line-number nil)))
+  (ad-activate 'ffap-file-at-point)
+  )
+
+(use-package dtrt-indent
+  :commands dtrt-indent-mode
+  :init
+  (dtrt-indent-mode 1)
+  )
 
 (provide 'default)
 ;;; default.el ends here
