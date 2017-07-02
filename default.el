@@ -392,6 +392,13 @@
 (when (fboundp 'set-fontset-font)
   (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
 
+(put 'projectile-project-compilation-cmd 'safe-local-variable
+     (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
+                                 compilation-read-command))))
+
+(make-variable-buffer-local 'compile-command)
+(put 'compile-command 'safe-local-variable 'stringp)
+
 ;; Show trailing whitespace
 ;; But don't show trailing whitespace in SQLi, inf-ruby etc.
 (dolist (hook '(special-mode-hook
@@ -625,8 +632,6 @@ With numeric prefix arg DEC, decrement the integer by DEC amount."
 
 (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
 (make-variable-buffer-local 'get-buffer-compile-command)
-
-(setq-default compile-command "")
 
 (defun compile-dwim (&optional arg)
   "Compile Do What I Mean.
