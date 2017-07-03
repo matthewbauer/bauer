@@ -12,6 +12,16 @@
       emacs = ./default.el;
     };
 
+    rEnv = pkgs.rWrapper.override {
+      packages = with pkgs.rPackages; [
+        # devtools
+        # ggplot2
+        # yaml
+        # optparse
+        RCurl
+      ];
+    };
+
     customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
       emacs = emacs;
     });
@@ -42,45 +52,45 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nix
         ghc
         rtags
+        mu
       ]
       ++ (with emacsPackages; [
         proofgeneral
         ess
       ])
       ++ (with epkgs.elpaPackages; [
-        org
-        tiny
-        rainbow-mode
-        realgud
-        dired-du
+        ace-window
+        aggressive-indent
         all
+        auctex
+        avy
+        bug-hunter
+        chess
+        coffee-mode
+        company
+        dired-du
+        docbook
         easy-kill
+        electric-spacing
         excorporate
         ggtags
         gnorb
         gnugo
-        chess
-        muse
-        w3
-        windresize
-        vlf
-
-        ace-window
-        aggressive-indent
-        auctex
-        avy
-        bug-hunter
-        coffee-mode
-        company
-        docbook
-        electric-spacing
         ivy
         js2-mode
         json-mode
         minimap
+        muse
+        org
         other-frame-window
         python
+        rainbow-mode
+        realgud
+        tiny
         undo-tree
+        vlf
+        w3
+        windresize
       ])
       ++ (with epkgs.melpaStablePackages; [
         ace-jump-mode
@@ -88,13 +98,12 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bind-key
         buffer-move
         counsel
-        diminish
         diffview
+        diminish
         dumb-jump
         esup
         expand-region
         flx
-        shut-up
         flycheck
         gist
         go-mode
@@ -109,9 +118,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
         lua-mode
         magit
         markdown-mode
+        mmm-mode
         multi-line
         multiple-cursors
-        mmm-mode
         mwim
         neotree
         org-bullets
@@ -124,6 +133,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         rust-mode
         sass-mode
         scss-mode
+        shut-up
         smart-tabs-mode
         smartparens
         swiper
@@ -148,28 +158,39 @@ dict-dir ${aspellDicts.en}/lib/aspell
         counsel-dash
       ])
       ++ (with epkgs.melpaPackages; [
-        smart-hungry-delete
-        # meghanada
         apropospriate-theme
+        autodisass-java-bytecode
+        bury-successful-compilation
         c-eldoc
         css-eldoc
-        company-flx
-        counsel-projectile
-        jdee
+        diff-hl
+        dtrt-indent
+        elpy
         esh-help
         eshell-prompt-extras
-        transpose-frame
-        noflet
-        hideshowvis
-        try
-        counsel-dash
-        irony
-        company-irony
         flycheck-irony
-        dtrt-indent
-        bury-successful-compilation
-        keyfreq
-      ])); in pkgs ++ [(runCommand "default.el" { inherit rtags ripgrep ag emacs ant nethack fortune gnutls; gpg = gnupg1compat; jdeeserver = jdee-server; aspell = myAspell; } ''
+        go-eldoc
+        hideshowvis
+        indium
+        irony
+        jdee
+        kill-or-bury-alive
+        mediawiki
+        noflet
+        smart-hungry-delete
+        transpose-frame
+        try
+        # bm
+        # counsel-dash
+        # hydra
+        # keyfreq
+        # meghanada
+      ])); in pkgs ++ [(runCommand "default.el" {
+        inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
+        gpg = gnupg1compat;
+        jdeeserver = jdee-server;
+        aspell = myAspell;
+      } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
@@ -264,7 +285,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
             go2nix
             gnugrep
             gnumake
-            offlineimap
+            # offlineimap
             gnuplot
             gnused
             gnupg1compat
@@ -316,7 +337,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
             zip
             zsh
             fortune
-            R
+            rEnv
+            isync
+            mu
             (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
               mkdir -p $out/etc/profile.d
               cp ${myConfig.profile} $out/etc/profile.d/my-profile.sh

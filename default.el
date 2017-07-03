@@ -67,7 +67,7 @@
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
- '(c-eldoc-includes "" t)
+ '(c-eldoc-includes "")
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
@@ -105,9 +105,10 @@
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
- '(dtrt-indent-mode t nil (dtrt-indent))
  '(dired-omit-verbose nil)
  '(dired-dwim-target t)
+ '(dired-recursive-copies 'always)
+ '(dired-recursive-deletes 'top)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
  '(display-buffer-alist
@@ -200,11 +201,10 @@
  '(frame-title-format
    (quote
     ((:eval
-      (if
-          (buffer-file-name)
+      (if (buffer-file-name)
           (abbreviate-file-name
            (buffer-file-name))
-        "%b")))) t)
+        "%b")))))
  '(gc-cons-threshold 100000000)
  '(global-auto-revert-non-file-buffers t)
  '(hideshowvis-ignore-same-line nil)
@@ -229,7 +229,8 @@
  '(jdee-server-dir "@jdeeserver@")
  '(jdee-ant-home "@ant@/lib/ant")
  '(jdee-ant-program "@ant@/bin/ant")
- '(jdee-ant-enable-find t) '(js-indent-level 2)
+ '(jdee-ant-enable-find t)
+ '(js-indent-level 2)
  '(js2-basic-offset 2)
  '(js2-bounce-indent-p nil)
  '(js2-mode-show-parse-errors nil)
@@ -312,6 +313,7 @@
    (quote
     ("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*")))
  '(save-abbrevs (quote silently))
+ '(save-interprogram-paste-before-kill t)
  '(savehist-additional-variables (quote (search-ring regexp-search-ring)))
  '(savehist-autosave-interval 60)
  '(send-mail-function (quote smtpmail-send-it))
@@ -370,6 +372,7 @@
 (delete-selection-mode t)
 (savehist-mode 1)
 (column-number-mode t)
+;; (transient-mark-mode 1)
 
 ;; (setq auto-revert-use-notify t)
 (global-auto-revert-mode t)
@@ -422,6 +425,29 @@
 (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
 
 (global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+
+(defun eval-region-or-buffer ()
+  "Evaluate the selection, or, if empty, the whole buffer."
+  (interactive)
+  (let ((debug-on-error t))
+    (cond
+     (mark-active
+      (call-interactively 'eval-region)
+      (setq deactivate-mark t))
+     (t
+      (eval-buffer)))))
+
+(defun copy-buffer-file-path ()
+  "Put current buffer's short path into the kill ring."
+  (interactive)
+  (when (buffer-file-name)
+    (kill-new (f-short (buffer-file-name)))))
+
+(defun copy-buffer-file-name ()
+  "Put current buffer's base name into the kill ring."
+  (interactive)
+  (when (buffer-file-name)
+    (kill-new (f-filename (buffer-file-name)))))
 
 (bind-key "C-c C-k" 'eval-buffer)
 
@@ -876,7 +902,7 @@ FUNC is run when MODES are loaded."
   :bind ("M-o" . ace-window))
 
 (use-package ag
-  :commands ag
+  :commands (ag ag-files ag-regexp ag-project ag-project-files ag-project-regexp)
   :bind ("C-?" . ag-project)
   )
 
@@ -1171,6 +1197,7 @@ FUNC is run when MODES are loaded."
   )
 
 (use-package company-flx
+  :disabled
   :after company
   :config
   (company-flx-mode +1))
@@ -1406,7 +1433,8 @@ FUNC is run when MODES are loaded."
   (elpy-use-ipython))
 
 (use-package eldoc
-  :init (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode))
+  :commands eldoc-mode
+  :init (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
 (use-package emacs-lisp-mode
   :config
@@ -1513,10 +1541,20 @@ POINT ?"
                                   (let* ((dir (if dir dir "~"))
                                          (default-directory (expand-file-name
                                                              (concat dir "/") default-directory))
-                                         (buffer (get-buffer-create (concat "*eshell<" (expand-file-name default-directory) ">*"))))
-                                    (pop-to-buffer-same-window buffer)
-                                    (unless (derived-mode-p 'eshell-mode)
-                                      (eshell-mode))))
+                                         )
+
+                                    (if (file-directory-p default-directory)
+                                        (let (
+                                              (buffer
+                                               (get-buffer-create (concat "*eshell<"
+                                                                          default-directory ">*"))))
+                                          (pop-to-buffer-same-window buffer)
+                                          (unless (derived-mode-p 'eshell-mode)
+                                            (eshell-mode))
+                                          )
+                                      (error "Not a directory.")
+                                      )
+                                    ))
                                 ))
 
   (with-eval-after-load "esh-opt"
@@ -1534,13 +1572,11 @@ POINT ?"
               (define-key eshell-mode-map [(control ?u)] nil))))
 
 (use-package expand-region
-  :commands er/expand-region
-  :config
-  :bind (("C-c k" . er/expand-region)))
+  :bind (("C-=" . er/expand-region)))
 
 (use-package flycheck
-  :demand
-  :config (global-flycheck-mode))
+  :defer 5
+  :config (global-flycheck-mode 1))
 
 (use-package flyspell
   :commands flyspell-mode
@@ -1550,6 +1586,7 @@ POINT ?"
 (use-package ghc)
 
 (use-package gist
+  :bind ("C-c C-g" . gist-region-or-buffer-private)
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer gist-region-or-buffer-private))
 
@@ -1674,10 +1711,6 @@ POINT ?"
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
          ("C-c r" . kill-or-bury-alive-purge-buffers)))
-
-(use-package less-css-mode
-  :mode "\\.json\\'"
-  :commands less-css-mode)
 
 (use-package lisp-mode
   :preface
@@ -1957,6 +1990,8 @@ or the current buffer directory."
       ["About" projectile-version]
       )
     )
+
+  (add-to-list 'projectile-globally-ignored-files ".DS_Store")
   )
 
 (use-package python-mode
@@ -2245,7 +2280,12 @@ or the current buffer directory."
   :bind ("C-x t" . transpose-frame))
 
 (use-package web-mode
-  :mode ("\\.html\\'" "\\.jsp\\'"))
+  :mode (("\\.erb\\'" . web-mode)
+	 ("\\.mustache\\'" . web-mode)
+	 ("\\.html?\\'" . web-mode)
+         ("\\.php\\'" . web-mode)
+         ("\\.jsp\\'" . web-mode))
+  )
 
 (use-package which-key
   :demand
@@ -2356,7 +2396,8 @@ or the current buffer directory."
 
 (use-package try)
 
-(use-package counsel-dash)
+(use-package counsel-dash
+  :disabled)
 
 (use-package company-irony
   :commands company-irony
@@ -2386,6 +2427,7 @@ or the current buffer directory."
   (bury-successful-compilation 1))
 
 (use-package keyfreq
+  :disabled
   :commands (keyfreq-mode keyfreq-autosave-mode)
   :init
   (keyfreq-mode 1)
@@ -2443,6 +2485,19 @@ save it in `ffap-file-at-point-line-number' variable."
   :init
   (dtrt-indent-mode 1)
   )
+
+(use-package undo-tree
+  :disabled
+  :bind (("s-z" . undo-tree-undo)
+         ("s-Z" . undo-tree-redo))
+  :init
+  (progn
+    (defalias 'redo 'undo-tree-redo)
+    (defalias 'undo 'undo-tree-undo)
+    ))
+
+(use-package browse-at-remote
+  :bind ("C-c g b" . browse-at-remote))
 
 (provide 'default)
 ;;; default.el ends here
