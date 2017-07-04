@@ -880,51 +880,6 @@ you can use this command to copy text from a read-only buffer.
    nil 'fullscreen
    (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
 
-(require 'thingatpt)
-
-(defun thing-at-point-goto-end-of-integer ()
-  "Go to end of integer at point."
-  (let ((inhibit-changing-match-data t))
-    ;; Skip over optional sign
-    (when (looking-at "[+-]")
-      (forward-char 1))
-    ;; Skip over digits
-    (skip-chars-forward "[[:digit:]]")
-    ;; Check for at least one digit
-    (unless (looking-back "[[:digit:]]")
-      (error "No integer here"))))
-(put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
-
-(defun thing-at-point-goto-beginning-of-integer ()
-  "Go to end of integer at point."
-  (let ((inhibit-changing-match-data t))
-    ;; Skip backward over digits
-    (skip-chars-backward "[[:digit:]]")
-    ;; Check for digits and optional sign
-    (unless (looking-at "[+-]?[[:digit:]]")
-      (error "No integer here"))
-    ;; Skip backward over optional sign
-    (when (looking-back "[+-]")
-      (backward-char 1))))
-(put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
-
-(defun thing-at-point-bounds-of-integer-at-point ()
-  "Get boundaries of integer at point."
-  (save-excursion
-    (let (beg end)
-      (thing-at-point-goto-beginning-of-integer)
-      (setq beg (point))
-      (thing-at-point-goto-end-of-integer)
-      (setq end (point))
-      (cons beg end))))
-(put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
-
-(defun thing-at-point-integer-at-point ()
-  "Get integer at point."
-  (let ((bounds (bounds-of-thing-at-point 'integer)))
-    (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
-(put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
-
 (defun font-lock-comment-annotations ()
   "Highlight a bunch of well known comment annotations.
 
@@ -2221,7 +2176,8 @@ or the current buffer directory."
      (js . t)
      (clojure . t)
      (sh . t)))
-  (require 'ox-latex)
+  (use-package ox-latex
+    :demand)
   (add-to-list 'org-latex-packages-alist '("" "minted"))
   (setq org-latex-listings 'minted)
 
@@ -2255,47 +2211,49 @@ or the current buffer directory."
 
   (projectile-global-mode)
 
-  (require 'easymenu)
-
-  (easy-menu-define projectile-menu projectile-mode-map "Projectile"
-    '("Projectile"
-      :active nil ;; disable menu bar
-      ["Find file" projectile-find-file]
-      ["Find file in known projects" projectile-find-file-in-known-projects]
-      ["Find test file" projectile-find-test-file]
-      ["Find directory" projectile-find-dir]
-      ["Find file in directory" projectile-find-file-in-directory]
-      ["Find other file" projectile-find-other-file]
-      ["Switch to buffer" projectile-switch-to-buffer]
-      ["Jump between implementation file and test file" projectile-toggle-between-implementation-and-test]
-      ["Kill project buffers" projectile-kill-buffers]
-      ["Recent files" projectile-recentf]
-      ["Edit .dir-locals.el" projectile-edit-dir-locals]
-      "--"
-      ["Open project in dired" projectile-dired]
-      ["Switch to project" projectile-switch-project]
-      ["Switch to open project" projectile-switch-open-project]
-      ["Discover projects in directory" projectile-discover-projects-in-directory]
-      ["Search in project (grep)" projectile-grep]
-      ["Search in project (ag)" projectile-ag]
-      ["Replace in project" projectile-replace]
-      ["Multi-occur in project" projectile-multi-occur]
-      ["Browse dirty projects" projectile-browse-dirty-projects]
-      "--"
-      ["Run shell" projectile-run-shell]
-      ["Run eshell" projectile-run-eshell]
-      ["Run term" projectile-run-term]
-      "--"
-      ["Cache current file" projectile-cache-current-file]
-      ["Invalidate cache" projectile-invalidate-cache]
-      ["Regenerate [e|g]tags" projectile-regenerate-tags]
-      "--"
-      ["Compile project" projectile-compile-project]
-      ["Test project" projectile-test-project]
-      ["Run project" projectile-run-project]
-      "--"
-      ["Project info" projectile-project-info]
-      ["About" projectile-version]
+  (use-package easymenu
+    :demand
+    :config
+    (easy-menu-define projectile-menu projectile-mode-map "Projectile"
+      '("Projectile"
+        :active nil ;; disable menu bar
+        ["Find file" projectile-find-file]
+        ["Find file in known projects" projectile-find-file-in-known-projects]
+        ["Find test file" projectile-find-test-file]
+        ["Find directory" projectile-find-dir]
+        ["Find file in directory" projectile-find-file-in-directory]
+        ["Find other file" projectile-find-other-file]
+        ["Switch to buffer" projectile-switch-to-buffer]
+        ["Jump between implementation file and test file" projectile-toggle-between-implementation-and-test]
+        ["Kill project buffers" projectile-kill-buffers]
+        ["Recent files" projectile-recentf]
+        ["Edit .dir-locals.el" projectile-edit-dir-locals]
+        "--"
+        ["Open project in dired" projectile-dired]
+        ["Switch to project" projectile-switch-project]
+        ["Switch to open project" projectile-switch-open-project]
+        ["Discover projects in directory" projectile-discover-projects-in-directory]
+        ["Search in project (grep)" projectile-grep]
+        ["Search in project (ag)" projectile-ag]
+        ["Replace in project" projectile-replace]
+        ["Multi-occur in project" projectile-multi-occur]
+        ["Browse dirty projects" projectile-browse-dirty-projects]
+        "--"
+        ["Run shell" projectile-run-shell]
+        ["Run eshell" projectile-run-eshell]
+        ["Run term" projectile-run-term]
+        "--"
+        ["Cache current file" projectile-cache-current-file]
+        ["Invalidate cache" projectile-invalidate-cache]
+        ["Regenerate [e|g]tags" projectile-regenerate-tags]
+        "--"
+        ["Compile project" projectile-compile-project]
+        ["Test project" projectile-test-project]
+        ["Run project" projectile-run-project]
+        "--"
+        ["Project info" projectile-project-info]
+        ["About" projectile-version]
+        )
       )
     )
 
@@ -2433,7 +2391,8 @@ or the current buffer directory."
   (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
   :config
-  (require 'smartparens-config)
+  (use-package smartparens-config
+    :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
   (show-smartparens-mode +1))
 
@@ -2926,6 +2885,53 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package esup
   :commands esup)
+
+(use-package thingatpt
+  :demand
+  :config
+  (defun thing-at-point-goto-end-of-integer ()
+    "Go to end of integer at point."
+    (let ((inhibit-changing-match-data t))
+      ;; Skip over optional sign
+      (when (looking-at "[+-]")
+        (forward-char 1))
+      ;; Skip over digits
+      (skip-chars-forward "[[:digit:]]")
+      ;; Check for at least one digit
+      (unless (looking-back "[[:digit:]]")
+        (error "No integer here"))))
+  (put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
+
+  (defun thing-at-point-goto-beginning-of-integer ()
+    "Go to end of integer at point."
+    (let ((inhibit-changing-match-data t))
+      ;; Skip backward over digits
+      (skip-chars-backward "[[:digit:]]")
+      ;; Check for digits and optional sign
+      (unless (looking-at "[+-]?[[:digit:]]")
+        (error "No integer here"))
+      ;; Skip backward over optional sign
+      (when (looking-back "[+-]")
+        (backward-char 1))))
+  (put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
+
+  (defun thing-at-point-bounds-of-integer-at-point ()
+    "Get boundaries of integer at point."
+    (save-excursion
+      (let (beg end)
+        (thing-at-point-goto-beginning-of-integer)
+        (setq beg (point))
+        (thing-at-point-goto-end-of-integer)
+        (setq end (point))
+        (cons beg end))))
+  (put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
+
+  (defun thing-at-point-integer-at-point ()
+    "Get integer at point."
+    (let ((bounds (bounds-of-thing-at-point 'integer)))
+      (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
+  (put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
+  )
 
 (provide 'default)
 ;;; default.el ends here
