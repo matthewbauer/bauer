@@ -1826,6 +1826,36 @@ POINT ?"
   ;; (defadvice eshell (before dotemacs activate)
   ;;   (setq eshell-banner-message (concat (shell-command-to-string "@fortune@/bin/fortune") "\n")))
 
+  (defun eshell-ls-find-file-at-point (point)
+    "RET on Eshell's `ls' output to open files."
+    (interactive "d")
+    (find-file (buffer-substring-no-properties
+                (previous-single-property-change point 'help-echo)
+                (next-single-property-change point 'help-echo))))
+
+  (defun eshell-ls-find-file-at-mouse-click (event)
+    "Middle click on Eshell's `ls' output to open files.
+ From Patrick Anderson via the wiki."
+    (interactive "e")
+    (eshell-ls-find-file-at-point (posn-point (event-end event))))
+
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
+    (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
+    (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
+    (defvar eshell-ls-keymap--clickable map))
+
+  (defun eshell-ls-decorated-name--clickable (name)
+    "Eshell's `ls' now lets you click or RET on file names to open them."
+    (add-text-properties 0 (length name)
+                         (list 'help-echo "RET, mouse-2: visit this file"
+                               'mouse-face 'highlight
+                               'keymap eshell-ls-keymap--clickable)
+                         name)
+    name)
+
+  (advice-add 'eshell-ls :after #'eshell-ls-decorated-name--clickable)
+
   (add-hook 'eshell-mode-hook
             (lambda ()
               (define-key eshell-mode-map [(control ?u)] nil))))
