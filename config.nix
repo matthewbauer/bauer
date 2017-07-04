@@ -164,6 +164,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bury-successful-compilation
         c-eldoc
         css-eldoc
+        company-irony
         diff-hl
         dtrt-indent
         elpy

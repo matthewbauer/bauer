@@ -56,8 +56,6 @@
 (set-defaults
  '(ad-redefinition-action (quote accept))
  '(ag-executable "@ag@/bin/ag")
- '(aggressive-indent-dont-indent-if '(and (eq this-command 'cycle-spacing)
-                                          (looking-back "^[[:space:]]*")))
  '(apropos-do-all t)
  '(async-shell-command-buffer (quote new-buffer))
  '(auth-source-save-behavior t)
@@ -1839,16 +1837,16 @@ DIR to open if none provided assume HOME dir."
       (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
       map))
 
-  (defun eshell-ls-decorated-name--clickable (name)
+  (defun eshell-ls-decorated-name--clickable (file)
     "Eshell's `ls' now lets you click or RET on file names to open them."
-    (add-text-properties 0 (length name)
+    (add-text-properties 0 (length (car file))
                          (list 'help-echo "RET, mouse-2: visit this file"
                                'mouse-face 'highlight
                                'keymap eshell-ls-keymap--clickable)
-                         name)
-    name)
+                         (car file))
+    file)
 
-  (advice-add 'eshell-ls :after #'eshell-ls-decorated-name--clickable)
+  (advice-add 'eshell-ls-decorated-name :after #'eshell-ls-decorated-name--clickable)
 
   (add-hook 'eshell-mode-hook
             (lambda ()
@@ -2886,6 +2884,7 @@ save it in `ffap-file-at-point-line-number' variable."
   (show-paren-mode +1))
 
 (use-package abbrev
+  :disabled
   :demand
   :config
   (setq-default abbrev-mode t))
@@ -2923,6 +2922,9 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package logview
   :disabled
   :commands logview)
+
+(use-package esup
+  :commands esup)
 
 (provide 'default)
 ;;; default.el ends here
