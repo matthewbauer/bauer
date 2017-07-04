@@ -56,6 +56,8 @@
 (set-defaults
  '(ad-redefinition-action (quote accept))
  '(ag-executable "@ag@/bin/ag")
+ '(aggressive-indent-dont-indent-if '(and (eq this-command 'cycle-spacing)
+                                          (looking-back "^[[:space:]]*")))
  '(apropos-do-all t)
  '(async-shell-command-buffer (quote new-buffer))
  '(auth-source-save-behavior t)
@@ -84,6 +86,7 @@
  '(compilation-auto-jump-to-first-error nil)
  '(compilation-environment '("TERM=xterm-256color"))
  '(completions-format (quote vertical))
+ '(completion-cycle-threshold 5)
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(cperl-clobber-lisp-bindings t)
@@ -105,6 +108,7 @@
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
+ '(desktop-dirname (concat user-emacs-directory "desktop"))
  '(dired-omit-verbose nil)
  '(dired-dwim-target t)
  '(dired-recursive-copies 'always)
@@ -187,6 +191,7 @@
  '(fased-completing-read-function (quote nil))
  '(fill-column 80)
  '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
+ '(flycheck-standard-error-navigation nil)
  '(flycheck-global-modes
    (quote
     (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode org-mode)))
@@ -213,9 +218,11 @@
  '(iedit-toggle-key-default nil)
  '(imenu-auto-rescan t)
  '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
+ '(indicate-empty-lines t)
  '(indent-tabs-mode nil)
  '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
+ '(inhibit-startup-echo-area-message t)
  '(initial-major-mode (quote fundamental-mode))
  '(initial-scratch-message "")
  '(ispell-extra-args (quote ("--sug-mode=ultra")))
@@ -273,17 +280,17 @@
  '(minibuffer-prompt-properties
    (quote
     (read-only t cursor-intangible t face minibuffer-prompt)))
- '(mouse-wheel-scroll-amount (quote (1 ((shift) . 4) ((control)))))
  '(network-security-level (quote medium))
  '(neo-theme 'arrow)
- '(neo-smart-open t)
  '(neo-fixed-size nil)
  '(next-error-recenter (quote (4)))
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
+ '(org-support-shift-select t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")))
+ '(package-enable-at-startup nil)
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
  '(projectile-completion-system (quote ivy))
@@ -322,6 +329,7 @@
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair (quote always))
  '(sp-hybrid-kill-entire-symbol nil)
+ '(tab-always-indent 'complete)
  '(term-input-autoexpand t)
  '(term-input-ignoredups t)
  '(term-input-ring-file-name t)
@@ -329,6 +337,7 @@
  '(tls-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %h"))
  '(undo-limit 800000)
  '(uniquify-after-kill-buffer-p t)
+ '(uniquify-buffer-name-style 'forward)
  '(uniquify-ignore-buffers-re "^\\*")
  '(uniquify-separator "/")
  '(use-dialog-box nil)
@@ -348,10 +357,9 @@
  '(visible-cursor nil)
  '(whitespace-line-column 80)
  '(whitespace-auto-cleanup t)
- '(whitespace-line-column 110)
  '(whitespace-rescan-timer-time nil)
  '(whitespace-silent t)
- '(whitespace-style '(face trailing lines space-before-tab empty))
+ '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
  '(yas-prompt-functions
    (quote
     (yas-ido-prompt yas-completing-prompt yas-no-prompt)))
@@ -364,13 +372,13 @@
 (electric-pair-mode t)
 (electric-quote-mode t)
 (electric-indent-mode t)
-(show-paren-mode 1)
+;; (show-paren-mode 1)
 ;; (winner-mode t)
 (which-function-mode t)
 (blink-cursor-mode 0)
-(save-place-mode 1)
+;; (save-place-mode 1)
 (delete-selection-mode t)
-(savehist-mode 1)
+;; (savehist-mode 1)
 (column-number-mode t)
 ;; (transient-mark-mode 1)
 
@@ -387,6 +395,17 @@
   (global-prettify-symbols-mode))
 (temp-buffer-resize-mode 0)
 
+(when (eq system-type 'darwin)
+  (setq mouse-wheel-scroll-amount '(1
+                                    ((shift) . 5)
+                                    ((control))))
+  (global-set-key (kbd "M-`") 'ns-next-frame)
+  (when (fboundp 'set-fontset-font)
+    (set-fontset-font "fontset-default"
+                      '(#x1F600 . #x1F64F)
+                      (font-spec :name "Apple Color Emoji") nil 'prepend))
+  )
+
 ;; (require 'server)
 ;; (when (not server-process)
 ;;   (server-start))
@@ -395,12 +414,63 @@
 (when (fboundp 'set-fontset-font)
   (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
 
+(add-to-list 'completion-styles 'initials t)
+
 (put 'projectile-project-compilation-cmd 'safe-local-variable
      (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
                                  compilation-read-command))))
 
 (make-variable-buffer-local 'compile-command)
 (put 'compile-command 'safe-local-variable 'stringp)
+
+(add-hook 'prog-mode-hook 'bug-reference-prog-mode)
+
+(add-hook 'prog-mode-hook 'goto-address-prog-mode)
+(setq goto-address-mail-face 'link)
+
+(global-set-key (kbd "C-x v f") 'vc-git-grep)
+
+(defun my-kill-ring-save (beg end flash)
+  (interactive (if (use-region-p)
+                   (list (region-beginning) (region-end) nil)
+                 (list (line-beginning-position)
+                       (line-beginning-position 2) 'flash)))
+  (kill-ring-save beg end)
+  (when flash
+    (save-excursion
+      (if (equal (current-column) 0)
+          (goto-char end)
+        (goto-char beg))
+      (sit-for blink-matching-delay))))
+(global-set-key [remap kill-ring-save] 'my-kill-ring-save)
+
+(put 'kill-region 'interactive-form
+     '(interactive
+       (if (use-region-p)
+           (list (region-beginning) (region-end))
+         (list (line-beginning-position) (line-beginning-position 2)))))
+
+(defun kill-back-to-indentation ()
+  "Kill from point back to the first non-whitespace character on the line."
+  (interactive)
+  (let ((prev-pos (point)))
+    (back-to-indentation)
+    (kill-region (point) prev-pos)))
+
+(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
+
+;; (defun split-window-func-with-other-buffer (split-function)
+;;   (lambda (&optional arg)
+;;     "Split this window and switch to the new window unless ARG is provided."
+;;     (interactive "P")
+;;     (funcall split-function)
+;;     (let ((target-window (next-window)))
+;;       (set-window-buffer target-window (other-buffer))
+;;       (unless arg
+;;         (select-window target-window)))))
+
+;; (global-set-key (kbd "C-x 2") (split-window-func-with-other-buffer 'split-window-vertically))
+;; (global-set-key (kbd "C-x 3") (split-window-func-with-other-buffer 'split-window-horizontally))
 
 ;; Show trailing whitespace
 ;; But don't show trailing whitespace in SQLi, inf-ruby etc.
@@ -425,6 +495,56 @@
 (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
 
 (global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+
+(defun delete-this-file ()
+  "Delete the current file, and kill the buffer."
+  (interactive)
+  (unless (buffer-file-name)
+    (error "No file is currently being edited"))
+  (when (yes-or-no-p (format "Really delete '%s'?"
+                             (file-name-nondirectory buffer-file-name)))
+    (delete-file (buffer-file-name))
+    (kill-this-buffer)))
+
+(defun rename-this-file-and-buffer (new-name)
+  "Renames both current buffer and file it's visiting to NEW-NAME."
+  (interactive "sNew name: ")
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (unless filename
+      (error "Buffer '%s' is not visiting a file!" name))
+    (progn
+      (when (file-exists-p filename)
+        (rename-file filename new-name 1))
+      (set-visited-file-name new-name)
+      (rename-buffer new-name))))
+
+(defun browse-current-file ()
+  "Open the current file as a URL using `browse-url'."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if (and (fboundp 'tramp-tramp-file-p)
+             (tramp-tramp-file-p file-name))
+        (error "Cannot open tramp file")
+      (browse-url (concat "file://" file-name)))))
+
+(defun read-url-in-buffer ()
+  "Open a new buffer containing the contents of URL."
+  (interactive)
+  (let* ((default (thing-at-point-url-at-point))
+         (url (read-from-minibuffer "URL: " default)))
+    (switch-to-buffer (url-retrieve-synchronously url))
+    (rename-buffer url t)
+    (goto-char (point-min))
+    (re-search-forward "^$")
+    (delete-region (point-min) (point))
+    (delete-blank-lines)
+    (set-auto-mode)))
+
+(defun find-user-init-file ()
+  "Edit the `user-init-file', in another window."
+  (interactive)
+  (find-file-other-window user-init-file))
 
 (defun eval-region-or-buffer ()
   "Evaluate the selection, or, if empty, the whole buffer."
@@ -506,7 +626,7 @@
 (global-unset-key [?\s-p]) ; printing crashes occasionally
 (global-unset-key (kbd "C-x C-e"))
 
-(windmove-default-keybindings 'meta) ; move using meta
+;; (windmove-default-keybindings 'meta) ; move using meta
 (fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
 
 ;; enable narrowing commands
@@ -634,6 +754,8 @@ i.e. change right window to bottom, or change bottom window to right."
 
 (global-set-key (kbd "C-c C-e") 'eval-and-replace)
 
+(global-set-key (kbd "s-SPC") 'cycle-spacing)
+
 (defun increment-integer-at-point (&optional inc)
   "Increment integer at point by one.
 
@@ -751,13 +873,7 @@ you can use this command to copy text from a read-only buffer.
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)
                               ))
 
-(defun shell-command-at-point ()
-  (interactive)
-  (setq start-point (save-excursion
-                      (beginning-of-line)
-                      (point)))
-  (shell-command (buffer-substring start-point (point)))
-  )
+
 
 (defun toggle-fullscreen ()
   "Toggle full screen."
@@ -853,7 +969,7 @@ This functions should be added to the hooks of major modes for programming."
    ((pcomplete-match "checkout" 1)
     (pcomplete-here* (pcmpl-git-get-refs "heads")))))
 
-(defun endless/apostrophe (opening)
+(defun apostrophe (opening)
   "Insert ’ in prose or `self-insert-command' in code.
 With prefix argument OPENING, insert ‘’ instead and
 leave point in the middle.
@@ -868,6 +984,34 @@ Inside a code-block, just call `self-insert-command'."
           (insert "’")
         (insert "‘’")
         (forward-char -1)))))
+
+(define-minor-mode prose-mode
+  "Set up a buffer for prose editing.
+This enables or modifies a number of settings so that the
+experience of editing prose is a little more like that of a
+typical word processor."
+  nil " Prose" nil
+  (if prose-mode
+      (progn
+        (setq truncate-lines nil)
+        (setq word-wrap t)
+        (setq cursor-type 'bar)
+        (when (eq major-mode 'org)
+          (kill-local-variable 'buffer-face-mode-face))
+        (buffer-face-mode 1)
+        ;;(delete-selection-mode 1)
+        (set (make-local-variable 'blink-cursor-interval) 0.6)
+        (set (make-local-variable 'show-trailing-whitespace) nil)
+        (ignore-errors (flyspell-mode 1))
+        (visual-line-mode 1))
+    (kill-local-variable 'truncate-lines)
+    (kill-local-variable 'word-wrap)
+    (kill-local-variable 'cursor-type)
+    (kill-local-variable 'show-trailing-whitespace)
+    (buffer-face-mode -1)
+    ;; (delete-selection-mode -1)
+    (flyspell-mode -1)
+    (visual-line-mode -1)))
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -889,11 +1033,18 @@ Inside a code-block, just call `self-insert-command'."
 FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
 
-(defun my-shell-command-hook ()
-  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)
+(defun eval-last-sexp-or-region (prefix)
+  "Eval region from BEG to END if active, otherwise the last sexp."
+  (interactive "P")
+  (if (and (mark) (use-region-p))
+      (eval-region (min (point) (mark)) (max (point) (mark)))
+    (pp-eval-last-sexp prefix)))
+
+(defun my-lisp-command-hook ()
+  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp-or-region)
   )
 
-(apply #'hook-into-modes 'my-shell-command-hook lisp-mode-hooks)
+(apply #'hook-into-modes 'my-lisp-command-hook lisp-mode-hooks)
 
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
@@ -1178,22 +1329,106 @@ FUNC is run when MODES are loaded."
   :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
+  :demand
   :preface
   (defun my-complete ()
     (interactive)
     (cond ((eq major-mode 'jdee-mode)
            (jdee-complete-menu))
           (t
-           (counsel-company))
+           (company-complete-common-or-cycle)
+           )
           )
     )
+
+  (defvar-local company-simple-complete--previous-prefix nil)
+  (defvar-local company-simple-complete--before-complete-point nil)
+
+  (defun company-simple-complete-frontend (command)
+    (when (or (eq command 'show)
+              (and (eq command 'update)
+                   (not (equal company-prefix company-simple-complete--previous-prefix))))
+      (setq company-selection -1
+            company-simple-complete--previous-prefix company-prefix
+            company-simple-complete--before-complete-point nil)))
+
+  (defun company-simple-complete-next (&optional arg)
+    (interactive "p")
+    (company-select-next arg)
+    (company-simple-complete--complete-selection-and-stay))
+
+  (defun company-simple-complete-previous (&optional arg)
+    (interactive "p")
+    (company-select-previous arg)
+    (company-simple-complete--complete-selection-and-stay))
+
+  (defun company-simple-complete--complete-selection-and-stay ()
+    (if (cdr company-candidates)
+        (when (company-manual-begin)
+          (when company-simple-complete--before-complete-point
+            (delete-region company-simple-complete--before-complete-point (point)))
+          (setq company-simple-complete--before-complete-point (point))
+          (unless (eq company-selection -1)
+            (company--insert-candidate (nth company-selection company-candidates)))
+          (company-call-frontends 'update)
+          (company-call-frontends 'post-command))
+      (company-complete-selection)))
+
+  (defadvice company-set-selection (around allow-no-selection (selection &optional force-update))
+    "Allow selection to be -1"
+    (setq selection
+          ;; TODO deal w/ wrap-around
+          (if company-selection-wrap-around
+              (mod selection company-candidates-length)
+            (max -1 (min (1- company-candidates-length) selection))))
+    (when (or force-update (not (equal selection company-selection)))
+      (setq company-selection selection
+            company-selection-changed t)
+      (company-call-frontends 'update)))
+
+  (defadvice company-tooltip--lines-update-offset (before allow-no-selection (selection _num-lines _limit))
+    "Allow selection to be -1"
+    (when (eq selection -1)
+      (ad-set-arg 0 0)))
+
+  (defadvice company-tooltip--simple-update-offset (before allow-no-selection (selection _num-lines limit))
+    "Allow selection to be -1"
+    (when (eq selection -1)
+      (ad-set-arg 0 0)))
+
   :bind (("<C-tab>" . my-complete)
-         ;;        ([remap completion-at-point] . my-complete)
+         ("M-C-/" . company-complete)
+         ;; ("<tab>" . company-complete-common-or-cycle)
+         :map company-mode-map
+         ("M-/" . company-complete)
+         :map company-active-map
+         ("<tab>" . company-simple-complete-next)
+         ("<backtab>" . company-simple-complete-previous)
+
+         ("RET" . nil)
+         ("C-f" . nil)
+         ("C-d" . nil)
+         ("M-d" . company-show-doc-buffer)
+
+         ("M-/" . company-select-next)
+         ("C-n" . company-select-next)
+         ("C-p" . company-select-previous)
          )
   :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
   :init
   (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (setq-default company-backends '((company-capf company-dabbrev-code) company-dabbrev)
+                company-dabbrev-other-buffers 'all)
+
+  (setq company-require-match nil)
+  (put 'company-simple-complete-next 'company-keep t)
+  (put 'company-simple-complete-previous 'company-keep t)
+  (ad-activate 'company-set-selection)
+  (ad-activate 'company-tooltip--simple-update-offset)
+  (ad-activate 'company-tooltip--lines-update-offset)
+  (add-to-list 'company-frontends 'company-simple-complete-frontend)
   )
 
 (use-package company-flx
@@ -1232,7 +1467,7 @@ FUNC is run when MODES are loaded."
          ("<f1> v" . counsel-describe-variable)
          ("C-x C-f" . counsel-find-file)
          ("<f1> l" . counsel-find-library)
-         ("C-c g" . counsel-git)
+         ;; ("C-c g" . counsel-git)
          ("C-c j" . counsel-git-grep)
          ("C-c k" . counsel-ag)
          ("C-x l" . counsel-locate)
@@ -1255,9 +1490,14 @@ FUNC is run when MODES are loaded."
   (use-package css-eldoc))
 
 (use-package diff-hl
-  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh)
+  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
+                              diff-hl-diff-goto-hunk)
+  :bind (
+         :map diff-hl-mode-map
+              ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
   :init
   (add-hook 'prog-mode-hook 'diff-hl-mode)
+  (add-hook 'vc-dir-mode-hook 'diff-hl-mode)
   (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
@@ -1266,7 +1506,8 @@ FUNC is run when MODES are loaded."
   :commands (diffview-current diffview-region diffview-message))
 
 (use-package dired
-  :bind (("C-c J" . dired-double-jump))
+  :bind (("C-c J" . dired-double-jump)
+         )
   :preface
   (defvar mark-files-cache (make-hash-table :test #'equal))
 
@@ -1300,6 +1541,16 @@ FUNC is run when MODES are loaded."
       (call-interactively #'other-window)))
 
   :config
+  (defun dired-create-file (filename)
+    "Create FILENAME from Dired in if not exists.
+If FILENAME already exists do nothing."
+    (interactive "FCreate file: ")
+    (shell-command (format "touch %s" filename))
+    (when (file-exists-p filename)
+      (dired-add-file filename)
+      (dired-move-to-filename)))
+  (define-key dired-mode-map "|" 'dired-create-file)
+
   (define-key dired-mode-map (kbd "C-c C-c") 'compile)
 
   (bind-key "r" #'browse-url-of-dired-file dired-mode-map)
@@ -1372,7 +1623,10 @@ FUNC is run when MODES are loaded."
                 (split-string omitted-files "\n" t)
                 "\\|")
                "\\)")))
-        (funcall dired-omit-regexp-orig)))))
+        (funcall dired-omit-regexp-orig))))
+  (when (fboundp 'global-dired-hide-details-mode)
+    (global-dired-hide-details-mode -1))
+  )
 
 (use-package dired-x
   :commands dired-omit-mode
@@ -1509,6 +1763,11 @@ ARGS unused"
       (erase-buffer))
     (eshell-send-input))
 
+  ;; (defun eshell/ssh (&rest args)
+  ;;   (interactive)
+  ;;   (insert (apply #'format "cd /scpx:%s:" args))
+  ;;   (eshell-send-input))
+
   (defun eshell-ls-find-file-at-point (point)
     "RET on Eshell's `ls' output to open files.
 POINT ?"
@@ -1575,13 +1834,18 @@ POINT ?"
   :bind (("C-=" . er/expand-region)))
 
 (use-package flycheck
-  :defer 5
-  :config (global-flycheck-mode 1))
+  :commands global-flycheck-mode
+  :init
+  (add-hook 'after-init-hook 'global-flycheck-mode)
+  :config
+  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
+  )
 
 (use-package flyspell
-  :commands flyspell-mode
+  :commands (flyspell-mode flyspell-prog-mode)
   :init
-  (add-hook 'text-mode-hook 'flyspell-mode))
+  (add-hook 'text-mode-hook 'flyspell-mode)
+  (add-hook 'prog-mode-hook 'flyspell-prog-mode))
 
 (use-package ghc)
 
@@ -1674,10 +1938,13 @@ POINT ?"
 
 (use-package imenu-anywhere
   :init
-  (bind-key "M"
-            (if (featurep 'ivy) #'ivy-imenu-anywhere
-              #'imenu-anywhere)
-            search-map))
+  ;; (bind-key "M"
+  ;;           (if (featurep 'ivy) #'ivy-imenu-anywhere
+  ;;             #'imenu-anywhere)
+  ;;           search-map)
+  :bind (("C-c i" . imenu-anywhere)
+         ("s-i" . imenu-anywhere))
+  )
 
 (use-package imenu-list
   :commands imenu-list)
@@ -1703,8 +1970,8 @@ POINT ?"
   (ivy-mode 1))
 
 (use-package jdee
-  :bind (:keymap jdee-mode-map
-                 ("<s-mouse-1>" . jdee-open-class-at-event)))
+  :bind (:map jdee-mode-map
+              ("<s-mouse-1>" . jdee-open-class-at-event)))
 
 (use-package realgud)
 
@@ -1917,6 +2184,24 @@ or the current buffer directory."
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
   (global-set-key (kbd "C-c c") 'org-capture)
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (lisp . t)
+     (gnuplot . t)
+     (dot . t)
+     (ditaa . t)
+     (R . t)
+     (python . t)
+     (ruby . t)
+     (js . t)
+     (clojure . t)
+     (sh . t)))
+  (require 'ox-latex)
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-listings 'minted)
+
   )
 
 (use-package org-bullets
@@ -1935,7 +2220,7 @@ or the current buffer directory."
   :init
   (add-hook 'doc-mode-hook 'page-break-lines-mode)
   (add-hook 'help-mode-hook 'page-break-lines-mode)
-  (add-hook 'help-mode-hook 'emacs-lisp-mode))
+  )
 
 (use-package php-mode
   :mode "\\.php\\'")
@@ -2067,12 +2352,18 @@ or the current buffer directory."
   :mode "\\.scss\\'")
 
 (use-package sh-script
+  :preface
+  (defun shell-command-at-point ()
+    (interactive)
+    (setq start-point (save-excursion
+                        (beginning-of-line)
+                        (point)))
+    (shell-command (buffer-substring start-point (point)))
+    )
   :mode (("\\.*bashrc$" . sh-mode)
          ("\\.*bash_profile" . sh-mode))
-  :config
-  (add-hook 'sh-mode-hook
-            (lambda ()
-              (define-key (current-local-map) (kbd "C-x C-e") 'shell-command-at-point)))
+  :bind (:map shell-mode-map
+              ("C-x C-e" . shell-command-at-point))
   )
 
 (use-package shell
@@ -2181,13 +2472,15 @@ or the current buffer directory."
 
   (defun my-term-hook ()
     (goto-address-mode)
+    (term-char-mode)
+    (term-set-escape-char ?\C-x)
     (define-key term-raw-map "\C-y" 'my-term-paste))
-  (add-hook 'term-mode-hook 'my-term-hook))
+  ;; (add-hook 'term-mode-hook 'my-term-hook)
+  )
 
 (use-package tern
   :commands tern-mode
   :init
-  (add-hook 'term-mode-hook (lambda () (linum-mode -1)))
   (add-hook 'js2-mode-hook 'tern-mode))
 
 (use-package toc-org
@@ -2210,11 +2503,11 @@ or the current buffer directory."
                             file-name-handler-alist) file-name-handler-alist))
       ad-do-it))
 
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
   (add-to-list 'tramp-default-proxies-alist
                '(nil "\\`root\\'" "/ssh:%h:"))
   (add-to-list 'tramp-default-proxies-alist
                '((regexp-quote (system-name)) nil nil))
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
   (defvar sudo-tramp-prefix
     "/sudo:"
     (concat "Prefix to be used by sudo commands when building tramp path "))
@@ -2497,7 +2790,115 @@ save it in `ffap-file-at-point-line-number' variable."
     ))
 
 (use-package browse-at-remote
-  :bind ("C-c g b" . browse-at-remote))
+  :commands browse-at-remote
+  )
+
+(use-package mmm-mode
+  :demand
+  :config
+  (use-package mmm-auto
+    :demand)
+  (setq mmm-global-mode 'buffers-with-submode-classes)
+  (setq mmm-submode-decoration-level 2)
+  )
+
+(use-package js2-mode
+  :config
+  (js2-imenu-extras-setup))
+
+(use-package hippie-exp
+  :bind (("M-/" . hippie-expand))
+  :config
+  ;; (setq hippie-expand-try-functions-list
+  ;;       '(try-complete-file-name-partially
+  ;;         try-complete-file-name
+  ;;         try-expand-dabbrev
+  ;;         try-expand-dabbrev-all-buffers
+  ;;         try-expand-dabbrev-from-kill))
+  (setq hippie-expand-try-functions-list
+        '(
+          ;; Try to expand word "dynamically", searching the current buffer.
+          try-expand-dabbrev
+          ;; Try to expand word "dynamically", searching all other buffers.
+          try-expand-dabbrev-all-buffers
+          ;; Try to expand word "dynamically", searching the kill ring.
+          try-expand-dabbrev-from-kill
+          ;; Try to complete text as a file name, as many characters as unique.
+          try-complete-file-name-partially
+          ;; Try to complete text as a file name.
+          try-complete-file-name
+          ;; Try to expand word before point according to all abbrev tables.
+          try-expand-all-abbrevs
+          ;; Try to complete the current line to an entire line in the buffer.
+          try-expand-list
+          ;; Try to complete the current line to an entire line in the buffer.
+          try-expand-line
+          ;; Try to complete as an Emacs Lisp symbol, as many characters as
+          ;; unique.
+          try-complete-lisp-symbol-partially
+          ;; Try to complete word as an Emacs Lisp symbol.
+          try-complete-lisp-symbol))
+  )
+
+(use-package symbol-overlay
+  :demand
+  :bind (("<f7>" . symbol-overlay-put))
+  :config
+  (symbol-overlay-mode))
+
+(use-package mu4e)
+
+(use-package semantic
+  :commands (global-semantic-idle-summary-mode)
+  :init
+  ;; (add-to-list 'semantic-default-submodes
+  ;;              'global-semantic-stickyfunc-mode)
+  (add-to-list 'semantic-default-submodes
+               'global-semantic-idle-summary-mode))
+
+(use-package paren
+  :demand
+  :config
+  (show-paren-mode +1))
+
+(use-package abbrev
+  :demand
+  :config
+  (setq-default abbrev-mode t))
+
+(use-package saveplace
+  :demand
+  :config
+  ;; activate it for all buffers
+  (setq-default save-place t))
+
+(use-package savehist
+  :demand
+  :config
+  (savehist-mode +1))
+
+(use-package windmove
+  :demand
+  :config
+  ;; use shift + arrow keys to switch between visible buffers
+  (windmove-default-keybindings 'meta))
+
+(use-package easy-kill
+  :disabled
+  :demand
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill))
+
+(use-package move-text
+  :bind
+  (([(meta shift up)] . move-text-up)
+   ([(meta shift down)] . move-text-down)))
+
+(use-package json-mode)
+
+(use-package logview
+  :disabled
+  :commands logview)
 
 (provide 'default)
 ;;; default.el ends here

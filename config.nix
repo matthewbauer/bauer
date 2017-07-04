@@ -160,6 +160,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
       ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         autodisass-java-bytecode
+        browse-at-remote
         bury-successful-compilation
         c-eldoc
         css-eldoc
@@ -180,6 +181,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         smart-hungry-delete
         transpose-frame
         try
+        symbol-overlay
+        move-text
         # bm
         # counsel-dash
         # hydra
