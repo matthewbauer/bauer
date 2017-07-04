@@ -18,7 +18,6 @@
 ;; (setenv "MANPATH" "~/.nix-profile/share/man")
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
-(setenv "SHELL" "@out@/bin/bash")
 
 (defun set-defaults (&rest args)
   (dolist (entry args)
@@ -480,7 +479,7 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
 
-(global-set-key [remap kill-ring-save] 'my-kill-ring-save)
+;; (global-set-key [remap kill-ring-save] 'kill-ring-save)
 (global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
 (global-set-key (kbd "C-c D") 'delete-file-and-buffer)
 (define-key ctl-x-4-map "t" 'toggle-window-split)
@@ -502,6 +501,7 @@ This functions should be added to the hooks of major modes for programming."
   (setq-default abbrev-mode t))
 
 (use-package ace-jump-mode
+  :disabled
   :bind ("C-c SPC" . ace-jump-mode))
 
 (use-package ace-window
@@ -547,8 +547,6 @@ This functions should be added to the hooks of major modes for programming."
   :demand
   :config
   (load-theme 'apropospriate-dark t))
-
-(use-package autodisass-java-bytecode)
 
 (use-package bm
   :disabled
@@ -936,7 +934,8 @@ This functions should be added to the hooks of major modes for programming."
   (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
   (make-variable-buffer-local 'get-buffer-compile-command)
 
-  (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output))
+  (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output)
+  )
 
 (use-package counsel
   :commands (counsel-descbinds)
@@ -974,8 +973,7 @@ This functions should be added to the hooks of major modes for programming."
 (use-package diff-hl
   :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
                               diff-hl-diff-goto-hunk)
-  :bind (
-         :map diff-hl-mode-map
+  :bind (:map diff-hl-mode-map
               ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
   :init
   (add-hook 'prog-mode-hook 'diff-hl-mode)
@@ -985,6 +983,7 @@ This functions should be added to the hooks of major modes for programming."
   )
 
 (use-package diffview
+  :disabled
   :commands (diffview-current diffview-region diffview-message))
 
 (use-package dired
@@ -1182,14 +1181,13 @@ If FILENAME already exists do nothing."
   )
 
 (use-package elpy
-  :mode ("\\.py\\’" . elpy-mode)
+  :mode ("\\.py\\'" . elpy-mode)
   :config
   (elpy-enable)
   (elpy-use-ipython))
 
 (use-package emacs-lisp-mode
   :config
-  (setq tab-always-indent 'complete)
   (add-to-list 'completion-styles 'initials t)
   :bind (("M-." . find-function-at-point)
          ("M-&" . complete-symbol))
@@ -1213,8 +1211,6 @@ If FILENAME already exists do nothing."
               (make-local-variable 'eldoc-documentation-function)
               (setq eldoc-documentation-function
                     'esh-help-eldoc-command)
-              (setenv "LANG" "en_US.UTF-8")
-              (setenv "LC_ALL" "en_US.UTF-8")
               )))
 
 (use-package eshell
@@ -1350,7 +1346,8 @@ DIR to open if none provided assume HOME dir."
 
   (add-hook 'eshell-mode-hook
             (lambda ()
-              (define-key eshell-mode-map [(control ?u)] nil))))
+              (define-key eshell-mode-map [(control ?u)] nil)))
+  )
 
 (use-package ess-site
   :commands (R)
@@ -1489,6 +1486,7 @@ save it in `ffap-file-at-point-line-number' variable."
   (add-hook 'prog-mode-hook 'hs-minor-mode))
 
 (use-package hideshowvis
+  :disabled
   :commands (hideshowvis-minor-mode hideshowvis-symbols)
   :init
   ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
@@ -1560,6 +1558,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands imenu-list)
 
 (use-package indium
+  :mode ("\\.js\\'" . indium-mode)
   :commands (indium-mode indium-interaction-mode indium-scratch))
 
 (use-package intero
@@ -1574,8 +1573,6 @@ save it in `ffap-file-at-point-line-number' variable."
   (add-hook 'objc-mode-hook 'irony-mode)
   )
 
-(use-package ispell)
-
 (use-package ivy
   :demand
   :bind (("C-c C-r" . ivy-resume)
@@ -1588,7 +1585,7 @@ save it in `ffap-file-at-point-line-number' variable."
   (ivy-mode 1))
 
 (use-package jdee
-  :demand
+  :mode ("\\.java\\'" . jdee-mode)
   :commands jdee-mode
   :bind (:map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
@@ -1749,9 +1746,11 @@ save it in `ffap-file-at-point-line-number' variable."
   (([(meta shift up)] . move-text-up)
    ([(meta shift down)] . move-text-down)))
 
-(use-package mu4e)
+(use-package mu4e
+  :commands mu4e)
 
 (use-package multi-line
+  :disabled
   :bind (("C-c m" . multi-line)))
 
 (use-package multiple-cursors
@@ -1853,7 +1852,6 @@ or the current buffer directory."
     :demand)
   (add-to-list 'org-latex-packages-alist '("" "minted"))
   (setq org-latex-listings 'minted)
-
   )
 
 (use-package org-bullets
@@ -1864,6 +1862,15 @@ or the current buffer directory."
 (use-package origami
   :disabled
   :commands origami-mode
+  :bind (:map origami-mode-map
+              ("C-: :" . origami-recursively-toggle-node)
+              ("C-: a" . origami-toggle-all-nodes)
+              ("C-: t" . origami-toggle-node)
+              ("C-: o" . origami-show-only-node)
+              ("C-: u" . origami-undo)
+              ("C-: U" . origami-redo)
+              ("C-: C-r" . origami-reset)
+              )
   :init
   (add-hook 'prog-mode-hook 'origami-mode))
 
@@ -1966,7 +1973,8 @@ or the current buffer directory."
   :init
   (apply #'hook-into-modes 'rainbow-delimiters-mode lisp-mode-hooks))
 
-(use-package realgud)
+(use-package realgud
+  :commands (realgud:jdb))
 
 (use-package restart-emacs
   :commands restart-emacs)
@@ -2060,10 +2068,7 @@ or the current buffer directory."
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
   (setenv "PAGER" "cat")
   (setenv "TERM" "xterm-256color")
-
   (setenv "EDITOR" "emacsclient -nq")
-  (setenv "LC_ALL" "C")
-  (setenv "LANG" "en")
 
   :config
   (defun make-shell-command-behave-interactively (orig-fun &rest args)
@@ -2108,6 +2113,7 @@ or the current buffer directory."
 
 (use-package symbol-overlay
   :demand
+  :disabled
   :bind (("<f7>" . symbol-overlay-put))
   :config
   (symbol-overlay-mode))
@@ -2249,32 +2255,6 @@ or the current buffer directory."
                '(nil "\\`root\\'" "/ssh:%h:"))
   (add-to-list 'tramp-default-proxies-alist
                '((regexp-quote (system-name)) nil nil))
-  (defvar sudo-tramp-prefix
-    "/sudo:"
-    (concat "Prefix to be used by sudo commands when building tramp path "))
-  (defun sudo-file-name (filename)
-    (set 'splitname (split-string filename ":"))
-    (if (> (length splitname) 1)
-        (progn (set 'final-split (cdr splitname))
-               (set 'sudo-tramp-prefix "/sudo:")
-               )
-      (progn (set 'final-split splitname)
-             (set 'sudo-tramp-prefix (concat sudo-tramp-prefix "root@localhost:")))
-      )
-    (set 'final-fn (concat sudo-tramp-prefix (mapconcat (lambda (e) e) final-split ":")))
-    (message "splitname is %s" splitname)
-    (message "sudo-tramp-prefix is %s" sudo-tramp-prefix)
-    (message "final-split is %s" final-split)
-    (message "final-fn is %s" final-fn)
-    (message "%s" final-fn)
-    )
-
-  (defun sudo-find-file (filename &optional wildcards)
-    "Calls find-file with filename with sudo-tramp-prefix prepended"
-    (interactive "fFind file with sudo ")
-    (let ((sudo-name (sudo-file-name filename)))
-      (apply 'find-file
-             (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
 
   (defun sudo-reopen-file ()
     "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
@@ -2305,6 +2285,7 @@ or the current buffer directory."
       (goto-char position)))
 
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
   (defun is-current-file-tramp ()
     "Is the current file in a tramp remote setup?"
     (tramp-tramp-file-p (buffer-file-name (current-buffer))))
@@ -2313,7 +2294,8 @@ or the current buffer directory."
 (use-package transpose-frame
   :bind ("C-x t" . transpose-frame))
 
-(use-package try)
+(use-package try
+  :commands try)
 
 (use-package undo-tree
   :disabled

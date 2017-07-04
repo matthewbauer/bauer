@@ -2,7 +2,7 @@
 ;; custom functions
 ;;
 
-(defun my-kill-ring-save (beg end flash)
+(defun kill-ring-save (beg end flash)
   (interactive (if (use-region-p)
                    (list (region-beginning) (region-end) nil)
                  (list (line-beginning-position)

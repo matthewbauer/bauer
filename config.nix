@@ -60,7 +60,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         company
         dired-du
         docbook
-        easy-kill
         electric-spacing
         excorporate
         ggtags
@@ -83,12 +82,10 @@ dict-dir ${aspellDicts.en}/lib/aspell
         windresize
       ])
       ++ (with epkgs.melpaStablePackages; [
-        ace-jump-mode
         ag
         bind-key
         buffer-move
         counsel
-        diffview
         diminish
         dumb-jump
         esup
@@ -109,7 +106,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         magit
         markdown-mode
         mmm-mode
-        multi-line
         multiple-cursors
         mwim
         neotree
@@ -142,14 +138,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
         indium
         kill-or-bury-alive
         elpy
-        bm
         diff-hl
-        hydra
         counsel-dash
       ])
       ++ (with epkgs.melpaPackages; [
         apropospriate-theme
-        autodisass-java-bytecode
         browse-at-remote
         bury-successful-compilation
         c-eldoc
@@ -162,7 +155,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         eshell-prompt-extras
         flycheck-irony
         go-eldoc
-        hideshowvis
         indium
         irony
         jdee
@@ -172,7 +164,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         smart-hungry-delete
         transpose-frame
         try
-        symbol-overlay
         move-text
         # bm
         # counsel-dash
