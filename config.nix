@@ -2,16 +2,6 @@
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
 
-    myConfig = {
-      gitconfig = ./gitconfig;
-      gitignore = ./gitignore;
-      zshrc = ./zshrc.sh;
-      bashrc = ./bashrc.sh;
-      profile = ./profile.sh;
-      etc-profile = ./etc-profile.sh;
-      emacs = ./default.el;
-    };
-
     rEnv = pkgs.rWrapper.override {
       packages = with pkgs.rPackages; [
         # devtools
@@ -196,8 +186,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
         aspell = myAspell;
       } ''
           mkdir -p $out/share/emacs/site-lisp
-          cp ${myConfig.emacs} $out/share/emacs/site-lisp/default.el
+          cp ${./default.el} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
+
+          cp ${./misc.el} $out/share/emacs/site-lisp/misc.el
+
           # loadPaths=""
           # for f in ${toString pkgs}; do
           #   loadPaths="$loadPaths -L $f/share/emacs/site-lisp/elpa/* -L $f/share/emacs/site-lisp"
@@ -218,142 +211,141 @@ dict-dir ${aspellDicts.en}/lib/aspell
 
         mkdir -p $out/etc
 
-        cp ${myConfig.gitconfig} $out/etc/gitconfig
+        cp ${./gitconfig} $out/etc/gitconfig
         substituteInPlace $out/etc/gitconfig \
-        --replace @gitignore@ ${myConfig.gitignore} \
-        --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-        --replace @out@ $out
+          --replace @gitignore@ ${./gitignore} \
+          --replace @gnupg@ ${gnupg1compat}/bin/gpg \
+          --replace @out@ $out
 
-        cp ${myConfig.bashrc} $out/etc/bashrc
+        cp ${./bashrc.sh} $out/etc/bashrc
         substituteInPlace $out/etc/bashrc \
-        --replace @fortune@ ${fortune} \
-        --replace @out@ $out
+          --replace @fortune@ ${fortune} \
+          --replace @out@ $out
 
-        cp ${myConfig.zshrc} $out/etc/.zshrc
+        cp ${./zshrc.sh} $out/etc/.zshrc
         substituteInPlace $out/etc/.zshrc \
-        --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-        --replace @fortune@ ${fortune} \
-        --replace @out@ $out
+          --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
+          --replace @fortune@ ${fortune} \
+          --replace @out@ $out
         cp $out/etc/.zshrc $out/etc/zshrc
 
-        cp ${myConfig.etc-profile} $out/etc/profile
+        cp ${./etc-profile.sh} $out/etc/profile
         substituteInPlace $out/etc/profile \
-        --replace @out@ $out
+          --replace @out@ $out
 
         wrapProgram $out/bin/bash \
-        --add-flags "--rcfile $out/etc/bashrc"
+          --add-flags "--rcfile $out/etc/bashrc"
 
         wrapProgram $out/bin/zsh \
-        --set ZDOTDIR $out/etc
-        '';
-        meta.priority = 10;
-        pathsToLink = [
-          "/bin"
-          "/etc/profile.d"
-          "/etc/bash_completion.d"
-          "/Applications"
-          "/share/doc"
-          "/share/man"
-          "/share/info"
-          "/share/zsh"
-          "/share/bash-completion"
-        ];
-        extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
-        name = "bauer";
-        paths = [
-            bash-completion
-            zsh-completions
-            myAspell
-            myEmacs
-            gcc
-            gawk
-            bashInteractive
-            bc
-            bzip2
-            cabal-install
-            cabal2nix
-            cargo
-            checkbashisms
-            cmake
-            coreutils
-            diffutils
-            editorconfig-core-c
-            emscripten
-            ffmpeg
-            findutils
-            ripgrep
-            ag
-            ghc
-            git
-            gitAndTools.hub
-            go2nix
-            gnugrep
-            gnumake
-            # offlineimap
-            gnuplot
-            gnused
-            gnupg1compat
-            gnutar
-            gnutls
-            go
-            gzip
-            jdk
-            jq
-            haskellPackages.intero
-            lua
-            less
-            man
-            nano
-            nasm
-            nox
-            nix
-            nix-prefetch-scripts
-            # nix-index
-            nix-repl
-            nix-zsh-completions
-            ninja
-	    rtags
-            nmap
-            nodePackages.tern
-            nodejs
-            openssh
-            openssl
-            pandoc
-            patch
-            pypi2nix
-            python
-            perl
-            php
-            pwgen
-            rsync
-            ruby
-            rustc
-            screen
-            stack
-            time
-            tree
-            unzip
-            vim
-            w3m
-            wget
-            v8
-            xz
-            zip
-            zsh
-            fortune
-            rEnv
-            isync
-            mu
-            (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-              mkdir -p $out/etc/profile.d
-              cp ${myConfig.profile} $out/etc/profile.d/my-profile.sh
-              substituteInPlace $out/etc/profile.d/my-profile.sh \
-                --replace @emacs@ ${myEmacs} \
-                --replace @fortune@ ${fortune} \
-                --replace @cacert@ ${cacert}
-            '')
+          --set ZDOTDIR $out/etc
+      '';
+      meta.priority = 10;
+      pathsToLink = [
+        "/bin"
+        "/etc/profile.d"
+        "/etc/bash_completion.d"
+        "/Applications"
+        "/share/doc"
+        "/share/man"
+        "/share/info"
+        "/share/zsh"
+        "/share/bash-completion"
+      ];
+      extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
+      name = "bauer";
+      paths = [
+        bash-completion
+        zsh-completions
+        myAspell
+        myEmacs
+        gcc
+        gawk
+        bashInteractive
+        bc
+        bzip2
+        cabal-install
+        cabal2nix
+        cargo
+        checkbashisms
+        cmake
+        coreutils
+        diffutils
+        editorconfig-core-c
+        emscripten
+        ffmpeg
+        findutils
+        ripgrep
+        ag
+        ghc
+        git
+        gitAndTools.hub
+        go2nix
+        gnugrep
+        gnumake
+        # offlineimap
+        gnuplot
+        gnused
+        gnupg1compat
+        gnutar
+        gnutls
+        go
+        gzip
+        jdk
+        jq
+        haskellPackages.intero
+        lua
+        less
+        man
+        nano
+        nasm
+        nox
+        nix
+        nix-prefetch-scripts
+        # nix-index
+        nix-repl
+        nix-zsh-completions
+        ninja
+	rtags
+        nmap
+        nodePackages.tern
+        nodejs
+        openssh
+        openssl
+        pandoc
+        patch
+        pypi2nix
+        python
+        perl
+        php
+        pwgen
+        rsync
+        ruby
+        rustc
+        screen
+        stack
+        time
+        tree
+        unzip
+        vim
+        w3m
+        wget
+        v8
+        xz
+        zip
+        zsh
+        fortune
+        rEnv
+        isync
+        mu
+        (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
+          mkdir -p $out/etc/profile.d
+          cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
+          substituteInPlace $out/etc/profile.d/my-profile.sh \
+            --replace @emacs@ ${myEmacs} \
+            --replace @fortune@ ${fortune} \
+            --replace @cacert@ ${cacert}
+        '')
       ];
     };
   };
-
 }

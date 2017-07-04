@@ -21,8 +21,6 @@
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "SHELL" "@out@/bin/bash")
 
-(require 'custom)
-
 (defun set-defaults (&rest args)
   (dolist (entry args)
     (let* ((symbol (indirect-variable (nth 0 entry))))
@@ -259,15 +257,11 @@
  '(magit-fetch-arguments nil)
  '(magit-highlight-trailing-whitespace nil)
  '(magit-highlight-whitespace nil)
- '(magit-mode-hook
-   (quote
-    (magit-load-config-extensions magit-xref-setup bug-reference-mode)))
  '(magit-no-confirm t)
  '(magit-process-connection-type nil)
  '(magit-process-find-password-functions (quote (magit-process-password-auth-source)))
  '(magit-process-popup-time 15)
  '(magit-push-always-verify nil)
- '(magit-revision-mode-hook (quote (bug-reference-mode)))
  '(magit-revision-show-gravatars (quote ("^Author:     " . "^Commit:
   ")))
  '(magit-save-repository-buffers (quote dontask))
@@ -300,7 +294,6 @@
                 (not (file-remote-p default-directory)))
                (format " Projectile[%s]" (projectile-project-name))
              "")))
- '(projectile-idle-timer-hook nil)
  '(projectile-ignored-project-function (quote file-remote-p))
  '(projectile-switch-project-action (quote projectile-dired))
  '(projectile-verbose nil)
@@ -364,6 +357,8 @@
  '(yas-triggers-in-field t)
  '(yas-wrap-around-region t))
 
+(fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
+
 ;;
 ;; builtins
 ;;
@@ -379,19 +374,23 @@
 ;; (savehist-mode 1)
 (column-number-mode t)
 ;; (transient-mark-mode 1)
-
-;; (setq auto-revert-use-notify t)
-(global-auto-revert-mode t)
-
-(when (and (fboundp 'menu-bar-mode) (not (eq system-type 'darwin))) (menu-bar-mode -1))
-(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
-(display-time)
 (auto-compression-mode t)
-(prefer-coding-system 'utf-8)
+(temp-buffer-resize-mode 0)
+
+(global-auto-revert-mode t)
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
-(temp-buffer-resize-mode 0)
+
+(when (and (fboundp 'menu-bar-mode)
+           (not (eq system-type 'darwin)))
+  (menu-bar-mode -1))
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+
+(display-time)
+(prefer-coding-system 'utf-8)
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1
@@ -412,63 +411,43 @@
 (when (fboundp 'set-fontset-font)
   (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
 
-(add-to-list 'completion-styles 'initials t)
+(defvar lisp-modes '(emacs-lisp-mode
+                     inferior-emacs-lisp-mode
+                     ielm-mode
+                     lisp-mode
+                     inferior-lisp-mode
+                     lisp-interaction-mode
+                     slime-repl-mode))
 
-(put 'projectile-project-compilation-cmd 'safe-local-variable
-     (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                 compilation-read-command))))
+(defvar lisp-mode-hooks
+  (mapcar (function
+           (lambda (mode)
+             (intern
+              (concat (symbol-name mode) "-hook"))))
+          lisp-modes))
 
-(make-variable-buffer-local 'compile-command)
-(put 'compile-command 'safe-local-variable 'stringp)
+(defsubst hook-into-modes (func &rest modes)
+  "Add hook to modes.
+FUNC is run when MODES are loaded."
+  (dolist (mode-hook modes) (add-hook mode-hook func)))
+
+;;
+;; add hooks
+;;
 
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
-
 (add-hook 'prog-mode-hook 'goto-address-prog-mode)
-(setq goto-address-mail-face 'link)
+(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+(add-hook 'makefile-mode-hook 'indent-tabs-mode)
 
-(global-set-key (kbd "C-x v f") 'vc-git-grep)
+(defun font-lock-comment-annotations ()
+  "Highlight a bunch of well known comment annotations.
 
-(defun my-kill-ring-save (beg end flash)
-  (interactive (if (use-region-p)
-                   (list (region-beginning) (region-end) nil)
-                 (list (line-beginning-position)
-                       (line-beginning-position 2) 'flash)))
-  (kill-ring-save beg end)
-  (when flash
-    (save-excursion
-      (if (equal (current-column) 0)
-          (goto-char end)
-        (goto-char beg))
-      (sit-for blink-matching-delay))))
-(global-set-key [remap kill-ring-save] 'my-kill-ring-save)
-
-(put 'kill-region 'interactive-form
-     '(interactive
-       (if (use-region-p)
-           (list (region-beginning) (region-end))
-         (list (line-beginning-position) (line-beginning-position 2)))))
-
-(defun kill-back-to-indentation ()
-  "Kill from point back to the first non-whitespace character on the line."
-  (interactive)
-  (let ((prev-pos (point)))
-    (back-to-indentation)
-    (kill-region (point) prev-pos)))
-
-(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
-
-;; (defun split-window-func-with-other-buffer (split-function)
-;;   (lambda (&optional arg)
-;;     "Split this window and switch to the new window unless ARG is provided."
-;;     (interactive "P")
-;;     (funcall split-function)
-;;     (let ((target-window (next-window)))
-;;       (set-window-buffer target-window (other-buffer))
-;;       (unless arg
-;;         (select-window target-window)))))
-
-;; (global-set-key (kbd "C-x 2") (split-window-func-with-other-buffer 'split-window-vertically))
-;; (global-set-key (kbd "C-x 3") (split-window-func-with-other-buffer 'split-window-horizontally))
+This functions should be added to the hooks of major modes for programming."
+  (font-lock-add-keywords
+   nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
+          1 font-lock-warning-face t))))
+(add-hook 'prog-mode-hook 'font-lock-comment-annotations)
 
 ;; Show trailing whitespace
 ;; But don't show trailing whitespace in SQLi, inf-ruby etc.
@@ -482,131 +461,46 @@
                 minibuffer-setup-hook))
   (add-hook hook (lambda () (setq show-trailing-whitespace nil))))
 
-(defmacro with-region-or-buffer (func)
-  "When called with no active region, call FUNC on current buffer."
-  `(defadvice ,func (before with-region-or-buffer activate compile)
-     (interactive
-      (if mark-active
-          (list (region-beginning) (region-end))
-        (list (point-min) (point-max))))))
+(add-hook 'comint-mode-hook (lambda ()
+                              ;; (toggle-truncate-lines 1)
+                              (make-local-variable 'jit-lock-defer-timer)
+                              (set (make-local-variable 'jit-lock-defer-time) 0.25)))
 
-(add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+(require 'misc)
 
-(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+;;
+;; key binds
+;;
 
-(defun delete-this-file ()
-  "Delete the current file, and kill the buffer."
-  (interactive)
-  (unless (buffer-file-name)
-    (error "No file is currently being edited"))
-  (when (yes-or-no-p (format "Really delete '%s'?"
-                             (file-name-nondirectory buffer-file-name)))
-    (delete-file (buffer-file-name))
-    (kill-this-buffer)))
-
-(defun rename-this-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive "sNew name: ")
-  (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (unless filename
-      (error "Buffer '%s' is not visiting a file!" name))
-    (progn
-      (when (file-exists-p filename)
-        (rename-file filename new-name 1))
-      (set-visited-file-name new-name)
-      (rename-buffer new-name))))
-
-(defun browse-current-file ()
-  "Open the current file as a URL using `browse-url'."
-  (interactive)
-  (let ((file-name (buffer-file-name)))
-    (if (and (fboundp 'tramp-tramp-file-p)
-             (tramp-tramp-file-p file-name))
-        (error "Cannot open tramp file")
-      (browse-url (concat "file://" file-name)))))
-
-(defun read-url-in-buffer ()
-  "Open a new buffer containing the contents of URL."
-  (interactive)
-  (let* ((default (thing-at-point-url-at-point))
-         (url (read-from-minibuffer "URL: " default)))
-    (switch-to-buffer (url-retrieve-synchronously url))
-    (rename-buffer url t)
-    (goto-char (point-min))
-    (re-search-forward "^$")
-    (delete-region (point-min) (point))
-    (delete-blank-lines)
-    (set-auto-mode)))
-
-(defun find-user-init-file ()
-  "Edit the `user-init-file', in another window."
-  (interactive)
-  (find-file-other-window user-init-file))
-
-(defun eval-region-or-buffer ()
-  "Evaluate the selection, or, if empty, the whole buffer."
-  (interactive)
-  (let ((debug-on-error t))
-    (cond
-     (mark-active
-      (call-interactively 'eval-region)
-      (setq deactivate-mark t))
-     (t
-      (eval-buffer)))))
-
-(defun copy-buffer-file-path ()
-  "Put current buffer's short path into the kill ring."
-  (interactive)
-  (when (buffer-file-name)
-    (kill-new (f-short (buffer-file-name)))))
-
-(defun copy-buffer-file-name ()
-  "Put current buffer's base name into the kill ring."
-  (interactive)
-  (when (buffer-file-name)
-    (kill-new (f-filename (buffer-file-name)))))
+;; unbind unused keys
+(global-unset-key "\C-z") ; don’t suspend on C-z
+(global-unset-key [?\s-p]) ; printing crashes occasionally
+(global-unset-key (kbd "C-x C-e"))
 
 (bind-key "C-c C-k" 'eval-buffer)
-
 (bind-key "C-c C-u" 'rename-uniquely)
 
-(defun rotate-windows ()
-  "Rotate your windows"
-  (interactive)
-  (cond ((not (> (count-windows)1))
-         (message "You can't rotate a single window!"))
-        (t
-         (setq i 1)
-         (setq numWindows (count-windows))
-         (while  (< i numWindows)
-           (let* (
-                  (w1 (elt (window-list) i))
-                  (w2 (elt (window-list) (+ (% i numWindows) 1)))
+(global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
+(global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
+(global-set-key (kbd "C-c l") 'browse-url-at-point)
+(global-set-key (kbd "C-x 5 3") 'iconify-frame)
+(global-set-key (kbd "C-x v f") 'vc-git-grep)
+(global-set-key (kbd "s-SPC") 'cycle-spacing)
 
-                  (b1 (window-buffer w1))
-                  (b2 (window-buffer w2))
+(global-set-key [remap kill-ring-save] 'my-kill-ring-save)
+(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
+(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+(define-key ctl-x-4-map "t" 'toggle-window-split)
+(global-set-key (kbd "C-c C-e") 'eval-and-replace)
+(global-set-key (kbd "C-c +") 'increment-integer-at-point)
+(global-set-key (kbd "C-c =") 'increment-integer-at-point)
+(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
+(global-set-key (kbd "<f5>") 'compile-dwim)
 
-                  (s1 (window-start w1))
-                  (s2 (window-start w2))
-                  )
-             (set-window-buffer w1  b2)
-             (set-window-buffer w2 b1)
-             (set-window-start w1 s2)
-             (set-window-start w2 s1)
-             (setq i (1+ i)))))))
-
-(defun delete-file-and-buffer ()
-  "Kill the current buffer and deletes the file it is visiting."
-  (interactive)
-  (let ((filename (buffer-file-name)))
-    (when filename
-      (if (vc-backend filename)
-          (vc-delete-file filename)
-        (progn
-          (delete-file filename)
-          (message "Deleted file %s" filename)
-          (kill-buffer))))))
+(apply #'hook-into-modes (lambda ()
+                           (define-key (current-local-map) (kbd "C-x C-e")
+                             'eval-last-sexp-or-region)
+                           ) lisp-mode-hooks)
 
 (add-to-list 'jka-compr-compression-info-list
              ["\\.plist$"
@@ -619,324 +513,7 @@
               nil nil "bplist"])
 (jka-compr-update)
 
-;; unbind unused keys
-(global-unset-key "\C-z") ; don’t suspend on C-z
-(global-unset-key [?\s-p]) ; printing crashes occasionally
-(global-unset-key (kbd "C-x C-e"))
-
-;; (windmove-default-keybindings 'meta) ; move using meta
-(fset 'yes-or-no-p 'y-or-n-p) ; shorten y or n confirm
-
-;; enable narrowing commands
-(put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
-(put 'narrow-to-defun 'disabled nil)
-
-;; enabled change region case commands
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
-
-;; enable erase-buffer command
-(put 'erase-buffer 'disabled nil)
-
-;; dired - reuse current buffer by pressing 'a'
-(put 'dired-find-alternate-file 'disabled nil)
-
-;; make executable after save
-(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
-
-(add-hook 'makefile-mode-hook 'indent-tabs-mode)
-
-(defun run-command-in-new-frame (dir cmd &rest args)
-  "Run inside DIR the command CMD with ARGS."
-  (let* ((default-directory dir)
-         (buffer (get-buffer-create (concat "*" cmd "*")))
-         (proc (apply #'start-file-process cmd buffer
-                      cmd args))
-         (comint-mode-hook nil)
-         (comint-scroll-show-maximum-output nil)
-         )
-    ;; (makunbound 'my-frame)
-    ;; (set 'my-frame (make-frame))
-    (set-process-query-on-exit-flag proc nil)
-    ;; (switch-to-buffer buffer)
-    ;; (display-buffer buffer '(nil (allow-no-window . t)))
-    (pop-to-buffer buffer)
-    (with-current-buffer buffer
-      ;; (require 'shell)
-      ;; (shell-mode)
-      (comint-mode)
-      (defun my-sentinel (process signal)
-        (when (memq (process-status process) '(exit signal))
-          ;; (kill-buffer (process-buffer process))
-          (delete-frame my-frame)))
-      ;; (set-process-sentinel proc 'my-sentinel)
-      (set-process-filter proc 'comint-output-filter))))
-
-
-(defun window-toggle-split-direction ()
-  "Switch window split from horizontally to vertically, or vice versa.
-
-i.e. change right window to bottom, or change bottom window to right."
-  (interactive)
-  (let ((done))
-    (dolist (dirs '((right . down) (down . right)))
-      (unless done
-        (let* ((win (selected-window))
-               (nextdir (car dirs))
-               (neighbour-dir (cdr dirs))
-               (next-win (windmove-find-other-window nextdir win))
-               (neighbour1 (windmove-find-other-window neighbour-dir win))
-               (neighbour2 (if next-win (with-selected-window next-win
-                                          (windmove-find-other-window neighbour-dir next-win)))))
-          ;;(message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
-          (setq done (and (eq neighbour1 neighbour2)
-                          (not (eq (minibuffer-window) next-win))))
-          (if done
-              (let* ((other-buf (window-buffer next-win)))
-                (delete-window next-win)
-                (if (eq nextdir 'right)
-                    (split-window-vertically)
-                  (split-window-horizontally))
-                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))))
-
-(defun kill-this-buffer ()
-  "Kill the current buffer."
-  (interactive)
-  (kill-buffer (current-buffer)))
-
 (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
-
-(global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
-(global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
-(global-set-key (kbd "C-c l") 'browse-url-at-point)
-(global-set-key (kbd "C-x 5 3") 'iconify-frame)
-
-(defun toggle-window-split ()
-  "Toggle window split from vertically to horizontally and vice versa."
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
-
-(define-key ctl-x-4-map "t" 'toggle-window-split)
-
-(defun eval-and-replace ()
-  "Replace the preceding sexp with its value."
-  (interactive)
-  (backward-kill-sexp)
-  (condition-case nil
-      (prin1 (eval (read (current-kill 0)))
-             (current-buffer))
-    (error (message "Invalid expression")
-           (insert (current-kill 0)))))
-
-(global-set-key (kbd "C-c C-e") 'eval-and-replace)
-
-(global-set-key (kbd "s-SPC") 'cycle-spacing)
-
-(defun increment-integer-at-point (&optional inc)
-  "Increment integer at point by one.
-
-With numeric prefix arg INC, increment the integer by INC amount."
-  (interactive "p")
-  (let ((inc (or inc 1))
-        (n (thing-at-point 'integer))
-        (bounds (bounds-of-thing-at-point 'integer)))
-    (delete-region (car bounds) (cdr bounds))
-    (insert (int-to-string (+ n inc)))))
-
-(defun decrement-integer-at-point (&optional dec)
-  "Decrement integer at point by one.
-
-With numeric prefix arg DEC, decrement the integer by DEC amount."
-  (interactive "p")
-  (increment-integer-at-point (- (or dec 1))))
-
-(global-set-key (kbd "C-c +") 'increment-integer-at-point)
-(global-set-key (kbd "C-c =") 'increment-integer-at-point)
-(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
-
-(defvar get-buffer-compile-command (lambda (file) (cons file 1)))
-(make-variable-buffer-local 'get-buffer-compile-command)
-
-(defun compile-dwim (&optional arg)
-  "Compile Do What I Mean.
-    Compile using `compile-command'.
-    When `compile-command' is empty prompt for its default value.
-    With prefix C-u always prompt for the default value of
-    `compile-command'.
-    With prefix C-u C-u prompt for buffer local compile command with
-    suggestion from `get-buffer-compile-command'.  An empty input removes
-    the local compile command for the current buffer."
-  (interactive "P")
-  (cond
-   ((and arg (> (car arg) 4))
-    (let ((cmd (read-from-minibuffer
-                "Buffer local compile command: "
-                (funcall get-buffer-compile-command
-                         (or (file-relative-name (buffer-file-name)) ""))
-                nil nil 'compile-history)))
-      (cond ((equal cmd "")
-             (kill-local-variable 'compile-command)
-             (kill-local-variable 'compilation-directory))
-            (t
-             (set (make-local-variable 'compile-command) cmd)
-             (set (make-local-variable 'compilation-directory)
-                  default-directory))))
-    (when (not (equal compile-command ""))
-      ;; `compile' changes the default value of
-      ;; compilation-directory but this is a buffer local
-      ;; compilation
-      (let ((dirbak (default-value 'compilation-directory)))
-        (compile compile-command)
-        (setq-default compilation-directory dirbak))))
-   ((or (and arg (<= (car arg) 4))
-        (equal compile-command ""))
-    (setq-default compile-command (read-from-minibuffer
-                                   "Compile command: "
-                                   (if (equal compile-command "")
-                                       "make " compile-command)
-                                   nil nil 'compile-history))
-    (setq-default compilation-directory default-directory)
-    (when (not (equal (default-value 'compile-command) ""))
-      (compile (default-value 'compile-command))))
-   (t
-    (recompile))))
-
-(global-set-key (kbd "<f5>") 'compile-dwim)
-
-(defun sort-package-declarations ()
-  "Sort following package declarations alphabetically."
-  (interactive)
-  (cl-flet ((next-use-package
-             () (if (re-search-forward "^(use-package " nil t)
-                    (goto-char (match-beginning 0))
-                  (goto-char (point-max)))))
-    (sort-subr
-     nil
-     #'next-use-package
-     #'(lambda ()
-         (goto-char (line-end-position))
-         (next-use-package))
-     #'(lambda ()
-         (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
-         (match-string 1)))))
-
-(defun kill-matching-lines (regexp &optional rstart rend interactive)
-  "Kill lines containing matches for REGEXP.
-
-See `flush-lines' or `keep-lines' for behavior of this command.
-
-If the buffer is read-only, Emacs will beep and refrain from deleting
-the line, but put the line in the kill ring anyway.  This means that
-you can use this command to copy text from a read-only buffer.
-\(If the variable `kill-read-only-ok' is non-nil, then this won't
- even beep.)"
-  (interactive
-   (keep-lines-read-args "Kill lines containing match for regexp"))
-  (let ((buffer-file-name nil)) ;; HACK for `clone-buffer'
-    (with-current-buffer (clone-buffer nil nil)
-      (let ((inhibit-read-only t))
-        (keep-lines regexp rstart rend interactive)
-        (kill-region (or rstart (line-beginning-position))
-                     (or rend (point-max))))
-      (kill-buffer)))
-  (unless (and buffer-read-only kill-read-only-ok)
-    ;; Delete lines or make the "Buffer is read-only" error.
-    (flush-lines regexp rstart rend interactive)))
-
-(add-hook 'comint-mode-hook (lambda ()
-                              ;; (toggle-truncate-lines 1)
-                              (make-local-variable 'jit-lock-defer-timer)
-                              (set (make-local-variable 'jit-lock-defer-time) 0.25)
-                              ))
-
-
-
-(defun toggle-fullscreen ()
-  "Toggle full screen."
-  (interactive)
-  (set-frame-parameter
-   nil 'fullscreen
-   (when (not (frame-parameter nil 'fullscreen)) 'maximized)))
-
-(defun font-lock-comment-annotations ()
-  "Highlight a bunch of well known comment annotations.
-
-This functions should be added to the hooks of major modes for programming."
-  (font-lock-add-keywords
-   nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
-          1 font-lock-warning-face t))))
-
-(add-hook 'prog-mode-hook 'font-lock-comment-annotations)
-
-(defconst pcmpl-git-commands
-  '("add" "bisect" "branch" "checkout" "clone"
-    "commit" "diff" "fetch" "grep"
-    "init" "log" "merge" "mv" "pull" "push" "rebase"
-    "reset" "rm" "show" "status" "tag" )
-  "List of `git' commands")
-
-(defvar pcmpl-git-ref-list-cmd "git for-each-ref refs/ --format='%(refname)'"
-  "The `git' command to run to get a list of refs")
-
-(defun pcmpl-git-get-refs (type)
-  "Return a list of `git' refs filtered by TYPE"
-  (with-temp-buffer
-    (insert (shell-command-to-string pcmpl-git-ref-list-cmd))
-    (goto-char (point-min))
-    (let ((ref-list))
-      (while (re-search-forward (concat "^refs/" type "/\\(.+\\)$") nil t)
-        (add-to-list 'ref-list (match-string 1)))
-      ref-list)))
-
-(defun pcomplete/git ()
-  "Completion for `git'"
-  ;; Completion for the command argument.
-  (pcomplete-here* pcmpl-git-commands)
-  ;; complete files/dirs forever if the command is `add' or `rm'
-  (cond
-   ((pcomplete-match (regexp-opt '("add" "rm")) 1)
-    (while (pcomplete-here (pcomplete-entries))))
-   ;; provide branch completion for the command `checkout'.
-   ((pcomplete-match "checkout" 1)
-    (pcomplete-here* (pcmpl-git-get-refs "heads")))))
-
-(defun apostrophe (opening)
-  "Insert ’ in prose or `self-insert-command' in code.
-With prefix argument OPENING, insert ‘’ instead and
-leave point in the middle.
-Inside a code-block, just call `self-insert-command'."
-  (interactive "P")
-  (if (and (derived-mode-p 'org-mode)
-           (org-in-block-p '("src" "latex" "html")))
-      (call-interactively #'self-insert-command)
-    (if (looking-at "['’][=_/\\*]?")
-        (goto-char (match-end 0))
-      (if (null opening)
-          (insert "’")
-        (insert "‘’")
-        (forward-char -1)))))
 
 (define-minor-mode prose-mode
   "Set up a buffer for prose editing.
@@ -966,38 +543,11 @@ typical word processor."
     (flyspell-mode -1)
     (visual-line-mode -1)))
 
-(defvar lisp-modes '(emacs-lisp-mode
-                     inferior-emacs-lisp-mode
-                     ielm-mode
-                     lisp-mode
-                     inferior-lisp-mode
-                     lisp-interaction-mode
-                     slime-repl-mode))
-
-(defvar lisp-mode-hooks
-  (mapcar (function
-           (lambda (mode)
-             (intern
-              (concat (symbol-name mode) "-hook"))))
-          lisp-modes))
-
-(defsubst hook-into-modes (func &rest modes)
-  "Add hook to modes.
-FUNC is run when MODES are loaded."
-  (dolist (mode-hook modes) (add-hook mode-hook func)))
-
-(defun eval-last-sexp-or-region (prefix)
-  "Eval region from BEG to END if active, otherwise the last sexp."
-  (interactive "P")
-  (if (and (mark) (use-region-p))
-      (eval-region (min (point) (mark)) (max (point) (mark)))
-    (pp-eval-last-sexp prefix)))
-
-(defun my-lisp-command-hook ()
-  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp-or-region)
-  )
-
-(apply #'hook-into-modes 'my-lisp-command-hook lisp-mode-hooks)
+(use-package abbrev
+  :disabled
+  :demand
+  :config
+  (setq-default abbrev-mode t))
 
 (use-package ace-jump-mode
   :bind ("C-c SPC" . ace-jump-mode))
@@ -1094,12 +644,21 @@ FUNC is run when MODES are loaded."
          ("C-<f2>" . bm-toggle))
   )
 
+(use-package browse-at-remote
+  :commands browse-at-remote
+  )
+
 (use-package buffer-move
   :bind
   (("<M-S-up>" . buf-move-up)
    ("<M-S-down>" . buf-move-down)
    ("<M-S-left>" . buf-move-left)
    ("<M-S-right>" . buf-move-right)))
+
+(use-package bury-successful-compilation
+  :commands bury-successful-compilation
+  :init
+  (bury-successful-compilation 1))
 
 (use-package cc-mode
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
@@ -1390,6 +949,13 @@ FUNC is run when MODES are loaded."
   :config
   (company-flx-mode +1))
 
+(use-package company-irony
+  :commands company-irony
+  :init
+  (eval-after-load 'company
+    '(add-to-list 'company-backends 'company-irony))
+  )
+
 (use-package compile
   :bind (("C-c c" . compile)
          ("M-O"   . show-compilation))
@@ -1411,6 +977,13 @@ FUNC is run when MODES are loaded."
          (point-marker)))
 
   :config
+
+  (make-variable-buffer-local 'compile-command)
+  (put 'compile-command 'safe-local-variable 'stringp)
+
+  (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
+  (make-variable-buffer-local 'get-buffer-compile-command)
+
   (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output))
 
 (use-package counsel
@@ -1425,6 +998,9 @@ FUNC is run when MODES are loaded."
          ("C-c k" . counsel-ag)
          ("C-x l" . counsel-locate)
 	 ("M-y" . counsel-yank-pop)))
+
+(use-package counsel-dash
+  :disabled)
 
 (use-package counsel-projectile
   :after projectile
@@ -1452,7 +1028,7 @@ FUNC is run when MODES are loaded."
   (add-hook 'prog-mode-hook 'diff-hl-mode)
   (add-hook 'vc-dir-mode-hook 'diff-hl-mode)
   (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  ;; (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
 (use-package diffview
@@ -1589,6 +1165,12 @@ If FILENAME already exists do nothing."
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   )
 
+(use-package dtrt-indent
+  :commands dtrt-indent-mode
+  :init
+  (dtrt-indent-mode 1)
+  )
+
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
          ("M-g j" . dumb-jump-go)
@@ -1596,6 +1178,12 @@ If FILENAME already exists do nothing."
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
   (dumb-jump-mode))
+
+(use-package easy-kill
+  :disabled
+  :demand
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill))
 
 (use-package edebug
   :preface
@@ -1633,15 +1221,18 @@ If FILENAME already exists do nothing."
             (message "Edebug: %s" fn)))
         (widen)))))
 
+(use-package eldoc
+  :commands eldoc-mode
+  :init
+  (add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+  )
+
 (use-package elpy
   :mode ("\\.py\\’" . elpy-mode)
   :config
   (elpy-enable)
   (elpy-use-ipython))
-
-(use-package eldoc
-  :commands eldoc-mode
-  :init (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
 (use-package emacs-lisp-mode
   :config
@@ -1808,8 +1399,55 @@ DIR to open if none provided assume HOME dir."
             (lambda ()
               (define-key eshell-mode-map [(control ?u)] nil))))
 
+(use-package ess-site
+  :commands (R)
+  )
+
+(use-package esup
+  :commands esup)
+
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
+
+(use-package ffap
+  :config
+  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
+    (if (string= ad-return-value "/")
+        (setq ad-return-value nil)))
+  (ad-activate 'ffap-file-at-point)
+
+  (defvar ffap-file-at-point-line-number nil
+    "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
+    "Search `ffap-string-at-point' for a line number pattern and
+save it in `ffap-file-at-point-line-number' variable."
+    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+           (name
+            (or (condition-case nil
+                    (and (not (string-match "//" string)) ; foo.com://bar
+                         (substitute-in-file-name string))
+                  (error nil))
+                string))
+           (line-number-string
+            (and (string-match ":[0-9]+" name)
+                 (substring name (1+ (match-beginning 0)) (match-end 0))))
+           (line-number
+            (and line-number-string
+                 (string-to-number line-number-string))))
+      (if (and line-number (> line-number 0))
+          (setq ffap-file-at-point-line-number line-number)
+        (setq ffap-file-at-point-line-number nil))))
+  (ad-activate 'ffap-file-at-point)
+
+  (defadvice find-file-at-point (after ffap-goto-line-number activate)
+    "If `ffap-file-at-point-line-number' is non-nil goto this line."
+    (when ffap-file-at-point-line-number
+      (with-no-warnings
+        (goto-line ffap-file-at-point-line-number))
+      (setq ffap-file-at-point-line-number nil)))
+  (ad-activate 'ffap-file-at-point)
+  )
 
 (use-package flycheck
   :commands global-flycheck-mode
@@ -1817,6 +1455,13 @@ DIR to open if none provided assume HOME dir."
   (add-hook 'after-init-hook 'global-flycheck-mode)
   :config
   (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
+  )
+
+(use-package flycheck-irony
+  :commands flycheck-irony-setup
+  :init
+  (eval-after-load 'flycheck
+    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
   )
 
 (use-package flyspell
@@ -1896,6 +1541,40 @@ DIR to open if none provided assume HOME dir."
   ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
   )
 
+(use-package hippie-exp
+  :bind (("M-/" . hippie-expand))
+  :config
+  ;; (setq hippie-expand-try-functions-list
+  ;;       '(try-complete-file-name-partially
+  ;;         try-complete-file-name
+  ;;         try-expand-dabbrev
+  ;;         try-expand-dabbrev-all-buffers
+  ;;         try-expand-dabbrev-from-kill))
+  (setq hippie-expand-try-functions-list
+        '(
+          ;; Try to expand word "dynamically", searching the current buffer.
+          try-expand-dabbrev
+          ;; Try to expand word "dynamically", searching all other buffers.
+          try-expand-dabbrev-all-buffers
+          ;; Try to expand word "dynamically", searching the kill ring.
+          try-expand-dabbrev-from-kill
+          ;; Try to complete text as a file name, as many characters as unique.
+          try-complete-file-name-partially
+          ;; Try to complete text as a file name.
+          try-complete-file-name
+          ;; Try to expand word before point according to all abbrev tables.
+          try-expand-all-abbrevs
+          ;; Try to complete the current line to an entire line in the buffer.
+          try-expand-list
+          ;; Try to complete the current line to an entire line in the buffer.
+          try-expand-line
+          ;; Try to complete as an Emacs Lisp symbol, as many characters as
+          ;; unique.
+          try-complete-lisp-symbol-partially
+          ;; Try to complete word as an Emacs Lisp symbol.
+          try-complete-lisp-symbol))
+  )
+
 (use-package hydra
   :disabled
   :bind (("s-f" . hydra-projectile/body)
@@ -1934,6 +1613,14 @@ DIR to open if none provided assume HOME dir."
   :commands intero-mode
   :init (add-hook 'haskell-mode-hook 'intero-mode))
 
+(use-package irony
+  :commands irony-mode
+  :init
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  )
+
 (use-package ispell)
 
 (use-package ivy
@@ -1948,10 +1635,23 @@ DIR to open if none provided assume HOME dir."
   (ivy-mode 1))
 
 (use-package jdee
+  :demand
+  :commands jdee-mode
   :bind (:map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
 
-(use-package realgud)
+(use-package js2-mode
+  :config
+  (js2-imenu-extras-setup))
+
+(use-package json-mode)
+
+(use-package keyfreq
+  :disabled
+  :commands (keyfreq-mode keyfreq-autosave-mode)
+  :init
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
 
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
@@ -2044,6 +1744,10 @@ DIR to open if none provided assume HOME dir."
 
   (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
 
+(use-package logview
+  :disabled
+  :commands logview)
+
 (use-package lua-mode
   :mode "\\.lua\\'")
 
@@ -2077,6 +1781,22 @@ DIR to open if none provided assume HOME dir."
 
 (use-package minimap
   :commands minimap-mode)
+
+(use-package mmm-mode
+  :demand
+  :config
+  (use-package mmm-auto
+    :demand)
+  (setq mmm-global-mode 'buffers-with-submode-classes)
+  (setq mmm-submode-decoration-level 2)
+  )
+
+(use-package move-text
+  :bind
+  (([(meta shift up)] . move-text-up)
+   ([(meta shift down)] . move-text-down)))
+
+(use-package mu4e)
 
 (use-package multi-line
   :bind (("C-c m" . multi-line)))
@@ -2201,6 +1921,11 @@ or the current buffer directory."
   (add-hook 'help-mode-hook 'page-break-lines-mode)
   )
 
+(use-package paren
+  :demand
+  :config
+  (show-paren-mode +1))
+
 (use-package php-mode
   :mode "\\.php\\'")
 
@@ -2208,6 +1933,10 @@ or the current buffer directory."
   :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
+
+  (put 'projectile-project-compilation-cmd 'safe-local-variable
+       (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
+                                   compilation-read-command))))
 
   (projectile-global-mode)
 
@@ -2260,6 +1989,9 @@ or the current buffer directory."
   (add-to-list 'projectile-globally-ignored-files ".DS_Store")
   )
 
+(use-package proof-site
+  :demand)
+
 (use-package python-mode
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode)
@@ -2280,6 +2012,8 @@ or the current buffer directory."
   :commands rainbow-delimiters-mode
   :init
   (apply #'hook-into-modes 'rainbow-delimiters-mode lisp-mode-hooks))
+
+(use-package realgud)
 
 (use-package restart-emacs
   :commands restart-emacs)
@@ -2329,8 +2063,27 @@ or the current buffer directory."
 (use-package sass-mode
   :mode "\\.sass\\'")
 
+(use-package savehist
+  :demand
+  :config
+  (savehist-mode +1))
+
+(use-package saveplace
+  :demand
+  :config
+  ;; activate it for all buffers
+  (setq-default save-place t))
+
 (use-package scss-mode
   :mode "\\.scss\\'")
+
+(use-package semantic
+  :commands (global-semantic-idle-summary-mode)
+  :init
+  ;; (add-to-list 'semantic-default-submodes
+  ;;              'global-semantic-stickyfunc-mode)
+  (add-to-list 'semantic-default-submodes
+               'global-semantic-idle-summary-mode))
 
 (use-package sh-script
   :preface
@@ -2400,6 +2153,12 @@ or the current buffer directory."
   :bind (("\C-s" . swiper)
          ("\C-r" . swiper)))
 
+(use-package symbol-overlay
+  :demand
+  :bind (("<f7>" . symbol-overlay-put))
+  :config
+  (symbol-overlay-mode))
+
 (use-package term
   :preface
   (defun my-term ()
@@ -2464,6 +2223,53 @@ or the current buffer directory."
   :commands tern-mode
   :init
   (add-hook 'js2-mode-hook 'tern-mode))
+
+(use-package thingatpt
+  :demand
+  :config
+  (defun thing-at-point-goto-end-of-integer ()
+    "Go to end of integer at point."
+    (let ((inhibit-changing-match-data t))
+      ;; Skip over optional sign
+      (when (looking-at "[+-]")
+        (forward-char 1))
+      ;; Skip over digits
+      (skip-chars-forward "[[:digit:]]")
+      ;; Check for at least one digit
+      (unless (looking-back "[[:digit:]]")
+        (error "No integer here"))))
+  (put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
+
+  (defun thing-at-point-goto-beginning-of-integer ()
+    "Go to end of integer at point."
+    (let ((inhibit-changing-match-data t))
+      ;; Skip backward over digits
+      (skip-chars-backward "[[:digit:]]")
+      ;; Check for digits and optional sign
+      (unless (looking-at "[+-]?[[:digit:]]")
+        (error "No integer here"))
+      ;; Skip backward over optional sign
+      (when (looking-back "[+-]")
+        (backward-char 1))))
+  (put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
+
+  (defun thing-at-point-bounds-of-integer-at-point ()
+    "Get boundaries of integer at point."
+    (save-excursion
+      (let (beg end)
+        (thing-at-point-goto-beginning-of-integer)
+        (setq beg (point))
+        (thing-at-point-goto-end-of-integer)
+        (setq end (point))
+        (cons beg end))))
+  (put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
+
+  (defun thing-at-point-integer-at-point ()
+    "Get integer at point."
+    (let ((bounds (bounds-of-thing-at-point 'integer)))
+      (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
+  (put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
+  )
 
 (use-package toc-org
   :commands toc-org-enable
@@ -2554,6 +2360,18 @@ or the current buffer directory."
 (use-package transpose-frame
   :bind ("C-x t" . transpose-frame))
 
+(use-package try)
+
+(use-package undo-tree
+  :disabled
+  :bind (("s-z" . undo-tree-undo)
+         ("s-Z" . undo-tree-redo))
+  :init
+  (progn
+    (defalias 'redo 'undo-tree-redo)
+    (defalias 'undo 'undo-tree-undo)
+    ))
+
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
 	 ("\\.mustache\\'" . web-mode)
@@ -2625,6 +2443,12 @@ or the current buffer directory."
   :init
   (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
+(use-package windmove
+  :demand
+  :config
+  ;; use shift + arrow keys to switch between visible buffers
+  (windmove-default-keybindings 'meta))
+
 (use-package wrap-region
   :disabled
   :diminish wrap-region-mode
@@ -2668,270 +2492,6 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
-
-(use-package try)
-
-(use-package counsel-dash
-  :disabled)
-
-(use-package company-irony
-  :commands company-irony
-  :init
-  (eval-after-load 'company
-    '(add-to-list 'company-backends 'company-irony))
-  )
-
-(use-package flycheck-irony
-  :commands flycheck-irony-setup
-  :init
-  (eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-  )
-
-(use-package irony
-  :commands irony-mode
-  :init
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
-  )
-
-(use-package bury-successful-compilation
-  :commands bury-successful-compilation
-  :init
-  (bury-successful-compilation 1))
-
-(use-package keyfreq
-  :disabled
-  :commands (keyfreq-mode keyfreq-autosave-mode)
-  :init
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1))
-
-(use-package ess-site
-  :commands (R)
-  )
-
-(use-package proof-site
-  :demand)
-
-(use-package ffap
-  :config
-  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
-    (if (string= ad-return-value "/")
-        (setq ad-return-value nil)))
-  (ad-activate 'ffap-file-at-point)
-
-  (defvar ffap-file-at-point-line-number nil
-    "Variable to hold line number from the last `ffap-file-at-point' call.")
-
-  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
-    "Search `ffap-string-at-point' for a line number pattern and
-save it in `ffap-file-at-point-line-number' variable."
-    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
-           (name
-            (or (condition-case nil
-                    (and (not (string-match "//" string)) ; foo.com://bar
-                         (substitute-in-file-name string))
-                  (error nil))
-                string))
-           (line-number-string
-            (and (string-match ":[0-9]+" name)
-                 (substring name (1+ (match-beginning 0)) (match-end 0))))
-           (line-number
-            (and line-number-string
-                 (string-to-number line-number-string))))
-      (if (and line-number (> line-number 0))
-          (setq ffap-file-at-point-line-number line-number)
-        (setq ffap-file-at-point-line-number nil))))
-  (ad-activate 'ffap-file-at-point)
-
-  (defadvice find-file-at-point (after ffap-goto-line-number activate)
-    "If `ffap-file-at-point-line-number' is non-nil goto this line."
-    (when ffap-file-at-point-line-number
-      (with-no-warnings
-        (goto-line ffap-file-at-point-line-number))
-      (setq ffap-file-at-point-line-number nil)))
-  (ad-activate 'ffap-file-at-point)
-  )
-
-(use-package dtrt-indent
-  :commands dtrt-indent-mode
-  :init
-  (dtrt-indent-mode 1)
-  )
-
-(use-package undo-tree
-  :disabled
-  :bind (("s-z" . undo-tree-undo)
-         ("s-Z" . undo-tree-redo))
-  :init
-  (progn
-    (defalias 'redo 'undo-tree-redo)
-    (defalias 'undo 'undo-tree-undo)
-    ))
-
-(use-package browse-at-remote
-  :commands browse-at-remote
-  )
-
-(use-package mmm-mode
-  :demand
-  :config
-  (use-package mmm-auto
-    :demand)
-  (setq mmm-global-mode 'buffers-with-submode-classes)
-  (setq mmm-submode-decoration-level 2)
-  )
-
-(use-package js2-mode
-  :config
-  (js2-imenu-extras-setup))
-
-(use-package hippie-exp
-  :bind (("M-/" . hippie-expand))
-  :config
-  ;; (setq hippie-expand-try-functions-list
-  ;;       '(try-complete-file-name-partially
-  ;;         try-complete-file-name
-  ;;         try-expand-dabbrev
-  ;;         try-expand-dabbrev-all-buffers
-  ;;         try-expand-dabbrev-from-kill))
-  (setq hippie-expand-try-functions-list
-        '(
-          ;; Try to expand word "dynamically", searching the current buffer.
-          try-expand-dabbrev
-          ;; Try to expand word "dynamically", searching all other buffers.
-          try-expand-dabbrev-all-buffers
-          ;; Try to expand word "dynamically", searching the kill ring.
-          try-expand-dabbrev-from-kill
-          ;; Try to complete text as a file name, as many characters as unique.
-          try-complete-file-name-partially
-          ;; Try to complete text as a file name.
-          try-complete-file-name
-          ;; Try to expand word before point according to all abbrev tables.
-          try-expand-all-abbrevs
-          ;; Try to complete the current line to an entire line in the buffer.
-          try-expand-list
-          ;; Try to complete the current line to an entire line in the buffer.
-          try-expand-line
-          ;; Try to complete as an Emacs Lisp symbol, as many characters as
-          ;; unique.
-          try-complete-lisp-symbol-partially
-          ;; Try to complete word as an Emacs Lisp symbol.
-          try-complete-lisp-symbol))
-  )
-
-(use-package symbol-overlay
-  :demand
-  :bind (("<f7>" . symbol-overlay-put))
-  :config
-  (symbol-overlay-mode))
-
-(use-package mu4e)
-
-(use-package semantic
-  :commands (global-semantic-idle-summary-mode)
-  :init
-  ;; (add-to-list 'semantic-default-submodes
-  ;;              'global-semantic-stickyfunc-mode)
-  (add-to-list 'semantic-default-submodes
-               'global-semantic-idle-summary-mode))
-
-(use-package paren
-  :demand
-  :config
-  (show-paren-mode +1))
-
-(use-package abbrev
-  :disabled
-  :demand
-  :config
-  (setq-default abbrev-mode t))
-
-(use-package saveplace
-  :demand
-  :config
-  ;; activate it for all buffers
-  (setq-default save-place t))
-
-(use-package savehist
-  :demand
-  :config
-  (savehist-mode +1))
-
-(use-package windmove
-  :demand
-  :config
-  ;; use shift + arrow keys to switch between visible buffers
-  (windmove-default-keybindings 'meta))
-
-(use-package easy-kill
-  :disabled
-  :demand
-  :config
-  (global-set-key [remap kill-ring-save] 'easy-kill))
-
-(use-package move-text
-  :bind
-  (([(meta shift up)] . move-text-up)
-   ([(meta shift down)] . move-text-down)))
-
-(use-package json-mode)
-
-(use-package logview
-  :disabled
-  :commands logview)
-
-(use-package esup
-  :commands esup)
-
-(use-package thingatpt
-  :demand
-  :config
-  (defun thing-at-point-goto-end-of-integer ()
-    "Go to end of integer at point."
-    (let ((inhibit-changing-match-data t))
-      ;; Skip over optional sign
-      (when (looking-at "[+-]")
-        (forward-char 1))
-      ;; Skip over digits
-      (skip-chars-forward "[[:digit:]]")
-      ;; Check for at least one digit
-      (unless (looking-back "[[:digit:]]")
-        (error "No integer here"))))
-  (put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
-
-  (defun thing-at-point-goto-beginning-of-integer ()
-    "Go to end of integer at point."
-    (let ((inhibit-changing-match-data t))
-      ;; Skip backward over digits
-      (skip-chars-backward "[[:digit:]]")
-      ;; Check for digits and optional sign
-      (unless (looking-at "[+-]?[[:digit:]]")
-        (error "No integer here"))
-      ;; Skip backward over optional sign
-      (when (looking-back "[+-]")
-        (backward-char 1))))
-  (put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
-
-  (defun thing-at-point-bounds-of-integer-at-point ()
-    "Get boundaries of integer at point."
-    (save-excursion
-      (let (beg end)
-        (thing-at-point-goto-beginning-of-integer)
-        (setq beg (point))
-        (thing-at-point-goto-end-of-integer)
-        (setq end (point))
-        (cons beg end))))
-  (put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
-
-  (defun thing-at-point-integer-at-point ()
-    "Get integer at point."
-    (let ((bounds (bounds-of-thing-at-point 'integer)))
-      (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
-  (put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
-  )
 
 (provide 'default)
 ;;; default.el ends here
