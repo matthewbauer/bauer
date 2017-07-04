@@ -1768,14 +1768,6 @@ ARGS unused"
   ;;   (insert (apply #'format "cd /scpx:%s:" args))
   ;;   (eshell-send-input))
 
-  (defun eshell-ls-find-file-at-point (point)
-    "RET on Eshell's `ls' output to open files.
-POINT ?"
-    (interactive "d")
-    (find-file (buffer-substring-no-properties
-                (previous-single-property-change point 'help-echo)
-                (next-single-property-change point 'help-echo))))
-
   (defvar eshell-isearch-map
     (let ((map (copy-keymap isearch-mode-map)))
       (define-key map [(control ?m)] 'eshell-isearch-return)
@@ -1793,28 +1785,29 @@ POINT ?"
   ;;           (lambda ()
   ;;             (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
 
-  (add-hook 'eshell-mode-hook (lambda ()
-                                (defun eshell/cd (&optional dir)
-                                  "Make cd just open dired."
-                                  (interactive)
-                                  (let* ((dir (if dir dir "~"))
-                                         (default-directory (expand-file-name
-                                                             (concat dir "/") default-directory))
-                                         )
+  (defun eshell-cd (&optional dir)
+    "Open each directory in a new buffer like dired.
+DIR to open if none provided assume HOME dir."
+    (interactive)
+    (let* ((dir (if dir dir "~"))
+           (default-directory (expand-file-name
+                               (concat dir "/") default-directory))
+           )
 
-                                    (if (file-directory-p default-directory)
-                                        (let (
-                                              (buffer
-                                               (get-buffer-create (concat "*eshell<"
-                                                                          default-directory ">*"))))
-                                          (pop-to-buffer-same-window buffer)
-                                          (unless (derived-mode-p 'eshell-mode)
-                                            (eshell-mode))
-                                          )
-                                      (error "Not a directory.")
-                                      )
-                                    ))
-                                ))
+      (if (file-directory-p default-directory)
+          (let (
+                (buffer
+                 (get-buffer-create (concat "*eshell<"
+                                            default-directory ">*"))))
+            (pop-to-buffer-same-window buffer)
+            (unless (derived-mode-p 'eshell-mode)
+              (eshell-mode))
+            )
+        (error "Not a directory")
+        )
+      ))
+
+  (add-hook 'eshell-mode-hook (lambda () (defalias 'eshell/cd 'eshell-cd) ))
 
   (with-eval-after-load "esh-opt"
     (autoload 'epe-theme-lambda "eshell-prompt-extras")
@@ -1839,11 +1832,12 @@ POINT ?"
     (interactive "e")
     (eshell-ls-find-file-at-point (posn-point (event-end event))))
 
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
-    (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
-    (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
-    (defvar eshell-ls-keymap--clickable map))
+  (defvar eshell-ls-keymap--clickable
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
+      (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
+      (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
+      map))
 
   (defun eshell-ls-decorated-name--clickable (name)
     "Eshell's `ls' now lets you click or RET on file names to open them."
