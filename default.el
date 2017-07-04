@@ -16,7 +16,6 @@
 (setenv "EDITOR" "emacsclient -nw")
 ;; (setenv "PATH" "~/.nix-profile/bin")
 ;; (setenv "MANPATH" "~/.nix-profile/share/man")
-
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "SHELL" "@out@/bin/bash")
@@ -34,20 +33,15 @@
            (now (nth 2 entry))
            (requests (nth 3 entry))
            (comment (nth 4 entry)))
-
       (custom-push-theme 'theme-value symbol 'user 'set value)
-
       (when requests
         (put symbol 'custom-requests requests)
         (mapc 'require requests))
-
       (setq set (or (get symbol 'custom-set) 'custom-set-default))
-
       ;; (put symbol 'default-value (list value))
       ;; (put symbol 'saved-value (list value))
       (put symbol 'standard-value (list value))
       ;; (put symbol 'force-value t)
-
       (funcall set symbol (eval value))
       )))
 
@@ -397,6 +391,7 @@
                                     ((shift) . 5)
                                     ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
+  ;; Enable emoji, and stop the UI from freezing when trying to display them.
   (when (fboundp 'set-fontset-font)
     (set-fontset-font "fontset-default"
                       '(#x1F600 . #x1F64F)
@@ -406,10 +401,6 @@
 ;; (require 'server)
 ;; (when (not server-process)
 ;;   (server-start))
-
-;; Enable emoji, and stop the UI from freezing when trying to display them.
-(when (fboundp 'set-fontset-font)
-  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend))
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -466,6 +457,8 @@ This functions should be added to the hooks of major modes for programming."
                               (make-local-variable 'jit-lock-defer-timer)
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)))
 
+;; misc functions that
+
 (require 'misc)
 
 ;;
@@ -501,47 +494,6 @@ This functions should be added to the hooks of major modes for programming."
                            (define-key (current-local-map) (kbd "C-x C-e")
                              'eval-last-sexp-or-region)
                            ) lisp-mode-hooks)
-
-(add-to-list 'jka-compr-compression-info-list
-             ["\\.plist$"
-              "converting text XML to binary plist"
-              "plutil"
-              ("-convert" "binary1" "-o" "-" "-")
-              "converting binary plist to text XML"
-              "plutil"
-              ("-convert" "xml1" "-o" "-" "-")
-              nil nil "bplist"])
-(jka-compr-update)
-
-(defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
-
-(define-minor-mode prose-mode
-  "Set up a buffer for prose editing.
-This enables or modifies a number of settings so that the
-experience of editing prose is a little more like that of a
-typical word processor."
-  nil " Prose" nil
-  (if prose-mode
-      (progn
-        (setq truncate-lines nil)
-        (setq word-wrap t)
-        (setq cursor-type 'bar)
-        (when (eq major-mode 'org)
-          (kill-local-variable 'buffer-face-mode-face))
-        (buffer-face-mode 1)
-        ;;(delete-selection-mode 1)
-        (set (make-local-variable 'blink-cursor-interval) 0.6)
-        (set (make-local-variable 'show-trailing-whitespace) nil)
-        (ignore-errors (flyspell-mode 1))
-        (visual-line-mode 1))
-    (kill-local-variable 'truncate-lines)
-    (kill-local-variable 'word-wrap)
-    (kill-local-variable 'cursor-type)
-    (kill-local-variable 'show-trailing-whitespace)
-    (buffer-face-mode -1)
-    ;; (delete-selection-mode -1)
-    (flyspell-mode -1)
-    (visual-line-mode -1)))
 
 (use-package abbrev
   :disabled
@@ -1016,7 +968,8 @@ typical word processor."
     :init
     (dolist (hook '(css-mode-hook html-mode-hook sass-mode-hook))
       (add-hook hook 'rainbow-mode)))
-  (use-package css-eldoc))
+  (use-package css-eldoc
+    :demand))
 
 (use-package diff-hl
   :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
@@ -2453,14 +2406,17 @@ or the current buffer directory."
   :disabled
   :diminish wrap-region-mode
   :commands wrap-region-mode
+
   :init
   (add-hook 'prog-mode-hook 'wrap-region-mode)
+
   :config
   (wrap-region-add-wrappers
    '(("$" "$")
      ("/" "/" nil ruby-mode)
      ("/* " " */" "#" (java-mode javascript-mode css-mode c-mode c++-mode))
-     ("`" "`" nil (markdown-mode ruby-mode shell-script-mode)))))
+     ("`" "`" nil (markdown-mode ruby-mode shell-script-mode))))
+  )
 
 (use-package xterm-color
   :demand
