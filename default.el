@@ -1788,8 +1788,9 @@ ARGS unused"
 DIR to open if none provided assume HOME dir."
     (interactive)
     (let* ((dir (if dir dir "~"))
-           (default-directory (expand-file-name
-                               (concat dir "/") default-directory))
+           (dir_ (expand-file-name
+                  (concat dir "/") default-directory))
+           (default-directory (if (string= dir_ "//") "/" dir_))
            )
 
       (if (file-directory-p default-directory)
