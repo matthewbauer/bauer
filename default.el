@@ -354,8 +354,7 @@
 ;; (savehist-mode 1)
 (column-number-mode t)
 ;; (transient-mark-mode 1)
-(auto-compression-mode t)
-(temp-buffer-resize-mode 0)
+;; (temp-buffer-resize-mode 0)
 (minibuffer-depth-indicate-mode t)
 
 (global-auto-revert-mode t)
@@ -384,6 +383,18 @@
                       '(#x1F600 . #x1F64F)
                       (font-spec :name "Apple Color Emoji") nil 'prepend))
   )
+
+;; binary plist support
+(add-to-list 'jka-compr-compression-info-list
+             ["\\.plist$"
+              "converting text XML to binary plist"
+              "plutil"
+              ("-convert" "binary1" "-o" "-" "-")
+              "converting binary plist to text XML"
+              "plutil"
+              ("-convert" "xml1" "-o" "-" "-")
+              nil nil "bplist"])
+(jka-compr-update)
 
 ;; (require 'server)
 ;; (when (not server-process)
@@ -444,10 +455,6 @@ This functions should be added to the hooks of major modes for programming."
                               (make-local-variable 'jit-lock-defer-timer)
                               (set (make-local-variable 'jit-lock-defer-time) 0.25)))
 
-;; misc functions that
-
-(require 'misc)
-
 ;;
 ;; key binds
 ;;
@@ -466,25 +473,68 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
+(global-set-key (kbd "C-c v") 'customize-variable)
 
 ;; (global-set-key [remap kill-ring-save] 'kill-ring-save)
-(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
-(global-set-key (kbd "C-c D") 'delete-file-and-buffer)
-(define-key ctl-x-4-map "t" 'toggle-window-split)
-(global-set-key (kbd "C-c C-e") 'eval-and-replace)
-(global-set-key (kbd "C-c +") 'increment-integer-at-point)
-(global-set-key (kbd "C-c =") 'increment-integer-at-point)
-(global-set-key (kbd "C-c -") 'decrement-integer-at-point)
-(global-set-key (kbd "<f5>") 'compile-dwim)
-(global-set-key (kbd "C-c v") 'customize-variable)
+;; (global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
+;; (define-key ctl-x-4-map "t" 'toggle-window-split)
+;; (global-set-key (kbd "C-c +") 'increment-integer-at-point)
+;; (global-set-key (kbd "C-c =") 'increment-integer-at-point)
+;; (global-set-key (kbd "C-c -") 'decrement-integer-at-point)
+;; (global-set-key (kbd "<f5>") 'compile-dwim)
 
 (apply #'hook-into-modes (lambda ()
                            (define-key (current-local-map) (kbd "C-x C-e")
-                             'eval-last-sexp-or-region)
+                             'eval-last-sexp)
                            ) lisp-mode-hooks)
 
+(define-minor-mode prose-mode
+  "Set up a buffer for prose editing.
+This enables or modifies a number of settings so that the
+experience of editing prose is a little more like that of a
+typical word processor."
+  nil " Prose" nil
+  (if prose-mode
+      (progn
+        (setq truncate-lines nil)
+        (setq word-wrap t)
+        (setq cursor-type 'bar)
+        (when (eq major-mode 'org)
+          (kill-local-variable 'buffer-face-mode-face))
+        (buffer-face-mode 1)
+        ;;(delete-selection-mode 1)
+        (set (make-local-variable 'blink-cursor-interval) 0.6)
+        (set (make-local-variable 'show-trailing-whitespace) nil)
+        (ignore-errors (flyspell-mode 1))
+        (visual-line-mode 1))
+    (kill-local-variable 'truncate-lines)
+    (kill-local-variable 'word-wrap)
+    (kill-local-variable 'cursor-type)
+    (kill-local-variable 'show-trailing-whitespace)
+    (buffer-face-mode -1)
+    ;; (delete-selection-mode -1)
+    (flyspell-mode -1)
+    (visual-line-mode -1)))
+
+(defun sort-package-declarations ()
+  "Sort following package declarations alphabetically."
+  (interactive)
+  (cl-flet ((next-use-package
+             () (if (re-search-forward "^(use-package " nil t)
+                    (goto-char (match-beginning 0))
+                  (goto-char (point-max)))))
+    (sort-subr
+     nil
+     #'next-use-package
+     #'(lambda ()
+         (goto-char (line-end-position))
+         (next-use-package))
+     #'(lambda ()
+         (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
+         (match-string 1)))))
+
 (use-package abbrev
-  :disabled
+  :diminish abbrev-mode
   :demand
   :config
   (setq-default abbrev-mode t))
@@ -513,7 +563,8 @@ This functions should be added to the hooks of major modes for programming."
         (align beg end)
       (let ((end-mark (copy-marker end)))
         (indent-region beg end-mark nil)
-        (align beg end-mark)))))
+        (align beg end-mark))))
+  )
 
 (use-package ansi-color
   :preface
@@ -524,7 +575,9 @@ This functions should be added to the hooks of major modes for programming."
     ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
     (when (eq major-mode 'compilation-mode)
       (let ((inhibit-read-only t))
-        (ansi-color-apply-on-region (point-min) (point-max)))))
+        (ansi-color-apply-on-region (point-min) (point-max))))
+    )
+
   :init
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
@@ -534,7 +587,6 @@ This functions should be added to the hooks of major modes for programming."
   (load-theme 'apropospriate-dark t))
 
 (use-package bm
-  :disabled
   :commands (bm-repository-load bm-buffer-restore bm-buffer-save-all
                                 bm-repository-save bm-buffer-save)
   :init
@@ -788,60 +840,60 @@ This functions should be added to the hooks of major modes for programming."
           )
     )
 
-  (defvar-local company-simple-complete--previous-prefix nil)
-  (defvar-local company-simple-complete--before-complete-point nil)
+  ;; (defvar-local company-simple-complete--previous-prefix nil)
+  ;; (defvar-local company-simple-complete--before-complete-point nil)
 
-  (defun company-simple-complete-frontend (command)
-    (when (or (eq command 'show)
-              (and (eq command 'update)
-                   (not (equal company-prefix company-simple-complete--previous-prefix))))
-      (setq company-selection -1
-            company-simple-complete--previous-prefix company-prefix
-            company-simple-complete--before-complete-point nil)))
+  ;; (defun company-simple-complete-frontend (command)
+  ;;   (when (or (eq command 'show)
+  ;;             (and (eq command 'update)
+  ;;                  (not (equal company-prefix company-simple-complete--previous-prefix))))
+  ;;     (setq company-selection -1
+  ;;           company-simple-complete--previous-prefix company-prefix
+  ;;           company-simple-complete--before-complete-point nil)))
 
-  (defun company-simple-complete-next (&optional arg)
-    (interactive "p")
-    (company-select-next arg)
-    (company-simple-complete--complete-selection-and-stay))
+  ;; (defun company-simple-complete-next (&optional arg)
+  ;;   (interactive "p")
+  ;;   (company-select-next arg)
+  ;;   (company-simple-complete--complete-selection-and-stay))
 
-  (defun company-simple-complete-previous (&optional arg)
-    (interactive "p")
-    (company-select-previous arg)
-    (company-simple-complete--complete-selection-and-stay))
+  ;; (defun company-simple-complete-previous (&optional arg)
+  ;;   (interactive "p")
+  ;;   (company-select-previous arg)
+  ;;   (company-simple-complete--complete-selection-and-stay))
 
-  (defun company-simple-complete--complete-selection-and-stay ()
-    (if (cdr company-candidates)
-        (when (company-manual-begin)
-          (when company-simple-complete--before-complete-point
-            (delete-region company-simple-complete--before-complete-point (point)))
-          (setq company-simple-complete--before-complete-point (point))
-          (unless (eq company-selection -1)
-            (company--insert-candidate (nth company-selection company-candidates)))
-          (company-call-frontends 'update)
-          (company-call-frontends 'post-command))
-      (company-complete-selection)))
+  ;; (defun company-simple-complete--complete-selection-and-stay ()
+  ;;   (if (cdr company-candidates)
+  ;;       (when (company-manual-begin)
+  ;;         (when company-simple-complete--before-complete-point
+  ;;           (delete-region company-simple-complete--before-complete-point (point)))
+  ;;         (setq company-simple-complete--before-complete-point (point))
+  ;;         (unless (eq company-selection -1)
+  ;;           (company--insert-candidate (nth company-selection company-candidates)))
+  ;;         (company-call-frontends 'update)
+  ;;         (company-call-frontends 'post-command))
+  ;;     (company-complete-selection)))
 
-  (defadvice company-set-selection (around allow-no-selection (selection &optional force-update))
-    "Allow selection to be -1"
-    (setq selection
-          ;; TODO deal w/ wrap-around
-          (if company-selection-wrap-around
-              (mod selection company-candidates-length)
-            (max -1 (min (1- company-candidates-length) selection))))
-    (when (or force-update (not (equal selection company-selection)))
-      (setq company-selection selection
-            company-selection-changed t)
-      (company-call-frontends 'update)))
+  ;; (defadvice company-set-selection (around allow-no-selection (selection &optional force-update))
+  ;;   "Allow selection to be -1"
+  ;;   (setq selection
+  ;;         ;; TODO deal w/ wrap-around
+  ;;         (if company-selection-wrap-around
+  ;;             (mod selection company-candidates-length)
+  ;;           (max -1 (min (1- company-candidates-length) selection))))
+  ;;   (when (or force-update (not (equal selection company-selection)))
+  ;;     (setq company-selection selection
+  ;;           company-selection-changed t)
+  ;;     (company-call-frontends 'update)))
 
-  (defadvice company-tooltip--lines-update-offset (before allow-no-selection (selection _num-lines _limit))
-    "Allow selection to be -1"
-    (when (eq selection -1)
-      (ad-set-arg 0 0)))
+  ;; (defadvice company-tooltip--lines-update-offset (before allow-no-selection (selection _num-lines _limit))
+  ;;   "Allow selection to be -1"
+  ;;   (when (eq selection -1)
+  ;;     (ad-set-arg 0 0)))
 
-  (defadvice company-tooltip--simple-update-offset (before allow-no-selection (selection _num-lines limit))
-    "Allow selection to be -1"
-    (when (eq selection -1)
-      (ad-set-arg 0 0)))
+  ;; (defadvice company-tooltip--simple-update-offset (before allow-no-selection (selection _num-lines limit))
+  ;;   "Allow selection to be -1"
+  ;;   (when (eq selection -1)
+  ;;     (ad-set-arg 0 0)))
 
   :bind (("<C-tab>" . my-complete)
          ("M-C-/" . company-complete)
@@ -866,16 +918,16 @@ This functions should be added to the hooks of major modes for programming."
   :init
   (add-hook 'after-init-hook 'global-company-mode)
   :config
-  (setq-default company-backends '((company-capf company-dabbrev-code) company-dabbrev)
-                company-dabbrev-other-buffers 'all)
+  ;; (setq-default company-backends '((company-capf company-dabbrev-code) company-dabbrev)
+  ;;               company-dabbrev-other-buffers 'all)
 
-  (setq company-require-match nil)
-  (put 'company-simple-complete-next 'company-keep t)
-  (put 'company-simple-complete-previous 'company-keep t)
-  (ad-activate 'company-set-selection)
-  (ad-activate 'company-tooltip--simple-update-offset)
-  (ad-activate 'company-tooltip--lines-update-offset)
-  (add-to-list 'company-frontends 'company-simple-complete-frontend)
+  ;; (setq company-require-match nil)
+  ;; (put 'company-simple-complete-next 'company-keep t)
+  ;; (put 'company-simple-complete-previous 'company-keep t)
+  ;; (ad-activate 'company-set-selection)
+  ;; (ad-activate 'company-tooltip--simple-update-offset)
+  ;; (ad-activate 'company-tooltip--lines-update-offset)
+  ;; (add-to-list 'company-frontends 'company-simple-complete-frontend)
   )
 
 (use-package company-irony
@@ -886,7 +938,7 @@ This functions should be added to the hooks of major modes for programming."
   )
 
 (use-package compile
-  :bind (("C-c c" . compile)
+  :bind (("C-c C-c" . compile)
          ("M-O"   . show-compilation))
   :preface
   (defun show-compilation ()
@@ -907,11 +959,11 @@ This functions should be added to the hooks of major modes for programming."
 
   :config
 
-  (make-variable-buffer-local 'compile-command)
-  (put 'compile-command 'safe-local-variable 'stringp)
+  ;; (make-variable-buffer-local 'compile-command)
+  ;; (put 'compile-command 'safe-local-variable 'stringp)
 
-  (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
-  (make-variable-buffer-local 'get-buffer-compile-command)
+  ;; (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
+  ;; (make-variable-buffer-local 'get-buffer-compile-command)
 
   (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output)
   )
@@ -930,7 +982,8 @@ This functions should be added to the hooks of major modes for programming."
 	 ("M-y" . counsel-yank-pop)))
 
 (use-package counsel-dash
-  :disabled)
+  :commands counsel-dash
+  )
 
 (use-package counsel-projectile
   :after projectile
@@ -1019,24 +1072,24 @@ If FILENAME already exists do nothing."
   (bind-key "M-!" #'async-shell-command dired-mode-map)
   (unbind-key "M-G" dired-mode-map)
 
-  (defadvice dired-next-line (around dired-next-line+ activate)
-    "Replace current buffer if file is a directory."
-    ad-do-it
-    (while (and  (not  (eobp)) (not ad-return-value))
-      (forward-line)
-      (setq ad-return-value(dired-move-to-filename)))
-    (when (eobp)
-      (forward-line -1)
-      (setq ad-return-value(dired-move-to-filename))))
+  ;; (defadvice dired-next-line (around dired-next-line+ activate)
+  ;;   "Replace current buffer if file is a directory."
+  ;;   ad-do-it
+  ;;   (while (and  (not  (eobp)) (not ad-return-value))
+  ;;     (forward-line)
+  ;;     (setq ad-return-value(dired-move-to-filename)))
+  ;;   (when (eobp)
+  ;;     (forward-line -1)
+  ;;     (setq ad-return-value(dired-move-to-filename))))
 
-  (defadvice dired-previous-line (around dired-previous-line+ activate)
-    "Replace current buffer if file is a directory."
-    ad-do-it
-    (while (and  (not  (bobp)) (not ad-return-value))
-      (forward-line -1)
-      (setq ad-return-value(dired-move-to-filename)))
-    (when (bobp)
-      (call-interactively 'dired-next-line)))
+  ;; (defadvice dired-previous-line (around dired-previous-line+ activate)
+  ;;   "Replace current buffer if file is a directory."
+  ;;   ad-do-it
+  ;;   (while (and  (not  (bobp)) (not ad-return-value))
+  ;;     (forward-line -1)
+  ;;     (setq ad-return-value(dired-move-to-filename)))
+  ;;   (when (bobp)
+  ;;     (call-interactively 'dired-next-line)))
 
   (defvar dired-omit-regexp-orig (symbol-function 'dired-omit-regexp))
 
@@ -1225,7 +1278,6 @@ ARGS unused"
             (forward-line line))
         (find-file (pop args)))))
 
-  ;; This is an eshell alias
   (defun eshell/clear ()
     (interactive)
     (let ((inhibit-read-only t))
@@ -1337,6 +1389,7 @@ DIR to open if none provided assume HOME dir."
 
 (use-package ffap
   :config
+
   (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
     (if (string= ad-return-value "/")
         (setq ad-return-value nil)))
@@ -1576,7 +1629,6 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package json-mode)
 
 (use-package keyfreq
-  :disabled
   :commands (keyfreq-mode keyfreq-autosave-mode)
   :init
   (keyfreq-mode 1)
@@ -1687,25 +1739,6 @@ save it in `ffap-file-at-point-line-number' variable."
   :mode "\\.\\(md\\|markdown\\)\\'"
   :commands markdown-mode)
 
-(use-package meghanada
-  :disabled
-  :init
-  (add-hook 'java-mode-hook
-            (lambda ()
-              (meghanada-mode t)
-              (smartparens-mode t)
-              (rainbow-delimiters-mode t)
-              ;; (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
-              ))
-
-  :bind
-  (:map meghanada-mode-map
-        ("C-S-t" . meghanada-switch-testcase)
-        ("M-RET" . meghanada-local-variable))
-
-  :commands (meghanada-mode)
-  )
-
 (use-package minimap
   :commands minimap-mode)
 
@@ -1722,11 +1755,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :bind (([(meta shift up)] . move-text-up)
          ([(meta shift down)] . move-text-down)))
 
-(use-package mu4e
-  :commands mu4e)
-
 (use-package multiple-cursors
-  :commands (mc/mark-next-like-this mc/mark-previous-like-this)
   :init
   (global-unset-key (kbd "M-<down-mouse-1>"))
 
@@ -1774,17 +1803,18 @@ or the current buffer directory."
 (use-package noflet
   :commands noflet
   :preface
-  (defadvice org-capture-finalize
-      (after delete-capture-frame activate)
-    "Advise capture-finalize to close the frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
 
-  (defadvice org-capture-destroy
-      (after delete-capture-frame activate)
-    "Advise capture-destroy to close the frame"
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
+  ;; (defadvice org-capture-finalize
+  ;;     (after delete-capture-frame activate)
+  ;;   "Advise capture-finalize to close the frame"
+  ;;   (if (equal "capture" (frame-parameter nil 'name))
+  ;;       (delete-frame)))
+
+  ;; (defadvice org-capture-destroy
+  ;;     (after delete-capture-frame activate)
+  ;;   "Advise capture-destroy to close the frame"
+  ;;   (if (equal "capture" (frame-parameter nil 'name))
+  ;;       (delete-frame)))
 
   (defun make-capture-frame ()
     "Create a new frame and run org-capture."
@@ -2071,13 +2101,6 @@ or the current buffer directory."
   :bind (("\C-s" . swiper)
          ("\C-r" . swiper)))
 
-(use-package symbol-overlay
-  :demand
-  :disabled
-  :bind (("<f7>" . symbol-overlay-put))
-  :config
-  (symbol-overlay-mode))
-
 (use-package term
   :preface
   (defun my-term ()
@@ -2090,21 +2113,22 @@ or the current buffer directory."
     (switch-to-buffer "*my-term*"))
   :bind ("C-c t" . my-term)
   :init
-  (defadvice ansi-term (before force-bash)
-    (interactive (list explicit-shell-file-name)))
-  (ad-activate 'ansi-term)
 
-  (defadvice term (before force-bash)
-    (interactive (list explicit-shell-file-name)))
-  (ad-activate 'term)
+  ;; (defadvice ansi-term (before force-bash)
+  ;;   (interactive (list explicit-shell-file-name)))
+  ;; (ad-activate 'ansi-term)
 
-  (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
-    (if (memq (process-status proc) '(signal exit))
-        (let ((buffer (process-buffer proc)))
-          ad-do-it
-          (kill-buffer buffer))
-      ad-do-it))
-  (ad-activate 'term-sentinel)
+  ;; (defadvice term (before force-bash)
+  ;;   (interactive (list explicit-shell-file-name)))
+  ;; (ad-activate 'term)
+
+  ;; (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
+  ;;   (if (memq (process-status proc) '(signal exit))
+  ;;       (let ((buffer (process-buffer proc)))
+  ;;         ad-do-it
+  ;;         (kill-buffer buffer))
+  ;;     ad-do-it))
+  ;; (ad-activate 'term-sentinel)
 
   (defun my-term-paste (&optional string)
     (interactive)
@@ -2144,6 +2168,7 @@ or the current buffer directory."
   (add-hook 'js2-mode-hook 'tern-mode))
 
 (use-package thingatpt
+  :disabled
   :demand
   :config
   (defun thing-at-point-goto-end-of-integer ()
@@ -2197,45 +2222,46 @@ or the current buffer directory."
 
 (use-package tramp
   :demand
-  :bind (("C-c o s" . sudo-reopen-file))
-  :preface
-  (defvar sudo-tramp-prefix
-    "/sudo::"
-    (concat "Prefix to be used by sudo commands when building tramp path "))
+  ;; :bind (("C-c o s" . sudo-reopen-file))
+  ;; :preface
 
-  (defun sudo-file-name (filename) (concat sudo-tramp-prefix filename))
+  ;; (defvar sudo-tramp-prefix
+  ;;   "/sudo::"
+  ;;   (concat "Prefix to be used by sudo commands when building tramp path "))
 
-  (defun sudo-find-file (filename &optional wildcards)
-    "Calls find-file with filename with sudo-tramp-prefix prepended"
-    (interactive "fFind file with sudo ")
-    (let ((sudo-name (sudo-file-name filename)))
-      (apply 'find-file
-             (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
+  ;; (defun sudo-file-name (filename) (concat sudo-tramp-prefix filename))
 
-  (defun sudo-reopen-file ()
-    "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
-    (interactive)
-    (let*
-        ((file-name (expand-file-name buffer-file-name))
-         (sudo-name (sudo-file-name file-name)))
-      (setq buffer-file-name sudo-name)
-      (rename-buffer sudo-name)
-      (setq buffer-read-only nil)
-      ))
+  ;; (defun sudo-find-file (filename &optional wildcards)
+  ;;   "Calls find-file with filename with sudo-tramp-prefix prepended"
+  ;;   (interactive "fFind file with sudo ")
+  ;;   (let ((sudo-name (sudo-file-name filename)))
+  ;;     (apply 'find-file
+  ;;            (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
 
-  (defun sudo-edit-current-file ()
-    (interactive)
-    (let ((position (point)))
-      (find-alternate-file
-       (if (file-remote-p (buffer-file-name))
-           (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-             (tramp-make-tramp-file-name
-              "sudo"
-              (tramp-file-name-user vec)
-              (tramp-file-name-host vec)
-              (tramp-file-name-localname vec)))
-         (concat "/sudo:root@localhost:" (buffer-file-name))))
-      (goto-char position)))
+  ;; (defun sudo-reopen-file ()
+  ;;   "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
+  ;;   (interactive)
+  ;;   (let*
+  ;;       ((file-name (expand-file-name buffer-file-name))
+  ;;        (sudo-name (sudo-file-name file-name)))
+  ;;     (setq buffer-file-name sudo-name)
+  ;;     (rename-buffer sudo-name)
+  ;;     (setq buffer-read-only nil)
+  ;;     ))
+
+  ;; (defun sudo-edit-current-file ()
+  ;;   (interactive)
+  ;;   (let ((position (point)))
+  ;;     (find-alternate-file
+  ;;      (if (file-remote-p (buffer-file-name))
+  ;;          (let ((vec (tramp-dissect-file-name (buffer-file-name))))
+  ;;            (tramp-make-tramp-file-name
+  ;;             "sudo"
+  ;;             (tramp-file-name-user vec)
+  ;;             (tramp-file-name-host vec)
+  ;;             (tramp-file-name-localname vec)))
+  ;;        (concat "/sudo:root@localhost:" (buffer-file-name))))
+  ;;     (goto-char position)))
 
   (defun is-current-file-tramp ()
     "Is the current file in a tramp remote setup?"
@@ -2347,22 +2373,6 @@ or the current buffer directory."
   ;; use shift + arrow keys to switch between visible buffers
   (windmove-default-keybindings 'meta))
 
-(use-package wrap-region
-  :disabled
-  :diminish wrap-region-mode
-  :commands wrap-region-mode
-
-  :init
-  (add-hook 'prog-mode-hook 'wrap-region-mode)
-
-  :config
-  (wrap-region-add-wrappers
-   '(("$" "$")
-     ("/" "/" nil ruby-mode)
-     ("/* " " */" "#" (java-mode javascript-mode css-mode c-mode c++-mode))
-     ("`" "`" nil (markdown-mode ruby-mode shell-script-mode))))
-  )
-
 (use-package xterm-color
   :demand
   :config
@@ -2388,6 +2398,24 @@ or the current buffer directory."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
+
+(use-package notmuch
+  :commands notmuch)
+
+(use-package crux
+  :bind (("C-c D" . crux-delete-file-and-buffer)
+         ("C-c C-e" . crux-eval-and-replace)
+         ([shift return] . crux-smart-open-line)
+         )
+  ;; (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
+  ;; (global-set-key (kbd "C-c o") #'crux-open-with)
+  ;; (global-set-key (kbd "s-r") #'crux-recentf-find-file)
+  ;; (global-set-key (kbd "C-<backspace>" #'crux-kill-line-backwards))
+  ;; (global-set-key [remap kill-whole-line] #'crux-kill-whole-line)
+  )
+
+(use-package sudo-edit
+  :bind (("C-c C-r" . sudo-edit)))
 
 (provide 'default)
 ;;; default.el ends here

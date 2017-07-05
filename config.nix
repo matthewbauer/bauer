@@ -42,7 +42,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nix
         ghc
         rtags
-        mu
+        # mu
+        notmuch
       ] ++ (with emacsPackages; [
         proofgeneral
         ess
@@ -161,11 +162,12 @@ dict-dir ${aspellDicts.en}/lib/aspell
         transpose-frame
         try
         move-text
-        # bm
-        # counsel-dash
-        # hydra
-        # keyfreq
-        # meghanada
+        crux
+        bm
+        counsel-dash
+        hydra
+        keyfreq
+        sudo-edit
       ])); in pkgs ++ [(runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
         gpg = gnupg1compat;
@@ -175,8 +177,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
           mkdir -p $out/share/emacs/site-lisp
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
-
-          cp ${./misc.el} $out/share/emacs/site-lisp/misc.el
 
           # loadPaths=""
           # for f in ${toString pkgs}; do
@@ -323,7 +323,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         fortune
         rEnv
         isync
-        mu
+        # mu
+        notmuch
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
