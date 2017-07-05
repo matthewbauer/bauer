@@ -43,12 +43,10 @@ dict-dir ${aspellDicts.en}/lib/aspell
         ghc
         rtags
         mu
-      ]
-      ++ (with emacsPackages; [
+      ] ++ (with emacsPackages; [
         proofgeneral
         ess
-      ])
-      ++ (with epkgs.elpaPackages; [
+      ]) ++ (with epkgs.elpaPackages; [
         ace-window
         aggressive-indent
         all
@@ -80,8 +78,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         vlf
         w3
         windresize
-      ])
-      ++ (with epkgs.melpaStablePackages; [
+      ]) ++ (with epkgs.melpaStablePackages; [
         ag
         bind-key
         buffer-move
@@ -140,8 +137,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         elpy
         diff-hl
         counsel-dash
-      ])
-      ++ (with epkgs.melpaPackages; [
+      ]) ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         browse-at-remote
         bury-successful-compilation

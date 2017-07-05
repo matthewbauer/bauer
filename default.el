@@ -32,7 +32,7 @@
            (now (nth 2 entry))
            (requests (nth 3 entry))
            (comment (nth 4 entry)))
-      (custom-push-theme 'theme-value symbol 'user 'set value)
+      ;; (custom-push-theme 'theme-value symbol 'user 'set value)
       (when requests
         (put symbol 'custom-requests requests)
         (mapc 'require requests))
@@ -78,28 +78,17 @@
  '(completion-cycle-threshold 5)
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
- '(cperl-clobber-lisp-bindings t)
- '(cperl-continued-statement-offset 8)
- '(cperl-electric-keywords nil)
- '(cperl-electric-lbrace-space t)
- '(cperl-electric-linefeed nil)
- '(cperl-electric-parens nil)
- '(cperl-font-lock t)
- '(cperl-indent-level 4)
- '(cperl-info-on-command-no-prompt t)
- '(cperl-invalid-face nil)
- '(cperl-lazy-help-time 3)
  '(create-lockfiles nil)
- '(css-indent-offset 2)
  '(custom-buffer-done-kill t)
+ '(custom-search-field nil)
  '(create-lockfiles nil)
  '(debug-ignored-errors
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
  '(desktop-dirname (concat user-emacs-directory "desktop"))
- '(dired-omit-verbose nil)
  '(dired-dwim-target t)
+ '(dired-omit-verbose nil)
  '(dired-recursive-copies 'always)
  '(dired-recursive-deletes 'top)
  '(dired-recursive-copies (quote always))
@@ -225,10 +214,6 @@
  '(jdee-server-dir "@jdeeserver@")
  '(jdee-ant-home "@ant@/lib/ant")
  '(jdee-ant-program "@ant@/bin/ant")
- '(jdee-ant-enable-find t)
- '(js-indent-level 2)
- '(js2-basic-offset 2)
- '(js2-bounce-indent-p nil)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
@@ -261,7 +246,6 @@
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
- '(minibuffer-depth-indicate-mode t)
  '(minibuffer-prompt-properties
    (quote
     (read-only t cursor-intangible t face minibuffer-prompt)))
@@ -348,9 +332,12 @@
    (quote
     (yas-ido-prompt yas-completing-prompt yas-no-prompt)))
  '(yas-triggers-in-field t)
- '(yas-wrap-around-region t))
+ '(yas-wrap-around-region t)
+ )
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
+
+(defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
 
 ;;
 ;; builtins
@@ -369,6 +356,7 @@
 ;; (transient-mark-mode 1)
 (auto-compression-mode t)
 (temp-buffer-resize-mode 0)
+(minibuffer-depth-indicate-mode t)
 
 (global-auto-revert-mode t)
 (when (fboundp 'global-prettify-symbols-mode)
@@ -488,6 +476,7 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "C-c =") 'increment-integer-at-point)
 (global-set-key (kbd "C-c -") 'decrement-integer-at-point)
 (global-set-key (kbd "<f5>") 'compile-dwim)
+(global-set-key (kbd "C-c v") 'customize-variable)
 
 (apply #'hook-into-modes (lambda ()
                            (define-key (current-local-map) (kbd "C-x C-e")
@@ -499,10 +488,6 @@ This functions should be added to the hooks of major modes for programming."
   :demand
   :config
   (setq-default abbrev-mode t))
-
-(use-package ace-jump-mode
-  :disabled
-  :bind ("C-c SPC" . ace-jump-mode))
 
 (use-package ace-window
   :bind ("M-o" . ace-window))
@@ -893,12 +878,6 @@ This functions should be added to the hooks of major modes for programming."
   (add-to-list 'company-frontends 'company-simple-complete-frontend)
   )
 
-(use-package company-flx
-  :disabled
-  :after company
-  :config
-  (company-flx-mode +1))
-
 (use-package company-irony
   :commands company-irony
   :init
@@ -968,7 +947,8 @@ This functions should be added to the hooks of major modes for programming."
     (dolist (hook '(css-mode-hook html-mode-hook sass-mode-hook))
       (add-hook hook 'rainbow-mode)))
   (use-package css-eldoc
-    :demand))
+    :demand)
+  )
 
 (use-package diff-hl
   :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
@@ -981,10 +961,6 @@ This functions should be added to the hooks of major modes for programming."
   (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
   ;; (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
-
-(use-package diffview
-  :disabled
-  :commands (diffview-current diffview-region diffview-message))
 
 (use-package dired
   :bind (("C-c J" . dired-double-jump)
@@ -1129,13 +1105,8 @@ If FILENAME already exists do nothing."
          ("M-g x" . dumb-jump-go-prefer-external)
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config
-  (dumb-jump-mode))
-
-(use-package easy-kill
-  :disabled
-  :demand
-  :config
-  (global-set-key [remap kill-ring-save] 'easy-kill))
+  (dumb-jump-mode)
+  )
 
 (use-package edebug
   :preface
@@ -1171,7 +1142,8 @@ If FILENAME already exists do nothing."
             (setq-default eval-expression-print-level  nil)
             (edebug-defun)
             (message "Edebug: %s" fn)))
-        (widen)))))
+        (widen))))
+  )
 
 (use-package eldoc
   :commands eldoc-mode
@@ -1184,14 +1156,16 @@ If FILENAME already exists do nothing."
   :mode ("\\.py\\'" . elpy-mode)
   :config
   (elpy-enable)
-  (elpy-use-ipython))
+  (elpy-use-ipython)
+  )
 
 (use-package emacs-lisp-mode
   :config
   (add-to-list 'completion-styles 'initials t)
   :bind (("M-." . find-function-at-point)
          ("M-&" . complete-symbol))
-  :interpreter (("emacs" . emacs-lisp-mode)))
+  :interpreter (("emacs" . emacs-lisp-mode))
+  )
 
 (use-package erc
   :bind ("C-x r c" . erc)
@@ -1200,7 +1174,8 @@ If FILENAME already exists do nothing."
             erc-fill-prefix
             erc-fill-column
             erc-insert-timestamp-function
-            erc-modified-channels-alist))
+            erc-modified-channels-alist)
+  )
 
 (use-package esh-help
   :commands esh-help-eldoc-command
@@ -1211,7 +1186,8 @@ If FILENAME already exists do nothing."
               (make-local-variable 'eldoc-documentation-function)
               (setq eldoc-documentation-function
                     'esh-help-eldoc-command)
-              )))
+              ))
+  )
 
 (use-package eshell
   :bind (("C-c s" . eshell-new))
@@ -1418,7 +1394,8 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands (flyspell-mode flyspell-prog-mode)
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode))
+  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+  )
 
 (use-package ghc)
 
@@ -1472,7 +1449,8 @@ save it in `ffap-file-at-point-line-number' variable."
   (bind-key "<f9>" #'gud-cont)
   (bind-key "<f10>" #'gud-next)
   (bind-key "<f11>" #'gud-step)
-  (bind-key "S-<f11>" #'gud-finish))
+  (bind-key "S-<f11>" #'gud-finish)
+  )
 
 (use-package haml-mode
   :mode "\\.haml\\'")
@@ -1542,7 +1520,8 @@ save it in `ffap-file-at-point-line-number' variable."
   :bind (("C-;" . iedit-mode)
          :map help-map ("C-;" . iedit-mode-toggle-on-function)
          :map esc-map ("C-;" . iedit-mode-toggle-on-function)
-         :map isearch-mode-map ("C-;" . iedit-mode-toggle-on-function)))
+         :map isearch-mode-map ("C-;" . iedit-mode-toggle-on-function))
+  )
 
 (use-package imenu-anywhere
   :init
@@ -1692,11 +1671,8 @@ save it in `ffap-file-at-point-line-number' variable."
             nil t)))))
    lisp-modes)
 
-  (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
-
-(use-package logview
-  :disabled
-  :commands logview)
+  (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks)
+  )
 
 (use-package lua-mode
   :mode "\\.lua\\'")
@@ -1727,7 +1703,8 @@ save it in `ffap-file-at-point-line-number' variable."
         ("C-S-t" . meghanada-switch-testcase)
         ("M-RET" . meghanada-local-variable))
 
-  :commands (meghanada-mode))
+  :commands (meghanada-mode)
+  )
 
 (use-package minimap
   :commands minimap-mode)
@@ -1742,16 +1719,11 @@ save it in `ffap-file-at-point-line-number' variable."
   )
 
 (use-package move-text
-  :bind
-  (([(meta shift up)] . move-text-up)
-   ([(meta shift down)] . move-text-down)))
+  :bind (([(meta shift up)] . move-text-up)
+         ([(meta shift down)] . move-text-down)))
 
 (use-package mu4e
   :commands mu4e)
-
-(use-package multi-line
-  :disabled
-  :bind (("C-c m" . multi-line)))
 
 (use-package multiple-cursors
   :commands (mc/mark-next-like-this mc/mark-previous-like-this)
@@ -1766,12 +1738,8 @@ save it in `ffap-file-at-point-line-number' variable."
    ("M-<mouse-1>" . mc/add-cursor-on-click)))
 
 (use-package mwim
-  :commands (mwim-beginning-of-code-or-line mwim-end-of-code-or-line)
-  ;; :bind (("C-a" . mwim-beginning-of-code-or-line)
-  ;;        ("C-e" . mwim-end-of-code-or-line))
-  :init
-  (global-set-key [remap move-beginning-of-line] #'mwim-beginning-of-code-or-line)
-  (global-set-key [remap move-end-of-line] #'mwim-end-of-code-or-line)
+  :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
+         ([remap move-end-of-line] . mwim-end-of-code-or-line))
   )
 
 (use-package neotree
@@ -1831,9 +1799,9 @@ or the current buffer directory."
 (use-package org
   ;; :mode "\\.\\(org\\)\\'"
   :commands org-capture
+  :bind ("C-c c" . org-capture)
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
-  (global-set-key (kbd "C-c c") 'org-capture)
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -1851,7 +1819,7 @@ or the current buffer directory."
   (use-package ox-latex
     :demand)
   (add-to-list 'org-latex-packages-alist '("" "minted"))
-  (setq org-latex-listings 'minted)
+  (setq org:-latex-listings 'minted)
   )
 
 (use-package org-bullets
@@ -1859,26 +1827,12 @@ or the current buffer directory."
   :init
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
-(use-package origami
-  :disabled
-  :commands origami-mode
-  :bind (:map origami-mode-map
-              ("C-: :" . origami-recursively-toggle-node)
-              ("C-: a" . origami-toggle-all-nodes)
-              ("C-: t" . origami-toggle-node)
-              ("C-: o" . origami-show-only-node)
-              ("C-: u" . origami-undo)
-              ("C-: U" . origami-redo)
-              ("C-: C-r" . origami-reset)
-              )
-  :init
-  (add-hook 'prog-mode-hook 'origami-mode))
-
 (use-package page-break-lines
   :commands page-break-lines-mode
   :init
   (add-hook 'doc-mode-hook 'page-break-lines-mode)
   (add-hook 'help-mode-hook 'page-break-lines-mode)
+  (add-hook 'emacs-lisp-mode-hook 'page-break-lines-mode)
   )
 
 (use-package paren
@@ -1966,7 +1920,8 @@ or the current buffer directory."
     (bind-key "C-c C-z" #'python-shell python-mode-map)
     (unbind-key "C-c c" python-mode-map))
 
-  (add-hook 'python-mode-hook 'my-python-mode-hook))
+  (add-hook 'python-mode-hook 'my-python-mode-hook)
+  )
 
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode
@@ -1998,7 +1953,8 @@ or the current buffer directory."
 
   :config
   ;; Keybindings
-  (rtags-enable-standard-keybindings c-mode-base-map "\C-cr"))
+  (rtags-enable-standard-keybindings c-mode-base-map "\C-cr")
+  )
 
 (use-package ruby-mode
   :mode ("\\.rb\\'" . ruby-mode)
@@ -2016,7 +1972,8 @@ or the current buffer directory."
     (bind-key "<return>" #'my-ruby-smart-return ruby-mode-map)
     (bind-key "C-h C-i" #'helm-yari ruby-mode-map))
 
-  (add-hook 'ruby-mode-hook 'my-ruby-mode-hook))
+  (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
+  )
 
 (use-package rust-mode
   :mode "\\.rs\\'")
@@ -2075,7 +2032,9 @@ or the current buffer directory."
     (let ((shell-command-switch "-ic"))
       (apply orig-fun args)))
   (advice-add 'shell-command :around #'make-shell-command-behave-interactively)
-  (advice-add 'start-process-shell-command :around #'make-shell-command-behave-interactively))
+  (advice-add 'start-process-shell-command :around
+              #'make-shell-command-behave-interactively)
+  )
 
 (use-package shell-script-mode
   :commands shell-script-mode
@@ -2105,7 +2064,8 @@ or the current buffer directory."
   (use-package smartparens-config
     :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (show-smartparens-mode +1))
+  (show-smartparens-mode +1)
+  )
 
 (use-package swiper
   :bind (("\C-s" . swiper)
@@ -2237,24 +2197,20 @@ or the current buffer directory."
 
 (use-package tramp
   :demand
-  :config
-  (setq vc-ignore-dir-regexp
-        (format "\\(%s\\)\\|\\(%s\\)"
-                vc-ignore-dir-regexp
-                tramp-file-name-regexp))
+  :bind (("C-c o s" . sudo-reopen-file))
+  :preface
+  (defvar sudo-tramp-prefix
+    "/sudo::"
+    (concat "Prefix to be used by sudo commands when building tramp path "))
 
-  (defadvice pcomplete (around avoid-remote-connections activate)
-    (let ((file-name-handler-alist (copy-alist file-name-handler-alist)))
-      (setq file-name-handler-alist
-            (delete (rassoc 'tramp-completion-file-name-handler
-                            file-name-handler-alist) file-name-handler-alist))
-      ad-do-it))
+  (defun sudo-file-name (filename) (concat sudo-tramp-prefix filename))
 
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-  (add-to-list 'tramp-default-proxies-alist
-               '(nil "\\`root\\'" "/ssh:%h:"))
-  (add-to-list 'tramp-default-proxies-alist
-               '((regexp-quote (system-name)) nil nil))
+  (defun sudo-find-file (filename &optional wildcards)
+    "Calls find-file with filename with sudo-tramp-prefix prepended"
+    (interactive "fFind file with sudo ")
+    (let ((sudo-name (sudo-file-name filename)))
+      (apply 'find-file
+             (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
 
   (defun sudo-reopen-file ()
     "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
@@ -2265,10 +2221,7 @@ or the current buffer directory."
       (setq buffer-file-name sudo-name)
       (rename-buffer sudo-name)
       (setq buffer-read-only nil)
-      (message (concat "File name set to " sudo-name))))
-
-  ;;(global-set-key (kbd "C-c o") 'sudo-find-file)
-  (global-set-key (kbd "C-c o s") 'sudo-reopen-file)
+      ))
 
   (defun sudo-edit-current-file ()
     (interactive)
@@ -2284,11 +2237,31 @@ or the current buffer directory."
          (concat "/sudo:root@localhost:" (buffer-file-name))))
       (goto-char position)))
 
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-
   (defun is-current-file-tramp ()
     "Is the current file in a tramp remote setup?"
     (tramp-tramp-file-p (buffer-file-name (current-buffer))))
+
+  :config
+
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+
+  ;; (defadvice pcomplete (around avoid-remote-connections activate)
+  ;;   (let ((file-name-handler-alist (copy-alist file-name-handler-alist)))
+  ;;     (setq file-name-handler-alist
+  ;;           (delete (rassoc 'tramp-completion-file-name-handler
+  ;;                           file-name-handler-alist) file-name-handler-alist))
+  ;;     ad-do-it))
+
+  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
+  (add-to-list 'tramp-default-proxies-alist
+               '(nil "\\`root\\'" "/ssh:%h:"))
+  (add-to-list 'tramp-default-proxies-alist
+               '((regexp-quote (system-name)) nil nil))
+
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   )
 
 (use-package transpose-frame
@@ -2296,16 +2269,6 @@ or the current buffer directory."
 
 (use-package try
   :commands try)
-
-(use-package undo-tree
-  :disabled
-  :bind (("s-z" . undo-tree-undo)
-         ("s-Z" . undo-tree-redo))
-  :init
-  (progn
-    (defalias 'redo 'undo-tree-redo)
-    (defalias 'undo 'undo-tree-undo)
-    ))
 
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
@@ -2422,11 +2385,6 @@ or the current buffer directory."
                    (funcall 'compilation-filter proc
                             (xterm-color-filter string)))))))
   )
-
-(use-package yafolding
-  :disabled
-  :commands (yafolding-mode)
-  :init (add-hook 'prog-mode-hook 'yafolding-mode))
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")

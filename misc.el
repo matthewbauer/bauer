@@ -2,19 +2,6 @@
 ;; custom functions
 ;;
 
-(defun kill-ring-save (beg end flash)
-  (interactive (if (use-region-p)
-                   (list (region-beginning) (region-end) nil)
-                 (list (line-beginning-position)
-                       (line-beginning-position 2) 'flash)))
-  (kill-ring-save beg end)
-  (when flash
-    (save-excursion
-      (if (equal (current-column) 0)
-          (goto-char end)
-        (goto-char beg))
-      (sit-for blink-matching-delay))))
-
 (defun kill-back-to-indentation ()
   "Kill from point back to the first non-whitespace character on the line."
   (interactive)
