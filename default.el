@@ -59,6 +59,7 @@
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
  '(c-eldoc-includes "")
+ '(c-syntactic-indentation nil)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
@@ -107,7 +108,7 @@
  '(display-buffer-reuse-frames t)
  '(dumb-jump-quiet t)
  '(dumb-jump-selector (quote ivy))
- '(enable-recursive-minibuffers t)
+ '(enable-recursive-minibuffers nil)
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
@@ -169,6 +170,7 @@
  '(fased-completing-read-function (quote nil))
  '(fill-column 80)
  '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
+ '(flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
  '(flycheck-standard-error-navigation nil)
  '(flycheck-global-modes
    (quote
@@ -190,6 +192,16 @@
         "%b")))))
  '(gc-cons-threshold 100000000)
  '(global-auto-revert-non-file-buffers t)
+ '(hippie-expand-try-functions-list '(try-expand-dabbrev
+                                      try-expand-dabbrev-all-buffers
+                                      try-expand-dabbrev-from-kill
+                                      try-complete-file-name-partially
+                                      try-complete-file-name
+                                      try-expand-all-abbrevs
+                                      try-expand-list
+                                      try-expand-line
+                                      try-complete-lisp-symbol-partially
+                                      try-complete-lisp-symbol))
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
  '(history-length 20000)
@@ -249,6 +261,8 @@
  '(minibuffer-prompt-properties
    (quote
     (read-only t cursor-intangible t face minibuffer-prompt)))
+ '(mmm-global-mode 'buffers-with-submode-classes)
+ '(mmm-submode-decoration-level 2)
  '(network-security-level (quote medium))
  '(neo-theme 'arrow)
  '(neo-fixed-size nil)
@@ -263,6 +277,7 @@
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
  '(projectile-completion-system (quote ivy))
+ '(projectile-globally-ignored-files (quote (".DS_Store" "TAGS")))
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer t)
  '(projectile-mode-line
@@ -293,6 +308,9 @@
  '(savehist-autosave-interval 60)
  '(send-mail-function (quote smtpmail-send-it))
  '(sentence-end-double-space nil)
+ '(semantic-default-submodes
+   (quote
+    (global-semantic-idle-scheduler-mode global-semanticdb-minor-mode global-semantic-idle-summary-mode)))
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair (quote always))
@@ -301,6 +319,16 @@
  '(term-input-autoexpand t)
  '(term-input-ignoredups t)
  '(term-input-ring-file-name t)
+ '(tramp-default-proxies-alist
+   (quote
+    (((regexp-quote
+       (system-name))
+      nil nil)
+     (nil "\\`root\\'" "/ssh:%h:")
+     (".*" "\\`root\\'" "/ssh:%h:"))))
+ '(tramp-remote-path
+   (quote
+    (tramp-own-remote-path "/run/current-system/sw/bin" tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin" "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/opt/bin" "/opt/sbin" "/opt/local/bin")))
  '(tls-checktrust t)
  '(tls-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %h"))
  '(undo-limit 800000)
@@ -319,6 +347,8 @@
  '(vc-allow-async-revert t)
  '(vc-command-messages t)
  '(vc-git-diff-switches (quote ("-w" "-U3")))
+ '(vc-ignore-dir-regexp
+   "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell nil)
@@ -355,7 +385,7 @@
 (column-number-mode t)
 ;; (transient-mark-mode 1)
 ;; (temp-buffer-resize-mode 0)
-(minibuffer-depth-indicate-mode t)
+;; (minibuffer-depth-indicate-mode t)
 
 (global-auto-revert-mode t)
 (when (fboundp 'global-prettify-symbols-mode)
@@ -373,15 +403,13 @@
 (prefer-coding-system 'utf-8)
 
 (when (eq system-type 'darwin)
-  (setq mouse-wheel-scroll-amount '(1
-                                    ((shift) . 5)
-                                    ((control))))
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
   ;; Enable emoji, and stop the UI from freezing when trying to display them.
-  (when (fboundp 'set-fontset-font)
-    (set-fontset-font "fontset-default"
-                      '(#x1F600 . #x1F64F)
-                      (font-spec :name "Apple Color Emoji") nil 'prepend))
+  ;; (when (fboundp 'set-fontset-font)
+  ;;   (set-fontset-font "fontset-default"
+  ;;                     '(#x1F600 . #x1F64F)
+  ;;                     (font-spec :name "Apple Color Emoji") nil 'prepend))
   )
 
 ;; binary plist support
@@ -463,10 +491,8 @@ This functions should be added to the hooks of major modes for programming."
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
 (global-unset-key (kbd "C-x C-e"))
-
-(bind-key "C-c C-k" 'eval-buffer)
-(bind-key "C-c C-u" 'rename-uniquely)
-
+(global-set-key (kbd "C-c C-k") 'eval-buffer)
+(global-set-key (kbd "C-c C-u") 'rename-uniquely)
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
 (global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
 (global-set-key (kbd "C-c l") 'browse-url-at-point)
@@ -474,14 +500,6 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
 (global-set-key (kbd "C-c v") 'customize-variable)
-
-;; (global-set-key [remap kill-ring-save] 'kill-ring-save)
-;; (global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
-;; (define-key ctl-x-4-map "t" 'toggle-window-split)
-;; (global-set-key (kbd "C-c +") 'increment-integer-at-point)
-;; (global-set-key (kbd "C-c =") 'increment-integer-at-point)
-;; (global-set-key (kbd "C-c -") 'decrement-integer-at-point)
-;; (global-set-key (kbd "<f5>") 'compile-dwim)
 
 (apply #'hook-into-modes (lambda ()
                            (define-key (current-local-map) (kbd "C-x C-e")
@@ -544,13 +562,11 @@ typical word processor."
 
 (use-package ag
   :commands (ag ag-files ag-regexp ag-project ag-project-files ag-project-regexp)
-  :bind ("C-?" . ag-project)
-  )
+  :bind ("C-?" . ag-project))
 
 (use-package aggressive-indent
   :commands aggressive-indent-mode
-  :init
-  (apply #'hook-into-modes 'aggressive-indent-mode lisp-mode-hooks))
+  :init (apply #'hook-into-modes 'aggressive-indent-mode lisp-mode-hooks))
 
 (use-package align
   :bind (("M-["   . align-code)
@@ -578,62 +594,15 @@ typical word processor."
         (ansi-color-apply-on-region (point-min) (point-max))))
     )
 
-  :init
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
+  :init (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 (use-package apropospriate-theme
   :demand
   :config
   (load-theme 'apropospriate-dark t))
 
-(use-package bm
-  :commands (bm-repository-load bm-buffer-restore bm-buffer-save-all
-                                bm-repository-save bm-buffer-save)
-  :init
-  ;; Loading the repository from file when on start up.
-  (add-hook 'after-init-hook 'bm-repository-load)
-
-  ;; Restoring bookmarks when on file find.
-  (add-hook 'find-file-hooks 'bm-buffer-restore)
-
-  ;; Saving bookmarks
-  (add-hook 'kill-buffer-hook #'bm-buffer-save)
-
-  ;; Saving the repository to file when on exit.
-  ;; kill-buffer-hook is not called when Emacs is killed, so we
-  ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook #'(lambda nil
-                                 (bm-buffer-save-all)
-                                 (bm-repository-save)))
-
-  ;; The `after-save-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state.
-  (add-hook 'after-save-hook #'bm-buffer-save)
-
-  ;; Restoring bookmarks
-  (add-hook 'find-file-hooks   #'bm-buffer-restore)
-  (add-hook 'after-revert-hook #'bm-buffer-restore)
-
-  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state. This hook might cause trouble when using packages
-  ;; that automatically reverts the buffer (like vc after a check-in).
-  ;; This can easily be avoided if the package provides a hook that is
-  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
-  ;; Then new bookmarks can be saved before the buffer is reverted.
-  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
-
-
-  :bind (("<f2>" . bm-next)
-         ("S-<f2>" . bm-previous)
-         ("C-<f2>" . bm-toggle))
-  )
-
 (use-package browse-at-remote
-  :commands browse-at-remote
-  )
+  :commands browse-at-remote)
 
 (use-package buffer-move
   :bind
@@ -722,13 +691,9 @@ typical word processor."
 
   (use-package c-eldoc
     :commands c-turn-on-eldoc-mode
-    :init
-    (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)
-    )
+    :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode))
 
   (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-  (setq c-syntactic-indentation nil)
 
   (bind-key "#" #'self-insert-command c-mode-base-map)
   (bind-key "{" #'self-insert-command c-mode-base-map)
@@ -832,110 +797,20 @@ typical word processor."
   :preface
   (defun my-complete ()
     (interactive)
-    (cond ((eq major-mode 'jdee-mode)
-           (jdee-complete-menu))
-          (t
-           (company-complete-common-or-cycle)
-           )
-          )
-    )
-
-  ;; (defvar-local company-simple-complete--previous-prefix nil)
-  ;; (defvar-local company-simple-complete--before-complete-point nil)
-
-  ;; (defun company-simple-complete-frontend (command)
-  ;;   (when (or (eq command 'show)
-  ;;             (and (eq command 'update)
-  ;;                  (not (equal company-prefix company-simple-complete--previous-prefix))))
-  ;;     (setq company-selection -1
-  ;;           company-simple-complete--previous-prefix company-prefix
-  ;;           company-simple-complete--before-complete-point nil)))
-
-  ;; (defun company-simple-complete-next (&optional arg)
-  ;;   (interactive "p")
-  ;;   (company-select-next arg)
-  ;;   (company-simple-complete--complete-selection-and-stay))
-
-  ;; (defun company-simple-complete-previous (&optional arg)
-  ;;   (interactive "p")
-  ;;   (company-select-previous arg)
-  ;;   (company-simple-complete--complete-selection-and-stay))
-
-  ;; (defun company-simple-complete--complete-selection-and-stay ()
-  ;;   (if (cdr company-candidates)
-  ;;       (when (company-manual-begin)
-  ;;         (when company-simple-complete--before-complete-point
-  ;;           (delete-region company-simple-complete--before-complete-point (point)))
-  ;;         (setq company-simple-complete--before-complete-point (point))
-  ;;         (unless (eq company-selection -1)
-  ;;           (company--insert-candidate (nth company-selection company-candidates)))
-  ;;         (company-call-frontends 'update)
-  ;;         (company-call-frontends 'post-command))
-  ;;     (company-complete-selection)))
-
-  ;; (defadvice company-set-selection (around allow-no-selection (selection &optional force-update))
-  ;;   "Allow selection to be -1"
-  ;;   (setq selection
-  ;;         ;; TODO deal w/ wrap-around
-  ;;         (if company-selection-wrap-around
-  ;;             (mod selection company-candidates-length)
-  ;;           (max -1 (min (1- company-candidates-length) selection))))
-  ;;   (when (or force-update (not (equal selection company-selection)))
-  ;;     (setq company-selection selection
-  ;;           company-selection-changed t)
-  ;;     (company-call-frontends 'update)))
-
-  ;; (defadvice company-tooltip--lines-update-offset (before allow-no-selection (selection _num-lines _limit))
-  ;;   "Allow selection to be -1"
-  ;;   (when (eq selection -1)
-  ;;     (ad-set-arg 0 0)))
-
-  ;; (defadvice company-tooltip--simple-update-offset (before allow-no-selection (selection _num-lines limit))
-  ;;   "Allow selection to be -1"
-  ;;   (when (eq selection -1)
-  ;;     (ad-set-arg 0 0)))
+    (cond ((eq major-mode 'jdee-mode) (jdee-complete-menu)
+           (t (company-complete-common-or-cycle)))))
 
   :bind (("<C-tab>" . my-complete)
-         ("M-C-/" . company-complete)
-         ;; ("<tab>" . company-complete-common-or-cycle)
-         :map company-mode-map
-         ("M-/" . company-complete)
-         :map company-active-map
-         ("<tab>" . company-simple-complete-next)
-         ("<backtab>" . company-simple-complete-previous)
-
-         ("RET" . nil)
-         ("C-f" . nil)
-         ("C-d" . nil)
-         ("M-d" . company-show-doc-buffer)
-
-         ("M-/" . company-select-next)
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous)
-         )
+         ("M-C-/" . company-complete))
   :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
-  :init
-  (add-hook 'after-init-hook 'global-company-mode)
-  :config
-  ;; (setq-default company-backends '((company-capf company-dabbrev-code) company-dabbrev)
-  ;;               company-dabbrev-other-buffers 'all)
-
-  ;; (setq company-require-match nil)
-  ;; (put 'company-simple-complete-next 'company-keep t)
-  ;; (put 'company-simple-complete-previous 'company-keep t)
-  ;; (ad-activate 'company-set-selection)
-  ;; (ad-activate 'company-tooltip--simple-update-offset)
-  ;; (ad-activate 'company-tooltip--lines-update-offset)
-  ;; (add-to-list 'company-frontends 'company-simple-complete-frontend)
-  )
+  :init (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-irony
+  :disabled
   :commands company-irony
-  :init
-  (eval-after-load 'company
-    '(add-to-list 'company-backends 'company-irony))
-  )
+  :after company
+  :init (add-to-list 'company-backends 'company-irony))
 
 (use-package compile
   :bind (("C-c C-c" . compile)
@@ -959,12 +834,6 @@ typical word processor."
 
   :config
 
-  ;; (make-variable-buffer-local 'compile-command)
-  ;; (put 'compile-command 'safe-local-variable 'stringp)
-
-  ;; (defvar get-buffer-compile-command (lambda (file) (cons file 1)))
-  ;; (make-variable-buffer-local 'get-buffer-compile-command)
-
   (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output)
   )
 
@@ -982,13 +851,11 @@ typical word processor."
 	 ("M-y" . counsel-yank-pop)))
 
 (use-package counsel-dash
-  :commands counsel-dash
-  )
+  :commands counsel-dash)
 
 (use-package counsel-projectile
   :after projectile
-  :config
-  (counsel-projectile-toggle 1))
+  :config (counsel-projectile-toggle 1))
 
 (use-package css-mode
   :mode "\\.css\\'"
@@ -1016,8 +883,8 @@ typical word processor."
   )
 
 (use-package dired
-  :bind (("C-c J" . dired-double-jump)
-         )
+  :bind (("C-c J" . dired-double-jump))
+
   :preface
   (defvar mark-files-cache (make-hash-table :test #'equal))
 
@@ -1071,25 +938,6 @@ If FILENAME already exists do nothing."
 
   (bind-key "M-!" #'async-shell-command dired-mode-map)
   (unbind-key "M-G" dired-mode-map)
-
-  ;; (defadvice dired-next-line (around dired-next-line+ activate)
-  ;;   "Replace current buffer if file is a directory."
-  ;;   ad-do-it
-  ;;   (while (and  (not  (eobp)) (not ad-return-value))
-  ;;     (forward-line)
-  ;;     (setq ad-return-value(dired-move-to-filename)))
-  ;;   (when (eobp)
-  ;;     (forward-line -1)
-  ;;     (setq ad-return-value(dired-move-to-filename))))
-
-  ;; (defadvice dired-previous-line (around dired-previous-line+ activate)
-  ;;   "Replace current buffer if file is a directory."
-  ;;   ad-do-it
-  ;;   (while (and  (not  (bobp)) (not ad-return-value))
-  ;;     (forward-line -1)
-  ;;     (setq ad-return-value(dired-move-to-filename)))
-  ;;   (when (bobp)
-  ;;     (call-interactively 'dired-next-line)))
 
   (defvar dired-omit-regexp-orig (symbol-function 'dired-omit-regexp))
 
@@ -1148,18 +996,14 @@ If FILENAME already exists do nothing."
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
-  :init
-  (dtrt-indent-mode 1)
-  )
+  :init (dtrt-indent-mode 1))
 
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
          ("M-g j" . dumb-jump-go)
          ("M-g x" . dumb-jump-go-prefer-external)
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
-  :config
-  (dumb-jump-mode)
-  )
+  :config (dumb-jump-mode))
 
 (use-package edebug
   :preface
@@ -1206,46 +1050,30 @@ If FILENAME already exists do nothing."
   )
 
 (use-package elpy
-  :mode ("\\.py\\'" . elpy-mode)
-  :config
-  (elpy-enable)
-  (elpy-use-ipython)
-  )
+  :mode ("\\.py\\'" . elpy-mode))
 
 (use-package emacs-lisp-mode
-  :config
-  (add-to-list 'completion-styles 'initials t)
   :bind (("M-." . find-function-at-point)
          ("M-&" . complete-symbol))
-  :interpreter (("emacs" . emacs-lisp-mode))
-  )
+  :interpreter (("emacs" . emacs-lisp-mode)))
 
 (use-package erc
-  :bind ("C-x r c" . erc)
-  :defines (erc-timestamp-only-if-changed-flag
-            erc-timestamp-format
-            erc-fill-prefix
-            erc-fill-column
-            erc-insert-timestamp-function
-            erc-modified-channels-alist)
-  )
+  :bind ("C-x r c" . erc))
 
 (use-package esh-help
   :commands esh-help-eldoc-command
   :init
-  (add-hook 'eshell-mode-hook 'eldoc-mode)
   (add-hook 'eshell-mode-hook
             (lambda ()
               (make-local-variable 'eldoc-documentation-function)
-              (setq eldoc-documentation-function
-                    'esh-help-eldoc-command)
-              ))
-  )
+              (setq eldoc-documentation-function 'esh-help-eldoc-command)
+              (eldoc-mode))))
 
 (use-package eshell
   :bind (("C-c s" . eshell-new))
   :commands (eshell eshell-command)
   :preface
+
   (defun eshell-new (&optional arg)
     (interactive)
     (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))
@@ -1331,55 +1159,55 @@ DIR to open if none provided assume HOME dir."
 
   (add-hook 'eshell-mode-hook (lambda () (defalias 'eshell/cd 'eshell-cd) ))
 
-  (with-eval-after-load "esh-opt"
-    (autoload 'epe-theme-lambda "eshell-prompt-extras")
-    (setq eshell-prompt-function 'epe-theme-lambda))
-
   (setenv "PAGER" "cat")
   (setenv "EDITOR" "emacsclient -nq")
 
   ;; (defadvice eshell (before dotemacs activate)
   ;;   (setq eshell-banner-message (concat (shell-command-to-string "@fortune@/bin/fortune") "\n")))
 
-  (defun eshell-ls-find-file-at-point (point)
-    "RET on Eshell's `ls' output to open files."
-    (interactive "d")
-    (find-file (buffer-substring-no-properties
-                (previous-single-property-change point 'help-echo)
-                (next-single-property-change point 'help-echo))))
+  ;;  (defun eshell-ls-find-file-at-point (point)
+  ;;    "RET on Eshell's `ls' output to open files."
+  ;;    (interactive "d")
+  ;;    (find-file (buffer-substring-no-properties
+  ;;                (previous-single-property-change point 'help-echo)
+  ;;                (next-single-property-change point 'help-echo))))
 
-  (defun eshell-ls-find-file-at-mouse-click (event)
-    "Middle click on Eshell's `ls' output to open files.
- From Patrick Anderson via the wiki."
-    (interactive "e")
-    (eshell-ls-find-file-at-point (posn-point (event-end event))))
+  ;;  (defun eshell-ls-find-file-at-mouse-click (event)
+  ;;    "Middle click on Eshell's `ls' output to open files.
+  ;; From Patrick Anderson via the wiki."
+  ;;    (interactive "e")
+  ;;    (eshell-ls-find-file-at-point (posn-point (event-end event))))
 
-  (defvar eshell-ls-keymap--clickable
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
-      (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
-      (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
-      map))
+  ;;  (defvar eshell-ls-keymap--clickable
+  ;;    (let ((map (make-sparse-keymap)))
+  ;;      (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
+  ;;      (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
+  ;;      (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
+  ;;      map))
 
-  (defun eshell-ls-decorated-name--clickable (file)
-    "Eshell's `ls' now lets you click or RET on file names to open them."
-    (add-text-properties 0 (length (car file))
-                         (list 'help-echo "RET, mouse-2: visit this file"
-                               'mouse-face 'highlight
-                               'keymap eshell-ls-keymap--clickable)
-                         (car file))
-    file)
+  ;;  (defun eshell-ls-decorated-name--clickable (file)
+  ;;    "Eshell's `ls' now lets you click or RET on file names to open them."
+  ;;    (add-text-properties 0 (length (car file))
+  ;;                         (list 'help-echo "RET, mouse-2: visit this file"
+  ;;                               'mouse-face 'highlight
+  ;;                               'keymap eshell-ls-keymap--clickable)
+  ;;                         (car file))
+  ;;    file)
 
-  (advice-add 'eshell-ls-decorated-name :after #'eshell-ls-decorated-name--clickable)
+  ;;  (advice-add 'eshell-ls-decorated-name :after #'eshell-ls-decorated-name--clickable)
 
   (add-hook 'eshell-mode-hook
             (lambda ()
               (define-key eshell-mode-map [(control ?u)] nil)))
   )
 
+(use-package eshell-prompt-extras
+  :commands epe-theme-lambda
+  :init
+  (setq eshell-prompt-function 'epe-theme-lambda))
+
 (use-package ess-site
-  :commands (R)
-  )
+  :commands R)
 
 (use-package esup
   :commands esup)
@@ -1387,68 +1215,23 @@ DIR to open if none provided assume HOME dir."
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
 
-(use-package ffap
-  :config
-
-  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
-    (if (string= ad-return-value "/")
-        (setq ad-return-value nil)))
-  (ad-activate 'ffap-file-at-point)
-
-  (defvar ffap-file-at-point-line-number nil
-    "Variable to hold line number from the last `ffap-file-at-point' call.")
-
-  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
-    "Search `ffap-string-at-point' for a line number pattern and
-save it in `ffap-file-at-point-line-number' variable."
-    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
-           (name
-            (or (condition-case nil
-                    (and (not (string-match "//" string)) ; foo.com://bar
-                         (substitute-in-file-name string))
-                  (error nil))
-                string))
-           (line-number-string
-            (and (string-match ":[0-9]+" name)
-                 (substring name (1+ (match-beginning 0)) (match-end 0))))
-           (line-number
-            (and line-number-string
-                 (string-to-number line-number-string))))
-      (if (and line-number (> line-number 0))
-          (setq ffap-file-at-point-line-number line-number)
-        (setq ffap-file-at-point-line-number nil))))
-  (ad-activate 'ffap-file-at-point)
-
-  (defadvice find-file-at-point (after ffap-goto-line-number activate)
-    "If `ffap-file-at-point-line-number' is non-nil goto this line."
-    (when ffap-file-at-point-line-number
-      (with-no-warnings
-        (goto-line ffap-file-at-point-line-number))
-      (setq ffap-file-at-point-line-number nil)))
-  (ad-activate 'ffap-file-at-point)
-  )
-
 (use-package flycheck
   :commands global-flycheck-mode
   :init
-  (add-hook 'after-init-hook 'global-flycheck-mode)
-  :config
-  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-  )
+  (add-hook 'after-init-hook 'global-flycheck-mode))
 
 (use-package flycheck-irony
+  :disabled
   :commands flycheck-irony-setup
+  :after flycheck
   :init
-  (eval-after-load 'flycheck
-    '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-  )
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
 (use-package flyspell
   :commands (flyspell-mode flyspell-prog-mode)
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-  )
+  (add-hook 'prog-mode-hook 'flyspell-prog-mode))
 
 (use-package ghc)
 
@@ -1524,38 +1307,7 @@ save it in `ffap-file-at-point-line-number' variable."
   )
 
 (use-package hippie-exp
-  :bind (("M-/" . hippie-expand))
-  :config
-  ;; (setq hippie-expand-try-functions-list
-  ;;       '(try-complete-file-name-partially
-  ;;         try-complete-file-name
-  ;;         try-expand-dabbrev
-  ;;         try-expand-dabbrev-all-buffers
-  ;;         try-expand-dabbrev-from-kill))
-  (setq hippie-expand-try-functions-list
-        '(
-          ;; Try to expand word "dynamically", searching the current buffer.
-          try-expand-dabbrev
-          ;; Try to expand word "dynamically", searching all other buffers.
-          try-expand-dabbrev-all-buffers
-          ;; Try to expand word "dynamically", searching the kill ring.
-          try-expand-dabbrev-from-kill
-          ;; Try to complete text as a file name, as many characters as unique.
-          try-complete-file-name-partially
-          ;; Try to complete text as a file name.
-          try-complete-file-name
-          ;; Try to expand word before point according to all abbrev tables.
-          try-expand-all-abbrevs
-          ;; Try to complete the current line to an entire line in the buffer.
-          try-expand-list
-          ;; Try to complete the current line to an entire line in the buffer.
-          try-expand-line
-          ;; Try to complete as an Emacs Lisp symbol, as many characters as
-          ;; unique.
-          try-complete-lisp-symbol-partially
-          ;; Try to complete word as an Emacs Lisp symbol.
-          try-complete-lisp-symbol))
-  )
+  :bind (("M-/" . hippie-expand)))
 
 (use-package hydra
   :disabled
@@ -1577,14 +1329,8 @@ save it in `ffap-file-at-point-line-number' variable."
   )
 
 (use-package imenu-anywhere
-  :init
-  ;; (bind-key "M"
-  ;;           (if (featurep 'ivy) #'ivy-imenu-anywhere
-  ;;             #'imenu-anywhere)
-  ;;           search-map)
   :bind (("C-c i" . imenu-anywhere)
-         ("s-i" . imenu-anywhere))
-  )
+         ("s-i" . imenu-anywhere)))
 
 (use-package imenu-list
   :commands imenu-list)
@@ -1609,12 +1355,12 @@ save it in `ffap-file-at-point-line-number' variable."
   :demand
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
-         ("C-x C-b" . ivy-switch-buffer))
+         ("C-x C-b" . ivy-switch-buffer)
+         :map ivy-minibuffer-map
+         ("C-j" . ivy-call))
   :diminish ivy-mode
   :commands ivy-mode
-  :config
-  (bind-key "C-j" #'ivy-call ivy-minibuffer-map)
-  (ivy-mode 1))
+  :config (ivy-mode 1))
 
 (use-package jdee
   :mode ("\\.java\\'" . jdee-mode)
@@ -1652,49 +1398,46 @@ save it in `ffap-file-at-point-line-number' variable."
   (defvar lisp-mode-initialized nil)
 
   (defun my-lisp-mode-hook ()
-    (unless lisp-mode-initialized
-      (setq lisp-mode-initialized t)
+    (use-package edebug
+      :demand)
 
-      (use-package edebug
-        :demand)
+    (use-package eldoc
+      :commands eldoc-mode
+      :demand
+      )
 
-      (use-package eldoc
-        :commands eldoc-mode
-        :demand
-        )
+    (use-package elint
+      :commands 'elint-initialize
+      :preface
+      (defun elint-current-buffer ()
+        (interactive)
+        (elint-initialize)
+        (elint-current-buffer))
 
-      (use-package elint
-        :commands 'elint-initialize
-        :preface
-        (defun elint-current-buffer ()
-          (interactive)
-          (elint-initialize)
-          (elint-current-buffer))
+      :config
+      (add-to-list 'elint-standard-variables 'current-prefix-arg)
+      (add-to-list 'elint-standard-variables 'command-line-args-left)
+      (add-to-list 'elint-standard-variables 'buffer-file-coding-system)
+      (add-to-list 'elint-standard-variables 'emacs-major-version)
+      (add-to-list 'elint-standard-variables 'window-system))
 
-        :config
-        (add-to-list 'elint-standard-variables 'current-prefix-arg)
-        (add-to-list 'elint-standard-variables 'command-line-args-left)
-        (add-to-list 'elint-standard-variables 'buffer-file-coding-system)
-        (add-to-list 'elint-standard-variables 'emacs-major-version)
-        (add-to-list 'elint-standard-variables 'window-system))
+    (defun my-elisp-indent-or-complete (&optional arg)
+      (interactive "p")
+      (call-interactively 'lisp-indent-line)
+      (unless (or (looking-back "^\\s-*")
+                  (bolp)
+                  (not (looking-back "[-A-Za-z0-9_*+/=<>!?]+")))
+        (call-interactively 'lisp-complete-symbol)))
 
-      (defun my-elisp-indent-or-complete (&optional arg)
-        (interactive "p")
-        (call-interactively 'lisp-indent-line)
-        (unless (or (looking-back "^\\s-*")
-                    (bolp)
-                    (not (looking-back "[-A-Za-z0-9_*+/=<>!?]+")))
-          (call-interactively 'lisp-complete-symbol)))
+    (defun my-lisp-indent-or-complete (&optional arg)
+      (interactive "p")
+      (if (or (looking-back "^\\s-*") (bolp))
+          (call-interactively 'lisp-indent-line)
+        (call-interactively 'slime-indent-and-complete-symbol)))
 
-      (defun my-lisp-indent-or-complete (&optional arg)
-        (interactive "p")
-        (if (or (looking-back "^\\s-*") (bolp))
-            (call-interactively 'lisp-indent-line)
-          (call-interactively 'slime-indent-and-complete-symbol)))
-
-      (defun my-byte-recompile-file ()
-        (save-excursion
-          (byte-recompile-file buffer-file-name))))
+    (defun my-byte-recompile-file ()
+      (save-excursion
+        (byte-recompile-file buffer-file-name)))
 
     (auto-fill-mode 1)
     (bind-key "<tab>" #'my-elisp-indent-or-complete emacs-lisp-mode-map)
@@ -1732,8 +1475,7 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package magit
   :commands (magit-clone)
   :bind (("C-x g" . magit-status)
-         ("C-x G" . magit-dispatch-popup))
-  )
+         ("C-x G" . magit-dispatch-popup)))
 
 (use-package markdown-mode
   :mode "\\.\\(md\\|markdown\\)\\'"
@@ -1743,13 +1485,11 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands minimap-mode)
 
 (use-package mmm-mode
+  :disabled
   :demand
   :config
   (use-package mmm-auto
-    :demand)
-  (setq mmm-global-mode 'buffers-with-submode-classes)
-  (setq mmm-submode-decoration-level 2)
-  )
+    :demand))
 
 (use-package move-text
   :bind (([(meta shift up)] . move-text-up)
@@ -1768,8 +1508,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
-         ([remap move-end-of-line] . mwim-end-of-code-or-line))
-  )
+         ([remap move-end-of-line] . mwim-end-of-code-or-line)))
 
 (use-package neotree
   :commands (neotree-show neotree-hide)
@@ -1848,8 +1587,6 @@ or the current buffer directory."
      (sh . t)))
   (use-package ox-latex
     :demand)
-  (add-to-list 'org-latex-packages-alist '("" "minted"))
-  (setq org:-latex-listings 'minted)
   )
 
 (use-package org-bullets
@@ -1867,8 +1604,7 @@ or the current buffer directory."
 
 (use-package paren
   :demand
-  :config
-  (show-paren-mode +1))
+  :config (show-paren-mode +1))
 
 (use-package php-mode
   :mode "\\.php\\'")
@@ -1929,8 +1665,6 @@ or the current buffer directory."
         )
       )
     )
-
-  (add-to-list 'projectile-globally-ignored-files ".DS_Store")
   )
 
 (use-package proof-site
@@ -1970,6 +1704,10 @@ or the current buffer directory."
 (use-package rtags
   :commands (rtags-start-process-unless-running rtags-enable-standard-keybindings)
   :init
+
+  (defun is-current-file-tramp ()
+    "Is the current file in a tramp remote setup?"
+    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
   ;; Start rtags upon entering a C/C++ file
   (add-hook
@@ -2026,12 +1764,8 @@ or the current buffer directory."
   :mode "\\.scss\\'")
 
 (use-package semantic
-  :commands (global-semantic-idle-summary-mode)
-  :init
-  ;; (add-to-list 'semantic-default-submodes
-  ;;              'global-semantic-stickyfunc-mode)
-  (add-to-list 'semantic-default-submodes
-               'global-semantic-idle-summary-mode))
+  :disabled
+  )
 
 (use-package sh-script
   :preface
@@ -2053,35 +1787,24 @@ or the current buffer directory."
   :bind ("C-c C-s" . shell)
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  :config
   (setenv "PAGER" "cat")
   (setenv "TERM" "xterm-256color")
-  (setenv "EDITOR" "emacsclient -nq")
-
-  :config
-  (defun make-shell-command-behave-interactively (orig-fun &rest args)
-    (let ((shell-command-switch "-ic"))
-      (apply orig-fun args)))
-  (advice-add 'shell-command :around #'make-shell-command-behave-interactively)
-  (advice-add 'start-process-shell-command :around
-              #'make-shell-command-behave-interactively)
-  )
+  (setenv "EDITOR" "emacsclient -nq"))
 
 (use-package shell-script-mode
   :commands shell-script-mode
-  :init
-  (add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode)))
+  :mode (("\\.zsh\\'" . shell-script-mode)))
 
 (use-package smart-hungry-delete
   :commands smart-hungry-delete-add-default-hooks
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
               ("C-d" . smart-hungry-delete-forward-char))
-  :init (smart-hungry-delete-add-default-hooks)
-  )
+  :init (smart-hungry-delete-add-default-hooks))
 
 (use-package smart-tabs-mode
-  :init
-  (add-hook 'prog-mode-hook 'smart-tabs-mode)
+  :init (add-hook 'prog-mode-hook 'smart-tabs-mode)
   :commands smart-tabs-mode)
 
 (use-package smartparens
@@ -2114,38 +1837,6 @@ or the current buffer directory."
   :bind ("C-c t" . my-term)
   :init
 
-  ;; (defadvice ansi-term (before force-bash)
-  ;;   (interactive (list explicit-shell-file-name)))
-  ;; (ad-activate 'ansi-term)
-
-  ;; (defadvice term (before force-bash)
-  ;;   (interactive (list explicit-shell-file-name)))
-  ;; (ad-activate 'term)
-
-  ;; (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
-  ;;   (if (memq (process-status proc) '(signal exit))
-  ;;       (let ((buffer (process-buffer proc)))
-  ;;         ad-do-it
-  ;;         (kill-buffer buffer))
-  ;;     ad-do-it))
-  ;; (ad-activate 'term-sentinel)
-
-  (defun my-term-paste (&optional string)
-    (interactive)
-    (process-send-string
-     (get-buffer-process (current-buffer))
-     (if string string (current-kill 0))))
-
-  (defun remote-term (new-buffer-name cmd &rest switches)
-    (setq term-ansi-buffer-name (concat "*" new-buffer-name "*"))
-    (setq term-ansi-buffer-name (generate-new-buffer-name term-ansi-buffer-name))
-    (setq term-ansi-buffer-name (apply 'make-term term-ansi-buffer-name cmd nil switches))
-    (set-buffer term-ansi-buffer-name)
-    (term-mode)
-    (term-char-mode)
-    (term-set-escape-char ?\C-x)
-    (switch-to-buffer term-ansi-buffer-name))
-
   (defun nethack ()
     (interactive)
     (set-buffer (make-term "nethack" "@nethack@/bin/nethack"))
@@ -2167,128 +1858,10 @@ or the current buffer directory."
   :init
   (add-hook 'js2-mode-hook 'tern-mode))
 
-(use-package thingatpt
-  :disabled
-  :demand
-  :config
-  (defun thing-at-point-goto-end-of-integer ()
-    "Go to end of integer at point."
-    (let ((inhibit-changing-match-data t))
-      ;; Skip over optional sign
-      (when (looking-at "[+-]")
-        (forward-char 1))
-      ;; Skip over digits
-      (skip-chars-forward "[[:digit:]]")
-      ;; Check for at least one digit
-      (unless (looking-back "[[:digit:]]")
-        (error "No integer here"))))
-  (put 'integer 'beginning-op 'thing-at-point-goto-end-of-integer)
-
-  (defun thing-at-point-goto-beginning-of-integer ()
-    "Go to end of integer at point."
-    (let ((inhibit-changing-match-data t))
-      ;; Skip backward over digits
-      (skip-chars-backward "[[:digit:]]")
-      ;; Check for digits and optional sign
-      (unless (looking-at "[+-]?[[:digit:]]")
-        (error "No integer here"))
-      ;; Skip backward over optional sign
-      (when (looking-back "[+-]")
-        (backward-char 1))))
-  (put 'integer 'beginning-op 'thing-at-point-goto-beginning-of-integer)
-
-  (defun thing-at-point-bounds-of-integer-at-point ()
-    "Get boundaries of integer at point."
-    (save-excursion
-      (let (beg end)
-        (thing-at-point-goto-beginning-of-integer)
-        (setq beg (point))
-        (thing-at-point-goto-end-of-integer)
-        (setq end (point))
-        (cons beg end))))
-  (put 'integer 'bounds-of-thing-at-point 'thing-at-point-bounds-of-integer-at-point)
-
-  (defun thing-at-point-integer-at-point ()
-    "Get integer at point."
-    (let ((bounds (bounds-of-thing-at-point 'integer)))
-      (string-to-number (buffer-substring (car bounds) (cdr bounds)))))
-  (put 'integer 'thing-at-point 'thing-at-point-integer-at-point)
-  )
-
 (use-package toc-org
   :commands toc-org-enable
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
-
-(use-package tramp
-  :demand
-  ;; :bind (("C-c o s" . sudo-reopen-file))
-  ;; :preface
-
-  ;; (defvar sudo-tramp-prefix
-  ;;   "/sudo::"
-  ;;   (concat "Prefix to be used by sudo commands when building tramp path "))
-
-  ;; (defun sudo-file-name (filename) (concat sudo-tramp-prefix filename))
-
-  ;; (defun sudo-find-file (filename &optional wildcards)
-  ;;   "Calls find-file with filename with sudo-tramp-prefix prepended"
-  ;;   (interactive "fFind file with sudo ")
-  ;;   (let ((sudo-name (sudo-file-name filename)))
-  ;;     (apply 'find-file
-  ;;            (cons sudo-name (if (boundp 'wildcards) '(wildcards))))))
-
-  ;; (defun sudo-reopen-file ()
-  ;;   "Reopen file as root by prefixing its name with sudo-tramp-prefix and by clearing buffer-read-only"
-  ;;   (interactive)
-  ;;   (let*
-  ;;       ((file-name (expand-file-name buffer-file-name))
-  ;;        (sudo-name (sudo-file-name file-name)))
-  ;;     (setq buffer-file-name sudo-name)
-  ;;     (rename-buffer sudo-name)
-  ;;     (setq buffer-read-only nil)
-  ;;     ))
-
-  ;; (defun sudo-edit-current-file ()
-  ;;   (interactive)
-  ;;   (let ((position (point)))
-  ;;     (find-alternate-file
-  ;;      (if (file-remote-p (buffer-file-name))
-  ;;          (let ((vec (tramp-dissect-file-name (buffer-file-name))))
-  ;;            (tramp-make-tramp-file-name
-  ;;             "sudo"
-  ;;             (tramp-file-name-user vec)
-  ;;             (tramp-file-name-host vec)
-  ;;             (tramp-file-name-localname vec)))
-  ;;        (concat "/sudo:root@localhost:" (buffer-file-name))))
-  ;;     (goto-char position)))
-
-  (defun is-current-file-tramp ()
-    "Is the current file in a tramp remote setup?"
-    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
-
-  :config
-
-  (setq vc-ignore-dir-regexp
-        (format "\\(%s\\)\\|\\(%s\\)"
-                vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-
-  ;; (defadvice pcomplete (around avoid-remote-connections activate)
-  ;;   (let ((file-name-handler-alist (copy-alist file-name-handler-alist)))
-  ;;     (setq file-name-handler-alist
-  ;;           (delete (rassoc 'tramp-completion-file-name-handler
-  ;;                           file-name-handler-alist) file-name-handler-alist))
-  ;;     ad-do-it))
-
-  (set-default 'tramp-default-proxies-alist (quote ((".*" "\\`root\\'" "/ssh:%h:"))))
-  (add-to-list 'tramp-default-proxies-alist
-               '(nil "\\`root\\'" "/ssh:%h:"))
-  (add-to-list 'tramp-default-proxies-alist
-               '((regexp-quote (system-name)) nil nil))
-
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  )
 
 (use-package transpose-frame
   :bind ("C-x t" . transpose-frame))
@@ -2301,8 +1874,7 @@ or the current buffer directory."
 	 ("\\.mustache\\'" . web-mode)
 	 ("\\.html?\\'" . web-mode)
          ("\\.php\\'" . web-mode)
-         ("\\.jsp\\'" . web-mode))
-  )
+         ("\\.jsp\\'" . web-mode)))
 
 (use-package which-key
   :demand
@@ -2369,9 +1941,7 @@ or the current buffer directory."
 
 (use-package windmove
   :demand
-  :config
-  ;; use shift + arrow keys to switch between visible buffers
-  (windmove-default-keybindings 'meta))
+  :config (windmove-default-keybindings 'meta))
 
 (use-package xterm-color
   :demand
@@ -2405,8 +1975,7 @@ or the current buffer directory."
 (use-package crux
   :bind (("C-c D" . crux-delete-file-and-buffer)
          ("C-c C-e" . crux-eval-and-replace)
-         ([shift return] . crux-smart-open-line)
-         )
+         ([shift return] . crux-smart-open-line))
   ;; (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
   ;; (global-set-key (kbd "C-c o") #'crux-open-with)
   ;; (global-set-key (kbd "s-r") #'crux-recentf-find-file)

@@ -163,7 +163,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         try
         move-text
         crux
-        bm
         counsel-dash
         hydra
         keyfreq
