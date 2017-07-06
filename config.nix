@@ -185,7 +185,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         '')]
       );
 
-    userPackages = buildEnv {
+    bauer = buildEnv {
       buildInputs = [ makeWrapper ];
       postBuild = ''
         if [ -w $out/share/info ]; then
@@ -334,5 +334,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         '')
       ];
     };
+
+    userPackages = bauer;
   };
 }
