@@ -1225,68 +1225,17 @@ DIR to open if none provided assume HOME dir."
 
 (use-package lisp-mode
   :preface
-  (defface esk-paren-face
-    '((((class color) (background dark))
-       (:foreground "grey50"))
-      (((class color) (background light))
-       (:foreground "grey55")))
-    "Face used to dim parentheses."
-    :group 'starter-kit-faces)
-
-  (defvar slime-mode nil)
-  (defvar lisp-mode-initialized nil)
-
-  (defun my-lisp-mode-hook ()
+  (defun lisp-mode-hook ()
     (use-package edebug
       :demand)
 
     (use-package eldoc
       :commands eldoc-mode
-      :demand
-      )
+      :demand)
 
     (use-package elint
-      :commands 'elint-initialize
-      :preface
-      (defun elint-current-buffer ()
-        (interactive)
-        (elint-initialize)
-        (elint-current-buffer))
-
-      :config
-      (add-to-list 'elint-standard-variables 'current-prefix-arg)
-      (add-to-list 'elint-standard-variables 'command-line-args-left)
-      (add-to-list 'elint-standard-variables 'buffer-file-coding-system)
-      (add-to-list 'elint-standard-variables 'emacs-major-version)
-      (add-to-list 'elint-standard-variables 'window-system))
-
-    (defun my-elisp-indent-or-complete (&optional arg)
-      (interactive "p")
-      (call-interactively 'lisp-indent-line)
-      (unless (or (looking-back "^\\s-*")
-                  (bolp)
-                  (not (looking-back "[-A-Za-z0-9_*+/=<>!?]+")))
-        (call-interactively 'lisp-complete-symbol)))
-
-    (defun my-lisp-indent-or-complete (&optional arg)
-      (interactive "p")
-      (if (or (looking-back "^\\s-*") (bolp))
-          (call-interactively 'lisp-indent-line)
-        (call-interactively 'slime-indent-and-complete-symbol)))
-
-    (defun my-byte-recompile-file ()
-      (save-excursion
-        (byte-recompile-file buffer-file-name)))
-
-    (auto-fill-mode 1)
-    (bind-key "<tab>" #'my-elisp-indent-or-complete emacs-lisp-mode-map)
-
-    (add-hook 'after-save-hook 'check-parens nil t)
-
-    (unless (memq major-mode
-                  '(emacs-lisp-mode inferior-emacs-lisp-mode ielm-mode))
-      (bind-key "M-q" #'slime-reindent-defun lisp-mode-map)
-      (bind-key "M-l" #'slime-selector lisp-mode-map)))
+      :commands elint-initialize
+      :demand))
 
   ;; Change lambda to an actual lambda symbol
   :init
@@ -1305,7 +1254,7 @@ DIR to open if none provided assume HOME dir."
             nil t)))))
    lisp-modes)
 
-  (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks)
+  (apply #'hook-into-modes 'lisp-mode-hook lisp-mode-hooks)
   )
 
 (use-package lua-mode
