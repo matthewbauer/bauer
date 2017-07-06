@@ -1774,5 +1774,8 @@ or the current buffer directory."
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
 
+(use-package multi-term
+  :commands multi-term)
+
 (provide 'default)
 ;;; default.el ends here

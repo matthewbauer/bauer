@@ -167,6 +167,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         hydra
         keyfreq
         sudo-edit
+        multi-term
       ])); in pkgs ++ [(runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
         gpg = gnupg1compat;
