@@ -57,24 +57,29 @@ dict-dir ${aspellDicts.en}/lib/aspell
         chess
         coffee-mode
         company
+        csv-mode
+        diff-hl
         dired-du
         docbook
         electric-spacing
-        excorporate
         ggtags
         gnorb
         gnugo
+        hydra
+        hook-helpers
         ivy
         js2-mode
         json-mode
         minimap
         muse
+        multishell
         org
         other-frame-window
         python
         rainbow-mode
         realgud
-        tiny
+        sed-mode
+        svg
         undo-tree
         vlf
         w3
@@ -83,13 +88,16 @@ dict-dir ${aspellDicts.en}/lib/aspell
         ag
         bind-key
         buffer-move
+        bury-successful-compilation
         counsel
+        company-irony
         diminish
         dumb-jump
+        elpy
         esup
         expand-region
-        flx
         flycheck
+        flycheck-irony
         gist
         go-mode
         haml-mode
@@ -99,6 +107,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         imenu-list
         intero
         irony
+        indium
         less-css-mode
         lua-mode
         magit
@@ -136,38 +145,25 @@ dict-dir ${aspellDicts.en}/lib/aspell
         indium
         kill-or-bury-alive
         elpy
-        diff-hl
         counsel-dash
+        mediawiki
+        move-text
+        counsel-dash
+        crux
+        keyfreq
+        multi-term
       ]) ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         browse-at-remote
-        bury-successful-compilation
         c-eldoc
         css-eldoc
-        company-irony
-        diff-hl
         dtrt-indent
-        elpy
         esh-help
         eshell-prompt-extras
-        flycheck-irony
-        go-eldoc
-        indium
-        irony
         jdee
-        kill-or-bury-alive
-        mediawiki
-        noflet
-        smart-hungry-delete
-        transpose-frame
-        try
-        move-text
-        crux
-        counsel-dash
-        hydra
-        keyfreq
         sudo-edit
-        multi-term
+        smart-hungry-delete
+        try
       ])); in pkgs ++ [(runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
         gpg = gnupg1compat;

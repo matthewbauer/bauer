@@ -87,7 +87,6 @@
    (quote
     ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
- '(desktop-dirname (concat user-emacs-directory "desktop"))
  '(dired-dwim-target t)
  '(dired-omit-verbose nil)
  '(dired-recursive-copies 'always)
@@ -345,7 +344,7 @@
  '(use-package-expand-minimally t)
  '(use-package-verbose nil)
  '(vc-allow-async-revert t)
- '(vc-command-messages t)
+ '(vc-command-messages nil)
  '(vc-git-diff-switches (quote ("-w" "-U3")))
  '(vc-ignore-dir-regexp
    "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
@@ -377,7 +376,6 @@
 (electric-indent-mode t)
 ;; (show-paren-mode 1)
 ;; (winner-mode t)
-(which-function-mode t)
 (blink-cursor-mode 0)
 ;; (save-place-mode 1)
 (delete-selection-mode t)
@@ -387,7 +385,6 @@
 ;; (temp-buffer-resize-mode 0)
 ;; (minibuffer-depth-indicate-mode t)
 
-(global-auto-revert-mode t)
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
 
@@ -396,11 +393,11 @@
   (menu-bar-mode -1))
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
+;; (when (fboundp 'scroll-bar-mode)
+;;   (scroll-bar-mode -1))
 
 (display-time)
-(prefer-coding-system 'utf-8)
+;; (prefer-coding-system 'utf-8)
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
@@ -1191,7 +1188,7 @@ DIR to open if none provided assume HOME dir."
   )
 
 (use-package ivy
-  :demand
+  :defer 1
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer)
@@ -1236,23 +1233,6 @@ DIR to open if none provided assume HOME dir."
     (use-package elint
       :commands elint-initialize
       :demand))
-
-  ;; Change lambda to an actual lambda symbol
-  :init
-  (mapc
-   (lambda (major-mode)
-     (font-lock-add-keywords
-      major-mode
-      '(("(\\(lambda\\)\\>"
-         (0 (ignore
-             (compose-region (match-beginning 1)
-                             (match-end 1) ?λ))))
-        ("(\\|)" . 'esk-paren-face)
-        ("(\\(ert-deftest\\)\\>[         '(]*\\(setf[    ]+\\sw+\\|\\sw+\\)?"
-         (1 font-lock-keyword-face)
-         (2 font-lock-function-name-face
-            nil t)))))
-   lisp-modes)
 
   (apply #'hook-into-modes 'lisp-mode-hook lisp-mode-hooks)
   )
@@ -1327,32 +1307,6 @@ or the current buffer directory."
 (use-package nix-mode
   :mode "\\.nix\\'")
 
-(use-package noflet
-  :commands noflet
-  :preface
-
-  ;; (defadvice org-capture-finalize
-  ;;     (after delete-capture-frame activate)
-  ;;   "Advise capture-finalize to close the frame"
-  ;;   (if (equal "capture" (frame-parameter nil 'name))
-  ;;       (delete-frame)))
-
-  ;; (defadvice org-capture-destroy
-  ;;     (after delete-capture-frame activate)
-  ;;   "Advise capture-destroy to close the frame"
-  ;;   (if (equal "capture" (frame-parameter nil 'name))
-  ;;       (delete-frame)))
-
-  (defun make-capture-frame ()
-    "Create a new frame and run org-capture."
-    (interactive)
-    (make-frame '((name . "capture")))
-    (select-frame-by-name "capture")
-    (delete-other-windows)
-    (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
-            (org-capture)))
-  )
-
 (use-package org
   ;; :mode "\\.\\(org\\)\\'"
   :commands org-capture
@@ -1379,8 +1333,7 @@ or the current buffer directory."
 
 (use-package org-bullets
   :commands org-bullets-mode
-  :init
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  :init (add-hook 'org-mode-hook 'org-bullets-mode))
 
 (use-package page-break-lines
   :commands page-break-lines-mode
@@ -1398,7 +1351,7 @@ or the current buffer directory."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :demand
+  :defer 2
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
@@ -1651,9 +1604,6 @@ or the current buffer directory."
   :init
   (add-hook 'org-mode-hook 'toc-org-enable))
 
-(use-package transpose-frame
-  :bind ("C-x t" . transpose-frame))
-
 (use-package try
   :commands try)
 
@@ -1668,59 +1618,6 @@ or the current buffer directory."
   :demand
   :diminish which-key-mode
   :config (which-key-mode))
-
-(use-package whitespace
-  :defines (whitespace-auto-cleanup
-            whitespace-rescan-timer-time
-            whitespace-silent)
-  :preface
-  (defun normalize-file ()
-    (interactive)
-    (save-excursion
-      (goto-char (point-min))
-      (whitespace-cleanup)
-      (delete-trailing-whitespace)
-      (goto-char (point-max))
-      (delete-blank-lines)
-      (set-buffer-file-coding-system 'unix)
-      (goto-char (point-min))
-      (while (re-search-forward "\r$" nil t)
-        (replace-match ""))
-      (set-buffer-file-coding-system 'utf-8)
-      (let ((require-final-newline t))
-        (save-buffer))))
-
-  (defun maybe-turn-on-whitespace ()
-    "Depending on the file, maybe clean up whitespace."
-    (let ((file (expand-file-name ".clean"))
-          parent-dir)
-      (while (and (not (file-exists-p file))
-                  (progn
-                    (setq parent-dir
-                          (file-name-directory
-                           (directory-file-name
-                            (file-name-directory file))))
-                    ;; Give up if we are already at the root dir.
-                    (not (string= (file-name-directory file)
-                                  parent-dir))))
-        ;; Move up to the parent dir and try again.
-        (setq file (expand-file-name ".clean" parent-dir)))
-      ;; If we found a change log in a parent, use that.
-      (when (and (file-exists-p file)
-                 (not (file-exists-p ".noclean"))
-                 (not (and buffer-file-name
-                           (string-match "\\.texi\\'" buffer-file-name))))
-        (add-hook 'write-contents-hooks
-                  #'(lambda () (ignore (whitespace-cleanup))) nil t)
-        (whitespace-cleanup))))
-
-  :init
-  (add-hook 'find-file-hooks 'maybe-turn-on-whitespace t)
-
-  :config
-  (remove-hook 'find-file-hooks 'whitespace-buffer)
-  (remove-hook 'kill-buffer-hook 'whitespace-buffer)
-  )
 
 (use-package whitespace-cleanup-mode
   :commands whitespace-cleanup-mode
@@ -1776,6 +1673,14 @@ or the current buffer directory."
 
 (use-package multi-term
   :commands multi-term)
+
+(use-package autorevert
+  :demand
+  :config (global-auto-revert-mode t))
+
+(use-package which-func
+  :demand
+  :config (which-function-mode t))
 
 (provide 'default)
 ;;; default.el ends here
