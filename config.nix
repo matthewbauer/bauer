@@ -39,14 +39,13 @@ dict-dir ${aspellDicts.en}/lib/aspell
 
     myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
       let pkgs = ([
-        nix
         ghc
-        rtags
-        # mu
+        nix
         notmuch
+        rtags
       ] ++ (with emacsPackages; [
-        proofgeneral
         ess
+        proofgeneral
       ]) ++ (with epkgs.elpaPackages; [
         ace-window
         aggressive-indent
@@ -65,14 +64,14 @@ dict-dir ${aspellDicts.en}/lib/aspell
         ggtags
         gnorb
         gnugo
-        hydra
         hook-helpers
+        hydra
         ivy
         js2-mode
         json-mode
         minimap
-        muse
         multishell
+        muse
         org
         other-frame-window
         python
@@ -89,8 +88,10 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bind-key
         buffer-move
         bury-successful-compilation
-        counsel
         company-irony
+        counsel
+        counsel-dash
+        crux
         diminish
         dumb-jump
         elpy
@@ -99,20 +100,27 @@ dict-dir ${aspellDicts.en}/lib/aspell
         flycheck
         flycheck-irony
         gist
+        go-eldoc
         go-mode
         haml-mode
         haskell-mode
+        helm
         iedit
         imenu-anywhere
         imenu-list
+        indium
         intero
         irony
-        indium
+        keyfreq
+        kill-or-bury-alive
         less-css-mode
         lua-mode
         magit
         markdown-mode
+        mediawiki
         mmm-mode
+        move-text
+        multi-term
         multiple-cursors
         mwim
         neotree
@@ -120,9 +128,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
         page-break-lines
         php-mode
         projectile
-        projectile
         rainbow-delimiters
         restart-emacs
+        rg
         rust-mode
         sass-mode
         scss-mode
@@ -139,19 +147,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         wrap-region
         xterm-color
         yaml-mode
-        helm
-        rg
-        go-eldoc
-        indium
-        kill-or-bury-alive
-        elpy
-        counsel-dash
-        mediawiki
-        move-text
-        counsel-dash
-        crux
-        keyfreq
-        multi-term
       ]) ++ (with epkgs.melpaPackages; [
         apropospriate-theme
         browse-at-remote
@@ -161,8 +156,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
         esh-help
         eshell-prompt-extras
         jdee
-        sudo-edit
+        lsp-mode
         smart-hungry-delete
+        sudo-edit
         try
       ])); in pkgs ++ [(runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
@@ -172,6 +168,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
       } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
+          cp ${./eshell-extras.el} $out/share/emacs/site-lisp/eshell-extras.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
 
           # loadPaths=""
@@ -319,8 +316,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
         fortune
         rEnv
         isync
+        ctags
         # mu
         notmuch
+        clang
+        # rls
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh

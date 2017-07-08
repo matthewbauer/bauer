@@ -11,13 +11,11 @@
 (require 'diminish)                ;; if you use :diminish
 (require 'bind-key)                ;; if you use any :bind variant
 
-;; (setenv "NIX_REMOTE" "daemon")
 (setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
 (setenv "EDITOR" "emacsclient -nw")
-;; (setenv "PATH" "~/.nix-profile/bin")
-;; (setenv "MANPATH" "~/.nix-profile/share/man")
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
+(setenv "PAGER" "cat")
 
 (defun set-defaults (&rest args)
   (dolist (entry args)
@@ -93,6 +91,7 @@
  '(dired-recursive-deletes 'top)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
+ '(dtrt-indent-verbosity 0)
  '(display-buffer-alist
    (\`
     (((\,
@@ -275,10 +274,9 @@
  '(package-enable-at-startup nil)
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
- '(projectile-completion-system (quote ivy))
  '(projectile-globally-ignored-files (quote (".DS_Store" "TAGS")))
  '(projectile-enable-caching t)
- '(projectile-enable-idle-timer t)
+ '(projectile-enable-idle-timer nil)
  '(projectile-mode-line
    '(:eval (if (and
                 (projectile-project-p)
@@ -374,16 +372,9 @@
 (electric-pair-mode t)
 (electric-quote-mode t)
 (electric-indent-mode t)
-;; (show-paren-mode 1)
-;; (winner-mode t)
 (blink-cursor-mode 0)
-;; (save-place-mode 1)
 (delete-selection-mode t)
-;; (savehist-mode 1)
 (column-number-mode t)
-;; (transient-mark-mode 1)
-;; (temp-buffer-resize-mode 0)
-;; (minibuffer-depth-indicate-mode t)
 
 (when (fboundp 'global-prettify-symbols-mode)
   (global-prettify-symbols-mode))
@@ -393,20 +384,14 @@
   (menu-bar-mode -1))
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode -1))
-;; (when (fboundp 'scroll-bar-mode)
-;;   (scroll-bar-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
 
 (display-time)
-;; (prefer-coding-system 'utf-8)
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
-  ;; Enable emoji, and stop the UI from freezing when trying to display them.
-  ;; (when (fboundp 'set-fontset-font)
-  ;;   (set-fontset-font "fontset-default"
-  ;;                     '(#x1F600 . #x1F64F)
-  ;;                     (font-spec :name "Apple Color Emoji") nil 'prepend))
   )
 
 ;; binary plist support
@@ -424,6 +409,9 @@
 ;; (require 'server)
 ;; (when (not server-process)
 ;;   (server-start))
+
+(use-package hook-helpers
+  :demand)
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -454,31 +442,27 @@ FUNC is run when MODES are loaded."
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (add-hook 'makefile-mode-hook 'indent-tabs-mode)
 
-(defun font-lock-comment-annotations ()
+(define-hook-helper prog-mode ()
   "Highlight a bunch of well known comment annotations.
 
 This functions should be added to the hooks of major modes for programming."
   (font-lock-add-keywords
    nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
-          1 font-lock-warning-face t))))
-(add-hook 'prog-mode-hook 'font-lock-comment-annotations)
+          1 font-lock-warning-face t)))
+  )
 
 ;; Show trailing whitespace
 ;; But don't show trailing whitespace in SQLi, inf-ruby etc.
-(dolist (hook '(special-mode-hook
-                eshell-mode-hook
-                eww-mode
-                term-mode-hook
-                comint-mode-hook
-                compilation-mode-hook
-                twittering-mode-hook
-                minibuffer-setup-hook))
-  (add-hook hook (lambda () (setq show-trailing-whitespace nil))))
-
-(add-hook 'comint-mode-hook (lambda ()
-                              ;; (toggle-truncate-lines 1)
-                              (make-local-variable 'jit-lock-defer-timer)
-                              (set (make-local-variable 'jit-lock-defer-time) 0.25)))
+(create-hook-helper no-trailing-whitespace ()
+  :hooks (special-mode-hook
+          eshell-mode-hook
+          eww-mode
+          term-mode-hook
+          comint-mode-hook
+          compilation-mode-hook
+          twittering-mode-hook
+          minibuffer-setup-hook)
+  (setq-local show-trailing-whitespace nil))
 
 ;;
 ;; key binds
@@ -487,7 +471,6 @@ This functions should be added to the hooks of major modes for programming."
 ;; unbind unused keys
 (global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
-(global-unset-key (kbd "C-x C-e"))
 (global-set-key (kbd "C-c C-k") 'eval-buffer)
 (global-set-key (kbd "C-c C-u") 'rename-uniquely)
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
@@ -498,10 +481,11 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
 (global-set-key (kbd "C-c v") 'customize-variable)
 
-(apply #'hook-into-modes (lambda ()
-                           (define-key (current-local-map) (kbd "C-x C-e")
-                             'eval-last-sexp)
-                           ) lisp-mode-hooks)
+(global-unset-key (kbd "C-x C-e"))
+;; (apply #'hook-into-modes (lambda () (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)) lisp-mode-hooks)
+(create-hook-helper always-eval-sexp ()
+  :hooks (lisp-mode-hook emacs-lisp-mode-hook)
+  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp))
 
 (define-minor-mode prose-mode
   "Set up a buffer for prose editing.
@@ -594,8 +578,11 @@ typical word processor."
 
 (use-package apropospriate-theme
   :demand
-  :config
-  (load-theme 'apropospriate-dark t))
+  :config (load-theme 'apropospriate-dark t))
+
+(use-package autorevert
+  :demand
+  :config (global-auto-revert-mode t))
 
 (use-package browse-at-remote
   :commands browse-at-remote)
@@ -609,8 +596,7 @@ typical word processor."
 
 (use-package bury-successful-compilation
   :commands bury-successful-compilation
-  :init
-  (bury-successful-compilation 1))
+  :init (bury-successful-compilation 1))
 
 (use-package cc-mode
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
@@ -643,7 +629,6 @@ typical word processor."
   :init (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-irony
-  :disabled
   :commands company-irony
   :after company
   :init (add-to-list 'company-backends 'company-irony))
@@ -693,15 +678,15 @@ typical word processor."
   :after projectile
   :config (counsel-projectile-toggle 1))
 
+(use-package crux
+  :bind (("C-c D" . crux-delete-file-and-buffer)
+         ("C-c C-e" . crux-eval-and-replace)
+         ([shift return] . crux-smart-open-line)))
+
 (use-package css-mode
   :mode "\\.css\\'"
   :commands css-mode
   :config
-  (use-package rainbow-mode
-    :commands rainbow-mode
-    :init
-    (dolist (hook '(css-mode-hook html-mode-hook sass-mode-hook))
-      (add-hook hook 'rainbow-mode)))
   (use-package css-eldoc
     :demand)
   )
@@ -841,42 +826,7 @@ If FILENAME already exists do nothing."
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config (dumb-jump-mode))
 
-(use-package edebug
-  :preface
-  (defvar modi/fns-in-edebug nil
-    "List of functions for which `edebug' is instrumented.")
-
-  (defconst modi/fns-regexp
-    (concat "(\\s-*"
-            "\\(defun\\|defmacro\\)\\s-+"
-            "\\(?1:\\(\\w\\|\\s_\\)+\\)\\_>") ; word or symbol char
-    "Regexp to find defun or defmacro definition.")
-
-  (defun modi/toggle-edebug-defun ()
-    (interactive)
-    (let (fn)
-      (save-excursion
-        (search-backward-regexp modi/fns-regexp)
-        (setq fn (match-string 1))
-        (mark-sexp)
-        (narrow-to-region (point) (mark))
-        (if (member fn modi/fns-in-edebug)
-            ;; If the function is already being edebugged, uninstrument it
-            (progn
-              (setq modi/fns-in-edebug (delete fn modi/fns-in-edebug))
-              (eval-region (point) (mark))
-              (setq-default eval-expression-print-length 12)
-              (setq-default eval-expression-print-level  4)
-              (message "Edebug disabled: %s" fn))
-          ;; If the function is not being edebugged, instrument it
-          (progn
-            (add-to-list 'modi/fns-in-edebug fn)
-            (setq-default eval-expression-print-length nil)
-            (setq-default eval-expression-print-level  nil)
-            (edebug-defun)
-            (message "Edebug: %s" fn)))
-        (widen))))
-  )
+(use-package edebug)
 
 (use-package eldoc
   :commands eldoc-mode
@@ -898,149 +848,22 @@ If FILENAME already exists do nothing."
 
 (use-package esh-help
   :commands esh-help-eldoc-command
-  :init
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (make-local-variable 'eldoc-documentation-function)
-              (setq eldoc-documentation-function 'esh-help-eldoc-command)
-              (eldoc-mode))))
+  :init (create-hook-helper esh-help-setup ()
+          :hooks (eshell-mode-hook)
+          (make-local-variable 'eldoc-documentation-function)
+          (setq eldoc-documentation-function 'esh-help-eldoc-command)
+          (eldoc-mode)))
 
 (use-package eshell
-  :bind (("C-c s" . eshell-new))
-  :commands (eshell eshell-command)
-  :preface
+  :bind (("C-c s" . eshell))
+  :commands (eshell eshell-command))
 
-  (defun eshell-new (&optional arg)
-    (interactive)
-    (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))
-    (eshell arg))
-
-  (defun eshell/emacs (&rest args)
-    "Open a file in Emacs.  Some habits die hard.
-ARGS unused"
-    (if (null args)
-        ;; If I just ran "emacs", I probably expect to be launching
-        ;; Emacs, which is rather silly since I'm already in Emacs.
-        ;; So just pretend to do what I ask.
-        (bury-buffer)
-      ;; We have to expand the file names or else weird stuff happens
-      ;; when you try to open a bunch of different files in wildly
-      ;; different places in the filesystem.
-      (mapc #'find-file (mapcar #'expand-file-name args))))
-
-  (defalias 'eshell/emacsclient 'eshell/emacs)
-
-  (defun eshell/vi (&rest args)
-    "Invoke `find-file' on the file.
-\"vi +42 foo\" also goes to line 42 in the buffer.
-ARGS unused"
-    (while args
-      (if (string-match "\\`\\+\\([0-9]+\\)\\'" (car args))
-          (let* ((line (string-to-number (match-string 1 (pop args))))
-                 (file (pop args)))
-            (find-file file)
-            (forward-line line))
-        (find-file (pop args)))))
-
-  (defun eshell/clear ()
-    (interactive)
-    (let ((inhibit-read-only t))
-      (erase-buffer))
-    (eshell-send-input))
-
-  ;; (defun eshell/ssh (&rest args)
-  ;;   (interactive)
-  ;;   (insert (apply #'format "cd /scpx:%s:" args))
-  ;;   (eshell-send-input))
-
-  (defvar eshell-isearch-map
-    (let ((map (copy-keymap isearch-mode-map)))
-      (define-key map [(control ?m)] 'eshell-isearch-return)
-      (define-key map [return]       'eshell-isearch-return)
-      (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-      (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-      (define-key map [(control ?g)] 'eshell-isearch-abort)
-      (define-key map [backspace]    'eshell-isearch-delete-char)
-      (define-key map [delete]       'eshell-isearch-delete-char)
-      map)
-    "Keymap used in isearch in Eshell.")
-
-  :config
-  ;; (add-hook 'eshell-mode-hook
-  ;;           (lambda ()
-  ;;             (setenv "EDITOR" (concat "emacsclient -c -s " server-name))))
-
-  (defun eshell-cd (&optional dir)
-    "Open each directory in a new buffer like dired.
-DIR to open if none provided assume HOME dir."
-    (interactive)
-    (let* ((dir (if dir dir "~"))
-           (dir_ (expand-file-name
-                  (concat dir "/") default-directory))
-           (default-directory (if (string= dir_ "//") "/" dir_))
-           )
-
-      (if (file-directory-p default-directory)
-          (let (
-                (buffer
-                 (get-buffer-create (concat "*eshell<"
-                                            default-directory ">*"))))
-            (pop-to-buffer-same-window buffer)
-            (unless (derived-mode-p 'eshell-mode)
-              (eshell-mode))
-            )
-        (error "Not a directory")
-        )
-      ))
-
-  (add-hook 'eshell-mode-hook (lambda () (defalias 'eshell/cd 'eshell-cd) ))
-
-  (setenv "PAGER" "cat")
-  (setenv "EDITOR" "emacsclient -nq")
-
-  ;; (defadvice eshell (before dotemacs activate)
-  ;;   (setq eshell-banner-message (concat (shell-command-to-string "@fortune@/bin/fortune") "\n")))
-
-  ;;  (defun eshell-ls-find-file-at-point (point)
-  ;;    "RET on Eshell's `ls' output to open files."
-  ;;    (interactive "d")
-  ;;    (find-file (buffer-substring-no-properties
-  ;;                (previous-single-property-change point 'help-echo)
-  ;;                (next-single-property-change point 'help-echo))))
-
-  ;;  (defun eshell-ls-find-file-at-mouse-click (event)
-  ;;    "Middle click on Eshell's `ls' output to open files.
-  ;; From Patrick Anderson via the wiki."
-  ;;    (interactive "e")
-  ;;    (eshell-ls-find-file-at-point (posn-point (event-end event))))
-
-  ;;  (defvar eshell-ls-keymap--clickable
-  ;;    (let ((map (make-sparse-keymap)))
-  ;;      (define-key map (kbd "<return>") 'eshell-ls-find-file-at-point)
-  ;;      (define-key map (kbd "<mouse-1>") 'eshell-ls-find-file-at-mouse-click)
-  ;;      (define-key map (kbd "<mouse-2>") 'eshell-ls-find-file-at-mouse-click)
-  ;;      map))
-
-  ;;  (defun eshell-ls-decorated-name--clickable (file)
-  ;;    "Eshell's `ls' now lets you click or RET on file names to open them."
-  ;;    (add-text-properties 0 (length (car file))
-  ;;                         (list 'help-echo "RET, mouse-2: visit this file"
-  ;;                               'mouse-face 'highlight
-  ;;                               'keymap eshell-ls-keymap--clickable)
-  ;;                         (car file))
-  ;;    file)
-
-  ;;  (advice-add 'eshell-ls-decorated-name :after #'eshell-ls-decorated-name--clickable)
-
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (define-key eshell-mode-map [(control ?u)] nil)))
-  )
+(use-package eshell-extras
+  :after eshell)
 
 (use-package eshell-prompt-extras
   :commands epe-theme-lambda
-  :init
-  (setq eshell-prompt-function 'epe-theme-lambda))
+  :init (setq eshell-prompt-function 'epe-theme-lambda))
 
 (use-package ess-site
   :commands R)
@@ -1057,11 +880,9 @@ DIR to open if none provided assume HOME dir."
   (add-hook 'after-init-hook 'global-flycheck-mode))
 
 (use-package flycheck-irony
-  :disabled
   :commands flycheck-irony-setup
   :after flycheck
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  :init (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
 (use-package flyspell
   :commands (flyspell-mode flyspell-prog-mode)
@@ -1069,26 +890,25 @@ DIR to open if none provided assume HOME dir."
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode))
 
+(use-package ggtags)
+
 (use-package ghc)
 
 (use-package gist
   :bind ("C-c C-g" . gist-region-or-buffer-private)
   :commands (gist-list gist-region gist-region-private gist-buffer
-                       gist-buffer-private gist-region-or-buffer gist-region-or-buffer-private))
+                       gist-buffer-private gist-region-or-buffer
+                       gist-region-or-buffer-private))
 
 (use-package gnus
   :commands gnus
   :bind (("C-M-g" . gnus) ("C-x n u" . gnus))
   :init
-  (add-hook 'kill-emacs-hook (lambda ()
-                               (when (boundp 'gnus-group-exit)
-				 (gnus-group-exit))))
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode))
 
 (use-package go-eldoc
   :commands go-eldoc-setup
-  :init
-  (add-hook 'go-mode-hook 'go-eldoc-setup))
+  :init (add-hook 'go-mode-hook 'go-eldoc-setup))
 
 (use-package go-mode
   :mode "\\.go\\'")
@@ -1096,12 +916,7 @@ DIR to open if none provided assume HOME dir."
 (use-package grep
   :bind (("M-s d" . find-grep-dired)
          ("M-s F" . find-grep)
-         ("M-s G" . grep))
-  :config
-  (grep-apply-setting 'grep-command "egrep -nH -e ")
-  (grep-apply-setting
-   'grep-find-command
-   '("find . -type f -print0 | xargs -P4 -0 egrep -nH " . 49)))
+         ("M-s G" . grep)))
 
 (use-package gud
   :commands gud-gdb
@@ -1131,15 +946,14 @@ DIR to open if none provided assume HOME dir."
   :mode "\\.hs\\'")
 
 (use-package hideshow
-  :commands (hs-minor-mode)
-  :init
-  (add-hook 'prog-mode-hook 'hs-minor-mode))
+  :commands hs-minor-mode
+  :init (apply #'hook-into-modes 'hs-minor-mode '(c-mode-common-hook lisp-mode-hook emacs-lisp-mode-hook java-mode-hook)))
 
 (use-package hideshowvis
   :disabled
   :commands (hideshowvis-minor-mode hideshowvis-symbols)
   :init
-  ;; (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
+  (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
   )
 
 (use-package hippie-exp
@@ -1187,8 +1001,12 @@ DIR to open if none provided assume HOME dir."
   (add-hook 'objc-mode-hook 'irony-mode)
   )
 
+(use-package irony-eldoc
+  :commands irony-eldoc
+  :init (add-hook 'irony-mode-hook #'irony-eldoc))
+
 (use-package ivy
-  :defer 1
+  :after projectile
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer)
@@ -1196,6 +1014,7 @@ DIR to open if none provided assume HOME dir."
          ("C-j" . ivy-call))
   :diminish ivy-mode
   :commands ivy-mode
+  :init (setq projectile-completion-system (quote ivy))
   :config (ivy-mode 1))
 
 (use-package jdee
@@ -1220,21 +1039,24 @@ DIR to open if none provided assume HOME dir."
   :bind (("C-x k" . kill-or-bury-alive)
          ("C-c r" . kill-or-bury-alive-purge-buffers)))
 
-(use-package lisp-mode
-  :preface
-  (defun lisp-mode-hook ()
-    (use-package edebug
-      :demand)
+(use-package lisp-mode)
 
-    (use-package eldoc
-      :commands eldoc-mode
-      :demand)
+(use-package lsp-mode
+  :commands lsp-mode
+  :init (add-hook 'prog-major-mode #'lsp-mode)
 
-    (use-package elint
-      :commands elint-initialize
-      :demand))
+  :config
 
-  (apply #'hook-into-modes 'lisp-mode-hook lisp-mode-hooks)
+  (use-package lsp-java
+    :demand)
+  (use-package lsp-haskell
+    :demand)
+  (use-package lsp-go
+    :demand)
+  (use-package lsp-python
+    :demand)
+  (use-package lsp-rust
+    :demand)
   )
 
 (use-package lua-mode
@@ -1263,13 +1085,16 @@ DIR to open if none provided assume HOME dir."
   :bind (([(meta shift up)] . move-text-up)
          ([(meta shift down)] . move-text-down)))
 
+(use-package multi-term
+  :commands multi-term)
+
 (use-package multiple-cursors
   :init
   (global-unset-key (kbd "M-<down-mouse-1>"))
 
   :bind
-  (("<C-S-down>" . mc/mark-next-like-this) ;; broken by macOS
-   ("<C-S-up>" . mc/mark-previous-like-this) ;; keybinds
+  (("<C-S-down>" . mc/mark-next-like-this) ;; broken by macOS shortcut
+   ("<C-S-up>" . mc/mark-previous-like-this)
    ("C->" . mc/mark-next-like-this)
    ("C-<" . mc/mark-previous-like-this)
    ("M-<mouse-1>" . mc/add-cursor-on-click)))
@@ -1279,33 +1104,13 @@ DIR to open if none provided assume HOME dir."
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
 
 (use-package neotree
-  :commands (neotree-show neotree-hide)
-  :preface
-  (defun neotree-project-dir-toggle ()
-    "Open NeoTree using the project root, using find-file-in-project,
-or the current buffer directory."
-    (interactive)
-    (let ((project-dir
-           (ignore-errors
-           ;;; Pick one: projectile or find-file-in-project
-                                        ; (projectile-project-root)
-             (ffip-project-root)))
-          (file-name (buffer-file-name))
-          (neo-smart-open t))
-      (if (and (fboundp 'neo-global--window-exists-p)
-               (neo-global--window-exists-p))
-          (neotree-hide)
-        (progn
-          (neotree-show)
-          (if project-dir
-              (neotree-dir project-dir))
-          (if file-name
-              (neotree-find file-name))))))
-  :bind (("<f8>" . neotree-project-dir-toggle))
-  )
+  :bind (("<f8>" . neotree-toggle)))
 
 (use-package nix-mode
   :mode "\\.nix\\'")
+
+(use-package notmuch
+  :commands notmuch)
 
 (use-package org
   ;; :mode "\\.\\(org\\)\\'"
@@ -1345,13 +1150,14 @@ or the current buffer directory."
 
 (use-package paren
   :demand
-  :config (show-paren-mode +1))
+  :disabled
+  :config (show-paren-mode 1))
 
 (use-package php-mode
   :mode "\\.php\\'")
 
 (use-package projectile
-  :defer 2
+  :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
@@ -1364,6 +1170,8 @@ or the current buffer directory."
   (use-package easymenu
     :demand
     :config
+
+    ;; just make mode line clickable
     (easy-menu-define projectile-menu projectile-mode-map "Projectile"
       '("Projectile"
         :active nil ;; disable menu bar
@@ -1406,6 +1214,7 @@ or the current buffer directory."
         )
       )
     )
+
   )
 
 (use-package proof-site
@@ -1413,25 +1222,15 @@ or the current buffer directory."
 
 (use-package python-mode
   :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode)
-  :config
-  (defvar python-mode-initialized nil)
-
-  (defun my-python-mode-hook ()
-    (setq indicate-empty-lines t)
-    (set (make-local-variable 'parens-require-spaces) nil)
-    (setq indent-tabs-mode nil)
-
-    (bind-key "C-c C-z" #'python-shell python-mode-map)
-    (unbind-key "C-c c" python-mode-map))
-
-  (add-hook 'python-mode-hook 'my-python-mode-hook)
-  )
+  :interpreter ("python" . python-mode))
 
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode
-  :init
-  (apply #'hook-into-modes 'rainbow-delimiters-mode lisp-mode-hooks))
+  :init (apply #'hook-into-modes 'rainbow-delimiters-mode lisp-mode-hooks))
+
+(use-package rainbow-mode
+  :commands rainbow-mode
+  :init (apply #'hook-into-modes 'rainbow-mode '(css-mode-hook html-mode-hook sass-mode-hook)))
 
 (use-package realgud
   :commands (realgud:jdb))
@@ -1446,43 +1245,19 @@ or the current buffer directory."
   :commands (rtags-start-process-unless-running rtags-enable-standard-keybindings)
   :init
 
-  (defun is-current-file-tramp ()
-    "Is the current file in a tramp remote setup?"
-    (tramp-tramp-file-p (buffer-file-name (current-buffer))))
-
   ;; Start rtags upon entering a C/C++ file
-  (add-hook
-   'c-mode-common-hook
-   (lambda () (if (not (is-current-file-tramp))
-             (rtags-start-process-unless-running))))
-  (add-hook
-   'c++-mode-common-hook
-   (lambda () (if (not (is-current-file-tramp))
-             (rtags-start-process-unless-running))))
+  (create-hook-helper rtags-start ()
+    :hooks (c-mode-common-hook c++-mode-common-hook)
+    (when (not (tramp-tramp-file-p (buffer-file-name (current-buffer))))
+      (rtags-start-process-unless-running)))
 
   :config
   ;; Keybindings
-  (rtags-enable-standard-keybindings c-mode-base-map "\C-cr")
-  )
+  (rtags-enable-standard-keybindings c-mode-base-map "\C-cr"))
 
 (use-package ruby-mode
   :mode ("\\.rb\\'" . ruby-mode)
-  :interpreter ("ruby" . ruby-mode)
-  :config
-  (defun my-ruby-smart-return ()
-    (interactive)
-    (when (memq (char-after) '(?\| ?\" ?\'))
-      (forward-char))
-    (call-interactively 'newline-and-indent))
-
-  (defun my-ruby-mode-hook ()
-    (require 'inf-ruby)
-    (inf-ruby-keys)
-    (bind-key "<return>" #'my-ruby-smart-return ruby-mode-map)
-    (bind-key "C-h C-i" #'helm-yari ruby-mode-map))
-
-  (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
-  )
+  :interpreter ("ruby" . ruby-mode))
 
 (use-package rust-mode
   :mode "\\.rs\\'")
@@ -1492,14 +1267,11 @@ or the current buffer directory."
 
 (use-package savehist
   :demand
-  :config
-  (savehist-mode +1))
+  :config (savehist-mode 1))
 
 (use-package saveplace
   :demand
-  :config
-  ;; activate it for all buffers
-  (setq-default save-place t))
+  :config (setq-default save-place t))
 
 (use-package scss-mode
   :mode "\\.scss\\'")
@@ -1519,7 +1291,7 @@ or the current buffer directory."
     )
   :mode (("\\.*bashrc$" . sh-mode)
          ("\\.*bash_profile" . sh-mode))
-  :bind (:map shell-mode-map
+  :bind (:map sh-mode-map
               ("C-x C-e" . shell-command-at-point))
   )
 
@@ -1528,10 +1300,7 @@ or the current buffer directory."
   :bind ("C-c C-s" . shell)
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-  :config
-  (setenv "PAGER" "cat")
-  (setenv "TERM" "xterm-256color")
-  (setenv "EDITOR" "emacsclient -nq"))
+  )
 
 (use-package shell-script-mode
   :commands shell-script-mode
@@ -1558,8 +1327,11 @@ or the current buffer directory."
   (use-package smartparens-config
     :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (show-smartparens-mode +1)
+  (show-smartparens-mode 1)
   )
+
+(use-package sudo-edit
+  :bind (("C-c C-r" . sudo-edit)))
 
 (use-package swiper
   :bind (("\C-s" . swiper)
@@ -1585,24 +1357,15 @@ or the current buffer directory."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*nethack*"))
-
-  (defun my-term-hook ()
-    (goto-address-mode)
-    (term-char-mode)
-    (term-set-escape-char ?\C-x)
-    (define-key term-raw-map "\C-y" 'my-term-paste))
-  ;; (add-hook 'term-mode-hook 'my-term-hook)
   )
 
 (use-package tern
   :commands tern-mode
-  :init
-  (add-hook 'js2-mode-hook 'tern-mode))
+  :init (add-hook 'js2-mode-hook 'tern-mode))
 
 (use-package toc-org
   :commands toc-org-enable
-  :init
-  (add-hook 'org-mode-hook 'toc-org-enable))
+  :init (add-hook 'org-mode-hook 'toc-org-enable))
 
 (use-package try
   :commands try)
@@ -1614,6 +1377,10 @@ or the current buffer directory."
          ("\\.php\\'" . web-mode)
          ("\\.jsp\\'" . web-mode)))
 
+(use-package which-func
+  :demand
+  :config (which-function-mode t))
+
 (use-package which-key
   :demand
   :diminish which-key-mode
@@ -1621,8 +1388,7 @@ or the current buffer directory."
 
 (use-package whitespace-cleanup-mode
   :commands whitespace-cleanup-mode
-  :init
-  (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
+  :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package windmove
   :demand
@@ -1631,56 +1397,22 @@ or the current buffer directory."
 (use-package xterm-color
   :demand
   :config
-  (setenv "TERM" "xterm-256color")
   ;; Comint and Shell
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
   (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions))
 
-  (add-hook 'compilation-start-hook
-            (lambda (proc)
-              ;; We need to differentiate between compilation-mode buffers
-              ;; and running as part of comint (which at this point we assume
-              ;; has been configured separately for xterm-color)
-              (when (eq (process-filter proc) 'compilation-filter)
-                ;; This is a process associated with a compilation-mode buffer.
-                ;; We may call `xterm-color-filter' before its own filter function.
-                (set-process-filter
-                 proc
-                 (lambda (proc string)
-                   (funcall 'compilation-filter proc
-                            (xterm-color-filter string)))))))
+  (define-hook-helper compilation-start (proc)
+    (when (eq (process-filter proc) 'compilation-filter)
+      (set-process-filter
+       proc
+       (lambda (proc string)
+         (funcall 'compilation-filter proc
+                  (xterm-color-filter string)))))
+    )
   )
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
-
-(use-package notmuch
-  :commands notmuch)
-
-(use-package crux
-  :bind (("C-c D" . crux-delete-file-and-buffer)
-         ("C-c C-e" . crux-eval-and-replace)
-         ([shift return] . crux-smart-open-line))
-  ;; (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
-  ;; (global-set-key (kbd "C-c o") #'crux-open-with)
-  ;; (global-set-key (kbd "s-r") #'crux-recentf-find-file)
-  ;; (global-set-key (kbd "C-<backspace>" #'crux-kill-line-backwards))
-  ;; (global-set-key [remap kill-whole-line] #'crux-kill-whole-line)
-  )
-
-(use-package sudo-edit
-  :bind (("C-c C-r" . sudo-edit)))
-
-(use-package multi-term
-  :commands multi-term)
-
-(use-package autorevert
-  :demand
-  :config (global-auto-revert-mode t))
-
-(use-package which-func
-  :demand
-  :config (which-function-mode t))
 
 (provide 'default)
 ;;; default.el ends here
