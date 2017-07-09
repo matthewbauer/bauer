@@ -8,8 +8,10 @@
 
 (eval-when-compile
   (require 'use-package))
-(require 'diminish)                ;; if you use :diminish
-(require 'bind-key)                ;; if you use any :bind variant
+
+(use-package apropospriate-theme
+  :demand
+  :config (load-theme 'apropospriate-dark t))
 
 (setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
 (setenv "EDITOR" "emacsclient -nw")
@@ -18,6 +20,8 @@
 (setenv "PAGER" "cat")
 
 (defun set-defaults (&rest args)
+  "Set defaults in the same way as ’custom-set-variables’.
+ARGS are a list in the form of (SYMBOL VALUE)."
   (dolist (entry args)
     (let* ((symbol (indirect-variable (nth 0 entry))))
       (unless (or (get symbol 'standard-value)
@@ -39,8 +43,7 @@
       ;; (put symbol 'saved-value (list value))
       (put symbol 'standard-value (list value))
       ;; (put symbol 'force-value t)
-      (funcall set symbol (eval value))
-      )))
+      (funcall set symbol (eval value)))))
 
 (set-defaults
  '(ad-redefinition-action (quote accept))
@@ -56,8 +59,8 @@
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
- '(c-eldoc-includes "")
  '(c-syntactic-indentation nil)
+ '(column-number-mode t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
@@ -362,23 +365,13 @@
  '(yas-wrap-around-region t)
  )
 
+(use-package hook-helpers
+  :commands (create-hook-helper define-hook-helper))
+
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
-(defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
-
-;;
-;; builtins
-;;
-(electric-pair-mode t)
-(electric-quote-mode t)
-(electric-indent-mode t)
-(blink-cursor-mode 0)
-(delete-selection-mode t)
-(column-number-mode t)
-
-(when (fboundp 'global-prettify-symbols-mode)
-  (global-prettify-symbols-mode))
-
+;; these should be disabled before Emsacs displays the frame
+;; but we disable them here just in case
 (when (and (fboundp 'menu-bar-mode)
            (not (eq system-type 'darwin)))
   (menu-bar-mode -1))
@@ -386,32 +379,17 @@
   (tool-bar-mode -1))
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
-
-(display-time)
+(when (fboundp 'blink-cursor-mode)
+  (blink-cursor-mode 0))
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
   )
 
-;; binary plist support
-(add-to-list 'jka-compr-compression-info-list
-             ["\\.plist$"
-              "converting text XML to binary plist"
-              "plutil"
-              ("-convert" "binary1" "-o" "-" "-")
-              "converting binary plist to text XML"
-              "plutil"
-              ("-convert" "xml1" "-o" "-" "-")
-              nil nil "bplist"])
-(jka-compr-update)
-
 ;; (require 'server)
 ;; (when (not server-process)
 ;;   (server-start))
-
-(use-package hook-helpers
-  :demand)
 
 (defvar lisp-modes '(emacs-lisp-mode
                      inferior-emacs-lisp-mode
@@ -433,36 +411,32 @@
 FUNC is run when MODES are loaded."
   (dolist (mode-hook modes) (add-hook mode-hook func)))
 
-;;
-;; add hooks
-;;
-
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
 (add-hook 'prog-mode-hook 'goto-address-prog-mode)
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (add-hook 'makefile-mode-hook 'indent-tabs-mode)
 
-(define-hook-helper prog-mode ()
-  "Highlight a bunch of well known comment annotations.
+;; (define-hook-helper prog-mode ()
+;;   "Highlight a bunch of well known comment annotations.
 
-This functions should be added to the hooks of major modes for programming."
-  (font-lock-add-keywords
-   nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
-          1 font-lock-warning-face t)))
-  )
+;; This functions should be added to the hooks of major modes for programming."
+;;   (font-lock-add-keywords
+;;    nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
+;;           1 font-lock-warning-face t)))
+;;   )
 
 ;; Show trailing whitespace
 ;; But don't show trailing whitespace in SQLi, inf-ruby etc.
-(create-hook-helper no-trailing-whitespace ()
-  :hooks (special-mode-hook
-          eshell-mode-hook
-          eww-mode
-          term-mode-hook
-          comint-mode-hook
-          compilation-mode-hook
-          twittering-mode-hook
-          minibuffer-setup-hook)
-  (setq-local show-trailing-whitespace nil))
+;; (create-hook-helper no-trailing-whitespace ()
+;;   :hooks (special-mode-hook
+;;           eshell-mode-hook
+;;           eww-mode
+;;           term-mode-hook
+;;           comint-mode-hook
+;;           compilation-mode-hook
+;;           twittering-mode-hook
+;;           minibuffer-setup-hook)
+;;   (setq-local show-trailing-whitespace nil))
 
 ;;
 ;; key binds
@@ -482,7 +456,6 @@ This functions should be added to the hooks of major modes for programming."
 (global-set-key (kbd "C-c v") 'customize-variable)
 
 (global-unset-key (kbd "C-x C-e"))
-;; (apply #'hook-into-modes (lambda () (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp)) lisp-mode-hooks)
 (create-hook-helper always-eval-sexp ()
   :hooks (lisp-mode-hook emacs-lisp-mode-hook)
   (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp))
@@ -538,7 +511,8 @@ typical word processor."
   :config (setq-default abbrev-mode t))
 
 (use-package ace-window
-  :bind ("M-o" . ace-window))
+  :bind (("M-o" . other-window)
+         ("C-x o" . ace-window)))
 
 (use-package ag
   :commands (ag ag-files ag-regexp ag-project ag-project-files ag-project-regexp)
@@ -563,25 +537,15 @@ typical word processor."
   )
 
 (use-package ansi-color
-  :preface
-  ;; Compilation from Emacs
-  (defun colorize-compilation-buffer ()
-    "Colorize a compilation mode buffer."
-    (interactive)
-    ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
-    (when (eq major-mode 'compilation-mode)
-      (let ((inhibit-read-only t))
-        (ansi-color-apply-on-region (point-min) (point-max))))
-    )
-
-  :init (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
-
-(use-package apropospriate-theme
-  :demand
-  :config (load-theme 'apropospriate-dark t))
+  :init (create-hook-helper colorize-compilation-buffer ()
+          :hooks (compilation-filter-hook)
+          (when (eq major-mode 'compilation-mode)
+            (let ((inhibit-read-only t))
+              (ansi-color-apply-on-region (point-min) (point-max))))))
 
 (use-package autorevert
-  :demand
+  :commands global-auto-revert-mode
+  :defer 4
   :config (global-auto-revert-mode t))
 
 (use-package browse-at-remote
@@ -595,6 +559,7 @@ typical word processor."
    ("<M-S-right>" . buf-move-right)))
 
 (use-package bury-successful-compilation
+  :disabled
   :commands bury-successful-compilation
   :init (bury-successful-compilation 1))
 
@@ -615,7 +580,6 @@ typical word processor."
   :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
-  :demand
   :preface
   (defun my-complete ()
     (interactive)
@@ -629,6 +593,7 @@ typical word processor."
   :init (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-irony
+  :disabled
   :commands company-irony
   :after company
   :init (add-to-list 'company-backends 'company-irony))
@@ -704,107 +669,11 @@ typical word processor."
   )
 
 (use-package dired
-  :bind (("C-c J" . dired-double-jump))
-
-  :preface
-  (defvar mark-files-cache (make-hash-table :test #'equal))
-
-  (defun mark-similar-versions (name)
-    (let ((pat name))
-      (if (string-match "^\\(.+?\\)-[0-9._-]+$" pat)
-          (setq pat (match-string 1 pat)))
-      (or (gethash pat mark-files-cache)
-          (ignore (puthash pat t mark-files-cache)))))
-
-  (defun dired-mark-similar-version ()
-    (interactive)
-    (setq mark-files-cache (make-hash-table :test #'equal))
-    (dired-mark-sexp '(mark-similar-versions name)))
-
-  (defun dired-double-jump (first-dir second-dir)
-    (interactive
-     (list (read-directory-name "First directory: "
-                                (expand-file-name "~")
-                                nil nil "dl/")
-           (read-directory-name "Second directory: "
-                                (expand-file-name "~")
-                                nil nil "Archives/")))
-    (dired first-dir)
-    (dired-other-window second-dir))
-
-  (defun my-dired-switch-window ()
-    (interactive)
-    (if (eq major-mode 'sr-mode)
-        (call-interactively #'sr-change-window)
-      (call-interactively #'other-window)))
-
-  :config
-  (defun dired-create-file (filename)
-    "Create FILENAME from Dired in if not exists.
-If FILENAME already exists do nothing."
-    (interactive "FCreate file: ")
-    (shell-command (format "touch %s" filename))
-    (when (file-exists-p filename)
-      (dired-add-file filename)
-      (dired-move-to-filename)))
-  (define-key dired-mode-map "|" 'dired-create-file)
-
-  (define-key dired-mode-map (kbd "C-c C-c") 'compile)
-
-  (bind-key "r" #'browse-url-of-dired-file dired-mode-map)
-
-  (bind-key "l" #'dired-up-directory dired-mode-map)
-
-  (bind-key "<tab>" #'my-dired-switch-window dired-mode-map)
-
-  (bind-key "M-!" #'async-shell-command dired-mode-map)
-  (unbind-key "M-G" dired-mode-map)
-
-  (defvar dired-omit-regexp-orig (symbol-function 'dired-omit-regexp))
-
-  ;; Omit files that Git would ignore
-  (defun dired-omit-regexp ()
-    (let ((file (expand-file-name ".git"))
-          parent-dir)
-      (while (and (not (file-exists-p file))
-                  (progn
-                    (setq parent-dir
-                          (file-name-directory
-                           (directory-file-name
-                            (file-name-directory file))))
-                    ;; Give up if we are already at the root dir.
-                    (not (string= (file-name-directory file)
-                                  parent-dir))))
-        ;; Move up to the parent dir and try again.
-        (setq file (expand-file-name ".git" parent-dir)))
-      ;; If we found a change log in a parent, use that.
-      (if (file-exists-p file)
-          (let ((regexp (funcall dired-omit-regexp-orig))
-                (omitted-files
-                 (shell-command-to-string "git clean -d -x -n")))
-            (if (= 0 (length omitted-files))
-                regexp
-              (concat
-               regexp
-               (if (> (length regexp) 0)
-                   "\\|" "")
-               "\\("
-               (mapconcat
-                #'(lambda (str)
-                    (concat
-                     "^"
-                     (regexp-quote
-                      (substring str 13
-                                 (if (= ?/ (aref str (1- (length str))))
-                                     (1- (length str))
-                                   nil)))
-                     "$"))
-                (split-string omitted-files "\n" t)
-                "\\|")
-               "\\)")))
-        (funcall dired-omit-regexp-orig))))
-  (when (fboundp 'global-dired-hide-details-mode)
-    (global-dired-hide-details-mode -1))
+  :bind (("C-c J" . dired-double-jump)
+         :map dired-mode-map
+         (("C-c C-c" . compile)
+          ("r" . browse-url-of-dired-file)
+          ("M-!" . async-shell-command)))
   )
 
 (use-package dired-x
@@ -817,7 +686,8 @@ If FILENAME already exists do nothing."
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
-  :init (dtrt-indent-mode 1))
+  :defer 3
+  :config (dtrt-indent-mode 1))
 
 (use-package dumb-jump
   :bind (("M-g o" . dumb-jump-go-other-window)
@@ -833,6 +703,8 @@ If FILENAME already exists do nothing."
   :init
   (add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
   (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+  :config
+  (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
 
 (use-package elpy
@@ -920,24 +792,11 @@ If FILENAME already exists do nothing."
 
 (use-package gud
   :commands gud-gdb
-  :bind ("C-. g" . show-debugger)
-  :init
-  (defun show-debugger ()
-    (interactive)
-    (let ((gud-buf
-           (catch 'found
-             (dolist (buf (buffer-list))
-               (if (string-match "\\*gud-" (buffer-name buf))
-                   (throw 'found buf))))))
-      (if gud-buf
-          (switch-to-buffer-other-window gud-buf)
-        (call-interactively 'gud-gdb))))
-  :config
-  (bind-key "<f9>" #'gud-cont)
-  (bind-key "<f10>" #'gud-next)
-  (bind-key "<f11>" #'gud-step)
-  (bind-key "S-<f11>" #'gud-finish)
-  )
+  :bind (("C-. g" . show-debugger)
+         ("<f9>" . gud-cont)
+         ("<f10>" . gud-next)
+         ("<f11>" . gud-step)
+         ("S-<f11>" . gud-finish)))
 
 (use-package haml-mode
   :mode "\\.haml\\'")
@@ -1030,6 +889,7 @@ If FILENAME already exists do nothing."
 (use-package json-mode)
 
 (use-package keyfreq
+  :disabled
   :commands (keyfreq-mode keyfreq-autosave-mode)
   :init
   (keyfreq-mode 1)
@@ -1085,13 +945,7 @@ If FILENAME already exists do nothing."
   :bind (([(meta shift up)] . move-text-up)
          ([(meta shift down)] . move-text-down)))
 
-(use-package multi-term
-  :commands multi-term)
-
 (use-package multiple-cursors
-  :init
-  (global-unset-key (kbd "M-<down-mouse-1>"))
-
   :bind
   (("<C-S-down>" . mc/mark-next-like-this) ;; broken by macOS shortcut
    ("<C-S-up>" . mc/mark-previous-like-this)
@@ -1157,13 +1011,12 @@ If FILENAME already exists do nothing."
   :mode "\\.php\\'")
 
 (use-package projectile
-  :demand
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                   compilation-read-command))))
+                                        compilation-read-command))))
 
   (projectile-global-mode)
 
@@ -1266,12 +1119,14 @@ If FILENAME already exists do nothing."
   :mode "\\.sass\\'")
 
 (use-package savehist
-  :demand
+  :defer 4
+  :commands savehist-mode
   :config (savehist-mode 1))
 
 (use-package saveplace
-  :demand
-  :config (setq-default save-place t))
+  :commands save-place-mode
+  :defer 5
+  :config (save-place-mode t))
 
 (use-package scss-mode
   :mode "\\.scss\\'")
@@ -1307,6 +1162,7 @@ If FILENAME already exists do nothing."
   :mode (("\\.zsh\\'" . shell-script-mode)))
 
 (use-package smart-hungry-delete
+  :disabled
   :commands smart-hungry-delete-add-default-hooks
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
@@ -1322,12 +1178,12 @@ If FILENAME already exists do nothing."
   :init
   (setq sp-base-key-bindings (quote paredit))
   (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
+  (apply #'hook-into-modes 'show-smartparens-mode lisp-mode-hooks)
   (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
   :config
   (use-package smartparens-config
     :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (show-smartparens-mode 1)
   )
 
 (use-package sudo-edit
@@ -1378,11 +1234,12 @@ If FILENAME already exists do nothing."
          ("\\.jsp\\'" . web-mode)))
 
 (use-package which-func
-  :demand
+  :commands which-function-mode
+  :defer 1
   :config (which-function-mode t))
 
 (use-package which-key
-  :demand
+  :commands which-key-mode
   :diminish which-key-mode
   :config (which-key-mode))
 
@@ -1391,11 +1248,12 @@ If FILENAME already exists do nothing."
   :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package windmove
-  :demand
+  :defer 3
+  :commands windmove-default-keybindings
   :config (windmove-default-keybindings 'meta))
 
 (use-package xterm-color
-  :demand
+  :defer 5
   :config
   ;; Comint and Shell
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
@@ -1413,6 +1271,58 @@ If FILENAME already exists do nothing."
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
+
+(use-package elec-pair
+  :commands electric-pair-mode
+  :defer 6
+  :config (electric-pair-mode t))
+
+(use-package delsel
+  :defer 5
+  :config (delete-selection-mode t))
+
+(use-package jka-compr
+  :defer 6
+  :config
+  ;; binary plist support
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update)
+  )
+
+(use-package time
+  :commands display-time
+  :config (display-time))
+
+(use-package electric
+  :demand
+  :config
+  (electric-quote-mode t)
+  (electric-indent-mode t)
+  )
+
+(use-package prog-mode
+  :commands global-prettify-symbols-mode
+  :init
+  (global-prettify-symbols-mode)
+  )
+
+(use-package with-editor
+  :bind (([remap async-shell-command] . with-editor-async-shell-command)
+         ([remap shell-command] . with-editor-shell-command))
+  :commands with-editor-export-editor
+  :init
+  (add-hook 'shell-mode-hook  'with-editor-export-editor)
+  (add-hook 'term-exec-hook   'with-editor-export-editor)
+  (add-hook 'eshell-mode-hook 'with-editor-export-editor)
+  )
 
 (provide 'default)
 ;;; default.el ends here

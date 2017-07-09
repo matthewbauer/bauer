@@ -120,7 +120,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         mediawiki
         mmm-mode
         move-text
-        multi-term
         multiple-cursors
         mwim
         neotree
@@ -262,7 +261,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         go2nix
         gnugrep
         gnumake
-        # offlineimap
         gnuplot
         gnused
         gnupg1compat
@@ -317,10 +315,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         rEnv
         isync
         ctags
-        # mu
         notmuch
         clang
-        # rls
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
