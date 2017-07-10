@@ -55,15 +55,23 @@
   "Eshell extras"
   :group 'eshell)
 
-(setq eshell-buffer-name nil)
+;; (setq eshell-new-buffer-name nil)
 
-(defun eshell-new (&rest args)
+;; (defun eshell-new (&rest args)
+;;   "Load a new eshell for the current directory.
+;; ARGS anything else Eshell needs."
+;;   (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
+
+;; (advice-add 'eshell :before 'eshell-new)
+
+(defun eshell-new (f &rest args)
   "Load a new eshell for the current directory.
+F original eshell.
 ARGS anything else Eshell needs."
-  (unless eshell-buffer-name
-    (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*"))))
+  (let ((eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
+    (apply f args)))
 
-(advice-add 'eshell :before 'eshell-new)
+(advice-add 'eshell :around 'eshell-new)
 
 (defun eshell/cd (&rest args)
   "Open each directory in a new buffer like dired.
@@ -102,6 +110,10 @@ ARG number of words to kill."
              '([(control backspace)] . eshell-backward-kill-word))
 (add-to-list 'eshell-rebind-keys-alist
              '([(meta backspace)] . eshell-backward-kill-word))
+(add-to-list 'eshell-rebind-keys-alist
+             '([(control delte)] . eshell-backward-kill-word))
+(add-to-list 'eshell-rebind-keys-alist
+             '([(meta delete)] . eshell-backward-kill-word))
 ;; (add-to-list 'eshell-rebind-keys-alist
 ;;              '([(backspace)] . eshell-delete-backward-char))
 ;; (add-to-list 'eshell-rebind-keys-alist

@@ -767,6 +767,7 @@ typical word processor."
   :bind (("C-c s" . eshell))
   :commands (eshell eshell-command))
 
+;; in local dir
 (use-package eshell-extras
   :builtin
   :after eshell)
@@ -1032,6 +1033,7 @@ typical word processor."
     :demand))
 
 (use-package mode-line-debug
+  :disabled
   :commands mode-line-debug-mode
   :init (mode-line-debug-mode))
 
@@ -1109,6 +1111,7 @@ typical word processor."
   :mode "\\.php\\'")
 
 (use-package popwin
+  :bind-keymap ("C-z" . popwin:keymap)
   :commands popwin-mode
   :init (popwin-mode 1))
 
@@ -1281,7 +1284,8 @@ typical word processor."
     (shell-command (buffer-substring start-point (point)))
     )
   :mode (("\\.*bashrc$" . sh-mode)
-         ("\\.*bash_profile" . sh-mode))
+         ("\\.*bash_profile" . sh-mode)
+         ("\\.zsh\\'" . sh-mode))
   :bind (:map sh-mode-map
               ("C-x C-e" . shell-command-at-point))
   )
@@ -1293,11 +1297,6 @@ typical word processor."
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
   )
-
-(use-package shell-script-mode
-  :builtin
-  :commands shell-script-mode
-  :mode (("\\.zsh\\'" . shell-script-mode)))
 
 (use-package skewer-less
   :disabled

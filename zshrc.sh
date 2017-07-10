@@ -17,13 +17,13 @@ case "$TERM" in
 
      eterm-color)
 
-         precmd() {
-             echo -e "\033AnSiTu" "$LOGNAME" # $LOGNAME is more portable than using whoami.
-             echo -e "\033AnSiTc" "$(pwd)"
-             hostname_options="-f";
-             echo -e "\033AnSiTh" "$(hostname $hostname_options)" # Using the -f option can
-             # cause problems on some OSes.
-         }
+         # precmd() {
+         #     echo -e "\033AnSiTu" "$LOGNAME" # $LOGNAME is more portable than using whoami.
+         #     echo -e "\033AnSiTc" "$(pwd)"
+         #     hostname_options="-f";
+         #     echo -e "\033AnSiTh" "$(hostname $hostname_options)" # Using the -f option can
+         #     # cause problems on some OSes.
+         # }
 
          ;;
 esac
