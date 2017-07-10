@@ -1013,6 +1013,7 @@ typical word processor."
          ("C-x G" . magit-dispatch-popup)))
 
 (use-package magithub
+  :disabled
   :after magit
   :config (magithub-feature-autoinject t))
 
@@ -1090,7 +1091,6 @@ typical word processor."
     :builtin
     :demand)
   (use-package ox-pandoc
-    :builtin
     :demand)
   )
 
