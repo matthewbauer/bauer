@@ -9,6 +9,11 @@
 (eval-when-compile
   (require 'use-package))
 
+(add-to-list 'use-package-keywords :builtin)
+(defun use-package-handler/:builtin (name keyword arg rest state))
+(add-to-list 'use-package-keywords :name)
+(defun use-package-handler/:name (name keyword arg rest state))
+
 (use-package apropospriate-theme
   :demand
   :config (load-theme 'apropospriate-dark t))
@@ -368,6 +373,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package hook-helpers
   :commands (create-hook-helper define-hook-helper))
 
+(use-package add-hooks
+  :commands (add-hooks add-hooks-pair))
+
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
 ;; these should be disabled before Emsacs displays the frame
@@ -391,52 +399,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 ;; (when (not server-process)
 ;;   (server-start))
 
-(defvar lisp-modes '(emacs-lisp-mode
-                     inferior-emacs-lisp-mode
-                     ielm-mode
-                     lisp-mode
-                     inferior-lisp-mode
-                     lisp-interaction-mode
-                     slime-repl-mode))
-
-(defvar lisp-mode-hooks
-  (mapcar (function
-           (lambda (mode)
-             (intern
-              (concat (symbol-name mode) "-hook"))))
-          lisp-modes))
-
-(defsubst hook-into-modes (func &rest modes)
-  "Add hook to modes.
-FUNC is run when MODES are loaded."
-  (dolist (mode-hook modes) (add-hook mode-hook func)))
-
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
 (add-hook 'prog-mode-hook 'goto-address-prog-mode)
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (add-hook 'makefile-mode-hook 'indent-tabs-mode)
-
-;; (define-hook-helper prog-mode ()
-;;   "Highlight a bunch of well known comment annotations.
-
-;; This functions should be added to the hooks of major modes for programming."
-;;   (font-lock-add-keywords
-;;    nil '(("\\<\\(FIX\\(ME\\)?\\|TODO\\|OPTIMIZE\\|HACK\\|REFACTOR\\):"
-;;           1 font-lock-warning-face t)))
-;;   )
-
-;; Show trailing whitespace
-;; But don't show trailing whitespace in SQLi, inf-ruby etc.
-;; (create-hook-helper no-trailing-whitespace ()
-;;   :hooks (special-mode-hook
-;;           eshell-mode-hook
-;;           eww-mode
-;;           term-mode-hook
-;;           comint-mode-hook
-;;           compilation-mode-hook
-;;           twittering-mode-hook
-;;           minibuffer-setup-hook)
-;;   (setq-local show-trailing-whitespace nil))
 
 ;;
 ;; key binds
@@ -508,6 +474,7 @@ typical word processor."
 (use-package abbrev
   :diminish abbrev-mode
   :demand
+  :builtin
   :config (setq-default abbrev-mode t))
 
 (use-package ace-window
@@ -520,12 +487,19 @@ typical word processor."
 
 (use-package aggressive-indent
   :commands aggressive-indent-mode
-  :init (apply #'hook-into-modes 'aggressive-indent-mode lisp-mode-hooks))
+  :init (add-hooks '(((emacs-lisp-mode
+                       inferior-emacs-lisp-mode
+                       ielm-mode
+                       lisp-mode
+                       inferior-lisp-mode
+                       lisp-interaction-mode
+                       slime-repl-mode) . aggressive-indent-mode))))
 
 (use-package align
   :bind (("M-["   . align-code)
          ("C-c [" . align-regexp))
   :commands align
+  :builtin
   :preface
   (defun align-code (beg end &optional arg)
     (interactive "rP")
@@ -537,6 +511,7 @@ typical word processor."
   )
 
 (use-package ansi-color
+  :builtin
   :init (create-hook-helper colorize-compilation-buffer ()
           :hooks (compilation-filter-hook)
           (when (eq major-mode 'compilation-mode)
@@ -544,6 +519,7 @@ typical word processor."
               (ansi-color-apply-on-region (point-min) (point-max))))))
 
 (use-package autorevert
+  :builtin
   :commands global-auto-revert-mode
   :defer 4
   :config (global-auto-revert-mode t))
@@ -564,6 +540,7 @@ typical word processor."
   :init (bury-successful-compilation 1))
 
 (use-package cc-mode
+  :builtin
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
          ("\\.m\\'"                   . c-mode)
          ("\\.c\\'"                   . c-mode)
@@ -599,6 +576,7 @@ typical word processor."
   :init (add-to-list 'company-backends 'company-irony))
 
 (use-package compile
+  :builtin
   :bind (("C-c C-c" . compile)
          ("M-O"   . show-compilation))
   :preface
@@ -649,6 +627,7 @@ typical word processor."
          ([shift return] . crux-smart-open-line)))
 
 (use-package css-mode
+  :builtin
   :mode "\\.css\\'"
   :commands css-mode
   :config
@@ -669,6 +648,7 @@ typical word processor."
   )
 
 (use-package dired
+  :builtin
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          (("C-c C-c" . compile)
@@ -696,13 +676,15 @@ typical word processor."
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config (dumb-jump-mode))
 
-(use-package edebug)
+(use-package edebug
+  :builtin
+  )
 
 (use-package eldoc
+  :builtin
   :commands eldoc-mode
-  :init
-  (add-hook 'emacs-lisp-mode-hook #'eldoc-mode)
-  (add-hook 'eval-expression-minibuffer-setup-hook #'eldoc-mode)
+  :init (add-hooks '(((emacs-lisp-mode
+                       eval-expression-minibuffer-setup) . eldoc-mode)))
   :config
   (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
@@ -711,11 +693,13 @@ typical word processor."
   :mode ("\\.py\\'" . elpy-mode))
 
 (use-package emacs-lisp-mode
+  :builtin
   :bind (("M-." . find-function-at-point)
          ("M-&" . complete-symbol))
   :interpreter (("emacs" . emacs-lisp-mode)))
 
 (use-package erc
+  :builtin
   :bind ("C-x r c" . erc))
 
 (use-package esh-help
@@ -727,10 +711,12 @@ typical word processor."
           (eldoc-mode)))
 
 (use-package eshell
+  :builtin
   :bind (("C-c s" . eshell))
   :commands (eshell eshell-command))
 
 (use-package eshell-extras
+  :builtin
   :after eshell)
 
 (use-package eshell-prompt-extras
@@ -738,6 +724,7 @@ typical word processor."
   :init (setq eshell-prompt-function 'epe-theme-lambda))
 
 (use-package ess-site
+  :name "ess"
   :commands R)
 
 (use-package esup
@@ -757,12 +744,15 @@ typical word processor."
   :init (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
 (use-package flyspell
+  :builtin
   :commands (flyspell-mode flyspell-prog-mode)
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode))
 
-(use-package ggtags)
+(use-package ggtags
+  :builtin
+  )
 
 (use-package ghc)
 
@@ -773,6 +763,7 @@ typical word processor."
                        gist-region-or-buffer-private))
 
 (use-package gnus
+  :builtin
   :commands gnus
   :bind (("C-M-g" . gnus) ("C-x n u" . gnus))
   :init
@@ -786,11 +777,13 @@ typical word processor."
   :mode "\\.go\\'")
 
 (use-package grep
+  :builtin
   :bind (("M-s d" . find-grep-dired)
          ("M-s F" . find-grep)
          ("M-s G" . grep)))
 
 (use-package gud
+  :builtin
   :commands gud-gdb
   :bind (("C-. g" . show-debugger)
          ("<f9>" . gud-cont)
@@ -805,8 +798,12 @@ typical word processor."
   :mode "\\.hs\\'")
 
 (use-package hideshow
+  :builtin
   :commands hs-minor-mode
-  :init (apply #'hook-into-modes 'hs-minor-mode '(c-mode-common-hook lisp-mode-hook emacs-lisp-mode-hook java-mode-hook)))
+  :init (add-hooks '(((c-mode-common
+                       lisp-mode
+                       emacs-lisp-mode
+                       java-mode) . hs-minor-mode))))
 
 (use-package hideshowvis
   :disabled
@@ -816,6 +813,7 @@ typical word processor."
   )
 
 (use-package hippie-exp
+  :builtin
   :bind (("M-/" . hippie-expand)))
 
 (use-package hydra
@@ -828,9 +826,11 @@ typical word processor."
   )
 
 (use-package ibuffer
+  :builtin
   :bind ("C-x b" . ibuffer))
 
 (use-package iedit
+  :builtin
   :bind (("C-;" . iedit-mode)
          :map help-map ("C-;" . iedit-mode-toggle-on-function)
          :map esc-map ("C-;" . iedit-mode-toggle-on-function)
@@ -854,11 +854,7 @@ typical word processor."
 
 (use-package irony
   :commands irony-mode
-  :init
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
-  )
+  :init (add-hooks '(((c++-mode c-mode objc-mode) . irony-mode))))
 
 (use-package irony-eldoc
   :commands irony-eldoc
@@ -899,7 +895,9 @@ typical word processor."
   :bind (("C-x k" . kill-or-bury-alive)
          ("C-c r" . kill-or-bury-alive-purge-buffers)))
 
-(use-package lisp-mode)
+(use-package lisp-mode
+  :builtin
+  )
 
 (use-package lsp-mode
   :commands lsp-mode
@@ -935,10 +933,10 @@ typical word processor."
   :commands minimap-mode)
 
 (use-package mmm-mode
-  :disabled
-  :demand
+  :commands mmm-mode
   :config
   (use-package mmm-auto
+    :builtin
     :demand))
 
 (use-package move-text
@@ -967,6 +965,7 @@ typical word processor."
   :commands notmuch)
 
 (use-package org
+  :builtin
   ;; :mode "\\.\\(org\\)\\'"
   :commands org-capture
   :bind ("C-c c" . org-capture)
@@ -987,6 +986,10 @@ typical word processor."
      (clojure . t)
      (sh . t)))
   (use-package ox-latex
+    :builtin
+    :demand)
+  (use-package ox-pandoc
+    :builtin
     :demand)
   )
 
@@ -996,13 +999,12 @@ typical word processor."
 
 (use-package page-break-lines
   :commands page-break-lines-mode
-  :init
-  (add-hook 'doc-mode-hook 'page-break-lines-mode)
-  (add-hook 'help-mode-hook 'page-break-lines-mode)
-  (add-hook 'emacs-lisp-mode-hook 'page-break-lines-mode)
-  )
+  :init (add-hooks '(((doc-mode
+                       help-mode
+                       emacs-lisp-mode) . page-break-lines-mode))))
 
 (use-package paren
+  :builtin
   :demand
   :disabled
   :config (show-paren-mode 1))
@@ -1016,11 +1018,12 @@ typical word processor."
 
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                        compilation-read-command))))
+                                   compilation-read-command))))
 
   (projectile-global-mode)
 
   (use-package easymenu
+    :builtin
     :demand
     :config
 
@@ -1071,19 +1074,33 @@ typical word processor."
   )
 
 (use-package proof-site
+  :name "proofgeneral"
   :demand)
 
 (use-package python-mode
+  :builtin
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
 
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode
-  :init (apply #'hook-into-modes 'rainbow-delimiters-mode lisp-mode-hooks))
+  :init (add-hooks '(((emacs-lisp-mode
+                       inferior-emacs-lisp-mode
+                       ielm-mode
+                       lisp-mode
+                       inferior-lisp-mode
+                       lisp-interaction-mode
+                       slime-repl-mode) . rainbow-delimiters-mode))))
 
 (use-package rainbow-mode
   :commands rainbow-mode
-  :init (apply #'hook-into-modes 'rainbow-mode '(css-mode-hook html-mode-hook sass-mode-hook)))
+  :init (add-hooks '(((emacs-lisp-mode
+                       inferior-emacs-lisp-mode
+                       ielm-mode
+                       lisp-mode
+                       inferior-lisp-mode
+                       lisp-interaction-mode
+                       slime-repl-mode) . rainbow-mode))))
 
 (use-package realgud
   :commands (realgud:jdb))
@@ -1109,6 +1126,7 @@ typical word processor."
   (rtags-enable-standard-keybindings c-mode-base-map "\C-cr"))
 
 (use-package ruby-mode
+  :builtin
   :mode ("\\.rb\\'" . ruby-mode)
   :interpreter ("ruby" . ruby-mode))
 
@@ -1119,11 +1137,13 @@ typical word processor."
   :mode "\\.sass\\'")
 
 (use-package savehist
+  :builtin
   :defer 4
   :commands savehist-mode
   :config (savehist-mode 1))
 
 (use-package saveplace
+  :builtin
   :commands save-place-mode
   :defer 5
   :config (save-place-mode t))
@@ -1132,10 +1152,12 @@ typical word processor."
   :mode "\\.scss\\'")
 
 (use-package semantic
+  :builtin
   :disabled
   )
 
 (use-package sh-script
+  :builtin
   :preface
   (defun shell-command-at-point ()
     (interactive)
@@ -1151,6 +1173,7 @@ typical word processor."
   )
 
 (use-package shell
+  :builtin
   :commands (shell shell-mode)
   :bind ("C-c C-s" . shell)
   :init
@@ -1158,6 +1181,7 @@ typical word processor."
   )
 
 (use-package shell-script-mode
+  :builtin
   :commands shell-script-mode
   :mode (("\\.zsh\\'" . shell-script-mode)))
 
@@ -1170,18 +1194,33 @@ typical word processor."
   :init (smart-hungry-delete-add-default-hooks))
 
 (use-package smart-tabs-mode
+  :builtin
+  :disabled
   :init (add-hook 'prog-mode-hook 'smart-tabs-mode)
   :commands smart-tabs-mode)
 
 (use-package smartparens
-  :commands smartparens-mode
+  :commands (smartparens-mode show-smartparens-mode)
   :init
   (setq sp-base-key-bindings (quote paredit))
-  (apply #'hook-into-modes 'smartparens-mode lisp-mode-hooks)
-  (apply #'hook-into-modes 'show-smartparens-mode lisp-mode-hooks)
-  (add-hook 'eval-expression-minibuffer-setup-hook #'smartparens-mode)
+  (add-hooks '(((emacs-lisp-mode
+                 inferior-emacs-lisp-mode
+                 ielm-mode
+                 lisp-mode
+                 inferior-lisp-mode
+                 lisp-interaction-mode
+                 slime-repl-mode
+                 eval-expression-minibuffer-setup) . smartparens-mode)))
+  (add-hooks '(((emacs-lisp-mode
+                 inferior-emacs-lisp-mode
+                 ielm-mode
+                 lisp-mode
+                 inferior-lisp-mode
+                 lisp-interaction-mode
+                 slime-repl-mode) . show-smartparens-mode)))
   :config
   (use-package smartparens-config
+    :builtin
     :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
   )
@@ -1194,6 +1233,7 @@ typical word processor."
          ("\C-r" . swiper)))
 
 (use-package term
+  :builtin
   :preface
   (defun my-term ()
     (interactive)
@@ -1234,11 +1274,13 @@ typical word processor."
          ("\\.jsp\\'" . web-mode)))
 
 (use-package which-func
+  :builtin
   :commands which-function-mode
   :defer 1
   :config (which-function-mode t))
 
 (use-package which-key
+  :builtin
   :commands which-key-mode
   :diminish which-key-mode
   :config (which-key-mode))
@@ -1248,6 +1290,7 @@ typical word processor."
   :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package windmove
+  :builtin
   :defer 3
   :commands windmove-default-keybindings
   :config (windmove-default-keybindings 'meta))
@@ -1273,15 +1316,18 @@ typical word processor."
   :mode "\\.yaml\\'")
 
 (use-package elec-pair
+  :builtin
   :commands electric-pair-mode
   :defer 6
   :config (electric-pair-mode t))
 
 (use-package delsel
+  :builtin
   :defer 5
   :config (delete-selection-mode t))
 
 (use-package jka-compr
+  :builtin
   :defer 6
   :config
   ;; binary plist support
@@ -1298,10 +1344,12 @@ typical word processor."
   )
 
 (use-package time
+  :builtin
   :commands display-time
   :config (display-time))
 
 (use-package electric
+  :builtin
   :demand
   :config
   (electric-quote-mode t)
@@ -1309,6 +1357,7 @@ typical word processor."
   )
 
 (use-package prog-mode
+  :builtin
   :commands global-prettify-symbols-mode
   :init
   (global-prettify-symbols-mode)
@@ -1318,11 +1367,110 @@ typical word processor."
   :bind (([remap async-shell-command] . with-editor-async-shell-command)
          ([remap shell-command] . with-editor-shell-command))
   :commands with-editor-export-editor
-  :init
-  (add-hook 'shell-mode-hook  'with-editor-export-editor)
-  (add-hook 'term-exec-hook   'with-editor-export-editor)
-  (add-hook 'eshell-mode-hook 'with-editor-export-editor)
+  :init (add-hooks '(((shell-mode
+                       term-exec
+                       eshell-mode) . with-editor-export-editor)))
   )
+
+(use-package ycmd)
+
+(use-package elfeed
+  :commands elfeed)
+
+(use-package typescript-mode
+  :mode "\\.ts\\'")
+
+(use-package tide
+  :commands (tide-setup tide-hl-identifier-mode)
+  :init
+  (add-hook 'typescript-mode-hook 'tide-setup)
+  (add-hook 'typescript-mode-hook 'eldoc-mode)
+  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode)
+  )
+
+(use-package auctex)
+
+(use-package slime)
+
+(use-package editorconfig
+  :disabled
+  :commands editorconfig-mode
+  :init (editorconfig-mode t))
+
+(use-package copy-as-format
+  :bind (("C-c w s" . copy-as-format-slack)
+         ("C-c w g" . copy-as-format-github)))
+
+(use-package god-mode
+  :bind (("<escape>" . god-local-mode)))
+
+(use-package hydra
+  :demand)
+
+(use-package hookify
+  :commands hookify)
+
+(use-package electric-operator-mode
+  :disabled
+  :commands electric-operator-mode
+  :init (add-hook 'prog-mode-hook electric-operator-mode))
+
+(use-package bm
+  :disabled)
+
+(use-package anything
+  :commands anything)
+
+(use-package make-it-so
+  :disabled
+  :demand
+  :config (mis-config-default))
+
+(use-package cmake-ide
+  :disabled
+  :demand
+  :config (cmake-ide-setup))
+
+(use-package magithub
+  :after magit
+  :config (magithub-feature-autoinject t))
+
+(use-package restclient
+  :commands restclient-mode)
+
+(use-package skewer-less
+  :commands skewer-less-mode
+  :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
+
+(use-package sentence-navigation
+  :bind (("M-e" . sentence-nav-forward)
+         ("M-a" . sentence-nav-backward)))
+
+(use-package js3-mode
+  :commands js3-mode)
+
+(use-package firestarter
+  :disabled
+  :commands firestarter-mode
+  :init (firestart-mode))
+
+(use-package mode-line-debug
+  :disabled
+  :commands mode-line-debug-mode
+  :init (mode-line-debug-mode))
+
+(use-package popwin
+  :disabled
+  :commands popwin-mode
+  :init (popwin-mode 1))
+
+(use-package bash-completion
+  :commands bash-completion-dynamic-complete
+  :init (add-hook 'shell-dynamic-complete-functions
+                  'bash-completion-dynamic-complete))
+
+(use-package ipretty
+  :commands (ipretty-last-sexp))
 
 (provide 'default)
 ;;; default.el ends here

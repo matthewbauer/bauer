@@ -37,129 +37,23 @@ dict-dir ${aspellDicts.en}/lib/aspell
       installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
     };
 
-    myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-      let pkgs = ([
-        ghc
-        nix
-        notmuch
-        rtags
-      ] ++ (with emacsPackages; [
-        ess
-        proofgeneral
-      ]) ++ (with epkgs.elpaPackages; [
-        ace-window
-        aggressive-indent
-        all
-        auctex
-        avy
-        bug-hunter
-        chess
-        coffee-mode
-        company
-        csv-mode
-        diff-hl
-        dired-du
-        docbook
-        electric-spacing
-        ggtags
-        gnorb
-        gnugo
-        hook-helpers
-        hydra
-        ivy
-        js2-mode
-        json-mode
-        minimap
-        multishell
-        muse
-        org
-        other-frame-window
-        python
-        rainbow-mode
-        realgud
-        sed-mode
-        svg
-        undo-tree
-        vlf
-        w3
-        windresize
-      ]) ++ (with epkgs.melpaStablePackages; [
-        ag
-        bind-key
-        buffer-move
-        bury-successful-compilation
-        company-irony
-        counsel
-        counsel-dash
-        crux
-        diminish
-        dumb-jump
-        elpy
-        esup
-        expand-region
-        flycheck
-        flycheck-irony
-        gist
-        go-eldoc
-        go-mode
-        haml-mode
-        haskell-mode
-        helm
-        iedit
-        imenu-anywhere
-        imenu-list
-        indium
-        intero
-        irony
-        keyfreq
-        kill-or-bury-alive
-        less-css-mode
-        lua-mode
-        magit
-        markdown-mode
-        mediawiki
-        mmm-mode
-        move-text
-        multiple-cursors
-        mwim
-        neotree
-        org-bullets
-        page-break-lines
-        php-mode
-        projectile
-        rainbow-delimiters
-        restart-emacs
-        rg
-        rust-mode
-        sass-mode
-        scss-mode
-        shut-up
-        smart-tabs-mode
-        smartparens
-        swiper
-        tern
-        toc-org
-        use-package
-        web-mode
-        which-key
-        whitespace-cleanup-mode
-        wrap-region
-        xterm-color
-        yaml-mode
-      ]) ++ (with epkgs.melpaPackages; [
-        apropospriate-theme
-        browse-at-remote
-        c-eldoc
-        css-eldoc
-        dtrt-indent
-        esh-help
-        eshell-prompt-extras
-        jdee
-        lsp-mode
-        smart-hungry-delete
-        sudo-edit
-        try
-      ])); in pkgs ++ [(runCommand "default.el" {
+    myEmacs = let
+      epkgs' = builtins.fromJSON (builtins.readFile (runCommand "packages-list" { buildInputs = [ emacs ]; } ''
+        emacs -batch -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-2.3 -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-2.3 -l ${./get-packages.el} --eval "(get-packages \"${./default.el}\")" > $out
+      ''));
+    in customEmacsPackages.emacsWithPackages (epkgs: let
+        epkgs'' = map (x: if x == "rtags" then pkgs.rtags
+              else if x == "nix-mode" then pkgs.nix
+              else if x == "ghc" then pkgs.ghc
+              else if x == "notmuch" then pkgs.notmuch
+              else if builtins.hasAttr x epkgs.elpaPackages then builtins.getAttr x epkgs.elpaPackages
+              else if builtins.hasAttr x epkgs.melpaStablePackages then builtins.getAttr x epkgs.melpaStablePackages
+              else if builtins.hasAttr x epkgs.melpaPackages then builtins.getAttr x epkgs.melpaPackages
+              else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
+              else if builtins.hasAttr x emacsPackages then builtins.getAttr x emacsPackages
+              else builtins.getAttr x pkgs) epkgs';
+      in epkgs'' ++ [epkgs.melpaStablePackages.use-package
+      (runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
         gpg = gnupg1compat;
         jdeeserver = jdee-server;
@@ -169,14 +63,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
           cp ${./eshell-extras.el} $out/share/emacs/site-lisp/eshell-extras.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
-
-          # loadPaths=""
-          # for f in ${toString pkgs}; do
-          #   loadPaths="$loadPaths -L $f/share/emacs/site-lisp/elpa/* -L $f/share/emacs/site-lisp"
-          # done
-          # $emacs/bin/emacs --batch $loadPaths -f batch-byte-compile "$out/share/emacs/site-lisp/default.el"
-        '')]
-      );
+        '')]);
 
     bauer = buildEnv {
       buildInputs = [ makeWrapper ];
