@@ -520,11 +520,23 @@ typical word processor."
             (let ((inhibit-read-only t))
               (ansi-color-apply-on-region (point-min) (point-max))))))
 
+(use-package anything
+  :commands anything)
+
+(use-package auctex)
+
 (use-package autorevert
   :builtin
   :commands global-auto-revert-mode
   :defer 4
   :config (global-auto-revert-mode t))
+
+(use-package bash-completion
+  :commands bash-completion-dynamic-complete
+  :init (add-hook 'shell-dynamic-complete-functions
+                  'bash-completion-dynamic-complete))
+
+(use-package bm)
 
 (use-package browse-at-remote
   :commands browse-at-remote)
@@ -554,6 +566,11 @@ typical word processor."
     :commands c-turn-on-eldoc-mode
     :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode))
   )
+
+(use-package cmake-ide
+  :disabled
+  :commands cmake-ide-setup
+  :init (cmake-ide-setup))
 
 (use-package coffee-mode
   :mode (("\\.coffee\\'" . coffee-mode)))
@@ -603,6 +620,10 @@ typical word processor."
   (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output)
   )
 
+(use-package copy-as-format
+  :bind (("C-c w s" . copy-as-format-slack)
+         ("C-c w g" . copy-as-format-github)))
+
 (use-package counsel
   :commands (counsel-descbinds)
   :bind (([remap execute-extended-command] . counsel-M-x)
@@ -615,9 +636,6 @@ typical word processor."
          ("C-c k" . counsel-ag)
          ("C-x l" . counsel-locate)
 	 ("M-y" . counsel-yank-pop)))
-
-(use-package counsel-dash
-  :commands counsel-dash)
 
 (use-package counsel-projectile
   :after projectile
@@ -636,6 +654,11 @@ typical word processor."
   (use-package css-eldoc
     :demand)
   )
+
+(use-package delsel
+  :builtin
+  :defer 5
+  :config (delete-selection-mode t))
 
 (use-package diff-hl
   :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
@@ -682,6 +705,11 @@ typical word processor."
   :builtin
   )
 
+(use-package editorconfig
+  :commands editorconfig-mode
+  :diminish editorconfig-mode
+  :init (editorconfig-mode t))
+
 (use-package eldoc
   :builtin
   :commands eldoc-mode
@@ -690,6 +718,28 @@ typical word processor."
   :config
   (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
+
+(use-package elec-pair
+  :builtin
+  :commands electric-pair-mode
+  :defer 6
+  :config (electric-pair-mode t))
+
+(use-package electric
+  :builtin
+  :demand
+  :config
+  (electric-quote-mode t)
+  (electric-indent-mode t)
+  )
+
+(use-package electric-operator
+  :disabled
+  :commands electric-operator-mode
+  :init (add-hook 'prog-mode-hook 'electric-operator-mode))
+
+(use-package elfeed
+  :commands elfeed)
 
 (use-package elpy
   :mode ("\\.py\\'" . elpy-mode))
@@ -735,6 +785,11 @@ typical word processor."
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
 
+(use-package firestarter
+  :disabled
+  :commands firestarter-mode
+  :init (firestarter-mode))
+
 (use-package flycheck
   :commands global-flycheck-mode
   :init
@@ -778,6 +833,9 @@ typical word processor."
 (use-package go-mode
   :mode "\\.go\\'")
 
+(use-package god-mode
+  :bind (("<escape>" . god-local-mode)))
+
 (use-package grep
   :builtin
   :bind (("M-s d" . find-grep-dired)
@@ -817,6 +875,9 @@ typical word processor."
 (use-package hippie-exp
   :builtin
   :bind (("M-/" . hippie-expand)))
+
+(use-package hookify
+  :commands hookify)
 
 (use-package hydra
   :disabled
@@ -880,9 +941,29 @@ typical word processor."
   :bind (:map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
 
+(use-package jka-compr
+  :builtin
+  :defer 6
+  :config
+  ;; binary plist support
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update)
+  )
+
 (use-package js2-mode
   :config
   (js2-imenu-extras-setup))
+
+(use-package js3-mode
+  :commands js3-mode)
 
 (use-package json-mode)
 
@@ -927,6 +1008,15 @@ typical word processor."
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)))
 
+(use-package magithub
+  :after magit
+  :config (magithub-feature-autoinject t))
+
+(use-package make-it-so
+  :disabled
+  :demand
+  :config (mis-config-default))
+
 (use-package markdown-mode
   :mode "\\.\\(md\\|markdown\\)\\'"
   :commands markdown-mode)
@@ -940,6 +1030,10 @@ typical word processor."
   (use-package mmm-auto
     :builtin
     :demand))
+
+(use-package mode-line-debug
+  :commands mode-line-debug-mode
+  :init (mode-line-debug-mode))
 
 (use-package move-text
   :bind (([(meta shift up)] . move-text-up)
@@ -1013,6 +1107,17 @@ typical word processor."
 
 (use-package php-mode
   :mode "\\.php\\'")
+
+(use-package popwin
+  :commands popwin-mode
+  :init (popwin-mode 1))
+
+(use-package prog-mode
+  :builtin
+  :commands global-prettify-symbols-mode
+  :init
+  (global-prettify-symbols-mode)
+  )
 
 (use-package projectile
   :bind-keymap ("C-c p" . projectile-command-map)
@@ -1110,6 +1215,9 @@ typical word processor."
 (use-package restart-emacs
   :commands restart-emacs)
 
+(use-package restclient
+  :commands restclient-mode)
+
 (use-package rg
   :commands rg)
 
@@ -1158,6 +1266,10 @@ typical word processor."
   :disabled
   )
 
+(use-package sentence-navigation
+  :bind (("M-e" . sentence-nav-forward)
+         ("M-a" . sentence-nav-backward)))
+
 (use-package sh-script
   :builtin
   :preface
@@ -1186,6 +1298,12 @@ typical word processor."
   :builtin
   :commands shell-script-mode
   :mode (("\\.zsh\\'" . shell-script-mode)))
+
+(use-package skewer-less
+  :commands skewer-less-mode
+  :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
+
+(use-package slime)
 
 (use-package smart-hungry-delete
   :disabled
@@ -1261,12 +1379,28 @@ typical word processor."
   :commands tern-mode
   :init (add-hook 'js2-mode-hook 'tern-mode))
 
+(use-package tide
+  :commands (tide-setup tide-hl-identifier-mode)
+  :init
+  (add-hook 'typescript-mode-hook 'tide-setup)
+  (add-hook 'typescript-mode-hook 'eldoc-mode)
+  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode)
+  )
+
+(use-package time
+  :builtin
+  :commands display-time
+  :config (display-time))
+
 (use-package toc-org
   :commands toc-org-enable
   :init (add-hook 'org-mode-hook 'toc-org-enable))
 
 (use-package try
   :commands try)
+
+(use-package typescript-mode
+  :mode "\\.ts\\'")
 
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
@@ -1297,6 +1431,16 @@ typical word processor."
   :commands windmove-default-keybindings
   :config (windmove-default-keybindings 'meta))
 
+(use-package with-editor
+  :disabled
+  :bind (([remap async-shell-command] . with-editor-async-shell-command)
+         ([remap shell-command] . with-editor-shell-command))
+  :commands with-editor-export-editor
+  :init (add-hooks '(((shell-mode
+                       term-exec
+                       eshell-mode) . with-editor-export-editor)))
+  )
+
 (use-package xterm-color
   :defer 5
   :config
@@ -1317,161 +1461,7 @@ typical word processor."
 (use-package yaml-mode
   :mode "\\.yaml\\'")
 
-(use-package elec-pair
-  :builtin
-  :commands electric-pair-mode
-  :defer 6
-  :config (electric-pair-mode t))
-
-(use-package delsel
-  :builtin
-  :defer 5
-  :config (delete-selection-mode t))
-
-(use-package jka-compr
-  :builtin
-  :defer 6
-  :config
-  ;; binary plist support
-  (add-to-list 'jka-compr-compression-info-list
-               ["\\.plist$"
-                "converting text XML to binary plist"
-                "plutil"
-                ("-convert" "binary1" "-o" "-" "-")
-                "converting binary plist to text XML"
-                "plutil"
-                ("-convert" "xml1" "-o" "-" "-")
-                nil nil "bplist"])
-  (jka-compr-update)
-  )
-
-(use-package time
-  :builtin
-  :commands display-time
-  :config (display-time))
-
-(use-package electric
-  :builtin
-  :demand
-  :config
-  (electric-quote-mode t)
-  (electric-indent-mode t)
-  )
-
-(use-package prog-mode
-  :builtin
-  :commands global-prettify-symbols-mode
-  :init
-  (global-prettify-symbols-mode)
-  )
-
-(use-package with-editor
-  :disabled
-  :bind (([remap async-shell-command] . with-editor-async-shell-command)
-         ([remap shell-command] . with-editor-shell-command))
-  :commands with-editor-export-editor
-  :init (add-hooks '(((shell-mode
-                       term-exec
-                       eshell-mode) . with-editor-export-editor)))
-  )
-
 (use-package ycmd)
-
-(use-package elfeed
-  :commands elfeed)
-
-(use-package typescript-mode
-  :mode "\\.ts\\'")
-
-(use-package tide
-  :commands (tide-setup tide-hl-identifier-mode)
-  :init
-  (add-hook 'typescript-mode-hook 'tide-setup)
-  (add-hook 'typescript-mode-hook 'eldoc-mode)
-  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode)
-  )
-
-(use-package auctex)
-
-(use-package slime)
-
-(use-package editorconfig
-  :disabled
-  :commands editorconfig-mode
-  :init (editorconfig-mode t))
-
-(use-package copy-as-format
-  :bind (("C-c w s" . copy-as-format-slack)
-         ("C-c w g" . copy-as-format-github)))
-
-(use-package god-mode
-  :bind (("<escape>" . god-local-mode)))
-
-(use-package hookify
-  :commands hookify)
-
-(use-package electric-operator-mode
-  :disabled
-  :commands electric-operator-mode
-  :init (add-hook 'prog-mode-hook electric-operator-mode))
-
-(use-package bm
-  :disabled)
-
-(use-package anything
-  :commands anything)
-
-(use-package make-it-so
-  :disabled
-  :demand
-  :config (mis-config-default))
-
-(use-package cmake-ide
-  :disabled
-  :demand
-  :config (cmake-ide-setup))
-
-(use-package magithub
-  :after magit
-  :config (magithub-feature-autoinject t))
-
-(use-package restclient
-  :commands restclient-mode)
-
-(use-package skewer-less
-  :commands skewer-less-mode
-  :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
-
-(use-package sentence-navigation
-  :bind (("M-e" . sentence-nav-forward)
-         ("M-a" . sentence-nav-backward)))
-
-(use-package js3-mode
-  :commands js3-mode)
-
-(use-package firestarter
-  :disabled
-  :commands firestarter-mode
-  :init (firestart-mode))
-
-(use-package mode-line-debug
-  :disabled
-  :commands mode-line-debug-mode
-  :init (mode-line-debug-mode))
-
-(use-package popwin
-  :disabled
-  :commands popwin-mode
-  :init (popwin-mode 1))
-
-(use-package bash-completion
-  :commands bash-completion-dynamic-complete
-  :init (add-hook 'shell-dynamic-complete-functions
-                  'bash-completion-dynamic-complete))
-
-(use-package ipretty
-  :disabled
-  :commands (ipretty-last-sexp))
 
 (provide 'default)
 ;;; default.el ends here
