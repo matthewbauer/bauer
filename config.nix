@@ -2,6 +2,57 @@
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
 
+    rls = rustPlatform.buildRustPackage {
+      name = "rls";
+
+      src = fetchFromGitHub {
+        owner = "rust-lang-nursery";
+        repo = "rls";
+        rev = "931aba8d0ed2f84972acaada56b998babfb021a0";
+        sha256 = "1s5pffp45a6acnxhkb9k4pxb584nfbnd7qhaqckxng21i5bj9s9r";
+      };
+
+      buildInputs = [ openssl ];
+
+      depsSha256 = "0r4im0dcmil6zazbbc85xpxjv0fh0m6kpr1scjqyhqw11wdpv59c";
+    };
+
+    pls = pythonPackages.buildPythonPackage {
+      name = "pls";
+      src = fetchFromGitHub {
+        owner = "palantir";
+        repo = "python-language-server";
+        rev = "0.2.2";
+        sha256 = "1z8psnyzpfcfgz5ysnd50m14qr78kinl4vl6y54xv1ljgspz4xvs";
+      };
+    };
+
+    hls = haskell.lib.buildStackProject {
+      name = "hls";
+      buildInputs = [ ];
+      src = fetchFromGitHub {
+        owner = "alanz";
+        repo = "haskell-lsp";
+        rev = "ece7ab737810e924749be8bb034fea5243e74063";
+        sha256 = "0dkwrn0sv41dn4ap1yagm52c7ww283fxnsycbz8n0d2whj77dj7m";
+      };
+    };
+
+    jls = stdenv.mkDerivation {
+      name = "jls";
+      src = fetchurl {
+        url = "http://download.eclipse.org/jdtls/snapshots/jdt-language-server-0.2.0-201707061822.tar.gz";
+        sha256 = "05q65658ysrw4xcn5fhlp5xfqp70kwkzngdkhhw7vpxx18hb4dfd";
+      };
+      sourceRoot = ".";
+      installPhase = ''
+        mkdir $out
+        cp -r config_* features plugins $out
+      '';
+    };
+
+    gls = callPackage ./gls {};
+
     rEnv = pkgs.rWrapper.override {
       packages = with pkgs.rPackages; [
         # devtools
