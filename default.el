@@ -767,10 +767,13 @@ typical word processor."
   :bind (("C-c s" . eshell))
   :commands (eshell eshell-command))
 
-;; in local dir
 (use-package eshell-extras
+  :commands eshell-extras-setup
+  :after eshell
+  :config (eshell-extras-setup)
+  ;; in local dir
   :builtin
-  :after eshell)
+  )
 
 (use-package eshell-prompt-extras
   :commands epe-theme-lambda

@@ -55,23 +55,18 @@
   "Eshell extras"
   :group 'eshell)
 
-;; (setq eshell-new-buffer-name nil)
-
-;; (defun eshell-new (&rest args)
-;;   "Load a new eshell for the current directory.
-;; ARGS anything else Eshell needs."
-;;   (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
-
-;; (advice-add 'eshell :before 'eshell-new)
-
-(defun eshell-new (f &rest args)
+(defun eshell-new (&rest args)
   "Load a new eshell for the current directory.
-F original eshell.
 ARGS anything else Eshell needs."
-  (let ((eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
-    (apply f args)))
+  (interactive "P")
+  (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
 
-(advice-add 'eshell :around 'eshell-new)
+;; (defun eshell-new (f &rest args)
+;;   "Load a new eshell for the current directory.
+;; F original eshell.
+;; ARGS anything else Eshell needs."
+;;   (let ((eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
+;;     (apply f args)))
 
 (defun eshell/cd (&rest args)
   "Open each directory in a new buffer like dired.
@@ -80,7 +75,7 @@ ARGS to open if none provided assume HOME dir."
          (curdir (eshell/pwd))
          (newdir (or path "~")))
     (unless (equal curdir newdir)
-      (let ((default-directory (concat (expand-file-name newdir curdir) "/")))
+      (let ((default-directory (concat (directory-file-name (expand-file-name newdir curdir)) "/")))
         (if (file-directory-p default-directory)
             (let ((buffer
                    (get-buffer-create
@@ -93,10 +88,8 @@ ARGS to open if none provided assume HOME dir."
     nil))
 (put 'eshell/cd 'eshell-no-numeric-conversions t)
 
-(define-hook-helper eshell-mode ()
-  (define-key eshell-mode-map [(control ?u)] nil))
-
 (require 'em-rebind)
+
 (defun eshell-backward-kill-word (arg)
   "Delete the last word, unless it's part of the output.
 ARG number of words to kill."
@@ -106,18 +99,19 @@ ARG number of words to kill."
 	(backward-kill-word arg)
       (beep))))
 
-(add-to-list 'eshell-rebind-keys-alist
-             '([(control backspace)] . eshell-backward-kill-word))
-(add-to-list 'eshell-rebind-keys-alist
-             '([(meta backspace)] . eshell-backward-kill-word))
-(add-to-list 'eshell-rebind-keys-alist
-             '([(control delte)] . eshell-backward-kill-word))
-(add-to-list 'eshell-rebind-keys-alist
-             '([(meta delete)] . eshell-backward-kill-word))
-;; (add-to-list 'eshell-rebind-keys-alist
-;;              '([(backspace)] . eshell-delete-backward-char))
-;; (add-to-list 'eshell-rebind-keys-alist
-;;              '([(delete)] . eshell-delete-backward-char))
+;;;###autoload
+(defun eshell-extras-setup ()
+  "Setup eshell-extras advice, hooks, etc."
+  (advice-add 'eshell :before 'eshell-new)
+
+  (define-hook-helper eshell-mode ()
+    (define-key eshell-mode-map [(control ?u)] nil))
+
+  (add-to-list 'eshell-rebind-keys-alist
+               '([(control backspace)] . eshell-backward-kill-word))
+  (add-to-list 'eshell-rebind-keys-alist
+               '([(meta backspace)] . eshell-backward-kill-word))
+  )
 
 (provide 'eshell-extras)
 ;;; eshell-extras.el ends here
