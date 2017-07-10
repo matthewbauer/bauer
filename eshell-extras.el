@@ -72,7 +72,7 @@ ARGS to open if none provided assume HOME dir."
          (curdir (eshell/pwd))
          (newdir (or path "~")))
     (unless (equal curdir newdir)
-      (let ((default-directory (expand-file-name newdir curdir)))
+      (let ((default-directory (concat (expand-file-name newdir curdir) "/")))
         (if (file-directory-p default-directory)
             (let ((buffer
                    (get-buffer-create
@@ -87,6 +87,25 @@ ARGS to open if none provided assume HOME dir."
 
 (define-hook-helper eshell-mode ()
   (define-key eshell-mode-map [(control ?u)] nil))
+
+(require 'em-rebind)
+(defun eshell-backward-kill-word (arg)
+  "Delete the last word, unless it's part of the output.
+ARG number of words to kill."
+  (interactive "p")
+  (let ((word-point (save-excursion (forward-word (- arg)) (point))))
+    (if (eshell-point-within-input-p word-point)
+	(backward-kill-word arg)
+      (beep))))
+
+(add-to-list 'eshell-rebind-keys-alist
+             '([(control backspace)] . eshell-backward-kill-word))
+(add-to-list 'eshell-rebind-keys-alist
+             '([(meta backspace)] . eshell-backward-kill-word))
+;; (add-to-list 'eshell-rebind-keys-alist
+;;              '([(backspace)] . eshell-delete-backward-char))
+;; (add-to-list 'eshell-rebind-keys-alist
+;;              '([(delete)] . eshell-delete-backward-char))
 
 (provide 'eshell-extras)
 ;;; eshell-extras.el ends here
