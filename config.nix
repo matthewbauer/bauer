@@ -40,8 +40,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
     myEmacs = let
       epkgs''' = runCommand "packages-list" { buildInputs = [ emacs ]; } ''
         emacs -batch \
-          -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/* \ # */
-          -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/* \ # */
+          -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+          -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./get-packages.el} \
           --eval "(get-packages \"${./default.el}\")))" > $out
       '';

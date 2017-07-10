@@ -1407,9 +1407,6 @@ typical word processor."
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
 
-(use-package hydra
-  :demand)
-
 (use-package hookify
   :commands hookify)
 
