@@ -1,5 +1,3 @@
-#!/usr/bin/env emacs --script
-
 (defun get-packages (script)
   (require 'use-package)
 
@@ -11,9 +9,11 @@
   ;; (advice-add 'use-package-load-name :before #'register-package)
 
   (add-to-list 'use-package-keywords :builtin)
-  (defun use-package-handler/:builtin (name keyword arg rest state))
+  (defun use-package-handler/:builtin (name keyword arg rest state)
+    (use-package-process-keywords name rest state))
   (add-to-list 'use-package-keywords :name)
-  (defun use-package-handler/:name (name keyword arg rest state))
+  (defun use-package-handler/:name (name keyword arg rest state)
+    (use-package-process-keywords name rest state))
 
   (defun register-package (name &rest args)
     (unless (or (member :disabled args)
@@ -39,25 +39,16 @@
       body))
   (advice-add 'use-package-handler/:defer :around #'never-run)
 
-  (defun load-name-noerror (orig-fun name &optional noerror)
-    ;; (funcall orig-fun name t)
-    t
-    )
+  (defun load-name-noerror (orig-fun name &optional noerror) t)
 
   (advice-add 'use-package-load-name :around #'load-name-noerror)
-
-  ;; (defun autoload-noerror (keymap-symbol package override)
-  ;;   )
-  ;; (advice-add 'use-package-autoload-keymap :around #'autoload-noerror)
 
   (setq use-package-always-demand t)
   (setq use-package-always-defer nil)
 
   (load script)
 
-  ;; (advice-remove 'use-package-load-name #'register-package)
-  (advice-remove 'use-package #'register-package)
-
   (require 'json)
   (princ (json-encode package-list))
-  )
+
+  package-list)

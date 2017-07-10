@@ -10,9 +10,11 @@
   (require 'use-package))
 
 (add-to-list 'use-package-keywords :builtin)
-(defun use-package-handler/:builtin (name keyword arg rest state))
+(defun use-package-handler/:builtin (name keyword arg rest state)
+  (use-package-process-keywords name rest state))
 (add-to-list 'use-package-keywords :name)
-(defun use-package-handler/:name (name keyword arg rest state))
+(defun use-package-handler/:name (name keyword arg rest state)
+  (use-package-process-keywords name rest state))
 
 (use-package apropospriate-theme
   :demand
@@ -1364,6 +1366,7 @@ typical word processor."
   )
 
 (use-package with-editor
+  :disabled
   :bind (([remap async-shell-command] . with-editor-async-shell-command)
          ([remap shell-command] . with-editor-shell-command))
   :commands with-editor-export-editor
@@ -1470,6 +1473,7 @@ typical word processor."
                   'bash-completion-dynamic-complete))
 
 (use-package ipretty
+  :disabled
   :commands (ipretty-last-sexp))
 
 (provide 'default)

@@ -38,9 +38,14 @@ dict-dir ${aspellDicts.en}/lib/aspell
     };
 
     myEmacs = let
-      epkgs' = builtins.fromJSON (builtins.readFile (runCommand "packages-list" { buildInputs = [ emacs ]; } ''
-        emacs -batch -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-2.3 -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-2.3 -l ${./get-packages.el} --eval "(get-packages \"${./default.el}\")" > $out
-      ''));
+      epkgs''' = runCommand "packages-list" { buildInputs = [ emacs ]; } ''
+        emacs -batch \
+          -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/* \ # */
+          -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/* \ # */
+          -l ${./get-packages.el} \
+          --eval "(get-packages \"${./default.el}\")))" > $out
+      '';
+      epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
     in customEmacsPackages.emacsWithPackages (epkgs: let
         epkgs'' = map (x: if x == "rtags" then pkgs.rtags
               else if x == "nix-mode" then pkgs.nix
