@@ -1300,6 +1300,7 @@ typical word processor."
   :mode (("\\.zsh\\'" . shell-script-mode)))
 
 (use-package skewer-less
+  :disabled
   :commands skewer-less-mode
   :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
 
