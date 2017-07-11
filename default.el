@@ -169,8 +169,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
     ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
      "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar")))
- '(eshell-visual-options (quote (("git" "--paginate"))))
- '(eshell-visual-subcommands (quote (("git" "log" "diff" "show"))))
  '(eval-expression-debug-on-error t)
  '(explicit-bash-args (quote ("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash")))
  '(explicit-shell-file-name "bash")
