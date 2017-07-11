@@ -215,8 +215,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(imenu-auto-rescan t)
  '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
  '(indicate-empty-lines t)
- '(indent-tabs-mode nil)
- '(indicate-empty-lines t)
  '(inhibit-startup-screen t)
  '(inhibit-startup-echo-area-message t)
  '(initial-major-mode (quote fundamental-mode))
@@ -1232,6 +1230,7 @@ typical word processor."
   ;; Start rtags upon entering a C/C++ file
   (create-hook-helper rtags-start ()
     :hooks (c-mode-common-hook c++-mode-common-hook)
+    (require 'tramp)
     (when (not (tramp-tramp-file-p (buffer-file-name (current-buffer))))
       (rtags-start-process-unless-running)))
 

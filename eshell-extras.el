@@ -91,12 +91,17 @@ ARGS to open if none provided assume HOME dir."
 (require 'em-rebind)
 
 (defun eshell-backward-kill-word (arg)
-  "Delete the last word, unless it's part of the output.
+  "Delete the last word, or else everything until the beginning of line.
 ARG number of words to kill."
   (interactive "p")
-  (let ((word-point (save-excursion (forward-word (- arg)) (point))))
+  (let ((word-point (save-excursion
+                      (forward-word (- arg))
+                      (point))))
     (if (eshell-point-within-input-p word-point)
 	(backward-kill-word arg)
+      (kill-region (point) (save-excursion
+                             (eshell-bol)
+                             (point)))
       (beep))))
 
 ;;;###autoload
@@ -105,7 +110,8 @@ ARG number of words to kill."
   (advice-add 'eshell :before 'eshell-new)
 
   (define-hook-helper eshell-mode ()
-    (define-key eshell-mode-map [(control ?u)] nil))
+    (define-key eshell-mode-map [(control ?u)] nil)
+    (define-key eshell-input-keymap [(control ?u)] nil))
 
   (add-to-list 'eshell-rebind-keys-alist
                '([(control backspace)] . eshell-backward-kill-word))
