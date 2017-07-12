@@ -101,6 +101,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(dired-recursive-deletes 'top)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
+ '(dired-subtree-use-backgrounds nil)
  '(dtrt-indent-verbosity 0)
  '(display-buffer-alist
    (\`
@@ -1462,6 +1463,10 @@ typical word processor."
   :mode "\\.yaml\\'")
 
 (use-package ycmd)
+
+(use-package dired-subtree
+  :bind (:map dired-mode-map
+	      ("TAB" . dired-subtree-cycle)))
 
 (provide 'default)
 ;;; default.el ends here
