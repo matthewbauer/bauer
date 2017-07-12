@@ -93,8 +93,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         emacs -batch \
           -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-          -l ${./get-packages.el} \
-          --eval "(get-packages \"${./default.el}\")))" > $out
+          -l ${./use-package-list.el} \
+          --eval "(use-package-list \"${./default.el}\")))" > $out
       '';
       epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
     in customEmacsPackages.emacsWithPackages (epkgs: let
@@ -118,6 +118,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
           mkdir -p $out/share/emacs/site-lisp
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
           cp ${./eshell-extras.el} $out/share/emacs/site-lisp/eshell-extras.el
+          cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '')]);
 

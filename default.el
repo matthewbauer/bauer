@@ -97,11 +97,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(debug-on-signal t)
  '(dired-dwim-target t)
  '(dired-omit-verbose nil)
+ '(dired-omit-files "^\\.")
  '(dired-recursive-copies 'always)
  '(dired-recursive-deletes 'top)
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote top))
- '(dired-subtree-use-backgrounds nil)
+ '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
  '(display-buffer-alist
    (\`
@@ -216,6 +217,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(imenu-auto-rescan t)
  '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
  '(indicate-empty-lines t)
+ '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(inhibit-startup-echo-area-message t)
  '(initial-major-mode (quote fundamental-mode))
@@ -521,6 +523,7 @@ typical word processor."
   :config (global-auto-revert-mode t))
 
 (use-package bash-completion
+  :disabled
   :commands bash-completion-dynamic-complete
   :init (add-hook 'shell-dynamic-complete-functions
                   'bash-completion-dynamic-complete))
@@ -663,17 +666,26 @@ typical word processor."
 
 (use-package dired
   :builtin
+  :preface
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
          ("W" . browse-url-of-dired-file)
          ("M-!" . async-shell-command))
+  :init
+  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   )
 
+(use-package dired-column
+  :builtin
+  :after dired
+  :bind (:map dired-mode-map
+              ("o" . dired-column-find-file)))
+
 (use-package dired-x
+  :builtin
   :commands dired-omit-mode
-  :disabled
   :init
   ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook 'dired-omit-mode)

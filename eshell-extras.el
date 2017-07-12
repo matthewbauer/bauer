@@ -61,13 +61,6 @@ ARGS anything else Eshell needs."
   (interactive "P")
   (setq-local eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
 
-;; (defun eshell-new (f &rest args)
-;;   "Load a new eshell for the current directory.
-;; F original eshell.
-;; ARGS anything else Eshell needs."
-;;   (let ((eshell-buffer-name (concat "*eshell<" (expand-file-name default-directory) ">*")))
-;;     (apply f args)))
-
 (defun eshell/cd (&rest args)
   "Open each directory in a new buffer like dired.
 ARGS to open if none provided assume HOME dir."
@@ -105,6 +98,7 @@ ARG number of words to kill."
       (beep))))
 
 (defun eshell-kill-whole-line ()
+  "Kill the whole line except for the eshell prompt."
   (interactive)
   (kill-region (point) (save-excursion
                          (eshell-bol)
@@ -116,16 +110,14 @@ ARG number of words to kill."
   "Setup eshell-extras advice, hooks, etc."
   (advice-add 'eshell :before 'eshell-new)
 
-  (define-hook-helper eshell-mode ()
-    (define-key eshell-mode-map [(control ?u)] nil)
-    (define-key eshell-input-keymap [(control ?u)] nil))
-
   (add-to-list 'eshell-rebind-keys-alist
                '([(control backspace)] . eshell-backward-kill-word))
   (add-to-list 'eshell-rebind-keys-alist
                '([(meta backspace)] . eshell-backward-kill-word))
   (add-to-list 'eshell-rebind-keys-alist
                '([(control shift backspace)] . eshell-kill-whole-line))
+  (add-to-list 'eshell-rebind-keys-alist
+               '([(control ?e)] . end-of-line))
   )
 
 (provide 'eshell-extras)
