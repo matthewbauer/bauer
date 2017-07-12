@@ -416,6 +416,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
 (global-set-key (kbd "C-c l") 'browse-url-at-point)
 (global-set-key (kbd "C-x 5 3") 'iconify-frame)
+(global-set-key (kbd "C-x 5 4") 'toggle-frame-fullscreen)
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
 (global-set-key (kbd "C-c v") 'customize-variable)
@@ -495,18 +496,9 @@ typical word processor."
                        slime-repl-mode) . aggressive-indent-mode))))
 
 (use-package align
-  :bind (("M-["   . align-code)
-         ("C-c [" . align-regexp))
+  :bind (("C-c [" . align-regexp))
   :commands align
   :builtin
-  :preface
-  (defun align-code (beg end &optional arg)
-    (interactive "rP")
-    (if (null arg)
-        (align beg end)
-      (let ((end-mark (copy-marker end)))
-        (indent-region beg end-mark nil)
-        (align beg end-mark))))
   )
 
 (use-package ansi-color
@@ -525,7 +517,7 @@ typical word processor."
 (use-package autorevert
   :builtin
   :commands global-auto-revert-mode
-  :defer 4
+  :demand
   :config (global-auto-revert-mode t))
 
 (use-package bash-completion
@@ -553,11 +545,11 @@ typical word processor."
 (use-package cc-mode
   :builtin
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
-         ("\\.m\\'"                   . c-mode)
-         ("\\.c\\'"                   . c-mode)
-         ("\\.cpp\\'"                 . c++-mode)
-         ("\\.c++\\'"                 . c++-mode)
-         ("\\.mm\\'"                  . c++-mode))
+         ("\\.m\\'" . c-mode)
+         ("\\.c\\'" . c-mode)
+         ("\\.cpp\\'" . c++-mode)
+         ("\\.c++\\'" . c++-mode)
+         ("\\.mm\\'" . c++-mode))
   :config
   (use-package c-eldoc
     :commands c-turn-on-eldoc-mode
@@ -594,7 +586,7 @@ typical word processor."
 (use-package compile
   :builtin
   :bind (("C-c C-c" . compile)
-         ("M-O"   . show-compilation))
+         ("M-O" . show-compilation))
   :preface
   (defun show-compilation ()
     (interactive)
@@ -632,7 +624,7 @@ typical word processor."
          ("C-c j" . counsel-git-grep)
          ("C-c k" . counsel-ag)
          ("C-x l" . counsel-locate)
-	 ("M-y" . counsel-yank-pop)))
+         ("M-y" . counsel-yank-pop)))
 
 (use-package counsel-projectile
   :after projectile
@@ -654,7 +646,7 @@ typical word processor."
 
 (use-package delsel
   :builtin
-  :defer 5
+  :demand
   :config (delete-selection-mode t))
 
 (use-package diff-hl
@@ -673,9 +665,10 @@ typical word processor."
   :builtin
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
-         (("C-c C-c" . compile)
-          ("r" . browse-url-of-dired-file)
-          ("M-!" . async-shell-command)))
+         ("C-c C-c" . compile)
+         ("r" . browse-url-of-dired-file)
+         ("W" . browse-url-of-dired-file)
+         ("M-!" . async-shell-command))
   )
 
 (use-package dired-x
@@ -688,7 +681,7 @@ typical word processor."
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
-  :defer 3
+  :demand
   :config (dtrt-indent-mode 1))
 
 (use-package dumb-jump
@@ -719,7 +712,7 @@ typical word processor."
 (use-package elec-pair
   :builtin
   :commands electric-pair-mode
-  :defer 6
+  :demand
   :config (electric-pair-mode t))
 
 (use-package electric
@@ -823,7 +816,8 @@ typical word processor."
 (use-package gnus
   :builtin
   :commands gnus
-  :bind (("C-M-g" . gnus) ("C-x n u" . gnus))
+  :bind (("C-M-g" . gnus)
+         ("C-x n u" . gnus))
   :init
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode))
 
@@ -944,7 +938,7 @@ typical word processor."
 
 (use-package jka-compr
   :builtin
-  :defer 6
+  :demand
   :config
   ;; binary plist support
   (add-to-list 'jka-compr-compression-info-list
@@ -1055,6 +1049,7 @@ typical word processor."
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
 
 (use-package neotree
+  :disabled
   :bind (("<f8>" . neotree-toggle)))
 
 (use-package nix-mode
@@ -1113,7 +1108,11 @@ typical word processor."
 (use-package popwin
   :bind-keymap ("C-z" . popwin:keymap)
   :commands popwin-mode
-  :init (popwin-mode 1))
+  :init (popwin-mode 1)
+  :config
+  (push '(compilation-mode :noselect t) popwin:special-display-config)
+  (push '(term-mode :position :top :height 16 :stick t) popwin:special-display-config)
+  )
 
 (use-package prog-mode
   :builtin
@@ -1177,11 +1176,7 @@ typical word processor."
         "--"
         ["Project info" projectile-project-info]
         ["About" projectile-version]
-        )
-      )
-    )
-
-  )
+        ))))
 
 (use-package proof-site
   :name "proofgeneral"
@@ -1252,14 +1247,14 @@ typical word processor."
 
 (use-package savehist
   :builtin
-  :defer 4
+  :demand
   :commands savehist-mode
   :config (savehist-mode 1))
 
 (use-package saveplace
   :builtin
   :commands save-place-mode
-  :defer 5
+  :demand
   :config (save-place-mode t))
 
 (use-package scss-mode
@@ -1412,13 +1407,13 @@ typical word processor."
 
 (use-package which-func
   :builtin
+  :demand
   :commands which-function-mode
-  :defer 1
   :config (which-function-mode t))
 
 (use-package which-key
-  :builtin
   :commands which-key-mode
+  :demand
   :diminish which-key-mode
   :config (which-key-mode))
 
@@ -1428,7 +1423,7 @@ typical word processor."
 
 (use-package windmove
   :builtin
-  :defer 3
+  :demand
   :commands windmove-default-keybindings
   :config (windmove-default-keybindings 'meta))
 
@@ -1443,7 +1438,7 @@ typical word processor."
   )
 
 (use-package xterm-color
-  :defer 5
+  :demand
   :config
   ;; Comint and Shell
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
@@ -1464,9 +1459,20 @@ typical word processor."
 
 (use-package ycmd)
 
+(use-package direx
+  :bind (("C-x C-j" . direx:jump-to-directory))
+  :config
+  (push '(direx:direx-mode :position left :width 25 :dedicated t)
+	popwin:special-display-config))
+
+(use-package ranger
+  :commands deer)
+
 (use-package dired-subtree
+  :after dired
   :bind (:map dired-mode-map
-	      ("TAB" . dired-subtree-cycle)))
+	      ("<tab>" . dired-subtree-toggle)
+	      ("<backtab>" . dired-subtree-cycle)))
 
 (provide 'default)
 ;;; default.el ends here
