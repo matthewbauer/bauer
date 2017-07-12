@@ -377,6 +377,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package add-hooks
   :commands (add-hooks add-hooks-pair))
 
+(require 'f)
+
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
 ;; these should be disabled before Emsacs displays the frame
@@ -667,6 +669,28 @@ typical word processor."
 (use-package dired
   :builtin
   :preface
+  (defun dired-collapse-directories ()
+    "Collapse single-child directories."
+    (let ((inhibit-read-only t))
+      (save-excursion
+        (goto-char (point-min))
+        (while (not (eobp))
+          (save-excursion
+            (when (and (looking-at-p dired-re-dir)
+                       (not (eolp)))
+              (let ((path (dired-get-filename t t)) files)
+                (while (and (file-directory-p path)
+                            (setq files (f-entries path))
+                            (= 1 (length files)))
+                  (setq path (concat path "/" (f-filename (car files)))))
+                (when (> (length path) 1)
+                  (dired-move-to-filename)
+                  (forward-char)
+                  (delete-region (point) (line-end-position))
+                  (save-excursion
+                    (insert path))
+                  (delete-char -1)))))
+          (forward-line 1)))))
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
@@ -675,6 +699,7 @@ typical word processor."
          ("M-!" . async-shell-command))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
+  (add-hook 'dired-after-readin-hook 'dired-collapse-directories)
   )
 
 (use-package dired-column
