@@ -104,6 +104,13 @@ ARG number of words to kill."
                              (point)))
       (beep))))
 
+(defun eshell-kill-whole-line ()
+  (interactive)
+  (kill-region (point) (save-excursion
+                         (eshell-bol)
+                         (point)))
+  )
+
 ;;;###autoload
 (defun eshell-extras-setup ()
   "Setup eshell-extras advice, hooks, etc."
@@ -117,6 +124,8 @@ ARG number of words to kill."
                '([(control backspace)] . eshell-backward-kill-word))
   (add-to-list 'eshell-rebind-keys-alist
                '([(meta backspace)] . eshell-backward-kill-word))
+  (add-to-list 'eshell-rebind-keys-alist
+               '([(control shift backspace)] . eshell-kill-whole-line))
   )
 
 (provide 'eshell-extras)
