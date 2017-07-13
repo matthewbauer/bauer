@@ -97,6 +97,21 @@ ARG number of words to kill."
                              (point)))
       (beep))))
 
+
+(defun eshell-backward-kill-sexp (arg)
+  "Delete the last sexp, or else everything until the beginning of line.
+ARG number of words to kill."
+  (interactive "p")
+  (let ((word-point (save-excursion
+                      (forward-sexp (- arg))
+                      (point))))
+    (if (eshell-point-within-input-p word-point)
+	(backward-kill-sexp arg)
+      (kill-region (point) (save-excursion
+                             (eshell-bol)
+                             (point)))
+      (beep))))
+
 (defun eshell-kill-whole-line ()
   "Kill the whole line except for the eshell prompt."
   (interactive)
@@ -115,10 +130,24 @@ ARG number of words to kill."
   (add-to-list 'eshell-rebind-keys-alist
                '([(meta backspace)] . eshell-backward-kill-word))
   (add-to-list 'eshell-rebind-keys-alist
+               '([(control meta backspace)] . eshell-backward-kill-sexp))
+  (add-to-list 'eshell-rebind-keys-alist
                '([(control shift backspace)] . eshell-kill-whole-line))
   (add-to-list 'eshell-rebind-keys-alist
                '([(control ?e)] . end-of-line))
   )
+
+(defun eshell/git (&rest args)
+  (cond
+   ((or (null args)
+        (and (string= (car args) "status") (null (cdr args))))
+    (magit-status-internal default-directory))
+   ((and (string= (car args) "log") (null (cdr args)))
+    (magit-log "HEAD"))
+   (t (throw 'eshell-replace-command
+             (eshell-parse-command
+              "*git"
+              (eshell-stringify-list (eshell-flatten-list args)))))))
 
 (provide 'eshell-extras)
 ;;; eshell-extras.el ends here

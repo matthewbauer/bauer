@@ -46,7 +46,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
         (put symbol 'custom-requests requests)
         (mapc 'require requests))
       (setq set (or (get symbol 'custom-set) 'custom-set-default))
-      ;; (put symbol 'default-value (list value))
+      (put symbol 'default-value (list value))
       ;; (put symbol 'saved-value (list value))
       (put symbol 'standard-value (list value))
       ;; (put symbol 'force-value t)
@@ -248,7 +248,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(mac-system-move-file-to-trash-use-finder t)
  '(magit-clone-set-remote\.pushDefault t)
  '(magit-completing-read-function 'ivy-completing-read)
- '(magit-delete-by-moving-to-trash t)
  '(magit-diff-options nil)
  '(magit-ediff-dwim-show-on-hunks t)
  '(magit-fetch-arguments nil)
@@ -364,11 +363,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(whitespace-rescan-timer-time nil)
  '(whitespace-silent t)
  '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
- '(yas-prompt-functions
-   (quote
-    (yas-ido-prompt yas-completing-prompt yas-no-prompt)))
- '(yas-triggers-in-field t)
- '(yas-wrap-around-region t)
  )
 
 (use-package hook-helpers
@@ -412,7 +406,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 ;;
 
 ;; unbind unused keys
-(global-unset-key "\C-z") ; don’t suspend on C-z
 (global-unset-key [?\s-p]) ; printing crashes occasionally
 (global-set-key (kbd "C-c C-k") 'eval-buffer)
 (global-set-key (kbd "C-c C-u") 'rename-uniquely)
@@ -423,12 +416,37 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x 5 4") 'toggle-frame-fullscreen)
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
-(global-set-key (kbd "C-c v") 'customize-variable)
+;; (global-set-key (kbd "C-c v") 'customize-variable)
+
+(bind-key* "<C-return>" #'other-window)
+(bind-key "C-z" #'delete-other-windows)
+(bind-key "M-g l" #'goto-line)
+(bind-key "<C-M-backspace>" #'backward-kill-sexp)
+;; (bind-key "C-x D" #'edit-rectangle)
+;; (bind-key "C-x d" #'delete-whitespace-rectangle)
+;; (bind-key "C-x F" #'set-fill-column)
+(bind-key "C-x t" #'toggle-truncate-lines)
+(bind-key "C-x v H" #'vc-region-history)
+(bind-key "C-c <tab>" #'ff-find-other-file)
+(bind-key "C-c SPC" #'just-one-space)
+(bind-key "C-c f" #'flush-lines)
+;; (bind-key "C-c k" #'keep-lines)
+(bind-key "C-c o" #'customize-option)
+(bind-key "C-c O" #'customize-group)
+(bind-key "C-c F" #'customize-face)
+(bind-key "C-c q" #'fill-region)
+;; (bind-key "C-c r" #'replace-regexp)
+(bind-key "C-c s" #'replace-string)
+(bind-key "C-c u" #'rename-uniquely)
+(bind-key "C-c v" #'ffap)
+(bind-key "C-c z" #'clean-buffer-list)
+(bind-key "C-c =" #'count-matches)
+(bind-key "C-c ;" #'comment-or-uncomment-region)
 
 (global-unset-key (kbd "C-x C-e"))
 (create-hook-helper always-eval-sexp ()
   :hooks (lisp-mode-hook emacs-lisp-mode-hook)
-  (define-key (current-local-map) (kbd "C-x C-e") 'eval-last-sexp))
+  (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp))
 
 (define-minor-mode prose-mode
   "Set up a buffer for prose editing.
@@ -457,6 +475,14 @@ typical word processor."
     ;; (delete-selection-mode -1)
     (flyspell-mode -1)
     (visual-line-mode -1)))
+
+(defadvice async-shell-command (before uniqify-running-shell-command activate)
+  (let ((buf (get-buffer "*Async Shell Command*")))
+    (if buf
+        (let ((proc (get-buffer-process buf)))
+          (if (and proc (eq 'run (process-status proc)))
+              (with-current-buffer buf
+                (rename-uniquely)))))))
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."
@@ -515,8 +541,6 @@ typical word processor."
 
 (use-package anything
   :commands anything)
-
-(use-package auctex)
 
 (use-package autorevert
   :builtin
@@ -580,7 +604,13 @@ typical word processor."
          ("M-C-/" . company-complete))
   :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
-  :init (add-hook 'after-init-hook 'global-company-mode))
+  :init (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (defadvice company-pseudo-tooltip-unless-just-one-frontend
+      (around only-show-tooltip-when-invoked activate)
+    (when (company-explicit-action-p)
+      ad-do-it))
+  )
 
 (use-package company-irony
   :disabled
@@ -695,8 +725,8 @@ typical word processor."
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
-         ("W" . browse-url-of-dired-file)
-         ("M-!" . async-shell-command))
+         ("M-!" . async-shell-command)
+	 ("e" . eshell))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   ;; (add-hook 'dired-after-readin-hook 'dired-collapse-directories)
@@ -710,10 +740,12 @@ typical word processor."
 
 (use-package dired-x
   :builtin
+  :after dired
   :commands dired-omit-mode
   :init
   ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook 'dired-omit-mode)
+  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   )
 
 (use-package dtrt-indent
@@ -791,7 +823,8 @@ typical word processor."
 
 (use-package eshell
   :builtin
-  :bind (("C-c s" . eshell))
+  :bind (("C-c M-t" . eshell)
+	 ("C-c x" . eshell))
   :commands (eshell eshell-command))
 
 (use-package eshell-extras
@@ -845,6 +878,7 @@ typical word processor."
 (use-package ghc)
 
 (use-package gist
+  :disabled
   :bind ("C-c C-g" . gist-region-or-buffer-private)
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer
@@ -908,7 +942,184 @@ typical word processor."
 
 (use-package hippie-exp
   :builtin
-  :bind (("M-/" . hippie-expand)))
+  :bind (("M-/" . hippie-expand))
+  :preface
+  (defun my-hippie-expand-completions (&optional hippie-expand-function)
+    "Return the full list of possible completions generated by `hippie-expand'.
+   The optional argument can be generated with `make-hippie-expand-function'."
+    (let ((this-command 'my-hippie-expand-completions)
+          (last-command last-command)
+          (buffer-modified (buffer-modified-p))
+          (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
+      (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
+                                        ; options.
+        (while (progn
+                 (funcall hippie-expand-function nil)
+                 (setq last-command 'my-hippie-expand-completions)
+                 (not (equal he-num -1)))))
+      ;; Evaluating the completions modifies the buffer, however we will finish
+      ;; up in the same state that we began.
+      (set-buffer-modified-p buffer-modified)
+      ;; Provide the options in the order in which they are normally generated.
+      (delete he-search-string (reverse he-tried-table))))
+
+  (defun my-try-expand-company (old)
+    (require 'company)
+    (unless company-candidates
+      (company-auto-begin))
+    (if (not old)
+        (progn
+          (he-init-string (he-lisp-symbol-beg) (point))
+          (if (not (he-string-member he-search-string he-tried-table))
+              (setq he-tried-table (cons he-search-string he-tried-table)))
+          (setq he-expand-list
+                (and (not (equal he-search-string ""))
+                     company-candidates))))
+    (while (and he-expand-list
+                (he-string-member (car he-expand-list) he-tried-table))
+      (setq he-expand-list (cdr he-expand-list)))
+    (if (null he-expand-list)
+        (progn
+          (if old (he-reset-string))
+          ())
+      (progn
+	(he-substitute-string (car he-expand-list))
+	(setq he-expand-list (cdr he-expand-list))
+	t)))
+
+  (defun he-tag-beg ()
+    (save-excursion
+      (backward-word 1)
+      (point)))
+
+  (defun tags-complete-tag (string predicate what)
+    (save-excursion
+      ;; If we need to ask for the tag table, allow that.
+      (if (eq what t)
+          (all-completions string (tags-completion-table) predicate)
+        (try-completion string (tags-completion-table) predicate))))
+
+  (defun try-expand-tag (old)
+    (when tags-table-list
+      (unless old
+        (he-init-string (he-tag-beg) (point))
+        (setq he-expand-list
+              (sort (all-completions he-search-string 'tags-complete-tag)
+                    'string-lessp)))
+      (while (and he-expand-list
+                  (he-string-member (car he-expand-list) he-tried-table))
+        (setq he-expand-list (cdr he-expand-list)))
+      (if (null he-expand-list)
+          (progn
+            (when old (he-reset-string))
+            ())
+        (he-substitute-string (car he-expand-list))
+        (setq he-expand-list (cdr he-expand-list))
+        t)))
+
+  (defun my-dabbrev-substring-search (pattern &optional reverse limit)
+    (let ((result ())
+          (regpat (cond ((not hippie-expand-dabbrev-as-symbol)
+                         (concat (regexp-quote pattern) "\\sw+"))
+                        ((eq (char-syntax (aref pattern 0)) ?_)
+                         (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))
+                        (t
+                         (concat (regexp-quote pattern)
+                                 "\\(\\sw\\|\\s_\\)+")))))
+      (while (and (not result)
+                  (if reverse
+                      (re-search-backward regpat limit t)
+                    (re-search-forward regpat limit t)))
+        (setq result (buffer-substring-no-properties
+                      (save-excursion
+                        (goto-char (match-beginning 0))
+                        (skip-syntax-backward "w_")
+                        (point))
+                      (match-end 0)))
+        (if (he-string-member result he-tried-table t)
+            (setq result nil)))     ; ignore if bad prefix or already in table
+      result))
+
+  (defun try-my-dabbrev-substring (old)
+    (let ((old-fun (symbol-function 'he-dabbrev-search)))
+      (fset 'he-dabbrev-search (symbol-function 'my-dabbrev-substring-search))
+      (unwind-protect
+          (try-expand-dabbrev old)
+        (fset 'he-dabbrev-search old-fun))))
+
+  (defun try-expand-flexible-abbrev (old)
+    "Try to complete word using flexible matching.
+  Flexible matching works by taking the search string and then
+  interspersing it with a regexp for any character. So, if you try
+  to do a flexible match for `foo' it will match the word
+  `findOtherOtter' but also `fixTheBoringOrange' and
+  `ifthisisboringstopreadingnow'.
+  The argument OLD has to be nil the first call of this function, and t
+  for subsequent calls (for further possible completions of the same
+  string).  It returns t if a new completion is found, nil otherwise."
+    (if (not old)
+        (progn
+          (he-init-string (he-lisp-symbol-beg) (point))
+          (if (not (he-string-member he-search-string he-tried-table))
+              (setq he-tried-table (cons he-search-string he-tried-table)))
+          (setq he-expand-list
+                (and (not (equal he-search-string ""))
+                     (he-flexible-abbrev-collect he-search-string)))))
+    (while (and he-expand-list
+                (he-string-member (car he-expand-list) he-tried-table))
+      (setq he-expand-list (cdr he-expand-list)))
+    (if (null he-expand-list)
+        (progn
+          (if old (he-reset-string))
+          ())
+      (progn
+	(he-substitute-string (car he-expand-list))
+	(setq he-expand-list (cdr he-expand-list))
+	t)))
+
+  (defun he-flexible-abbrev-collect (str)
+    "Find and collect all words that flex-matches STR.
+  See docstring for `try-expand-flexible-abbrev' for information
+  about what flexible matching means in this context."
+    (let ((collection nil)
+          (regexp (he-flexible-abbrev-create-regexp str)))
+      (save-excursion
+        (goto-char (point-min))
+        (while (search-forward-regexp regexp nil t)
+          ;; Is there a better or quicker way than using `thing-at-point'
+          ;; here?
+          (setq collection (cons (thing-at-point 'word) collection))))
+      collection))
+
+  (defun he-flexible-abbrev-create-regexp (str)
+    "Generate regexp for flexible matching of STR.
+  See docstring for `try-expand-flexible-abbrev' for information
+  about what flexible matching means in this context."
+    (concat "\\b" (mapconcat (lambda (x) (concat "\\w*" (list x))) str "")
+            "\\w*" "\\b"))
+
+  (defun my-try-expand-dabbrev-visible (old)
+    (save-excursion (try-expand-dabbrev-visible old)))
+
+  :config
+  (setq hippie-expand-try-functions-list
+        '(my-try-expand-company
+	  try-my-dabbrev-substring
+	  my-try-expand-dabbrev-visible
+	  try-expand-dabbrev
+	  try-expand-dabbrev-all-buffers
+	  try-expand-dabbrev-from-kill
+	  try-expand-tag
+	  try-expand-flexible-abbrev
+	  try-complete-file-name-partially
+	  try-complete-file-name
+	  try-expand-all-abbrevs
+	  try-expand-list
+	  try-expand-line
+	  try-expand-line-all-buffers
+	  try-complete-lisp-symbol-partially
+	  try-complete-lisp-symbol))
+  )
 
 (use-package hookify
   :commands hookify)
@@ -1010,7 +1221,8 @@ typical word processor."
 
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
-         ("C-c r" . kill-or-bury-alive-purge-buffers)))
+         ;; ("C-c r" . kill-or-bury-alive-purge-buffers)
+	 ))
 
 (use-package lisp-mode
   :builtin
@@ -1146,7 +1358,7 @@ typical word processor."
   :mode "\\.php\\'")
 
 (use-package popwin
-  :bind-keymap ("C-z" . popwin:keymap)
+  ;; :bind-keymap ("C-z" . popwin:keymap)
   :commands popwin-mode
   :init (popwin-mode 1)
   :config
@@ -1167,7 +1379,7 @@ typical word processor."
 
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                   compilation-read-command))))
+					compilation-read-command))))
 
   (projectile-global-mode)
 
@@ -1254,7 +1466,7 @@ typical word processor."
   :commands restart-emacs)
 
 (use-package restclient
-  :commands restclient-mode)
+  :mode ("\\.rest\\'" . restclient-mode))
 
 (use-package rg
   :commands rg)
@@ -1339,10 +1551,10 @@ typical word processor."
   :commands skewer-less-mode
   :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
 
-(use-package slime)
+(use-package slime
+  :disabled)
 
 (use-package smart-hungry-delete
-  :disabled
   :commands smart-hungry-delete-add-default-hooks
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
@@ -1385,8 +1597,8 @@ typical word processor."
   :bind (("C-c C-r" . sudo-edit)))
 
 (use-package swiper
-  :bind (("\C-s" . swiper)
-         ("\C-r" . swiper)))
+  :bind (("C-s" . swiper)
+         ("C-r" . swiper)))
 
 (use-package term
   :builtin
@@ -1399,9 +1611,6 @@ typical word processor."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
-  :bind ("C-c t" . my-term)
-  :init
-
   (defun nethack ()
     (interactive)
     (set-buffer (make-term "nethack" "@nethack@/bin/nethack"))
@@ -1409,6 +1618,18 @@ typical word processor."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*nethack*"))
+  :bind ("C-c t" . my-term)
+  :config
+  (defadvice ansi-term (before force-bash)
+    (interactive (list explicit-shell-file-name)))
+  (defadvice term (before force-bash)
+    (interactive (list explicit-shell-file-name)))
+  (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
+    (if (memq (process-status proc) '(signal exit))
+	(let ((buffer (process-buffer proc)))
+	  ad-do-it
+	  (kill-buffer buffer))
+      ad-do-it))
   )
 
 (use-package tern
@@ -1517,6 +1738,120 @@ typical word processor."
 (use-package fill-column-indicator
   :commands fci-mode
   :init (add-hook 'prog-mode-hook 'fci-mode))
+
+(use-package bug-reference-github
+  :commands bug-reference-github-set-url-format
+  :init (add-hook 'prog-mode-hook 'bug-reference-github-set-url-format))
+
+(use-package vkill
+  :bind ("C-x L" . vkill))
+
+(use-package tex-site
+  :name "auctex")
+
+(use-package texinfo
+  :mode ("\\.texi\\'" . texinfo-mode))
+
+(use-package pabbrev
+  :commands pabbrev-mode)
+
+(use-package nxml-mode
+  :builtin
+  :commands nxml-mode
+  :init
+  (defalias 'xml-mode 'nxml-mode)
+  )
+
+(use-package nroff-mode
+  :builtin
+  :commands nroff-mode)
+
+(use-package nix-buffer
+  :commands nix-buffer)
+
+(use-package multi-term
+  :bind (("C-. t" . multi-term-next)
+         ("C-. T" . multi-term))
+  )
+
+(use-package with-editor
+  :commands (with-editor-async-shell-command
+	     with-editor-shell-command))
+
+(use-package llvm-mode
+  :mode "\\.ll\\'")
+
+(use-package indent-shift
+  :disabled
+  :bind (("C-c <" . indent-shift-left)
+         ("C-c >" . indent-shift-right)))
+
+(use-package info
+  :builtin
+  :bind ("C-h C-i" . info-lookup-symbol)
+  :config
+  (defadvice Info-exit (after remove-info-window activate)
+    "When info mode is quit, remove the window."
+    (if (> (length (window-list)) 1)
+        (delete-window))
+    ))
+
+(use-package ielm
+  :builtin
+  :bind ("C-c :" . ielm))
+
+(use-package eval-expr
+  :bind ("M-:" . eval-expr)
+  :config
+  (setq eval-expr-print-function 'pp
+        eval-expr-print-level 20
+        eval-expr-print-length 100)
+  )
+
+(use-package ffap
+  :disabled
+  :builtin
+  :config
+  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
+    (if (string= ad-return-value "/")
+        (setq ad-return-value nil)))
+
+  (defvar ffap-file-at-point-line-number nil
+    "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
+    "Search `ffap-string-at-point' for a line number pattern and
+save it in `ffap-file-at-point-line-number' variable."
+    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+           (name
+            (or (condition-case nil
+                    (and (not (string-match "//" string)) ; foo.com://bar
+                         (substitute-in-file-name string))
+                  (error nil))
+                string))
+           (line-number-string
+            (and (string-match ":[0-9]+" name)
+                 (substring name (1+ (match-beginning 0)) (match-end 0))))
+           (line-number
+            (and line-number-string
+                 (string-to-number line-number-string))))
+      (if (and line-number (> line-number 0))
+          (setq ffap-file-at-point-line-number line-number)
+        (setq ffap-file-at-point-line-number nil))))
+
+  (defadvice find-file-at-point (after ffap-goto-line-number activate)
+    "If `ffap-file-at-point-line-number' is non-nil goto this line."
+    (when ffap-file-at-point-line-number
+      (with-no-warnings
+        (goto-line ffap-file-at-point-line-number))
+      (setq ffap-file-at-point-line-number nil)))
+  )
+
+(use-package smart-shift
+  :bind (("C-c <left>" . smart-shift-left)
+	 ("C-c <right>" . smart-shift-right)
+	 ("C-c <up>" . smart-shift-up)
+	 ("C-c <down>" . smart-shift-down)))
 
 (provide 'default)
 ;;; default.el ends here

@@ -1,7 +1,5 @@
 ;;; dired-column.el --- Open dired in columns.
 
-;; Copyright (C) 2017 Matthew Bauer
-;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Git: https://github.com/matthewbauer/dired-column
 ;; Version: 0.01
 ;; Created: 2017-06-05
