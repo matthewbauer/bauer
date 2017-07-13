@@ -377,7 +377,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package add-hooks
   :commands (add-hooks add-hooks-pair))
 
-(require 'f)
+;; (require 'f)
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
@@ -699,7 +699,7 @@ typical word processor."
          ("M-!" . async-shell-command))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  (add-hook 'dired-after-readin-hook 'dired-collapse-directories)
+  ;; (add-hook 'dired-after-readin-hook 'dired-collapse-directories)
   )
 
 (use-package dired-column
@@ -856,7 +856,8 @@ typical word processor."
   :bind (("C-M-g" . gnus)
          ("C-x n u" . gnus))
   :init
-  (add-hook 'gnus-group-mode-hook 'gnus-topic-mode))
+  (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
+  (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
 
 (use-package go-eldoc
   :commands go-eldoc-setup
