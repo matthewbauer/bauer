@@ -888,7 +888,8 @@ typical word processor."
   :mode "\\.haml\\'")
 
 (use-package haskell-mode
-  :mode "\\.hs\\'")
+  :mode (("\\.hs\\'" . haskell-mode)
+         ("\\.cabal\\'" . haskell-cabal-mode)))
 
 (use-package hideshow
   :builtin
