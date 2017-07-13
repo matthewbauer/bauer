@@ -1121,6 +1121,7 @@ typical word processor."
     :builtin
     :demand)
   (use-package ox-pandoc
+    :disabled
     :demand)
   )
 
