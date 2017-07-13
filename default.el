@@ -1514,5 +1514,9 @@ typical word processor."
 	      ("<tab>" . dired-subtree-toggle)
 	      ("<backtab>" . dired-subtree-cycle)))
 
+(use-package fill-column-indicator
+  :commands fci-mode
+  :init (add-hook 'prog-mode-hook 'fci-mode))
+
 (provide 'default)
 ;;; default.el ends here
