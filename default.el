@@ -1250,9 +1250,15 @@ typical word processor."
   :mode "\\.lua\\'")
 
 (use-package magit
+  :preface
+  (defun magit-dired-other-window ()
+    (interactive)
+    (dired-other-window (magit-toplevel)))
   :commands (magit-clone)
   :bind (("C-x g" . magit-status)
-         ("C-x G" . magit-dispatch-popup)))
+         ("C-x G" . magit-dispatch-popup)
+         :keymap magit-mode-map
+         ("C-o" . magit-dired-other-window)))
 
 (use-package magithub
   :disabled
