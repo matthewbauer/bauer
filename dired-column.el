@@ -27,7 +27,7 @@
 
 (defun dired-column-get-furthest-dir-window (direction window)
   "Get the furthest DIRECTION window relative to WINDOW."
-  (let ((new-window nil)
+  (let ((new-window (window-in-direction direction window))
 	window)
     (while new-window
       (setq window new-window)
@@ -57,11 +57,20 @@
 	  ((window-in-direction direction))
 	  (t
 	   (unless (>= (window-total-width) (* 2 width))
-	     (let ((opposite-direction (dired-column-opposite-direction direction)))
-	       (delete-window (dired-column-get-furthest-dir-window opposite-direction (selected-window)))
-	       (dired-column-on-all-windows-direction 'minimize-window opposite-direction (selected-window))))
+             (let ((opposite-direction
+                    (dired-column-opposite-direction direction)))
+               (delete-window
+                (dired-column-get-furthest-dir-window opposite-direction
+                                                      (selected-window)))
+               (dired-column-on-all-windows-direction 'minimize-window
+                                                      opposite-direction
+                                                      (selected-window))))
 	   (split-window (selected-window) width direction)))))
-    (window--display-buffer buffer window 'window nil display-buffer-mark-dedicated)
+    (window--display-buffer buffer
+                            window
+                            'window
+                            nil
+                            display-buffer-mark-dedicated)
     window))
 
 ;;;###autoload
@@ -70,7 +79,10 @@
   (interactive)
   (let* ((file-or-dir (dired-get-file-for-visit))
 	 (buffer (find-file-noselect file-or-dir)))
-    (select-window (dired-column-display-buffer-direction buffer dired-column-direction dired-column-width))))
+    (select-window
+     (dired-column-display-buffer-direction buffer
+                                            dired-column-direction
+                                            dired-column-width))))
 
 (provide 'dired-column)
 ;;; dired-column.el ends here

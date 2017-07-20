@@ -2,56 +2,29 @@
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
 
-    rls = rustPlatform.buildRustPackage {
-      name = "rls";
-
-      src = fetchFromGitHub {
-        owner = "rust-lang-nursery";
-        repo = "rls";
-        rev = "931aba8d0ed2f84972acaada56b998babfb021a0";
-        sha256 = "1s5pffp45a6acnxhkb9k4pxb584nfbnd7qhaqckxng21i5bj9s9r";
+    rls = let mozpkgs = (import (fetchFromGitHub {
+        owner = "mozilla";
+        repo = "nixpkgs-mozilla";
+        rev = "26c8cccaeb152db32f02a97e055ff58df649cd78";
+        sha256 = "0y7wfz0nh59k19kc5qk6w822yds2wi18bcngzypwh4b0n6dw0szx";
+      }) {});
+      rustNightlyNixRepo = pkgs.fetchFromGitHub {
+        owner = "solson";
+        repo = "rust-nightly-nix";
+        rev = "9e09d579431940367c1f6de9463944eef66de1d4";
+        sha256 = "03zkjnzd13142yla52aqmgbbnmws7q8kn1l5nqaly22j31f125xy";
       };
-
-      buildInputs = [ openssl ];
-
-      depsSha256 = "0r4im0dcmil6zazbbc85xpxjv0fh0m6kpr1scjqyhqw11wdpv59c";
+      rustPackages = pkgs.callPackage rustNightlyNixRepo { };
+      rustPlatform = makeRustPlatform rustBeta;
+      # rustPlatform = rustNightlyBin;
+    in callPackage ./rls {
+      # inherit rustPlatform;
+      rustPlatform = makeRustPlatform rustNightly;
     };
-
-    pls = pythonPackages.buildPythonPackage {
-      name = "pls";
-      src = fetchFromGitHub {
-        owner = "palantir";
-        repo = "python-language-server";
-        rev = "0.2.2";
-        sha256 = "1z8psnyzpfcfgz5ysnd50m14qr78kinl4vl6y54xv1ljgspz4xvs";
-      };
-    };
-
-    hls = haskell.lib.buildStackProject {
-      name = "hls";
-      buildInputs = [ ];
-      src = fetchFromGitHub {
-        owner = "alanz";
-        repo = "haskell-lsp";
-        rev = "ece7ab737810e924749be8bb034fea5243e74063";
-        sha256 = "0dkwrn0sv41dn4ap1yagm52c7ww283fxnsycbz8n0d2whj77dj7m";
-      };
-    };
-
-    jls = stdenv.mkDerivation {
-      name = "jls";
-      src = fetchurl {
-        url = "http://download.eclipse.org/jdtls/snapshots/jdt-language-server-0.2.0-201707061822.tar.gz";
-        sha256 = "05q65658ysrw4xcn5fhlp5xfqp70kwkzngdkhhw7vpxx18hb4dfd";
-      };
-      sourceRoot = ".";
-      installPhase = ''
-        mkdir $out
-        cp -r config_* features plugins $out
-      '';
-    };
-
-    gls = callPackage ./gls {};
+    python-language-server = callPackage ./python-language-server {};
+    haskell-lsp = haskellPackages.callPackage ./haskell-lsp {};
+    jdt-language-server = callPackage ./jdt-language-server;
+    go-langserver = callPackage ./go-langserver {};
 
     rEnv = pkgs.rWrapper.override {
       packages = with pkgs.rPackages; [
@@ -192,6 +165,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         checkbashisms
         cmake
         coreutils
+        # clang
         diffutils
         editorconfig-core-c
         emscripten
@@ -202,7 +176,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         ghc
         git
         gitAndTools.hub
-        go2nix
+        # go2nix
         gnugrep
         gnumake
         gnuplot
@@ -210,7 +184,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         gnupg1compat
         gnutar
         gnutls
-        go
+        # go
         gzip
         jdk
         jq

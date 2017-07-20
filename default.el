@@ -20,11 +20,28 @@
   :demand
   :config (load-theme 'apropospriate-dark t))
 
+(use-package server
+  :disabled
+  :builtin
+  :demand
+  ;; :if (and (boundp 'server-process) (not server-process))
+  :config
+  (server-start)
+  )
+
+(use-package tramp
+  :builtin
+  :demand)
+
 (setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
 (setenv "EDITOR" "emacsclient -nw")
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "PAGER" "cat")
+
+(defun epe-abbrev-dir-name (dir)
+  "Return the base directory name of DIR."
+  )
 
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
@@ -53,16 +70,17 @@ ARGS are a list in the form of (SYMBOL VALUE)."
       (funcall set symbol (eval value)))))
 
 (set-defaults
- '(ad-redefinition-action (quote accept))
+ '(ad-redefinition-action 'accept)
  '(ag-executable "@ag@/bin/ag")
  '(apropos-do-all t)
- '(async-shell-command-buffer (quote new-buffer))
+ '(async-shell-command-buffer 'new-buffer)
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
- '(async-shell-command-buffer 'new-buffer)
- '(backward-delete-char-untabify-method (quote hungry))
+ '(backward-delete-char-untabify-method 'hungry)
+ '(backup-by-copying t)
+ '(backup-directory-alist '(("." . "~/.emacs.d/backups")))
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
@@ -71,11 +89,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
-   (quote
-    (not save-buffer save-some-buffers save-buffers-kill-terminal save-buffers-kill-emacs comint-previous-matching-input-from-input comint-next-matching-input-from-input)))
+   '(not save-buffer
+         save-some-buffers
+         save-buffers-kill-terminal
+         save-buffers-kill-emacs
+         comint-previous-matching-input-from-input
+         comint-next-matching-input-from-input))
  '(company-idle-delay 0.5)
  '(company-minimum-prefix-length 2)
- '(company-occurrence-weight-function (quote company-occurrence-prefer-any-closest))
+ '(company-occurrence-weight-function 'company-occurrence-prefer-any-closest)
  '(company-tooltip-align-annotations t)
  '(company-tooltip-flip-when-above t)
  '(company-tooltip-limit 10)
@@ -83,7 +105,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
  '(compilation-environment '("TERM=xterm-256color"))
- '(completions-format (quote vertical))
+ '(compilation-scroll-output nil)
+ '(compilation-skip-threshold 2)
+ '(completions-format 'vertical)
  '(completion-cycle-threshold 5)
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
@@ -91,42 +115,47 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(custom-buffer-done-kill t)
  '(custom-search-field nil)
  '(create-lockfiles nil)
- '(debug-ignored-errors
-   (quote
-    ("^Invalid face:? " search-failed beginning-of-line beginning-of-buffer end-of-line end-of-buffer end-of-file buffer-read-only file-supersession mark-inactive user-error void-variable)))
  '(debug-on-signal t)
+ '(delete-old-versions t)
  '(dired-auto-revert-buffer t)
  '(dired-hide-details-hide-symlink-targets nil)
  '(dired-dwim-target t)
  '(dired-omit-verbose nil)
  '(dired-omit-files "^\\.")
- '(dired-recursive-copies (quote top))
- '(dired-recursive-deletes (quote top))
+ '(dired-recursive-copies 'top)
+ '(dired-recursive-deletes 'top)
  '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
+ '(display-time-default-load-average nil)
+ '(display-time-format "")
  '(display-buffer-alist
-   (\`
-    (((\,
-       (rx bos
-           (or "*Flycheck errors*" "*Backtrace" "*Warnings" "*compilation" "*Help" "*less-css-compilation" "*Packages" "*magit-process" "*SQL" "*tldr")))
-      (display-buffer-reuse-window display-buffer-in-side-window)
-      (side . bottom)
-      (reusable-frames . visible)
-      (window-height . 0.33))
-     ("." nil
-      (reusable-frames . visible)))))
+   (\`(((\,(rx bos (or "*Flycheck errors*"
+                       "*Backtrace"
+                       "*Warnings"
+                       "*compilation"
+                       "*Help"
+                       "*less-css-compilation"
+                       "*Packages"
+                       "*magit-process"
+                       "*SQL"
+                       "*tldr")))
+        (display-buffer-reuse-window display-buffer-in-side-window)
+        (side . bottom)
+        (reusable-frames . visible)
+        (window-height . 0.33))
+       ("." nil
+        (reusable-frames . visible)))))
  '(display-buffer-reuse-frames t)
  '(dumb-jump-quiet t)
- '(dumb-jump-selector (quote ivy))
  '(enable-recursive-minibuffers nil)
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
  '(erc-autoaway-idle-seconds 600)
  '(erc-autoaway-use-emacs-idle t)
- '(erc-autojoin-timing (quote ident))
+ '(erc-autojoin-timing 'ident)
  '(erc-fill-prefix "          ")
- '(erc-insert-timestamp-function (quote erc-insert-timestamp-left))
+ '(erc-insert-timestamp-function 'erc-insert-timestamp-left)
  '(erc-interpret-mirc-color t)
  '(erc-kill-buffer-on-part t)
  '(erc-kill-queries-on-quit t)
@@ -134,16 +163,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(erc-prompt (lambda nil (concat "[" (buffer-name) "]")))
  '(erc-prompt-for-nickserv-password nil)
  '(erc-prompt-for-password nil)
- '(erc-query-display (quote buffer))
- '(erc-server-coding-system (quote (utf-8 . utf-8)))
+ '(erc-query-display 'buffer)
+ '(erc-server-coding-system '(utf-8 . utf-8))
  '(erc-timestamp-format "%H:%M ")
  '(erc-timestamp-only-if-changed-flag nil)
- '(erc-track-exclude-types
-   (quote
-    ("JOIN" "NICK" "PART" "QUIT" "MODE" "324" "329" "332" "333" "353" "477")))
  '(erc-try-new-nick-p nil)
  '(eshell-banner-message "")
- '(eshell-buffer-maximum-lines 20000)
  '(eshell-buffer-shorthand t)
  '(eshell-cd-on-directory t)
  '(eshell-cmpl-autolist t)
@@ -154,35 +179,54 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-cp-overwrite-files nil)
  '(eshell-default-target-is-dot t)
  '(eshell-destroy-buffer-when-process-dies t)
- '(eshell-highlight-prompt nil)
+ '(eshell-highlight-prompt t)
  '(eshell-hist-ignoredups t)
  '(eshell-history-size 10000)
  '(eshell-list-files-after-cd t)
  '(eshell-ln-interactive-query t)
  '(eshell-mv-interactive-query t)
- '(eshell-output-filter-functions
-   (quote
-    (eshell-handle-ansi-color eshell-handle-control-codes eshell-watch-for-password-prompt eshell-truncate-buffer)))
+ '(eshell-output-filter-functions '(eshell-handle-ansi-color
+                                    eshell-handle-control-codes
+                                    eshell-watch-for-password-prompt
+                                    eshell-truncate-buffer))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
+ '(eshell-prompt-function
+   (lambda () (concat
+          (when (tramp-tramp-file-p default-directory)
+            (concat
+             (tramp-file-name-user (tramp-dissect-file-name default-directory))
+             "@"
+             (tramp-file-name-real-host (tramp-dissect-file-name
+                                         default-directory))
+             " "))
+          (let ((dir (eshell/pwd)))
+            (if (string= dir (getenv "HOME")) "~"
+              (let ((dirname (file-name-nondirectory dir)))
+                (if (string= dirname "") "/" dirname))))
+          (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
-   (quote
-    ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
+   '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
-     "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar")))
+     "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar"))
  '(eval-expression-debug-on-error t)
- '(explicit-bash-args (quote ("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash")))
+ '(explicit-bash-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash"))
  '(explicit-shell-file-name "bash")
  '(expand-region-contract-fast-key "j")
- '(fased-completing-read-function (quote nil))
+ '(fased-completing-read-function 'nil)
  '(fill-column 80)
- '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
- '(flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
+ '(flycheck-check-syntax-automatically '(save idle-change mode-enabled))
+ '(flycheck-display-errors-function
+   'flycheck-display-error-messages-unless-error-list)
  '(flycheck-standard-error-navigation nil)
- '(flycheck-global-modes
-   (quote
-    (not erc-mode message-mode git-commit-mode view-mode outline-mode text-mode org-mode)))
+ '(flycheck-global-modes '(not erc-mode
+                               message-mode
+                               git-commit-mode
+                               view-mode
+                               outline-mode
+                               text-mode
+                               org-mode))
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
  '(flyspell-highlight-properties nil)
@@ -191,25 +235,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(flyspell-use-meta-tab nil)
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
- '(frame-title-format
-   (quote
-    ((:eval
-      (if (buffer-file-name)
-          (abbreviate-file-name
-           (buffer-file-name))
-        "%b")))))
+ '(frame-title-format '(:eval
+                        (if (buffer-file-name)
+                            (abbreviate-file-name (buffer-file-name))
+                          "%b")))
  '(gc-cons-threshold 100000000)
  '(global-auto-revert-non-file-buffers t)
- '(hippie-expand-try-functions-list '(try-expand-dabbrev
-                                      try-expand-dabbrev-all-buffers
-                                      try-expand-dabbrev-from-kill
-                                      try-complete-file-name-partially
-                                      try-complete-file-name
-                                      try-expand-all-abbrevs
-                                      try-expand-list
-                                      try-expand-line
-                                      try-complete-lisp-symbol-partially
-                                      try-complete-lisp-symbol))
+ '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
  '(history-length 20000)
@@ -220,9 +252,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(inhibit-startup-echo-area-message t)
- '(initial-major-mode (quote fundamental-mode))
+ '(initial-major-mode 'fundamental-mode)
  '(initial-scratch-message "")
- '(ispell-extra-args (quote ("--sug-mode=ultra")))
+ '(ispell-extra-args '("--sug-mode=ultra"))
  '(ispell-silently-savep t)
  '(ispell-quietly t)
  '(ispell-program-name "@aspell@/bin/aspell")
@@ -247,7 +279,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(mac-frame-tabbing t)
  '(mac-system-move-file-to-trash-use-finder t)
  '(magit-clone-set-remote\.pushDefault t)
- '(magit-completing-read-function 'ivy-completing-read)
  '(magit-diff-options nil)
  '(magit-ediff-dwim-show-on-hunks t)
  '(magit-fetch-arguments nil)
@@ -255,28 +286,27 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(magit-highlight-whitespace nil)
  '(magit-no-confirm t)
  '(magit-process-connection-type nil)
- '(magit-process-find-password-functions (quote (magit-process-password-auth-source)))
+ '(magit-process-find-password-functions '(magit-process-password-auth-source))
  '(magit-process-popup-time 15)
  '(magit-push-always-verify nil)
- '(magit-revision-show-gravatars (quote ("^Author:     " . "^Commit:
-  ")))
- '(magit-save-repository-buffers (quote dontask))
+ '(magit-save-repository-buffers 'dontask)
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
  '(minibuffer-prompt-properties
-   (quote
-    (read-only t cursor-intangible t face minibuffer-prompt)))
+   '(read-only t cursor-intangible t face minibuffer-prompt))
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
- '(mwim-beginning-of-line-function (quote beginning-of-line))
- '(mwim-end-of-line-function (quote end-of-line))
- '(network-security-level (quote medium))
+ '(mwim-beginning-of-line-function 'beginning-of-line)
+ '(mwim-end-of-line-function 'end-of-line)
  '(neo-theme 'arrow)
  '(neo-fixed-size nil)
- '(next-error-recenter (quote (4)))
+ '(next-error-recenter '(4))
+ '(notmuch-show-logo nil)
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
+ '(ns-function-modifier 'hyper)
+ '(ns-pop-up-frames nil)
  '(org-support-shift-select t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
@@ -284,60 +314,62 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(package-enable-at-startup nil)
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
- '(projectile-globally-ignored-files (quote (".DS_Store" "TAGS")))
+ '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-enable-caching t)
  '(projectile-enable-idle-timer nil)
  '(projectile-mode-line
-   '(:eval (if (and
-                (projectile-project-p)
-                (not (file-remote-p default-directory)))
-               (format " Projectile[%s]" (projectile-project-name))
-             "")))
- '(projectile-ignored-project-function (quote file-remote-p))
- '(projectile-switch-project-action (quote projectile-dired))
+   '(:eval (if (and (projectile-project-p)
+                    (not (file-remote-p default-directory)))
+               (format " Projectile[%s]" (projectile-project-name)) "")))
+ '(projectile-ignored-project-function 'file-remote-p)
+ '(projectile-switch-project-action 'projectile-dired)
+ '(projectile-do-log nil)
  '(projectile-verbose nil)
- '(reb-re-syntax (quote string))
+ '(reb-re-syntax 'string)
  '(require-final-newline t)
  '(resize-mini-windows t)
- '(ring-bell-function (quote ignore))
+ '(ring-bell-function 'ignore)
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
  '(rtags-completions-enabled t)
- '(rtags-display-result-backend (quote ivy))
  '(rtags-imenu-syntax-highlighting 10)
  '(ruby-insert-encoding-magic-comment nil)
  '(same-window-buffer-names
-   (quote
-    ("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*")))
- '(save-abbrevs (quote silently))
+   '("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*"))
+ '(save-abbrevs 'silently)
  '(save-interprogram-paste-before-kill t)
- '(savehist-additional-variables (quote (search-ring regexp-search-ring)))
+ '(savehist-additional-variables '(search-ring regexp-search-ring))
  '(savehist-autosave-interval 60)
- '(send-mail-function (quote smtpmail-send-it))
+ '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
- '(semantic-default-submodes
-   (quote
-    (global-semantic-idle-scheduler-mode global-semanticdb-minor-mode global-semantic-idle-summary-mode)))
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
- '(sp-autoskip-closing-pair (quote always))
+ '(sp-autoskip-closing-pair 'always)
  '(sp-hybrid-kill-entire-symbol nil)
+ '(truncate-lines nil)
  '(tab-always-indent 'complete)
  '(term-input-autoexpand t)
  '(term-input-ignoredups t)
  '(term-input-ring-file-name t)
- '(tramp-default-proxies-alist
-   (quote
-    (((regexp-quote
-       (system-name))
-      nil nil)
-     (nil "\\`root\\'" "/ssh:%h:")
-     (".*" "\\`root\\'" "/ssh:%h:"))))
- '(tramp-remote-path
-   (quote
-    (tramp-own-remote-path "/run/current-system/sw/bin" tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin" "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/opt/bin" "/opt/sbin" "/opt/local/bin")))
+ '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
+                                 (nil "\\`root\\'" "/ssh:%h:")
+                                 (".*" "\\`root\\'" "/ssh:%h:")))
+ '(tramp-remote-path '(tramp-own-remote-path
+                       "/run/current-system/sw/bin"
+                       tramp-default-remote-path
+                       "/bin"
+                       "/usr/bin"
+                       "/sbin"
+                       "/usr/sbin"
+                       "/usr/local/bin"
+                       "/usr/local/sbin"
+                       "/opt/bin"
+                       "/opt/sbin"
+                       "~/.nix-profile/bin"
+                       ))
+ '(text-quoting-style 'quote)
  '(tls-checktrust t)
- '(tls-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %h"))
+ '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
  '(undo-limit 800000)
  '(uniquify-after-kill-buffer-p t)
  '(uniquify-buffer-name-style 'forward)
@@ -347,24 +379,31 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(use-file-dialog nil)
  '(use-package-always-defer t)
  '(use-package-always-ensure nil)
- '(use-package-ensure-function (quote ignore))
+ '(use-package-ensure-function 'ignore)
  '(use-package-enable-imenu-support t)
  '(use-package-expand-minimally t)
- '(use-package-verbose nil)
+ '(use-package-verbose t)
+ '(version-control t)
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
- '(vc-git-diff-switches (quote ("-w" "-U3")))
+ '(vc-git-diff-switches '("-w" "-U3"))
  '(vc-ignore-dir-regexp
    "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell nil)
  '(visible-cursor nil)
+ '(woman-imenu t)
  '(whitespace-line-column 80)
  '(whitespace-auto-cleanup t)
  '(whitespace-rescan-timer-time nil)
  '(whitespace-silent t)
- '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
+ '(whitespace-style '(face
+                      trailing
+                      lines
+                      space-before-tab
+                      empty
+                      lines-style))
  )
 
 (use-package hook-helpers
@@ -377,6 +416,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
+;; (prefer-coding-system 'utf-8)
+
+;; (when (fboundp 'recentf-mode)
+;;   (recentf-mode -1))
+(when (fboundp 'shell-dirtrack-mode)
+  (shell-dirtrack-mode -1))
+
 ;; these should be disabled before Emsacs displays the frame
 ;; but we disable them here just in case
 (when (and (fboundp 'menu-bar-mode)
@@ -387,21 +433,22 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode -1))
 (when (fboundp 'blink-cursor-mode)
-  (blink-cursor-mode 0))
+  (blink-cursor-mode -1))
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
+  (global-set-key (kbd "M-~") 'ns-prev-frame)
   )
-
-;; (require 'server)
-;; (when (not server-process)
-;;   (server-start))
 
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
 (add-hook 'prog-mode-hook 'goto-address-prog-mode)
+;; (add-hook 'prog-mode-hook 'subword-mode)
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (add-hook 'makefile-mode-hook 'indent-tabs-mode)
+;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
+;; (add-hook 'server-switch-hook 'raise-frame)
+(add-hook 'dired-mode-hook 'auto-revert-mode)
 
 ;;
 ;; key binds
@@ -429,7 +476,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 ;; (bind-key "C-x F" #'set-fill-column)
 (bind-key "C-x t" #'toggle-truncate-lines)
 (bind-key "C-x v H" #'vc-region-history)
-(bind-key "C-c <tab>" #'ff-find-other-file)
+;; (bind-key "C-c <tab>" #'ff-find-other-file)
 (bind-key "C-c SPC" #'just-one-space)
 (bind-key "C-c f" #'flush-lines)
 ;; (bind-key "C-c k" #'keep-lines)
@@ -444,6 +491,25 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "C-c z" #'clean-buffer-list)
 (bind-key "C-c =" #'count-matches)
 (bind-key "C-c ;" #'comment-or-uncomment-region)
+
+;; buffer switching
+(bind-key "s-{" 'previous-buffer)
+(bind-key "s-}" 'next-buffer)
+
+;; Compiling
+(bind-key "H-c" 'compile)
+(bind-key "H-r" 'recompile)
+(bind-key "H-s" (defun save-and-recompile ()
+                  (interactive)
+                  (save-buffer)
+                  (recompile)))
+(bind-key "s-1" 'other-frame)
+(bind-key "<s-return>" 'toggle-frame-fullscreen)
+
+(bind-key "s-C-<left>"  'shrink-window-horizontally)
+(bind-key "s-C-<right>" 'enlarge-window-horizontally)
+(bind-key "s-C-<down>"  'shrink-window)
+(bind-key "s-C-<up>"    'enlarge-window)
 
 (global-unset-key (kbd "C-x C-e"))
 (create-hook-helper always-eval-sexp ()
@@ -568,6 +634,10 @@ typical word processor."
    ("<M-S-left>" . buf-move-left)
    ("<M-S-right>" . buf-move-right)))
 
+(use-package bug-reference-github
+  :commands bug-reference-github-set-url-format
+  :init (add-hook 'prog-mode-hook 'bug-reference-github-set-url-format))
+
 (use-package bury-successful-compilation
   :disabled
   :commands bury-successful-compilation
@@ -603,7 +673,12 @@ typical word processor."
            (t (company-complete-common-or-cycle)))))
 
   :bind (("<C-tab>" . my-complete)
-         ("M-C-/" . company-complete))
+         ("M-C-/" . company-complete)
+         :map company-active-map
+         ("TAB" . company-complete-common-or-cycle)
+         ("<tab>" . company-complete-common-or-cycle)
+         ("S-TAB" . company-select-previous)
+         ("<backtab>" . company-select-previous))
   :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
   :init (add-hook 'after-init-hook 'global-company-mode)
@@ -615,10 +690,20 @@ typical word processor."
   )
 
 (use-package company-irony
-  :disabled
   :commands company-irony
   :after company
-  :init (add-to-list 'company-backends 'company-irony))
+  :config (add-to-list 'company-backends 'company-irony))
+
+(use-package company-tern
+  :after company
+  :commands company-tern
+  :config (add-to-list 'company-backends 'company-tern))
+
+(use-package company-web
+  :disabled
+  :after company
+  :commands company-web
+  :config (add-to-list 'company-backends 'company-web))
 
 (use-package compile
   :builtin
@@ -700,29 +785,6 @@ typical word processor."
 
 (use-package dired
   :builtin
-  :preface
-  (defun dired-collapse-directories ()
-    "Collapse single-child directories."
-    (let ((inhibit-read-only t))
-      (save-excursion
-        (goto-char (point-min))
-        (while (not (eobp))
-          (save-excursion
-            (when (and (looking-at-p dired-re-dir)
-                       (not (eolp)))
-              (let ((path (dired-get-filename t t)) files)
-                (while (and (file-directory-p path)
-                            (setq files (f-entries path))
-                            (= 1 (length files)))
-                  (setq path (concat path "/" (f-filename (car files)))))
-                (when (> (length path) 1)
-                  (dired-move-to-filename)
-                  (forward-char)
-                  (delete-region (point) (line-end-position))
-                  (save-excursion
-                    (insert path))
-                  (delete-char -1)))))
-          (forward-line 1)))))
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
@@ -731,7 +793,6 @@ typical word processor."
 	 ("e" . eshell))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  ;; (add-hook 'dired-after-readin-hook 'dired-collapse-directories)
   )
 
 (use-package dired-column
@@ -739,6 +800,18 @@ typical word processor."
   :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
+
+(use-package dired-subtree
+  :after dired
+  :bind (:map dired-mode-map
+	      ("<tab>" . dired-subtree-toggle)
+	      ("<backtab>" . dired-subtree-cycle)))
+
+(use-package dired-collapse
+  :after dired
+  :disabled
+  :commands dired-collapse-mode
+  :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
 
 (use-package dired-x
   :builtin
@@ -749,6 +822,12 @@ typical word processor."
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   )
+
+(use-package direx
+  :bind (("C-x C-j" . direx:jump-to-directory))
+  :config
+  (push '(direx:direx-mode :position left :width 25 :dedicated t)
+	popwin:special-display-config))
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
@@ -780,18 +859,17 @@ typical word processor."
   (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
 
-(use-package elec-pair
+(use-package elec-pair ;; should disable in sp modes
   :builtin
   :commands electric-pair-mode
-  :demand
-  :config (electric-pair-mode t))
+  :init (add-hook 'prog-mode-hook 'electric-pair-mode))
 
-(use-package electric
+(use-package electric ;; should disable in sp modes
   :builtin
-  :demand
-  :config
-  (electric-quote-mode t)
-  (electric-indent-mode t)
+  :commands (electric-quote-mode electric-indent-mode)
+  :init
+  (add-hook 'prog-mode-hook 'electric-quote-mode)
+  (add-hook 'prog-mode-hook 'electric-indent-mode)
   )
 
 (use-package electric-operator
@@ -838,6 +916,7 @@ typical word processor."
   )
 
 (use-package eshell-prompt-extras
+  :disabled
   :commands epe-theme-lambda
   :init (setq eshell-prompt-function 'epe-theme-lambda))
 
@@ -848,8 +927,60 @@ typical word processor."
 (use-package esup
   :commands esup)
 
+(use-package eval-expr
+  :bind ("M-:" . eval-expr)
+  :config
+  (setq eval-expr-print-function 'pp
+        eval-expr-print-level 20
+        eval-expr-print-length 100)
+  )
+
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
+
+(use-package ffap
+  :disabled
+  :builtin
+  :config
+  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
+    (if (string= ad-return-value "/")
+        (setq ad-return-value nil)))
+
+  (defvar ffap-file-at-point-line-number nil
+    "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
+    "Search `ffap-string-at-point' for a line number pattern and
+save it in `ffap-file-at-point-line-number' variable."
+    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+           (name
+            (or (condition-case nil
+                    (and (not (string-match "//" string)) ; foo.com://bar
+                         (substitute-in-file-name string))
+                  (error nil))
+                string))
+           (line-number-string
+            (and (string-match ":[0-9]+" name)
+                 (substring name (1+ (match-beginning 0)) (match-end 0))))
+           (line-number
+            (and line-number-string
+                 (string-to-number line-number-string))))
+      (if (and line-number (> line-number 0))
+          (setq ffap-file-at-point-line-number line-number)
+        (setq ffap-file-at-point-line-number nil))))
+
+  (defadvice find-file-at-point (after ffap-goto-line-number activate)
+    "If `ffap-file-at-point-line-number' is non-nil goto this line."
+    (when ffap-file-at-point-line-number
+      (with-no-warnings
+        (goto-line ffap-file-at-point-line-number))
+      (setq ffap-file-at-point-line-number nil)))
+  )
+
+(use-package fill-column-indicator
+  :disabled
+  :commands fci-mode
+  :init (add-hook 'prog-mode-hook 'fci-mode))
 
 (use-package firestarter
   :disabled
@@ -889,8 +1020,6 @@ typical word processor."
 (use-package gnus
   :builtin
   :commands gnus
-  :bind (("C-M-g" . gnus)
-         ("C-x n u" . gnus))
   :init
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
   (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
@@ -1127,12 +1256,41 @@ typical word processor."
   :commands hookify)
 
 (use-package hydra
-  :disabled
-  :bind (("s-f" . hydra-projectile/body)
-         ("C-x t" . hydra-toggle/body)
-         ("C-M-o" . hydra-window/body))
+  :bind (("C-x t" . hydra-toggle/body)
+         ("<f5>" . hydra-zoom/body)
+         ("C-M-g" . hydra-error/body))
   :config
   (hydra-add-font-lock)
+
+  (defhydra hydra-error (:color amaranth)
+    "goto-error"
+    ("h" flycheck-list-errors "first")
+    ("j" flycheck-next-error "next")
+    ("k" flycheck-previous-error "prev")
+    ("v" recenter-top-bottom "recenter")
+    ("q" nil "quit"))
+
+  (defhydra hydra-zoom (:color blue :hint nil)
+    "zoom"
+    ("g" text-scale-increase "in")
+    ("l" text-scale-decrease "out"))
+  )
+
+(use-package corral
+  :disabled
+  :bind ("C-c v" . hydra-corral/body)
+  :config
+  (setq corral-preserve-point t)
+
+  (defhydra hydra-corral (:columns 4)
+    "Corral"
+    ("(" corral-parentheses-backward "Back")
+    (")" corral-parentheses-forward "Forward")
+    ("[" corral-brackets-backward "Back")
+    ("]" corral-brackets-forward "Forward")
+    ("{" corral-braces-backward "Back")
+    ("}" corral-braces-forward "Forward")
+    ("." hydra-repeat "Repeat"))
   )
 
 (use-package ibuffer
@@ -1147,6 +1305,10 @@ typical word processor."
          :map isearch-mode-map ("C-;" . iedit-mode-toggle-on-function))
   )
 
+(use-package ielm
+  :builtin
+  :bind ("C-c :" . ielm))
+
 (use-package imenu-anywhere
   :bind (("C-c i" . imenu-anywhere)
          ("s-i" . imenu-anywhere)))
@@ -1154,9 +1316,24 @@ typical word processor."
 (use-package imenu-list
   :commands imenu-list)
 
+(use-package indent-shift
+  :disabled
+  :bind (("C-c <" . indent-shift-left)
+         ("C-c >" . indent-shift-right)))
+
 (use-package indium
   :mode ("\\.js\\'" . indium-mode)
   :commands (indium-mode indium-interaction-mode indium-scratch))
+
+(use-package info
+  :builtin
+  :bind ("C-h C-i" . info-lookup-symbol)
+  :config
+  (defadvice Info-exit (after remove-info-window activate)
+    "When info mode is quit, remove the window."
+    (if (> (length (window-list)) 1)
+        (delete-window))
+    ))
 
 (use-package intero
   :commands intero-mode
@@ -1179,7 +1356,11 @@ typical word processor."
          ("C-j" . ivy-call))
   :diminish ivy-mode
   :commands ivy-mode
-  :init (setq projectile-completion-system (quote ivy))
+  :init
+  (setq projectile-completion-system 'ivy)
+  (setq magit-completing-read-function 'ivy-completing-read)
+  (setq dumb-jump-selector 'ivy)
+  (setq rtags-display-result-backend 'ivy)
   :config (ivy-mode 1))
 
 (use-package jdee
@@ -1230,6 +1411,9 @@ typical word processor."
   :builtin
   )
 
+(use-package llvm-mode
+  :mode "\\.ll\\'")
+
 (use-package lsp-mode
   :commands lsp-mode
   :init (add-hook 'prog-major-mode #'lsp-mode)
@@ -1256,6 +1440,16 @@ typical word processor."
   (defun magit-dired-other-window ()
     (interactive)
     (dired-other-window (magit-toplevel)))
+  :config
+  (setq magit-repo-dirs
+        (mapcar
+         (lambda (dir)
+           (substring dir 0 -1))
+         (cl-remove-if-not
+          (lambda (project)
+            (unless (file-remote-p project)
+              (file-directory-p (concat project "/.git/"))))
+          (projectile-relevant-known-projects))))
   :commands (magit-clone)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
@@ -1295,13 +1489,22 @@ typical word processor."
   :bind (([(meta shift up)] . move-text-up)
          ([(meta shift down)] . move-text-down)))
 
+(use-package multi-term
+  :bind (("C-. t" . multi-term-next)
+         ("C-. T" . multi-term))
+  )
+
 (use-package multiple-cursors
   :bind
   (("<C-S-down>" . mc/mark-next-like-this) ;; broken by macOS shortcut
    ("<C-S-up>" . mc/mark-previous-like-this)
    ("C->" . mc/mark-next-like-this)
    ("C-<" . mc/mark-previous-like-this)
-   ("M-<mouse-1>" . mc/add-cursor-on-click)))
+   ("M-<mouse-1>" . mc/add-cursor-on-click)
+   ("C-c C-<"     . mc/mark-all-like-this)
+   ("C-!"         . mc/mark-next-symbol-like-this)
+   ("s-d"         . mc/mark-all-dwim)
+   ("C-S-c C-S-c" . mc/edit-lines)))
 
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
@@ -1311,17 +1514,33 @@ typical word processor."
   :disabled
   :bind (("<f8>" . neotree-toggle)))
 
+(use-package nix-buffer
+  :commands nix-buffer)
+
 (use-package nix-mode
   :mode "\\.nix\\'")
 
 (use-package notmuch
   :commands notmuch)
 
+(use-package nroff-mode
+  :builtin
+  :commands nroff-mode)
+
+(use-package nxml-mode
+  :builtin
+  :commands nxml-mode
+  :init
+  (defalias 'xml-mode 'nxml-mode)
+  )
+
 (use-package org
   :builtin
   ;; :mode "\\.\\(org\\)\\'"
   :commands org-capture
-  :bind ("C-c c" . org-capture)
+  :bind (("C-c c" . org-capture)
+         ("C-c a" . org-agenda)
+         ("C-c C-l" . org-store-link))
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
   :config
@@ -1350,6 +1569,9 @@ typical word processor."
   :commands org-bullets-mode
   :init (add-hook 'org-mode-hook 'org-bullets-mode))
 
+(use-package pabbrev
+  :commands pabbrev-mode)
+
 (use-package page-break-lines
   :commands page-break-lines-mode
   :init (add-hooks '(((doc-mode
@@ -1376,18 +1598,42 @@ typical word processor."
 
 (use-package prog-mode
   :builtin
-  :commands global-prettify-symbols-mode
+  :commands (prettify-symbols-mode global-prettify-symbols-mode)
   :init
-  (global-prettify-symbols-mode)
+  (add-hook 'prog-mode-hook 'prettify-symbols-mode)
+  ;; (global-prettify-symbols-mode)
   )
 
 (use-package projectile
+  ;; :bind ("s-f" . hydra-projectile/body)
   :bind-keymap ("C-c p" . projectile-command-map)
+
   :config
+
+  ;; (defhydra hydra-projectile (:color blue :columns 4)
+  ;;   "Projectile"
+  ;;   ("a" counsel-git-grep "ag")
+  ;;   ("b" projectile-switch-to-buffer "switch to buffer")
+  ;;   ("c" projectile-compile-project "compile project")
+  ;;   ("d" projectile-find-dir "dir")
+  ;;   ("f" projectile-find-file "file")
+  ;;   ;; ("ff" projectile-find-file-dwim "file dwim")
+  ;;   ;; ("fd" projectile-find-file-in-directory "file curr dir")
+  ;;   ("g" ggtags-update-tags "update gtags")
+  ;;   ("i" projectile-ibuffer "Ibuffer")
+  ;;   ("K" projectile-kill-buffers "Kill all buffers")
+  ;;   ;; ("o" projectile-multi-occur "multi-occur")
+  ;;   ("p" projectile-switch-project "switch")
+  ;;   ("r" projectile-run-async-shell-command-in-root "run shell command")
+  ;;   ("x" projectile-remove-known-project "remove known")
+  ;;   ("X" projectile-cleanup-known-projects "cleanup non-existing")
+  ;;   ("z" projectile-cache-current-file "cache current")
+  ;;   ("q" nil "cancel")
+  ;;   )
 
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-					compilation-read-command))))
+                                   compilation-read-command))))
 
   (projectile-global-mode)
 
@@ -1467,6 +1713,15 @@ typical word processor."
                        lisp-interaction-mode
                        slime-repl-mode) . rainbow-mode))))
 
+(use-package ranger
+  :commands deer)
+
+(use-package readline-complete
+  :after company
+  :config
+  (add-to-list 'company-backends 'company-readline)
+  (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1))))
+
 (use-package realgud
   :commands (realgud:jdb))
 
@@ -1474,7 +1729,8 @@ typical word processor."
   :commands restart-emacs)
 
 (use-package restclient
-  :mode ("\\.rest\\'" . restclient-mode))
+  :mode (("\\.rest\\'" . restclient-mode)
+         ("\\.restclient\\'" . restclient-mode)))
 
 (use-package rg
   :commands rg)
@@ -1486,7 +1742,6 @@ typical word processor."
   ;; Start rtags upon entering a C/C++ file
   (create-hook-helper rtags-start ()
     :hooks (c-mode-common-hook c++-mode-common-hook)
-    (require 'tramp)
     (when (not (tramp-tramp-file-p (buffer-file-name (current-buffer))))
       (rtags-start-process-unless-running)))
 
@@ -1512,6 +1767,7 @@ typical word processor."
   :config (savehist-mode 1))
 
 (use-package saveplace
+  :disabled
   :builtin
   :commands save-place-mode
   :demand
@@ -1559,8 +1815,7 @@ typical word processor."
   :commands skewer-less-mode
   :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
 
-(use-package slime
-  :disabled)
+(use-package slime)
 
 (use-package smart-hungry-delete
   :commands smart-hungry-delete-add-default-hooks
@@ -1568,6 +1823,12 @@ typical word processor."
               ("<backspace>" . smart-hungry-delete-backward-char)
               ("C-d" . smart-hungry-delete-forward-char))
   :init (smart-hungry-delete-add-default-hooks))
+
+(use-package smart-shift
+  :bind (("C-c <left>" . smart-shift-left)
+	 ("C-c <right>" . smart-shift-right)
+	 ("C-c <up>" . smart-shift-up)
+	 ("C-c <down>" . smart-shift-down)))
 
 (use-package smart-tabs-mode
   :builtin
@@ -1578,7 +1839,7 @@ typical word processor."
 (use-package smartparens
   :commands (smartparens-mode show-smartparens-mode)
   :init
-  (setq sp-base-key-bindings (quote paredit))
+  (setq sp-base-key-bindings 'paredit)
   (add-hooks '(((emacs-lisp-mode
                  inferior-emacs-lisp-mode
                  ielm-mode
@@ -1599,7 +1860,19 @@ typical word processor."
     :builtin
     :demand)
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
+  (sp-local-pair 'org-mode "~" "~" :actions '(wrap))
+  (sp-local-pair 'org-mode "/" "/" :actions '(wrap))
+  (sp-local-pair 'org-mode "*" "*" :actions '(wrap))
   )
+
+(use-package string-inflection
+  :bind (("C-c r r" . string-inflection-all-cycle)
+         ("C-c r c" . string-inflection-camelcase)
+         ("C-c r l" . string-inflection-lower-camelcase)
+         ;; ("C-c r l" . string-inflection-lisp)
+         ("C-c r u" . string-inflection-underscore)
+         ("C-c r k" . string-inflection-kebab-case)
+         ("C-c r J" . string-inflection-java-style-cycle)))
 
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
@@ -1644,6 +1917,18 @@ typical word processor."
   :commands tern-mode
   :init (add-hook 'js2-mode-hook 'tern-mode))
 
+(use-package tex-site
+  :name "auctex")
+
+(use-package texinfo
+  :mode ("\\.texi\\'" . texinfo-mode))
+
+(use-package text-mode
+  :builtin
+  :init
+  (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  )
+
 (use-package tide
   :commands (tide-setup tide-hl-identifier-mode)
   :init
@@ -1666,6 +1951,9 @@ typical word processor."
 
 (use-package typescript-mode
   :mode "\\.ts\\'")
+
+(use-package vkill
+  :bind ("C-x L" . vkill))
 
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
@@ -1691,10 +1979,48 @@ typical word processor."
   :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package windmove
+  ;; :bind (("C-M-o" . hydra-window/body))
   :builtin
-  :demand
+  ;; :demand
   :commands windmove-default-keybindings
-  :config (windmove-default-keybindings 'meta))
+  :init
+  (windmove-default-keybindings 'meta)
+
+  ;;   :config
+  ;;   (defhydra hydra-window (:color amaranth)
+  ;;     "
+  ;; Move Point^^^^   Move Splitter   ^Ace^                       ^Split^
+  ;; --------------------------------------------------------------------------------
+  ;; _w_, _<up>_      Shift + Move    _C-a_: ace-window           _2_: split-window-below
+  ;; _a_, _<left>_                    _C-s_: ace-window-swap      _3_: split-window-right
+  ;; _s_, _<down>_                    _C-d_: ace-window-delete    ^ ^
+  ;; _d_, _<right>_                   ^   ^                       ^ ^
+  ;; You can use arrow-keys or WASD.
+  ;; "
+  ;;     ("2" split-window-below nil)
+  ;;     ("3" split-window-right nil)
+  ;;     ("a" windmove-left nil)
+  ;;     ("s" windmove-down nil)
+  ;;     ("w" windmove-up nil)
+  ;;     ("d" windmove-right nil)
+  ;;     ("A" hydra-move-splitter-left nil)
+  ;;     ("S" hydra-move-splitter-down nil)
+  ;;     ("W" hydra-move-splitter-up nil)
+  ;;     ("D" hydra-move-splitter-right nil)
+  ;;     ("<left>" windmove-left nil)
+  ;;     ("<down>" windmove-down nil)
+  ;;     ("<up>" windmove-up nil)
+  ;;     ("<right>" windmove-right nil)
+  ;;     ("<S-left>" hydra-move-splitter-left nil)
+  ;;     ("<S-down>" hydra-move-splitter-down nil)
+  ;;     ("<S-up>" hydra-move-splitter-up nil)
+  ;;     ("<S-right>" hydra-move-splitter-right nil)
+  ;;     ("C-a" ace-window nil)
+  ;;     ("u" hydra--universal-argument nil)
+  ;;     ("C-s" (lambda () (interactive) (ace-window 4)) nil)
+  ;;     ("C-d" (lambda () (interactive) (ace-window 16)) nil)
+  ;;     ("q" nil "quit"))
+  )
 
 (use-package with-editor
   :disabled
@@ -1705,6 +2031,10 @@ typical word processor."
                        term-exec
                        eshell-mode) . with-editor-export-editor)))
   )
+
+(use-package with-editor
+  :commands (with-editor-async-shell-command
+	     with-editor-shell-command))
 
 (use-package xterm-color
   :demand
@@ -1726,140 +2056,29 @@ typical word processor."
 (use-package yaml-mode
   :mode "\\.yaml\\'")
 
+(use-package yasnippet
+  :disabled
+  :commands yas-minor-mode
+  :init (add-hook 'prog-mode-hook #'yas-minor-mode)
+  :config (yas-reload-all))
+
 (use-package ycmd)
 
-(use-package direx
-  :bind (("C-x C-j" . direx:jump-to-directory))
-  :config
-  (push '(direx:direx-mode :position left :width 25 :dedicated t)
-	popwin:special-display-config))
+(use-package elf-mode
+  :commands elf-mode
+  :init (add-to-list 'magic-mode-alist (cons "ELF" 'elf-mode)))
 
-(use-package ranger
-  :commands deer)
+(use-package winner-mode
+  :disabled)
 
-(use-package dired-subtree
-  :after dired
-  :bind (:map dired-mode-map
-	      ("<tab>" . dired-subtree-toggle)
-	      ("<backtab>" . dired-subtree-cycle)))
+(use-package transpose-frame
+  :bind ("H-t" . transpose-frame))
 
-(use-package fill-column-indicator
-  :commands fci-mode
-  :init (add-hook 'prog-mode-hook 'fci-mode))
-
-(use-package bug-reference-github
-  :commands bug-reference-github-set-url-format
-  :init (add-hook 'prog-mode-hook 'bug-reference-github-set-url-format))
-
-(use-package vkill
-  :bind ("C-x L" . vkill))
-
-(use-package tex-site
-  :name "auctex")
-
-(use-package texinfo
-  :mode ("\\.texi\\'" . texinfo-mode))
-
-(use-package pabbrev
-  :commands pabbrev-mode)
-
-(use-package nxml-mode
-  :builtin
-  :commands nxml-mode
-  :init
-  (defalias 'xml-mode 'nxml-mode)
-  )
-
-(use-package nroff-mode
-  :builtin
-  :commands nroff-mode)
-
-(use-package nix-buffer
-  :commands nix-buffer)
-
-(use-package multi-term
-  :bind (("C-. t" . multi-term-next)
-         ("C-. T" . multi-term))
-  )
-
-(use-package with-editor
-  :commands (with-editor-async-shell-command
-	     with-editor-shell-command))
-
-(use-package llvm-mode
-  :mode "\\.ll\\'")
-
-(use-package indent-shift
-  :disabled
-  :bind (("C-c <" . indent-shift-left)
-         ("C-c >" . indent-shift-right)))
-
-(use-package info
-  :builtin
-  :bind ("C-h C-i" . info-lookup-symbol)
-  :config
-  (defadvice Info-exit (after remove-info-window activate)
-    "When info mode is quit, remove the window."
-    (if (> (length (window-list)) 1)
-        (delete-window))
-    ))
-
-(use-package ielm
-  :builtin
-  :bind ("C-c :" . ielm))
-
-(use-package eval-expr
-  :bind ("M-:" . eval-expr)
-  :config
-  (setq eval-expr-print-function 'pp
-        eval-expr-print-level 20
-        eval-expr-print-length 100)
-  )
-
-(use-package ffap
+(use-package dirtrack
   :disabled
   :builtin
-  :config
-  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
-    (if (string= ad-return-value "/")
-        (setq ad-return-value nil)))
-
-  (defvar ffap-file-at-point-line-number nil
-    "Variable to hold line number from the last `ffap-file-at-point' call.")
-
-  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
-    "Search `ffap-string-at-point' for a line number pattern and
-save it in `ffap-file-at-point-line-number' variable."
-    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
-           (name
-            (or (condition-case nil
-                    (and (not (string-match "//" string)) ; foo.com://bar
-                         (substitute-in-file-name string))
-                  (error nil))
-                string))
-           (line-number-string
-            (and (string-match ":[0-9]+" name)
-                 (substring name (1+ (match-beginning 0)) (match-end 0))))
-           (line-number
-            (and line-number-string
-                 (string-to-number line-number-string))))
-      (if (and line-number (> line-number 0))
-          (setq ffap-file-at-point-line-number line-number)
-        (setq ffap-file-at-point-line-number nil))))
-
-  (defadvice find-file-at-point (after ffap-goto-line-number activate)
-    "If `ffap-file-at-point-line-number' is non-nil goto this line."
-    (when ffap-file-at-point-line-number
-      (with-no-warnings
-        (goto-line ffap-file-at-point-line-number))
-      (setq ffap-file-at-point-line-number nil)))
-  )
-
-(use-package smart-shift
-  :bind (("C-c <left>" . smart-shift-left)
-	 ("C-c <right>" . smart-shift-right)
-	 ("C-c <up>" . smart-shift-up)
-	 ("C-c <down>" . smart-shift-down)))
+  :commands dirtack-mode
+  :init (add-hook 'comint-mode-hook 'dirtrack-mode))
 
 (provide 'default)
 ;;; default.el ends here
