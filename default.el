@@ -420,8 +420,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 ;; (when (fboundp 'recentf-mode)
 ;;   (recentf-mode -1))
-(when (fboundp 'shell-dirtrack-mode)
-  (shell-dirtrack-mode -1))
+;; (when (fboundp 'shell-dirtrack-mode)
+;;   (shell-dirtrack-mode -1))
 
 ;; these should be disabled before Emsacs displays the frame
 ;; but we disable them here just in case
@@ -572,6 +572,7 @@ typical word processor."
 (use-package abbrev
   :diminish abbrev-mode
   :demand
+  :disabled
   :builtin
   :config (setq-default abbrev-mode t))
 
@@ -847,8 +848,7 @@ typical word processor."
 
 (use-package editorconfig
   :commands editorconfig-mode
-  :diminish editorconfig-mode
-  :init (editorconfig-mode t))
+  :init (add-hook 'prog-mode-hook 'editorconfig-mode))
 
 (use-package eldoc
   :builtin
