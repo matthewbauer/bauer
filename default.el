@@ -24,7 +24,10 @@
   :disabled
   :builtin
   :commands server-start
-  :init (add-hook 'after-init-hook 'server-start t))
+  :init
+  (add-hook 'after-init-hook 'server-start t)
+  ;; (add-hook 'server-switch-hook 'raise-frame)
+  )
 
 (use-package tramp
   :builtin
@@ -190,18 +193,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-               (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-real-host (tramp-dissect-file-name
-                                              default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
+          (when (tramp-tramp-file-p default-directory)
+            (concat
+             (tramp-file-name-user (tramp-dissect-file-name default-directory))
+             "@"
+             (tramp-file-name-real-host (tramp-dissect-file-name
+                                         default-directory))
+             " "))
+          (let ((dir (eshell/pwd)))
+            (if (string= dir (getenv "HOME")) "~"
+              (let ((dirname (file-name-nondirectory dir)))
+                (if (string= dirname "") "/" dirname))))
+          (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -434,14 +437,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
 
-(add-hook 'prog-mode-hook 'bug-reference-prog-mode)
-(add-hook 'prog-mode-hook 'goto-address-prog-mode)
-;; (add-hook 'prog-mode-hook 'subword-mode)
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
-(add-hook 'makefile-mode-hook 'indent-tabs-mode)
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 ;; (add-hook 'before-save-hook 'time-stamp)
-;; (add-hook 'server-switch-hook 'raise-frame)
 
 ;; (global-visual-line-mode t)
 
@@ -599,9 +597,8 @@ typical word processor."
   :builtin
   :init (create-hook-helper colorize-compilation-buffer ()
           :hooks (compilation-filter-hook)
-          (when (eq major-mode 'compilation-mode)
-            (let ((inhibit-read-only t))
-              (ansi-color-apply-on-region (point-min) (point-max))))))
+          (let ((inhibit-read-only t))
+            (ansi-color-apply-on-region (point-min) (point-max)))))
 
 (use-package anything
   :commands anything)
@@ -658,6 +655,7 @@ typical word processor."
   :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
+  :diminish company-mode
   :bind (("<C-tab>" . company-complete)
          ("M-C-/" . company-complete)
          :map company-active-map
@@ -833,6 +831,7 @@ typical word processor."
 
 (use-package editorconfig
   :commands editorconfig-mode
+  :diminish editorconfig-mode
   :init (add-hook 'prog-mode-hook 'editorconfig-mode))
 
 (use-package eldoc
@@ -1375,6 +1374,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :init (add-hook 'irony-mode-hook #'irony-eldoc))
 
 (use-package ivy
+  :diminish ivy-mode
   :after projectile
   :bind (("C-c C-r" . ivy-resume)
          ("<f6>" . ivy-resume)
@@ -1611,6 +1611,12 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands (prettify-symbols-mode global-prettify-symbols-mode)
   :init
   (add-hook 'prog-mode-hook 'prettify-symbols-mode)
+  (create-hook-helper prettify-symbols ()
+    ""
+    :hooks (prettify-symbols-mode-hook)
+    (push '("<=" . ?≤) prettify-symbols-alist)
+    (push '(">=" . ?≥) prettify-symbols-alist)
+    )
   ;; (global-prettify-symbols-mode)
   )
 
@@ -2023,7 +2029,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package time
   :builtin
-  :commands display-time
+  :defer 2
   :config (display-time))
 
 (use-package toc-org
@@ -2053,6 +2059,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :config (which-function-mode t))
 
 (use-package which-key
+  :diminish which-key-mode
   :commands which-key-mode
   :defer 7
   :config (which-key-mode))
@@ -2179,6 +2186,33 @@ save it in `ffap-file-at-point-line-number' variable."
   :builtin
   :commands minibuffer-depth-indicate-mode
   :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
+
+(use-package makefile-mode
+  :builtin
+  :init
+  (add-hook 'makefile-mode-hook 'indent-tabs-mode)
+  )
+
+(use-package bug-reference
+  :builtin
+  :commands bug-reference-prog-mode
+  :init
+  (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
+  )
+
+(use-package goto-addr
+  :builtin
+  :commands goto-address-prog-mode
+  :init
+  (add-hook 'prog-mode-hook 'goto-address-prog-mode)
+  )
+
+(use-package hl-todo
+  :commands hl-todo-mode
+  :init
+  (add-hook 'prog-mode-hook 'hl-todo-mode))
+
+;; TODO: add font-lock highlighting for @nethack@ substitutions
 
 (provide 'default)
 ;;; default.el ends here
