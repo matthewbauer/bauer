@@ -434,14 +434,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
 
-(when (eq system-type 'darwin)
-  ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
-  (global-set-key (kbd "M-`") 'ns-next-frame)
-  (global-set-key (kbd "M-~") 'ns-prev-frame)
-  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji")
-  ;;                   (selected-frame) 'prepend)
-  )
-
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
 (add-hook 'prog-mode-hook 'goto-address-prog-mode)
 ;; (add-hook 'prog-mode-hook 'subword-mode)
@@ -468,9 +460,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x 5 4") 'toggle-frame-fullscreen)
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
-;; (global-set-key (kbd "C-c v") 'customize-variable)
 (global-set-key (kbd "C-c w w") 'whitespace-mode)
-;; (global-set-key (kbd "C-c u w") 'upcase-word)
 
 (global-set-key (kbd "C-x 8 : )") "☺")
 
@@ -515,7 +505,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "s-C-<down>"  'shrink-window)
 (bind-key "s-C-<up>"    'enlarge-window)
 
-(global-unset-key (kbd "C-x C-e"))
+(when (eq system-type 'darwin)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
+  (global-set-key (kbd "M-`") 'ns-next-frame)
+  (global-set-key (kbd "M-~") 'ns-prev-frame)
+  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji")
+  ;;                   (selected-frame) 'prepend)
+  )
 
 (define-minor-mode prose-mode
   "Set up a buffer for prose editing.
@@ -612,7 +608,7 @@ typical word processor."
 
 (use-package autorevert
   :builtin
-  :demand
+  :defer 1
   :config
   (global-auto-revert-mode t)
   (add-hook 'dired-mode-hook 'auto-revert-mode))
@@ -669,7 +665,6 @@ typical word processor."
          ("<tab>" . company-complete-common-or-cycle)
          ("S-TAB" . company-select-previous)
          ("<backtab>" . company-select-previous))
-  :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
   :init (add-hook 'after-init-hook 'global-company-mode)
   ;; :config
@@ -759,7 +754,7 @@ typical word processor."
 
 (use-package delsel
   :builtin
-  :demand
+  :defer 2
   :config (delete-selection-mode t))
 
 (use-package diff-hl
@@ -822,7 +817,7 @@ typical word processor."
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
-  :demand
+  :defer 3
   :config (dtrt-indent-mode 1))
 
 (use-package dumb-jump
@@ -837,7 +832,6 @@ typical word processor."
   )
 
 (use-package editorconfig
-  :diminish editorconfig-mode
   :commands editorconfig-mode
   :init (add-hook 'prog-mode-hook 'editorconfig-mode))
 
@@ -1387,7 +1381,6 @@ save it in `ffap-file-at-point-line-number' variable."
          ("C-x C-b" . ivy-switch-buffer)
          :map ivy-minibuffer-map
          ("C-j" . ivy-call))
-  :diminish ivy-mode
   :commands ivy-mode
   :init
   (setq projectile-completion-system 'ivy)
@@ -1761,14 +1754,14 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package savehist
   :builtin
-  :demand
+  :defer 4
   :commands savehist-mode
   :config (savehist-mode 1))
 
 (use-package saveplace
   :builtin
   :commands save-place-mode
-  :demand
+  :defer 5
   :config (save-place-mode t))
 
 (use-package scss-mode
@@ -1868,8 +1861,8 @@ save it in `ffap-file-at-point-line-number' variable."
               ("M-D" . sp-splice-sexp)
               ("C-<down>" . sp-down-sexp)
               ("C-<up>"   . sp-up-sexp)
-              ("M-<down>" . sp-backward-down-sexp)
-              ("M-<up>"   . sp-backward-up-sexp)
+              ("M-<down>" . sp-splice-sexp-killing-forward)
+              ("M-<up>"   . sp-splice-sexp-killing-backward)
               ("C-<right>" . sp-forward-slurp-sexp)
               ("M-<right>" . sp-forward-barf-sexp)
               ("C-<left>"  . sp-backward-slurp-sexp)
@@ -2055,14 +2048,13 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package which-func
   :builtin
-  :demand
+  :defer 6
   :commands which-function-mode
   :config (which-function-mode t))
 
 (use-package which-key
   :commands which-key-mode
-  :demand
-  :diminish which-key-mode
+  :defer 7
   :config (which-key-mode))
 
 (use-package whitespace-cleanup-mode
@@ -2071,7 +2063,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package windmove
   :builtin
-  :demand
+  :defer 10
   :config (windmove-default-keybindings 'meta))
 
 (use-package with-editor
@@ -2116,11 +2108,13 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package elf-mode
   :commands elf-mode
+  ;; TODO: use :magic
   :init (add-to-list 'magic-mode-alist (cons "ELF" 'elf-mode)))
 
 (use-package macho-mode
   :commands macho-mode
   :builtin
+  ;; TODO: use :magic
   :init
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCE" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCF" . macho-mode))
@@ -2147,6 +2141,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :interpreter ("scala" . scala-mode))
 
 (use-package idle-highlight-mode
+  :disabled
   :commands idle-highlight-mode
   :init (add-hooks '(((java-mode
                        emacs-lisp-mode
@@ -2160,7 +2155,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package subword
   :builtin
-  :init (add-hook 'java-mode-hook #'subword-mode))
+  :init (add-hook 'java-mode-hook 'subword-mode))
 
 (use-package whitespace-mode
   :builtin
@@ -2168,7 +2163,6 @@ save it in `ffap-file-at-point-line-number' variable."
   :init (add-hook 'prog-mode-hook 'whitespace-mode))
 
 (use-package focus
-  :diminish focus-mode
   :bind ("C-c m f" . focus-mode))
 
 (use-package pp
@@ -2176,6 +2170,7 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands pp-eval-last-sexp
   :bind (("M-:" . pp-eval-expression))
   :init
+  (global-unset-key (kbd "C-x C-e"))
   (create-hook-helper always-eval-sexp ()
     :hooks (lisp-mode-hook emacs-lisp-mode-hook)
     (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp)))
