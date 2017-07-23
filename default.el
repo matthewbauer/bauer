@@ -23,25 +23,21 @@
 (use-package server
   :disabled
   :builtin
-  :demand
-  ;; :if (and (boundp 'server-process) (not server-process))
-  :config
-  (server-start)
-  )
+  :commands server-start
+  :init (add-hook 'after-init-hook 'server-start t))
 
 (use-package tramp
   :builtin
-  :demand)
+  :commands (tramp-tramp-file-p
+             tramp-file-name-user
+             tramp-file-name-real-host
+             tramp-dissect-file-name))
 
 (setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
 (setenv "EDITOR" "emacsclient -nw")
 (setenv "LANG" "en_US.UTF-8")
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "PAGER" "cat")
-
-(defun epe-abbrev-dir-name (dir)
-  "Return the base directory name of DIR."
-  )
 
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
@@ -122,8 +118,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(dired-dwim-target t)
  '(dired-omit-verbose nil)
  '(dired-omit-files "^\\.")
- '(dired-recursive-copies 'top)
- '(dired-recursive-deletes 'top)
+ '(dired-recursive-copies 'always)
+ '(dired-recursive-deletes 'always)
  '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
  '(display-time-default-load-average nil)
@@ -194,18 +190,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-          (when (tramp-tramp-file-p default-directory)
-            (concat
-             (tramp-file-name-user (tramp-dissect-file-name default-directory))
-             "@"
-             (tramp-file-name-real-host (tramp-dissect-file-name
-                                         default-directory))
-             " "))
-          (let ((dir (eshell/pwd)))
-            (if (string= dir (getenv "HOME")) "~"
-              (let ((dirname (file-name-nondirectory dir)))
-                (if (string= dirname "") "/" dirname))))
-          (if (= (user-uid) 0) " # " " $ "))))
+               (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-real-host (tramp-dissect-file-name
+                                              default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -340,6 +336,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(save-interprogram-paste-before-kill t)
  '(savehist-additional-variables '(search-ring regexp-search-ring))
  '(savehist-autosave-interval 60)
+ '(scroll-preserve-screen-position 'always)
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
  '(shell-completion-execonly nil)
@@ -406,6 +403,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                       lines-style))
  )
 
+(setq enable-recursive-minibuffers t)
+
 (use-package hook-helpers
   :commands (create-hook-helper define-hook-helper))
 
@@ -436,9 +435,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (blink-cursor-mode -1))
 
 (when (eq system-type 'darwin)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
+  ;; (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
   (global-set-key (kbd "M-`") 'ns-next-frame)
   (global-set-key (kbd "M-~") 'ns-prev-frame)
+  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji")
+  ;;                   (selected-frame) 'prepend)
   )
 
 (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
@@ -447,8 +448,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (add-hook 'makefile-mode-hook 'indent-tabs-mode)
 ;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
+;; (add-hook 'before-save-hook 'time-stamp)
 ;; (add-hook 'server-switch-hook 'raise-frame)
-(add-hook 'dired-mode-hook 'auto-revert-mode)
+
+;; (global-visual-line-mode t)
 
 ;;
 ;; key binds
@@ -466,35 +469,36 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x v f") 'vc-git-grep)
 (global-set-key (kbd "s-SPC") 'cycle-spacing)
 ;; (global-set-key (kbd "C-c v") 'customize-variable)
+(global-set-key (kbd "C-c w w") 'whitespace-mode)
+;; (global-set-key (kbd "C-c u w") 'upcase-word)
 
-(bind-key* "<C-return>" #'other-window)
-(bind-key "C-z" #'delete-other-windows)
-(bind-key "M-g l" #'goto-line)
-(bind-key "<C-M-backspace>" #'backward-kill-sexp)
-;; (bind-key "C-x D" #'edit-rectangle)
-;; (bind-key "C-x d" #'delete-whitespace-rectangle)
-;; (bind-key "C-x F" #'set-fill-column)
-(bind-key "C-x t" #'toggle-truncate-lines)
-(bind-key "C-x v H" #'vc-region-history)
-;; (bind-key "C-c <tab>" #'ff-find-other-file)
-(bind-key "C-c SPC" #'just-one-space)
-(bind-key "C-c f" #'flush-lines)
-;; (bind-key "C-c k" #'keep-lines)
-(bind-key "C-c o" #'customize-option)
-(bind-key "C-c O" #'customize-group)
-(bind-key "C-c F" #'customize-face)
-(bind-key "C-c q" #'fill-region)
-;; (bind-key "C-c r" #'replace-regexp)
-(bind-key "C-c s" #'replace-string)
-(bind-key "C-c u" #'rename-uniquely)
-(bind-key "C-c v" #'ffap)
-(bind-key "C-c z" #'clean-buffer-list)
-(bind-key "C-c =" #'count-matches)
-(bind-key "C-c ;" #'comment-or-uncomment-region)
+(global-set-key (kbd "C-x 8 : )") "☺")
 
-;; buffer switching
-(bind-key "s-{" 'previous-buffer)
-(bind-key "s-}" 'next-buffer)
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+
+(bind-key* "<C-return>" 'other-window)
+(bind-key "C-z" 'delete-other-windows)
+(bind-key "M-g l" 'goto-line)
+(bind-key "<C-M-backspace>" 'backward-kill-sexp)
+(bind-key "C-x t" 'toggle-truncate-lines)
+(bind-key "C-x v H" 'vc-region-history)
+(bind-key "C-c SPC" 'just-one-space)
+(bind-key "C-c f" 'flush-lines)
+(bind-key "C-c o" 'customize-option)
+(bind-key "C-c O" 'customize-group)
+(bind-key "C-c F" 'customize-face)
+(bind-key "C-c q" 'fill-region)
+(bind-key "C-c s" 'replace-string)
+(bind-key "C-c u" 'rename-uniquely)
+(bind-key "C-c v" 'ffap)
+(bind-key "C-c z" 'clean-buffer-list)
+(bind-key "C-c =" 'count-matches)
+(bind-key "C-c ;" 'comment-or-uncomment-region)
+(bind-key "C-c n" 'clean-up-buffer-or-region)
+(bind-key "C-c d" 'duplicate-current-line-or-region)
+(bind-key "M-+" 'text-scale-increase)
+(bind-key "M-_" 'text-scale-decrease)
 
 ;; Compiling
 (bind-key "H-c" 'compile)
@@ -512,9 +516,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "s-C-<up>"    'enlarge-window)
 
 (global-unset-key (kbd "C-x C-e"))
-(create-hook-helper always-eval-sexp ()
-  :hooks (lisp-mode-hook emacs-lisp-mode-hook)
-  (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp))
 
 (define-minor-mode prose-mode
   "Set up a buffer for prose editing.
@@ -569,19 +570,17 @@ typical word processor."
          (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
          (match-string 1)))))
 
-(use-package abbrev
-  :diminish abbrev-mode
-  :demand
-  :disabled
-  :builtin
-  :config (setq-default abbrev-mode t))
-
 (use-package ace-window
   :bind (("M-o" . other-window)
          ("C-x o" . ace-window)))
 
 (use-package ag
-  :commands (ag ag-files ag-regexp ag-project ag-project-files ag-project-regexp)
+  :commands (ag
+             ag-files
+             ag-regexp
+             ag-project
+             ag-project-files
+             ag-project-regexp)
   :bind ("C-?" . ag-project))
 
 (use-package aggressive-indent
@@ -613,9 +612,10 @@ typical word processor."
 
 (use-package autorevert
   :builtin
-  :commands global-auto-revert-mode
   :demand
-  :config (global-auto-revert-mode t))
+  :config
+  (global-auto-revert-mode t)
+  (add-hook 'dired-mode-hook 'auto-revert-mode))
 
 (use-package bash-completion
   :disabled
@@ -638,11 +638,6 @@ typical word processor."
 (use-package bug-reference-github
   :commands bug-reference-github-set-url-format
   :init (add-hook 'prog-mode-hook 'bug-reference-github-set-url-format))
-
-(use-package bury-successful-compilation
-  :disabled
-  :commands bury-successful-compilation
-  :init (bury-successful-compilation 1))
 
 (use-package cc-mode
   :builtin
@@ -667,13 +662,7 @@ typical word processor."
   :mode (("\\.coffee\\'" . coffee-mode)))
 
 (use-package company
-  :preface
-  (defun my-complete ()
-    (interactive)
-    (cond ((eq major-mode 'jdee-mode) (jdee-complete-menu)
-           (t (company-complete-common-or-cycle)))))
-
-  :bind (("<C-tab>" . my-complete)
+  :bind (("<C-tab>" . company-complete)
          ("M-C-/" . company-complete)
          :map company-active-map
          ("TAB" . company-complete-common-or-cycle)
@@ -683,11 +672,11 @@ typical word processor."
   :diminish company-mode
   :commands (company-mode global-company-mode company-complete-common)
   :init (add-hook 'after-init-hook 'global-company-mode)
-  :config
-  (defadvice company-pseudo-tooltip-unless-just-one-frontend
-      (around only-show-tooltip-when-invoked activate)
-    (when (company-explicit-action-p)
-      ad-do-it))
+  ;; :config
+  ;; (defadvice company-pseudo-tooltip-unless-just-one-frontend
+  ;;     (around only-show-tooltip-when-invoked activate)
+  ;;   (when (company-explicit-action-p)
+  ;;     ad-do-it))
   )
 
 (use-package company-irony
@@ -701,7 +690,6 @@ typical word processor."
   :config (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
-  :disabled
   :after company
   :commands company-web
   :config (add-to-list 'company-backends 'company-web))
@@ -738,16 +726,18 @@ typical word processor."
 
 (use-package counsel
   :commands (counsel-descbinds)
-  :bind (([remap execute-extended-command] . counsel-M-x)
-         ("<f1> f" . counsel-describe-function)
-         ("<f1> v" . counsel-describe-variable)
-         ("C-x C-f" . counsel-find-file)
-         ("<f1> l" . counsel-find-library)
-         ;; ("C-c g" . counsel-git)
-         ("C-c j" . counsel-git-grep)
-         ("C-c k" . counsel-ag)
-         ("C-x l" . counsel-locate)
-         ("M-y" . counsel-yank-pop)))
+  :bind* (([remap execute-extended-command] . counsel-M-x)
+          ("C-c d" . counsel-dired-jump)
+          ("<f1> f" . counsel-describe-function)
+          ("<f1> v" . counsel-describe-variable)
+          ("C-x C-f" . counsel-find-file)
+          ("<f1> l" . counsel-find-library)
+          ;; ("C-c g" . counsel-git)
+          ("C-c j" . counsel-git-grep)
+          ("C-c k" . counsel-ag)
+          ("C-x l" . counsel-locate)
+          ("C-M-i" . counsel-imenu)
+          ("M-y" . counsel-yank-pop)))
 
 (use-package counsel-projectile
   :after projectile
@@ -847,6 +837,7 @@ typical word processor."
   )
 
 (use-package editorconfig
+  :diminish editorconfig-mode
   :commands editorconfig-mode
   :init (add-hook 'prog-mode-hook 'editorconfig-mode))
 
@@ -854,7 +845,9 @@ typical word processor."
   :builtin
   :commands eldoc-mode
   :init (add-hooks '(((emacs-lisp-mode
-                       eval-expression-minibuffer-setup) . eldoc-mode)))
+                       eval-expression-minibuffer-setup
+                       lisp-mode-interactive-mode
+                       typescript-mode) . eldoc-mode)))
   :config
   (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
@@ -866,16 +859,12 @@ typical word processor."
 
 (use-package electric ;; should disable in sp modes
   :builtin
-  :commands (electric-quote-mode electric-indent-mode)
+  :commands (electric-quote-mode electric-indent-mode electric-layout-mode)
   :init
   (add-hook 'prog-mode-hook 'electric-quote-mode)
   (add-hook 'prog-mode-hook 'electric-indent-mode)
+  (add-hook 'prog-mode-hook 'electric-layout-mode)
   )
-
-(use-package electric-operator
-  :disabled
-  :commands electric-operator-mode
-  :init (add-hook 'prog-mode-hook 'electric-operator-mode))
 
 (use-package elfeed
   :commands elfeed)
@@ -905,20 +894,34 @@ typical word processor."
   :builtin
   :bind (("C-c M-t" . eshell)
 	 ("C-c x" . eshell))
-  :commands (eshell eshell-command))
+  :commands (eshell eshell-command)
+  :init
+  (setq eshell-modules-list
+        '(eshell-alias
+          eshell-banner
+          eshell-basic
+          eshell-cmpl
+          eshell-dirs
+          eshell-glob
+          eshell-hist
+          eshell-ls
+          eshell-pred
+          eshell-prompt
+          eshell-rebind
+          eshell-script
+          eshell-smart
+          eshell-term
+          eshell-tramp
+          eshell-unix
+          eshell-xtra))
+  )
 
-(use-package eshell-extras
-  :commands eshell-extras-setup
-  :after eshell
-  :config (eshell-extras-setup)
+(use-package dired-eshell
+  :commands dired-eshell-mode
+  :init (add-hook 'eshell-mode-hook 'dired-eshell-mode)
   ;; in local dir
   :builtin
   )
-
-(use-package eshell-prompt-extras
-  :disabled
-  :commands epe-theme-lambda
-  :init (setq eshell-prompt-function 'epe-theme-lambda))
 
 (use-package ess-site
   :name "ess"
@@ -926,14 +929,6 @@ typical word processor."
 
 (use-package esup
   :commands esup)
-
-(use-package eval-expr
-  :bind ("M-:" . eval-expr)
-  :config
-  (setq eval-expr-print-function 'pp
-        eval-expr-print-level 20
-        eval-expr-print-length 100)
-  )
 
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
@@ -977,15 +972,8 @@ save it in `ffap-file-at-point-line-number' variable."
       (setq ffap-file-at-point-line-number nil)))
   )
 
-(use-package fill-column-indicator
-  :disabled
-  :commands fci-mode
-  :init (add-hook 'prog-mode-hook 'fci-mode))
-
 (use-package firestarter
-  :disabled
-  :commands firestarter-mode
-  :init (firestarter-mode))
+  :bind ("C-c m s" . firestarter-mode))
 
 (use-package flycheck
   :commands global-flycheck-mode
@@ -1011,7 +999,6 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package ghc)
 
 (use-package gist
-  :disabled
   :bind ("C-c C-g" . gist-region-or-buffer-private)
   :commands (gist-list gist-region gist-region-private gist-buffer
                        gist-buffer-private gist-region-or-buffer
@@ -1084,10 +1071,10 @@ save it in `ffap-file-at-point-line-number' variable."
           (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
       (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
                                         ; options.
-        (while (progn
-                 (funcall hippie-expand-function nil)
-                 (setq last-command 'my-hippie-expand-completions)
-                 (not (equal he-num -1)))))
+            (while (progn
+                     (funcall hippie-expand-function nil)
+                     (setq last-command 'my-hippie-expand-completions)
+                     (not (equal he-num -1)))))
       ;; Evaluating the completions modifies the buffer, however we will finish
       ;; up in the same state that we began.
       (set-buffer-modified-p buffer-modified)
@@ -1258,39 +1245,90 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package hydra
   :bind (("C-x t" . hydra-toggle/body)
          ("<f5>" . hydra-zoom/body)
-         ("C-M-g" . hydra-error/body))
-  :config
-  (hydra-add-font-lock)
-
-  (defhydra hydra-error (:color amaranth)
-    "goto-error"
-    ("h" flycheck-list-errors "first")
-    ("j" flycheck-next-error "next")
-    ("k" flycheck-previous-error "prev")
-    ("v" recenter-top-bottom "recenter")
-    ("q" nil "quit"))
-
-  (defhydra hydra-zoom (:color blue :hint nil)
-    "zoom"
-    ("g" text-scale-increase "in")
-    ("l" text-scale-decrease "out"))
-  )
-
-(use-package corral
+         ("C-M-g" . hydra-error/body)
+         ("C-c h c" . hydra-case/body)
+         ("C-c h z" . hydra-zoom/body)
+         ("C-c h e" . hydra-error/body)
+         ("C-c h p" . hydra-projectile/body)
+         ("C-c h w" . hydra-window/body))
   :disabled
-  :bind ("C-c v" . hydra-corral/body)
-  :config
-  (setq corral-preserve-point t)
+  :config (hydra-add-font-lock)
+  :preface
+  (eval-and-compile
+    (defhydra hydra-error (:color amaranth)
+      "goto-error"
+      ("h" flycheck-list-errors "first")
+      ("j" flycheck-next-error "next")
+      ("k" flycheck-previous-error "prev")
+      ("v" recenter-top-bottom "recenter")
+      ("q" nil "quit"))
 
-  (defhydra hydra-corral (:columns 4)
-    "Corral"
-    ("(" corral-parentheses-backward "Back")
-    (")" corral-parentheses-forward "Forward")
-    ("[" corral-brackets-backward "Back")
-    ("]" corral-brackets-forward "Forward")
-    ("{" corral-braces-backward "Back")
-    ("}" corral-braces-forward "Forward")
-    ("." hydra-repeat "Repeat"))
+    (defhydra hydra-zoom (:color blue :hint nil)
+      "zoom"
+      ("g" text-scale-increase "in")
+      ("l" text-scale-decrease "out"))
+
+    (defhydra hydra-case ()
+      "case"
+      ("c" string-inflection-all-cycle nil)
+      ("c" string-inflection- nil)
+      )
+
+    (defhydra hydra-projectile (:color blue :columns 4)
+      "Projectile"
+      ("a" counsel-git-grep "ag")
+      ("b" projectile-switch-to-buffer "switch to buffer")
+      ("c" projectile-compile-project "compile project")
+      ("d" projectile-find-dir "dir")
+      ("f" projectile-find-file "file")
+      ;; ("ff" projectile-find-file-dwim "file dwim")
+      ;; ("fd" projectile-find-file-in-directory "file curr dir")
+      ("g" ggtags-update-tags "update gtags")
+      ("i" projectile-ibuffer "Ibuffer")
+      ("K" projectile-kill-buffers "Kill all buffers")
+      ;; ("o" projectile-multi-occur "multi-occur")
+      ("p" projectile-switch-project "switch")
+      ("r" projectile-run-async-shell-command-in-root "run shell command")
+      ("x" projectile-remove-known-project "remove known")
+      ("X" projectile-cleanup-known-projects "cleanup non-existing")
+      ("z" projectile-cache-current-file "cache current")
+      ("q" nil "cancel")
+      )
+
+    (defhydra hydra-window (:color amaranth)
+      "
+  Move Point^^^^   Move Splitter   ^Ace^                       ^Split^
+  --------------------------------------------------------------------------------
+  _w_, _<up>_      Shift + Move    _C-a_: ace-window           _2_: split-window-below
+  _a_, _<left>_                    _C-s_: ace-window-swap      _3_: split-window-right
+  _s_, _<down>_                    _C-d_: ace-window-delete    ^ ^
+  _d_, _<right>_                   ^   ^                       ^ ^
+  You can use arrow-keys or WASD.
+  "
+      ("2" split-window-below nil)
+      ("3" split-window-right nil)
+      ("a" windmove-left nil)
+      ("s" windmove-down nil)
+      ("w" windmove-up nil)
+      ("d" windmove-right nil)
+      ("A" hydra-move-splitter-left nil)
+      ("S" hydra-move-splitter-down nil)
+      ("W" hydra-move-splitter-up nil)
+      ("D" hydra-move-splitter-right nil)
+      ("<left>" windmove-left nil)
+      ("<down>" windmove-down nil)
+      ("<up>" windmove-up nil)
+      ("<right>" windmove-right nil)
+      ("<S-left>" hydra-move-splitter-left nil)
+      ("<S-down>" hydra-move-splitter-down nil)
+      ("<S-up>" hydra-move-splitter-up nil)
+      ("<S-right>" hydra-move-splitter-right nil)
+      ("C-a" ace-window nil)
+      ("u" hydra--universal-argument nil)
+      ("C-s" (lambda () (interactive) (ace-window 4)) nil)
+      ("C-d" (lambda () (interactive) (ace-window 16)) nil)
+      ("q" nil "quit"))
+    )
   )
 
 (use-package ibuffer
@@ -1315,11 +1353,6 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package imenu-list
   :commands imenu-list)
-
-(use-package indent-shift
-  :disabled
-  :bind (("C-c <" . indent-shift-left)
-         ("C-c >" . indent-shift-right)))
 
 (use-package indium
   :mode ("\\.js\\'" . indium-mode)
@@ -1371,6 +1404,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package jka-compr
   :builtin
+  :disabled
   :demand
   :config
   ;; binary plist support
@@ -1393,7 +1427,8 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package js3-mode
   :commands js3-mode)
 
-(use-package json-mode)
+(use-package json-mode
+  :mode "\\.json\\'")
 
 (use-package keyfreq
   :disabled
@@ -1453,18 +1488,17 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands (magit-clone)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
-         :keymap magit-mode-map
+         :map magit-mode-map
          ("C-o" . magit-dired-other-window)))
 
 (use-package magithub
   :disabled
-  :after magit
-  :config (magithub-feature-autoinject t))
+  :commands magithub-feature-autoinject
+  :init (add-hook 'magit-mode-hook 'magithub-feature-autoinject))
 
 (use-package make-it-so
-  :disabled
-  :demand
-  :config (mis-config-default))
+  :commands mis-mode
+  :init (add-hook 'dired-mode-hook 'mis-mode))
 
 (use-package markdown-mode
   :mode "\\.\\(md\\|markdown\\)\\'"
@@ -1479,11 +1513,6 @@ save it in `ffap-file-at-point-line-number' variable."
   (use-package mmm-auto
     :builtin
     :demand))
-
-(use-package mode-line-debug
-  :disabled
-  :commands mode-line-debug-mode
-  :init (mode-line-debug-mode))
 
 (use-package move-text
   :bind (([(meta shift up)] . move-text-up)
@@ -1509,10 +1538,6 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
-
-(use-package neotree
-  :disabled
-  :bind (("<f8>" . neotree-toggle)))
 
 (use-package nix-buffer
   :commands nix-buffer)
@@ -1560,9 +1585,6 @@ save it in `ffap-file-at-point-line-number' variable."
   (use-package ox-latex
     :builtin
     :demand)
-  (use-package ox-pandoc
-    :disabled
-    :demand)
   )
 
 (use-package org-bullets
@@ -1578,22 +1600,17 @@ save it in `ffap-file-at-point-line-number' variable."
                        help-mode
                        emacs-lisp-mode) . page-break-lines-mode))))
 
-(use-package paren
-  :builtin
-  :demand
-  :disabled
-  :config (show-paren-mode 1))
-
 (use-package php-mode
   :mode "\\.php\\'")
 
 (use-package popwin
   ;; :bind-keymap ("C-z" . popwin:keymap)
   :commands popwin-mode
-  :init (popwin-mode 1)
   :config
+  (popwin-mode 1)
   (push '(compilation-mode :noselect t) popwin:special-display-config)
-  (push '(term-mode :position :top :height 16 :stick t) popwin:special-display-config)
+  (push '(term-mode :position :top :height 16 :stick t)
+        popwin:special-display-config)
   )
 
 (use-package prog-mode
@@ -1606,30 +1623,9 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package projectile
   ;; :bind ("s-f" . hydra-projectile/body)
-  :bind-keymap ("C-c p" . projectile-command-map)
+  :bind-keymap* ("C-c p" . projectile-command-map)
 
   :config
-
-  ;; (defhydra hydra-projectile (:color blue :columns 4)
-  ;;   "Projectile"
-  ;;   ("a" counsel-git-grep "ag")
-  ;;   ("b" projectile-switch-to-buffer "switch to buffer")
-  ;;   ("c" projectile-compile-project "compile project")
-  ;;   ("d" projectile-find-dir "dir")
-  ;;   ("f" projectile-find-file "file")
-  ;;   ;; ("ff" projectile-find-file-dwim "file dwim")
-  ;;   ;; ("fd" projectile-find-file-in-directory "file curr dir")
-  ;;   ("g" ggtags-update-tags "update gtags")
-  ;;   ("i" projectile-ibuffer "Ibuffer")
-  ;;   ("K" projectile-kill-buffers "Kill all buffers")
-  ;;   ;; ("o" projectile-multi-occur "multi-occur")
-  ;;   ("p" projectile-switch-project "switch")
-  ;;   ("r" projectile-run-async-shell-command-in-root "run shell command")
-  ;;   ("x" projectile-remove-known-project "remove known")
-  ;;   ("X" projectile-cleanup-known-projects "cleanup non-existing")
-  ;;   ("z" projectile-cache-current-file "cache current")
-  ;;   ("q" nil "cancel")
-  ;;   )
 
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
@@ -1653,7 +1649,8 @@ save it in `ffap-file-at-point-line-number' variable."
         ["Find file in directory" projectile-find-file-in-directory]
         ["Find other file" projectile-find-other-file]
         ["Switch to buffer" projectile-switch-to-buffer]
-        ["Jump between implementation file and test file" projectile-toggle-between-implementation-and-test]
+        ["Jump between implementation file and test file"
+         projectile-toggle-between-implementation-and-test]
         ["Kill project buffers" projectile-kill-buffers]
         ["Recent files" projectile-recentf]
         ["Edit .dir-locals.el" projectile-edit-dir-locals]
@@ -1661,7 +1658,8 @@ save it in `ffap-file-at-point-line-number' variable."
         ["Open project in dired" projectile-dired]
         ["Switch to project" projectile-switch-project]
         ["Switch to open project" projectile-switch-open-project]
-        ["Discover projects in directory" projectile-discover-projects-in-directory]
+        ["Discover projects in directory"
+         projectile-discover-projects-in-directory]
         ["Search in project (grep)" projectile-grep]
         ["Search in project (ag)" projectile-ag]
         ["Replace in project" projectile-replace]
@@ -1736,7 +1734,8 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands rg)
 
 (use-package rtags
-  :commands (rtags-start-process-unless-running rtags-enable-standard-keybindings)
+  :commands (rtags-start-process-unless-running
+             rtags-enable-standard-keybindings)
   :init
 
   ;; Start rtags upon entering a C/C++ file
@@ -1767,7 +1766,6 @@ save it in `ffap-file-at-point-line-number' variable."
   :config (savehist-mode 1))
 
 (use-package saveplace
-  :disabled
   :builtin
   :commands save-place-mode
   :demand
@@ -1775,15 +1773,6 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package scss-mode
   :mode "\\.scss\\'")
-
-(use-package semantic
-  :builtin
-  :disabled
-  )
-
-(use-package sentence-navigation
-  :bind (("M-e" . sentence-nav-forward)
-         ("M-a" . sentence-nav-backward)))
 
 (use-package sh-script
   :builtin
@@ -1818,11 +1807,18 @@ save it in `ffap-file-at-point-line-number' variable."
 (use-package slime)
 
 (use-package smart-hungry-delete
-  :commands smart-hungry-delete-add-default-hooks
+  :commands (smart-hungry-delete-default-c-mode-common-hook
+             smart-hungry-delete-default-prog-mode-hook
+             smart-hungry-delete-default-text-mode-hook)
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
               ("C-d" . smart-hungry-delete-forward-char))
-  :init (smart-hungry-delete-add-default-hooks))
+  :init
+  (add-hook 'prog-mode-hook 'smart-hungry-delete-default-prog-mode-hook)
+  (add-hook 'c-mode-common-hook 'smart-hungry-delete-default-c-mode-common-hook)
+  (add-hook 'python-mode-hook 'smart-hungry-delete-default-c-mode-common-hook)
+  (add-hook 'text-mode-hook 'smart-hungry-delete-default-text-mode-hook)
+  )
 
 (use-package smart-shift
   :bind (("C-c <left>" . smart-shift-left)
@@ -1837,9 +1833,64 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands smart-tabs-mode)
 
 (use-package smartparens
-  :commands (smartparens-mode show-smartparens-mode)
+  :commands (smartparens-mode show-smartparens-mode smartparens-strict-mode)
+  :bind (:map smartparens-mode-map
+              ("C-M-k" . sp-kill-sexp)
+              ("C-M-f" . sp-forward-sexp)
+              ("C-M-b" . sp-backward-sexp)
+              ("C-M-n" . sp-up-sexp)
+              ("C-M-d" . sp-down-sexp)
+              ("C-M-u" . sp-backward-up-sexp)
+              ("C-M-p" . sp-backward-down-sexp)
+              ("C-M-w" . sp-copy-sexp)
+              ("M-s" . sp-splice-sexp)
+              ("M-r" . sp-splice-sexp-killing-around)
+              ("C-)" . sp-forward-slurp-sexp)
+              ("C-}" . sp-forward-barf-sexp)
+              ("C-(" . sp-backward-slurp-sexp)
+              ("C-{" . sp-backward-barf-sexp)
+              ("M-S" . sp-split-sexp)
+              ("M-J" . sp-join-sexp)
+              ("C-M-t" . sp-transpose-sexp)
+              ("C-M-<right>" . sp-forward-sexp)
+              ("C-M-<left>" . sp-backward-sexp)
+              ("M-F" . sp-forward-sexp)
+              ("M-B" . sp-backward-sexp)
+              ("C-M-a" . sp-backward-down-sexp)
+              ("C-S-d" . sp-beginning-of-sexp)
+              ("C-S-a" . sp-end-of-sexp)
+              ("C-M-e" . sp-up-sexp)
+              ("M-r" . sp-unwrap-sexp)
+              ("C-(" . sp-forward-barf-sexp)
+              ("C-)" . sp-forward-slurp-sexp)
+              ("M-(" . sp-forward-barf-sexp)
+              ("M-)" . sp-forward-slurp-sexp)
+              ("M-D" . sp-splice-sexp)
+              ("C-<down>" . sp-down-sexp)
+              ("C-<up>"   . sp-up-sexp)
+              ("M-<down>" . sp-backward-down-sexp)
+              ("M-<up>"   . sp-backward-up-sexp)
+              ("C-<right>" . sp-forward-slurp-sexp)
+              ("M-<right>" . sp-forward-barf-sexp)
+              ("C-<left>"  . sp-backward-slurp-sexp)
+              ("M-<left>"  . sp-backward-barf-sexp)
+              ("C-k"   . sp-kill-hybrid-sexp)
+              ("M-k"   . sp-backward-kill-sexp)
+              ("M-<backspace>" . backward-kill-word)
+              ("C-<backspace>" . sp-backward-kill-word)
+              ([remap sp-backward-kill-word] . backward-kill-word)
+              ("M-[" . sp-backward-unwrap-sexp)
+              ("M-]" . sp-unwrap-sexp)
+              ("C-x C-t" . sp-transpose-hybrid-sexp)
+              ("C-c ("  . wrap-with-parens)
+              ("C-c ["  . wrap-with-brackets)
+              ("C-c {"  . wrap-with-braces)
+              ("C-c '"  . wrap-with-single-quotes)
+              ("C-c \"" . wrap-with-double-quotes)
+              ("C-c _"  . wrap-with-underscores)
+              ("C-c `"  . wrap-with-back-quotes)
+              )
   :init
-  (setq sp-base-key-bindings 'paredit)
   (add-hooks '(((emacs-lisp-mode
                  inferior-emacs-lisp-mode
                  ielm-mode
@@ -1847,7 +1898,7 @@ save it in `ffap-file-at-point-line-number' variable."
                  inferior-lisp-mode
                  lisp-interaction-mode
                  slime-repl-mode
-                 eval-expression-minibuffer-setup) . smartparens-mode)))
+                 eval-expression-minibuffer-setup) . smartparens-strict-mode)))
   (add-hooks '(((emacs-lisp-mode
                  inferior-emacs-lisp-mode
                  ielm-mode
@@ -1855,10 +1906,51 @@ save it in `ffap-file-at-point-line-number' variable."
                  inferior-lisp-mode
                  lisp-interaction-mode
                  slime-repl-mode) . show-smartparens-mode)))
+  (add-hooks '(((web-mode
+                 nxml-mode
+                 html-mode) . smartparens-mode)))
   :config
+  (use-package smartparens-html
+    :builtin
+    :demand)
   (use-package smartparens-config
     :builtin
     :demand)
+
+  (bind-key [remap c-electric-backspace]
+            'sp-backward-delete-char smartparens-strict-mode-map)
+  (bind-key ";" 'sp-comment emacs-lisp-mode-map)
+
+  (sp-with-modes
+      'org-mode
+    (sp-local-pair "*" "*"
+                   :actions '(insert wrap)
+                   :unless '(sp-point-after-word-p sp-point-at-bol-p)
+                   :wrap "C-*" :skip-match 'sp--org-skip-asterisk)
+    (sp-local-pair "_" "_" :unless '(sp-point-after-word-p) :wrap "C-_")
+    (sp-local-pair "/" "/" :unless '(sp-point-after-word-p)
+                   :post-handlers '(("[d1]" "SPC")))
+    (sp-local-pair "~" "~" :unless '(sp-point-after-word-p)
+                   :post-handlers '(("[d1]" "SPC")))
+    (sp-local-pair "=" "=" :unless '(sp-point-after-word-p)
+                   :post-handlers '(("[d1]" "SPC")))
+    (sp-local-pair "«" "»"))
+
+    ;;; Java
+  (sp-with-modes
+      '(java-mode c++-mode)
+    (sp-local-pair "{" nil :post-handlers '(("||\n[i]" "RET")))
+    (sp-local-pair "/*" "*/" :post-handlers '((" | " "SPC")
+                                              ("* ||\n[i]" "RET"))))
+
+  (sp-with-modes '(markdown-mode gfm-mode rst-mode)
+    (sp-local-pair "*" "*" :bind "C-*")
+    (sp-local-tag "2" "**" "**")
+    (sp-local-tag "s" "```scheme" "```")
+    (sp-local-tag "<"  "<_>" "</_>" :transform 'sp-match-sgml-tags))
+
+  (sp-local-pair 'emacs-lisp-mode "`" nil :when '(sp-in-string-p))
+  (sp-local-pair 'clojure-mode "`" "`" :when '(sp-in-string-p))
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
   (sp-local-pair 'org-mode "~" "~" :actions '(wrap))
   (sp-local-pair 'org-mode "/" "/" :actions '(wrap))
@@ -1933,7 +2025,6 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands (tide-setup tide-hl-identifier-mode)
   :init
   (add-hook 'typescript-mode-hook 'tide-setup)
-  (add-hook 'typescript-mode-hook 'eldoc-mode)
   (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode)
   )
 
@@ -1979,69 +2070,29 @@ save it in `ffap-file-at-point-line-number' variable."
   :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
 
 (use-package windmove
-  ;; :bind (("C-M-o" . hydra-window/body))
   :builtin
-  ;; :demand
-  :commands windmove-default-keybindings
-  :init
-  (windmove-default-keybindings 'meta)
-
-  ;;   :config
-  ;;   (defhydra hydra-window (:color amaranth)
-  ;;     "
-  ;; Move Point^^^^   Move Splitter   ^Ace^                       ^Split^
-  ;; --------------------------------------------------------------------------------
-  ;; _w_, _<up>_      Shift + Move    _C-a_: ace-window           _2_: split-window-below
-  ;; _a_, _<left>_                    _C-s_: ace-window-swap      _3_: split-window-right
-  ;; _s_, _<down>_                    _C-d_: ace-window-delete    ^ ^
-  ;; _d_, _<right>_                   ^   ^                       ^ ^
-  ;; You can use arrow-keys or WASD.
-  ;; "
-  ;;     ("2" split-window-below nil)
-  ;;     ("3" split-window-right nil)
-  ;;     ("a" windmove-left nil)
-  ;;     ("s" windmove-down nil)
-  ;;     ("w" windmove-up nil)
-  ;;     ("d" windmove-right nil)
-  ;;     ("A" hydra-move-splitter-left nil)
-  ;;     ("S" hydra-move-splitter-down nil)
-  ;;     ("W" hydra-move-splitter-up nil)
-  ;;     ("D" hydra-move-splitter-right nil)
-  ;;     ("<left>" windmove-left nil)
-  ;;     ("<down>" windmove-down nil)
-  ;;     ("<up>" windmove-up nil)
-  ;;     ("<right>" windmove-right nil)
-  ;;     ("<S-left>" hydra-move-splitter-left nil)
-  ;;     ("<S-down>" hydra-move-splitter-down nil)
-  ;;     ("<S-up>" hydra-move-splitter-up nil)
-  ;;     ("<S-right>" hydra-move-splitter-right nil)
-  ;;     ("C-a" ace-window nil)
-  ;;     ("u" hydra--universal-argument nil)
-  ;;     ("C-s" (lambda () (interactive) (ace-window 4)) nil)
-  ;;     ("C-d" (lambda () (interactive) (ace-window 16)) nil)
-  ;;     ("q" nil "quit"))
-  )
+  :demand
+  :config (windmove-default-keybindings 'meta))
 
 (use-package with-editor
   :disabled
   :bind (([remap async-shell-command] . with-editor-async-shell-command)
          ([remap shell-command] . with-editor-shell-command))
-  :commands with-editor-export-editor
+  :commands (with-editor-async-shell-command
+	     with-editor-shell-command
+             with-editor-export-editor)
   :init (add-hooks '(((shell-mode
                        term-exec
                        eshell-mode) . with-editor-export-editor)))
   )
 
-(use-package with-editor
-  :commands (with-editor-async-shell-command
-	     with-editor-shell-command))
-
 (use-package xterm-color
-  :demand
-  :config
-  ;; Comint and Shell
+  :commands xterm-color-filter
+  :init
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-  (setq comint-output-filter-functions (remove 'ansi-color-process-output comint-output-filter-functions))
+
+  (setq comint-output-filter-functions
+        (remove 'ansi-color-process-output comint-output-filter-functions))
 
   (define-hook-helper compilation-start (proc)
     (when (eq (process-filter proc) 'compilation-filter)
@@ -2049,8 +2100,7 @@ save it in `ffap-file-at-point-line-number' variable."
        proc
        (lambda (proc string)
          (funcall 'compilation-filter proc
-                  (xterm-color-filter string)))))
-    )
+                  (xterm-color-filter string))))))
   )
 
 (use-package yaml-mode
@@ -2068,17 +2118,72 @@ save it in `ffap-file-at-point-line-number' variable."
   :commands elf-mode
   :init (add-to-list 'magic-mode-alist (cons "ELF" 'elf-mode)))
 
-(use-package winner-mode
-  :disabled)
+(use-package macho-mode
+  :commands macho-mode
+  :builtin
+  :init
+  (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCE" . macho-mode))
+  (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCF" . macho-mode))
+  (add-to-list 'magic-mode-alist '("\xCE\xFA\xED\xFE" . macho-mode))
+  (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode))
+  )
 
 (use-package transpose-frame
   :bind ("H-t" . transpose-frame))
 
-(use-package dirtrack
+(use-package drag-stuff
+  :bind ("C-c d" . drag-stuff-mode))
+
+(use-package undo-tree
   :disabled
+  :init (global-undo-tree-mode 1)
+  :bind ("C-c u" . undo-tree-visualize)
+  :diminish undo-tree-mode)
+
+(use-package csv-mode
+  :mode "\\.csv\\'")
+
+(use-package scala-mode
+  :interpreter ("scala" . scala-mode))
+
+(use-package idle-highlight-mode
+  :commands idle-highlight-mode
+  :init (add-hooks '(((java-mode
+                       emacs-lisp-mode
+                       clojure-lisp-mode) . idle-highlight-mode))))
+
+(use-package bool-flip
+  :bind ("C-c C-b" . bool-flip-do-flip))
+
+(use-package java-mode
+  :builtin)
+
+(use-package subword
   :builtin
-  :commands dirtack-mode
-  :init (add-hook 'comint-mode-hook 'dirtrack-mode))
+  :init (add-hook 'java-mode-hook #'subword-mode))
+
+(use-package whitespace-mode
+  :builtin
+  :commands whitespace-mode
+  :init (add-hook 'prog-mode-hook 'whitespace-mode))
+
+(use-package focus
+  :diminish focus-mode
+  :bind ("C-c m f" . focus-mode))
+
+(use-package pp
+  :builtin
+  :commands pp-eval-last-sexp
+  :bind (("M-:" . pp-eval-expression))
+  :init
+  (create-hook-helper always-eval-sexp ()
+    :hooks (lisp-mode-hook emacs-lisp-mode-hook)
+    (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp)))
+
+(use-package mb-depth
+  :builtin
+  :commands minibuffer-depth-indicate-mode
+  :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
 
 (provide 'default)
 ;;; default.el ends here

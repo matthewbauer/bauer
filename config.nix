@@ -57,7 +57,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
       };
       name = "jdee-server";
       buildInputs = [ maven ];
-      buildPhase = "mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly";
+      buildPhase = ''
+        mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
+      '';
       installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
     };
 
@@ -75,11 +77,15 @@ dict-dir ${aspellDicts.en}/lib/aspell
               else if x == "nix-mode" then pkgs.nix
               else if x == "ghc" then pkgs.ghc
               else if x == "notmuch" then pkgs.notmuch
-              else if builtins.hasAttr x epkgs.elpaPackages then builtins.getAttr x epkgs.elpaPackages
-              else if builtins.hasAttr x epkgs.melpaStablePackages then builtins.getAttr x epkgs.melpaStablePackages
-              else if builtins.hasAttr x epkgs.melpaPackages then builtins.getAttr x epkgs.melpaPackages
+              else if builtins.hasAttr x epkgs.elpaPackages
+                then builtins.getAttr x epkgs.elpaPackages
+              else if builtins.hasAttr x epkgs.melpaStablePackages
+                then builtins.getAttr x epkgs.melpaStablePackages
+              else if builtins.hasAttr x epkgs.melpaPackages
+                then builtins.getAttr x epkgs.melpaPackages
               else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
-              else if builtins.hasAttr x emacsPackages then builtins.getAttr x emacsPackages
+              else if builtins.hasAttr x emacsPackages
+                 then builtins.getAttr x emacsPackages
               else builtins.getAttr x pkgs) epkgs';
       in epkgs'' ++ [epkgs.melpaStablePackages.use-package
       (runCommand "default.el" {
@@ -90,8 +96,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
       } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
-          cp ${./eshell-extras.el} $out/share/emacs/site-lisp/eshell-extras.el
+          cp ${./dired-eshell.el} $out/share/emacs/site-lisp/dired-eshell.el
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
+          cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '')]);
 
@@ -171,11 +178,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
         emscripten
         ffmpeg
         findutils
-        ripgrep
+        # ripgrep
         ag
         ghc
         git
-        gitAndTools.hub
+        # gitAndTools.hub
         # go2nix
         gnugrep
         gnumake
