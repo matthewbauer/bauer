@@ -1,8 +1,8 @@
-;;; dired-eshell.el --- Dired features in Eshell
+;;; em-dired.el --- Dired features in Eshell
 
 ;; Copyright (C) 2017 Matthew Bauer
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
-;; Git: https://github.com/matthewbauer/dired-eshell
+;; Git: https://github.com/matthewbauer/em-dired
 ;; Version: 0.01
 ;; Created: 2017-06-05
 ;; Keywords: eshell, prompt, dired
@@ -52,18 +52,18 @@
 (require 'em-dirs)
 (require 'hook-helpers)
 
-(defgroup dired-eshell nil
-  "Dired eshell mode"
+(defgroup em-dired nil
+  "Dired features in eshell mode"
   :group 'eshell)
 
-(defun dired-eshell-new (&rest args)
+(defun em-dired-new (&rest args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")
   (setq-local eshell-buffer-name
               (concat "*eshell<" (expand-file-name default-directory) ">*")))
 
-(defun dired-eshell-cd (&rest args)
+(defun em-dired-cd (&rest args)
   "Open each directory in a new buffer like dired.
 ARGS to open if none provided assume HOME dir."
   (let* ((path (car (eshell-flatten-list args)))
@@ -87,7 +87,7 @@ ARGS to open if none provided assume HOME dir."
 
 (require 'subr-x)
 
-(defun dired-eshell-ls-find-file-at-point (point)
+(defun em-dired-ls-find-file-at-point (point)
   "RET on Eshell's `ls' output to open files.
 POINT is the point that the file is available at."
   (interactive "d")
@@ -96,47 +96,47 @@ POINT is the point that the file is available at."
                (previous-single-property-change point 'help-echo)
                (next-single-property-change point 'help-echo)))))
 
-(defun dired-eshell-ls-find-file-at-mouse-click (event)
+(defun em-dired-ls-find-file-at-mouse-click (event)
   "Middle click on Eshell's `ls' output to open files.
 EVENT refers to the mouse event that triggers the click.
  From Patrick Anderson via the wiki."
   (interactive "e")
-  (dired-eshell-ls-find-file-at-point (posn-point (event-end event))))
+  (em-dired-ls-find-file-at-point (posn-point (event-end event))))
 
-(defvar dired-eshell-ls-keymap--clickable
+(defvar em-dired-ls-keymap--clickable
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<return>") 'dired-eshell-ls-find-file-at-point)
-    (define-key map (kbd "RET") 'dired-eshell-ls-find-file-at-point)
-    (define-key map (kbd "<mouse-1>") 'dired-eshell-ls-find-file-at-mouse-click)
-    (define-key map (kbd "<mouse-2>") 'dired-eshell-ls-find-file-at-mouse-click)
+    (define-key map (kbd "<return>") 'em-dired-ls-find-file-at-point)
+    (define-key map (kbd "RET") 'em-dired-ls-find-file-at-point)
+    (define-key map (kbd "<mouse-1>") 'em-dired-ls-find-file-at-mouse-click)
+    (define-key map (kbd "<mouse-2>") 'em-dired-ls-find-file-at-mouse-click)
     map))
 
-(defun dired-eshell-ls-decorated-name--clickable (file)
+(defun em-dired-ls-decorated-name--clickable (file)
   "Modify Eshell's `ls' to let you click or RET on file names to open them.
 FILE is the file text that we will add properties to."
   (add-text-properties 0 (length (car file))
                        (list 'help-echo "RET, mouse-2: visit this file"
                              'mouse-face 'highlight
-                             'keymap dired-eshell-ls-keymap--clickable)
+                             'keymap em-dired-ls-keymap--clickable)
                        (car file))
   file)
 
-(define-minor-mode dired-eshell-mode
+(define-minor-mode em-dired-mode
   "Toggle Eshell Dir Extras mode."
   :group 'eshell
-  :lighter " EDE"
-  (if dired-eshell-mode
+  :lighter " Edired"
+  (if em-dired-mode
       (progn
-        (advice-add 'eshell :before 'dired-eshell-new)
-        (advice-add 'eshell/cd :override 'dired-eshell-cd)
+        (advice-add 'eshell :before 'em-dired-new)
+        (advice-add 'eshell/cd :override 'em-dired-cd)
         (advice-add 'eshell-ls-decorated-name
-                    :after 'dired-eshell-ls-decorated-name--clickable)
+                    :after 'em-dired-ls-decorated-name--clickable)
         )
-    (advice-remove 'eshell 'dired-eshell-new)
-    (advice-remove 'eshell/cd 'dired-eshell-cd)
+    (advice-remove 'eshell 'em-dired-new)
+    (advice-remove 'eshell/cd 'em-dired-cd)
     (advice-remove 'eshell-ls-decorated-name
-                   'dired-eshell-ls-decorated-name--clickable)
+                   'em-dired-ls-decorated-name--clickable)
     ))
 
-(provide 'dired-eshell)
-;;; dired-eshell.el ends here
+(provide 'em-dired)
+;;; em-dired.el ends here

@@ -96,7 +96,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
       } ''
           mkdir -p $out/share/emacs/site-lisp
           cp ${./default.el} $out/share/emacs/site-lisp/default.el
-          cp ${./dired-eshell.el} $out/share/emacs/site-lisp/dired-eshell.el
+          cp ${./em-dired.el} $out/share/emacs/site-lisp/em-dired.el
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
