@@ -43,11 +43,16 @@
              tramp-file-name-real-host
              tramp-dissect-file-name))
 
-(setenv "NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
-(setenv "EDITOR" "emacsclient -nw")
-(setenv "LANG" "en_US.UTF-8")
-(setenv "LC_ALL" "en_US.UTF-8")
-(setenv "PAGER" "cat")
+(defun set-envs (env)
+  "Set environment variables from ENV alist."
+  (dolist (x env)
+    (setenv (cdr x) (car x))))
+
+(set-envs '(("NIX_SSL_CERT_FILE" . "/etc/ssl/certs/ca-bundle.crt")
+            ("EDITOR" . "emacsclient -nw")
+            ("LANG" . "en_US.UTF-8")
+            ("LC_ALL" . "en_US.UTF-8")
+            ("PAGER" . "cat")))
 
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
@@ -415,18 +420,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package add-hooks
   :commands (add-hooks add-hooks-pair))
 
-;; (require 'f)
-
-(setq enable-recursive-minibuffers t)
-
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
-
-;; (prefer-coding-system 'utf-8)
-
-;; (when (fboundp 'recentf-mode)
-;;   (recentf-mode -1))
-;; (when (fboundp 'shell-dirtrack-mode)
-;;   (shell-dirtrack-mode -1))
 
 ;; these should be disabled before Emsacs displays the frame
 ;; but we disable them here just in case
@@ -440,20 +434,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (when (fboundp 'blink-cursor-mode)
   (blink-cursor-mode -1))
 
-(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
-;; (add-hook 'before-save-hook 'delete-trailing-whitespace)
-;; (add-hook 'before-save-hook 'time-stamp)
-
-;; (global-visual-line-mode t)
-
-;; (set-language-environment "UTF-8")
-;; (set-default-coding-systems 'utf-8)
-
-;;
-;; key binds
-;;
-
-(global-set-key (kbd "C-c C-k") 'eval-buffer)
 (global-set-key (kbd "C-c C-u") 'rename-uniquely)
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
 (global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
@@ -465,6 +445,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-c w w") 'whitespace-mode)
 
 (global-set-key (kbd "C-x 8 : )") "☺")
+(global-set-key (kbd "C-x 8 g a") "α")
+(global-set-key (kbd "C-x 8 g b") "ϐ")
+(global-set-key (kbd "C-x 8 g g") "ɣ")
+(global-set-key (kbd "C-x 8 g a") "α")
 
 (bind-key* "<C-return>" 'other-window)
 (bind-key "C-z" 'delete-other-windows)
@@ -492,17 +476,17 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 ;; Compiling
 (bind-key "H-c" 'compile)
 (bind-key "H-r" 'recompile)
-(bind-key "H-s" (defun save-and-recompile ()
+(bind-key "H-s" (lambda ()
                   (interactive)
                   (save-buffer)
                   (recompile)))
 (bind-key "s-1" 'other-frame)
 (bind-key "<s-return>" 'toggle-frame-fullscreen)
 
-(bind-key "s-C-<left>"  'shrink-window-horizontally)
+(bind-key "s-C-<left>" 'shrink-window-horizontally)
 (bind-key "s-C-<right>" 'enlarge-window-horizontally)
-(bind-key "s-C-<down>"  'shrink-window)
-(bind-key "s-C-<up>"    'enlarge-window)
+(bind-key "s-C-<down>" 'shrink-window)
+(bind-key "s-C-<up>" 'enlarge-window)
 
 (when (eq system-type 'darwin)
   (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
@@ -510,35 +494,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (global-set-key (kbd "M-~") 'ns-prev-frame)
   ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji")
   ;;                   (selected-frame) 'prepend)
+  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'defadvice)
   )
-
-(define-minor-mode prose-mode
-  "Set up a buffer for prose editing.
-This enables or modifies a number of settings so that the
-experience of editing prose is a little more like that of a
-typical word processor."
-  nil " Prose" nil
-  (if prose-mode
-      (progn
-        (setq truncate-lines nil)
-        (setq word-wrap t)
-        (setq cursor-type 'bar)
-        (when (eq major-mode 'org)
-          (kill-local-variable 'buffer-face-mode-face))
-        (buffer-face-mode 1)
-        ;;(delete-selection-mode 1)
-        (set (make-local-variable 'blink-cursor-interval) 0.6)
-        (set (make-local-variable 'show-trailing-whitespace) nil)
-        (ignore-errors (flyspell-mode 1))
-        (visual-line-mode 1))
-    (kill-local-variable 'truncate-lines)
-    (kill-local-variable 'word-wrap)
-    (kill-local-variable 'cursor-type)
-    (kill-local-variable 'show-trailing-whitespace)
-    (buffer-face-mode -1)
-    ;; (delete-selection-mode -1)
-    (flyspell-mode -1)
-    (visual-line-mode -1)))
 
 (advice-add async-shell-command :before
             (lambda ()
@@ -675,23 +632,25 @@ typical word processor."
          ("S-TAB" . company-select-previous)
          ("<backtab>" . company-select-previous))
   :commands (company-mode global-company-mode company-complete-common)
+  :defines (company-backends)
   :init (add-hook 'after-init-hook 'global-company-mode)
   )
 
 (use-package company-irony
   :commands company-irony
-  :after company
-  :config (add-to-list 'company-backends 'company-irony))
+  :requires company
+  :init (add-to-list 'company-backends 'company-irony))
 
 (use-package company-tern
-  :after company
+  :requires company
   :commands company-tern
-  :config (add-to-list 'company-backends 'company-tern))
+  :init (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
-  :after company
+  :disabled
+  :requires company
   :commands company-web
-  :config (add-to-list 'company-backends 'company-web))
+  :init (add-to-list 'company-backends 'company-web))
 
 (use-package compile
   :builtin
@@ -709,15 +668,12 @@ typical word processor."
           (switch-to-buffer-other-window compile-buf)
         (call-interactively 'compile))))
 
-  (defun compilation-ansi-color-process-output ()
+  :config
+  (create-hook-helper compilation-ansi-color-process-output ()
+    :hooks (compilation-filter-hook)
     (ansi-color-process-output nil)
     (set (make-local-variable 'comint-last-output-start)
-         (point-marker)))
-
-  :config
-
-  (add-hook 'compilation-filter-hook #'compilation-ansi-color-process-output)
-  )
+         (point-marker))))
 
 (use-package copy-as-format
   :bind (("C-c w s" . copy-as-format-slack)
@@ -790,7 +746,6 @@ typical word processor."
 
 (use-package dired-collapse
   :after dired
-  :disabled
   :commands dired-collapse-mode
   :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
 
@@ -1679,6 +1634,10 @@ typical word processor."
     ""
     :hooks (lisp-mode-hook)
     (push '("/=" . ?≠) prettify-symbols-alist)
+    (push '("sqrt" . ?√) prettify-symbols-alist)
+    (push '("not" . ?¬) prettify-symbols-alist)
+    (push '("and" . ?∧) prettify-symbols-alist)
+    (push '("or" . ?∨) prettify-symbols-alist)
     )
   (create-hook-helper prettify-symbols-c ()
     ""
@@ -1803,11 +1762,12 @@ typical word processor."
                        slime-repl-mode) . rainbow-mode))))
 
 (use-package ranger
+  :disabled
   :commands deer)
 
 (use-package readline-complete
-  :after company
-  :config
+  :requires company
+  :init
   (add-to-list 'company-backends 'company-readline)
   (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1))))
 
@@ -1866,6 +1826,9 @@ typical word processor."
 
 (use-package scss-mode
   :mode "\\.scss\\'")
+
+(use-package shrink-whitespace
+  :bind ("H-SPC" . shrink-whitespace))
 
 (use-package sh-script
   :builtin
@@ -2212,9 +2175,6 @@ typical word processor."
   :config (yas-reload-all))
 
 (use-package ycmd)
-
-(use-package shrink-whitespace
-  :bind ("H-SPC" . shrink-whitespace))
 
 (provide 'default)
 ;;; default.el ends here
