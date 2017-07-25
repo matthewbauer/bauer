@@ -540,13 +540,13 @@ typical word processor."
     (flyspell-mode -1)
     (visual-line-mode -1)))
 
-(defadvice async-shell-command (before uniqify-running-shell-command activate)
-  (let ((buf (get-buffer "*Async Shell Command*")))
-    (if buf
-        (let ((proc (get-buffer-process buf)))
-          (if (and proc (eq 'run (process-status proc)))
-              (with-current-buffer buf
-                (rename-uniquely)))))))
+(advice-add async-shell-command :before
+            (lambda ()
+              (let ((buf (get-buffer "*Async Shell Command*")))
+                (if buf (let ((proc (get-buffer-process buf)))
+                          (if (and proc (eq 'run (process-status proc)))
+                              (with-current-buffer buf
+                                (rename-uniquely))))))))
 
 (defun sort-package-declarations ()
   "Sort following package declarations alphabetically."
@@ -676,11 +676,6 @@ typical word processor."
          ("<backtab>" . company-select-previous))
   :commands (company-mode global-company-mode company-complete-common)
   :init (add-hook 'after-init-hook 'global-company-mode)
-  ;; :config
-  ;; (defadvice company-pseudo-tooltip-unless-just-one-frontend
-  ;;     (around only-show-tooltip-when-invoked activate)
-  ;;   (when (company-explicit-action-p)
-  ;;     ad-do-it))
   )
 
 (use-package company-irony
@@ -947,45 +942,6 @@ typical word processor."
 
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
-
-(use-package ffap
-  :disabled
-  :builtin
-  :config
-  (defadvice ffap-file-at-point (after ffap-file-at-point-after-advice ())
-    (if (string= ad-return-value "/")
-        (setq ad-return-value nil)))
-
-  (defvar ffap-file-at-point-line-number nil
-    "Variable to hold line number from the last `ffap-file-at-point' call.")
-
-  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
-    "Search `ffap-string-at-point' for a line number pattern and
-save it in `ffap-file-at-point-line-number' variable."
-    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
-           (name
-            (or (condition-case nil
-                    (and (not (string-match "//" string)) ; foo.com://bar
-                         (substitute-in-file-name string))
-                  (error nil))
-                string))
-           (line-number-string
-            (and (string-match ":[0-9]+" name)
-                 (substring name (1+ (match-beginning 0)) (match-end 0))))
-           (line-number
-            (and line-number-string
-                 (string-to-number line-number-string))))
-      (if (and line-number (> line-number 0))
-          (setq ffap-file-at-point-line-number line-number)
-        (setq ffap-file-at-point-line-number nil))))
-
-  (defadvice find-file-at-point (after ffap-goto-line-number activate)
-    "If `ffap-file-at-point-line-number' is non-nil goto this line."
-    (when ffap-file-at-point-line-number
-      (with-no-warnings
-        (goto-line ffap-file-at-point-line-number))
-      (setq ffap-file-at-point-line-number nil)))
-  )
 
 (use-package firestarter
   :bind ("C-c m s" . firestarter-mode))
@@ -1398,13 +1354,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package info
   :builtin
-  :bind ("C-h C-i" . info-lookup-symbol)
-  :config
-  (defadvice Info-exit (after remove-info-window activate)
-    "When info mode is quit, remove the window."
-    (if (> (length (window-list)) 1)
-        (delete-window))
-    ))
+  :bind ("C-h C-i" . info-lookup-symbol))
 
 (use-package intero
   :commands intero-mode
@@ -1825,7 +1775,7 @@ save it in `ffap-file-at-point-line-number' variable."
 
 (use-package proof-site
   :name "proofgeneral"
-  :demand)
+  :commands (proofgeneral proof-mode proof-shell-mode))
 
 (use-package python-mode
   :builtin
@@ -2138,19 +2088,7 @@ save it in `ffap-file-at-point-line-number' variable."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*nethack*"))
-  :bind ("C-c t" . my-term)
-  :config
-  (defadvice ansi-term (before force-bash)
-    (interactive (list explicit-shell-file-name)))
-  (defadvice term (before force-bash)
-    (interactive (list explicit-shell-file-name)))
-  (defadvice term-sentinel (around my-advice-term-sentinel (proc msg))
-    (if (memq (process-status proc) '(signal exit))
-	(let ((buffer (process-buffer proc)))
-	  ad-do-it
-	  (kill-buffer buffer))
-      ad-do-it))
-  )
+  :bind ("C-c t" . my-term))
 
 (use-package tern
   :commands tern-mode
