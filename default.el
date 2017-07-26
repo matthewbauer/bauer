@@ -497,7 +497,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (set-fontset-font t 'unicode "Apple Color Emoji" nil 'defadvice)
   )
 
-(advice-add async-shell-command :before
+(advice-add 'async-shell-command :before
             (lambda ()
               (let ((buf (get-buffer "*Async Shell Command*")))
                 (if buf (let ((proc (get-buffer-process buf)))
@@ -1761,10 +1761,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                        lisp-interaction-mode
                        slime-repl-mode) . rainbow-mode))))
 
-(use-package ranger
-  :disabled
-  :commands deer)
-
 (use-package readline-complete
   :requires company
   :init
@@ -1854,6 +1850,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
   )
+
+(use-package skewer-mode
+  :disabled)
 
 (use-package skewer-less
   :disabled

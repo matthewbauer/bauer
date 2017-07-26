@@ -178,11 +178,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
         emscripten
         ffmpeg
         findutils
-        # ripgrep
+        ripgrep
         ag
         ghc
         git
-        # gitAndTools.hub
+        gitAndTools.hub
         # go2nix
         gnugrep
         gnumake
@@ -191,7 +191,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         gnupg1compat
         gnutar
         gnutls
-        # go
+        go
         gzip
         jdk
         jq
