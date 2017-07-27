@@ -6,20 +6,29 @@
 
 ;;; Code:
 
+(setq gc-cons-threshold 20000000)
+
 (eval-when-compile
   (require 'use-package))
 
 (add-to-list 'use-package-keywords :builtin)
 (defun use-package-handler/:builtin (name keyword arg rest state)
+  "Builtin keyword for use-package.
+Set this as a builtin package (don’t try to install)"
   (use-package-process-keywords name rest state))
 (add-to-list 'use-package-keywords :name)
 (defun use-package-handler/:name (name keyword arg rest state)
+  "Name keyword for use-package.
+Specifies package name (not the name used to require)."
   (use-package-process-keywords name rest state))
 
-(setq use-package-always-defer t)
-(setq use-package-always-ensure nil)
-(setq use-package-expand-minimally t)
-(setq use-package-verbose nil)
+(setq use-package-always-defer t
+      use-package-always-ensure nil
+      use-package-expand-minimally t
+      use-package-verbose nil
+      package-enable-at-startup nil
+      package--init-file-ensured t
+      use-package-ensure-function 'ignore)
 
 (use-package apropospriate-theme
   :init
@@ -52,7 +61,8 @@
             ("EDITOR" . "emacsclient -nw")
             ("LANG" . "en_US.UTF-8")
             ("LC_ALL" . "en_US.UTF-8")
-            ("PAGER" . "cat")))
+            ("PAGER" . "cat")
+            ("NODE_NO_READLINE" . "1")))
 
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
@@ -85,18 +95,20 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ag-executable "@ag@/bin/ag")
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
+ '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-by-copying t)
- '(backup-directory-alist '(("." . "~/.emacs.d/backups")))
+ '(backup-directory-alist `((".*" . ,temporary-file-directory)))
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
  '(c-syntactic-indentation nil)
  '(column-number-mode t)
+ '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-continue-commands
@@ -123,8 +135,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(create-lockfiles nil)
+ '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
  '(custom-search-field nil)
+ '(cursor-in-non-selected-windows nil)
  '(create-lockfiles nil)
  '(debug-on-signal t)
  '(delete-old-versions t)
@@ -137,6 +151,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(dired-recursive-deletes 'always)
  '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
+ '(disabled-command-function nil)
  '(display-time-default-load-average nil)
  '(display-time-format "")
  '(display-buffer-alist
@@ -158,10 +173,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
         (reusable-frames . visible)))))
  '(display-buffer-reuse-frames t)
  '(dumb-jump-quiet t)
- '(enable-recursive-minibuffers nil)
+ '(echo-keystrokes 0.02)
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
+ '(enable-recursive-minibuffers t)
  '(erc-autoaway-idle-seconds 600)
  '(erc-autoaway-use-emacs-idle t)
  '(erc-autojoin-timing 'ident)
@@ -250,12 +266,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                         (if (buffer-file-name)
                             (abbreviate-file-name (buffer-file-name))
                           "%b")))
- '(gc-cons-threshold 100000000)
  '(global-auto-revert-non-file-buffers t)
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
  '(history-length 20000)
+ '(hippie-expand-verbose nil)
  '(iedit-toggle-key-default nil)
  '(imenu-auto-rescan t)
  '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
@@ -273,6 +289,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ivy-display-style nil)
  '(ivy-minibuffer-faces nil)
  '(ivy-use-virtual-buffers t)
+ '(ivy-fixed-height-minibuffer t)
+ '(ivy-extra-directories nil)
+ '(ivy-re-builders-alist '((swiper . ivy--regex-plus) (t . ivy--regex-fuzzy)))
  '(jdee-server-dir "@jdeeserver@")
  '(jdee-ant-home "@ant@/lib/ant")
  '(jdee-ant-program "@ant@/bin/ant")
@@ -289,8 +308,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(mac-right-option-modifier nil)
  '(mac-frame-tabbing t)
  '(mac-system-move-file-to-trash-use-finder t)
+ '(magit-log-auto-more t)
  '(magit-clone-set-remote\.pushDefault t)
  '(magit-diff-options nil)
+ '(magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1)
  '(magit-ediff-dwim-show-on-hunks t)
  '(magit-fetch-arguments nil)
  '(magit-highlight-trailing-whitespace nil)
@@ -312,7 +333,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(mwim-end-of-line-function 'end-of-line)
  '(neo-theme 'arrow)
  '(neo-fixed-size nil)
- '(next-error-recenter '(4))
+ '(next-error-recenter t)
  '(notmuch-show-logo nil)
  '(nrepl-log-messages t)
  '(nsm-save-host-names t)
@@ -322,7 +343,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")))
- '(package-enable-at-startup nil)
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
@@ -349,11 +369,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
    '("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*"))
  '(save-abbrevs 'silently)
  '(save-interprogram-paste-before-kill t)
- '(savehist-additional-variables '(search-ring regexp-search-ring kill-ring))
+ '(savehist-additional-variables '(search-ring
+                                   regexp-search-ring
+                                   kill-ring
+                                   comint-input-ring))
  '(savehist-autosave-interval 60)
  '(scroll-preserve-screen-position 'always)
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
+ '(set-mark-command-repeat-pop t)
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair 'always)
@@ -389,7 +413,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(uniquify-separator "/")
  '(use-dialog-box nil)
  '(use-file-dialog nil)
- '(use-package-ensure-function 'ignore)
  '(use-package-enable-imenu-support t)
  '(version-control t)
  '(vc-allow-async-revert t)
@@ -524,7 +547,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package ace-window
   :bind (("M-o" . other-window)
-         ("C-x o" . ace-window)))
+         ([remap next-multiframe-window] . ace-window)
+         ))
 
 (use-package ag
   :commands (ag
@@ -532,7 +556,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
              ag-regexp
              ag-project
              ag-project-files
-             ag-project-regexp)
+             ag-project-regexp
+             ag-project-dired
+             ag-dired
+             ag-dired-regexp)
   :bind ("C-?" . ag-project))
 
 (use-package aggressive-indent
@@ -630,7 +657,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("TAB" . company-complete-common-or-cycle)
          ("<tab>" . company-complete-common-or-cycle)
          ("S-TAB" . company-select-previous)
-         ("<backtab>" . company-select-previous))
+         ("<backtab>" . company-select-previous)
+         ("C-n" . company-select-next)
+         ("C-p" . company-select-previous)
+         :map company-filter-map
+         ("C-n" . company-select-next)
+         ("C-p" . company-select-previous))
   :commands (company-mode global-company-mode company-complete-common)
   :defines (company-backends)
   :init (add-hook 'after-init-hook 'global-company-mode)
@@ -641,21 +673,30 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :requires company
   :init (add-to-list 'company-backends 'company-irony))
 
+(use-package company-shell
+  :requires company
+  :commands company-shell
+  :init (add-to-list 'company-backends 'company-shell))
+
 (use-package company-tern
   :requires company
   :commands company-tern
   :init (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
-  :disabled
   :requires company
-  :commands company-web
-  :init (add-to-list 'company-backends 'company-web))
+  :commands (company-web-html company-web-slim company-web-jade)
+  :init
+  (add-to-list 'company-backends 'company-web-html)
+  (add-to-list 'company-backends 'company-web-slim)
+  (add-to-list 'company-backends 'company-web-jade))
 
 (use-package compile
   :builtin
   :bind (("C-c C-c" . compile)
-         ("M-O" . show-compilation))
+         ("M-O" . show-compilation)
+         :map compilation-mode-map
+         ("o" . compile-goto-error))
   :preface
   (defun show-compilation ()
     (interactive)
@@ -681,8 +722,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package counsel
   :commands (counsel-descbinds)
-  :bind* (([remap execute-extended-command] . counsel-M-x)
-          ("C-c d" . counsel-dired-jump)
+  :bind* (([remap execute-extended-command] . counsel-M-C)
+          ("x-c d" . counsel-dired-jump)
           ("<f1> f" . counsel-describe-function)
           ("<f1> v" . counsel-describe-variable)
           ("C-x C-f" . counsel-find-file)
@@ -696,6 +737,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package counsel-projectile
   :after projectile
+  :bind ("s-t" . counsel-projectile)
   :config (counsel-projectile-toggle 1))
 
 (use-package crux
@@ -769,16 +811,20 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
+  :bind ("s-\\" . dired-jump-other-window)
   )
 
 (use-package direx
   :bind (("C-x C-j" . direx:jump-to-directory))
   :config
-  (push '(direx:direx-mode :position left :width 25 :dedicated t)
-	popwin:special-display-config))
+  ;; (push '(direx:direx-mode :position left :width 25 :dedicated t)
+  ;;       popwin:special-display-config)
+  )
 
 (use-package drag-stuff
-  :bind ("C-c d" . drag-stuff-mode))
+  :bind (("C-c d" . drag-stuff-mode)
+         ("<C-s-down>" . drag-stuff-down)
+         ("<C-s-up>"   . drag-stuff-up)))
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
@@ -804,10 +850,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package eldoc
   :builtin
   :commands eldoc-mode
-  :init (add-hooks '(((emacs-lisp-mode
-                       eval-expression-minibuffer-setup
-                       lisp-mode-interactive-mode
-                       typescript-mode) . eldoc-mode)))
+  :init
+  (setq eldoc-eval-p referred-function 'pp-eval-expression)
+  (add-hooks '(((emacs-lisp-mode
+                 eval-expression-minibuffer-setup
+                 lisp-mode-interactive-mode
+                 typescript-mode) . eldoc-mode)))
   :config
   (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
   )
@@ -996,7 +1044,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package hippie-exp
   :builtin
-  :bind (("M-/" . hippie-expand))
+  :bind (("M-/" . hippie-expand)
+         :map read-expression-map ("TAB" . hippie-expand)
+         :map minibuffer-local-map ("TAB" . hippie-expand))
+  ;; :bind* (("M-?" . hippie-expand-line))
   :preface
   (defun my-hippie-expand-completions (&optional hippie-expand-function)
     "Return the full list of possible completions generated by `hippie-expand'.
@@ -1152,14 +1203,42 @@ ARGS are a list in the form of (SYMBOL VALUE)."
     (concat "\\b" (mapconcat (lambda (x) (concat "\\w*" (list x))) str "")
             "\\w*" "\\b"))
 
-  (defun my-try-expand-dabbrev-visible (old)
-    (save-excursion (try-expand-dabbrev-visible old)))
+  (defun my-try-expand-abbrevs (old)
+    "Try to expand word before point according to all abbrev tables.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible expansions of the same
+string).  It returns t if a new expansion is found, nil otherwise."
+    (if (not old)
+        (progn
+          (he-init-string (he-dabbrev-beg) (point))
+          (setq he-expand-list
+                (and (not (equal he-search-string ""))
+                     (mapcar (function (lambda (sym)
+                                         (if (and (boundp sym) (vectorp (eval sym)))
+                                             (abbrev-expansion (downcase he-search-string)
+                                                               (eval sym)))))
+                             ;; FUCO: here we only use the local table,
+                             ;; not all tables
+                             (list 'local-abbrev-table))))))
+    (while (and he-expand-list
+                (or (not (car he-expand-list))
+                    (he-string-member (car he-expand-list) he-tried-table t)))
+      (setq he-expand-list (cdr he-expand-list)))
+    (if (null he-expand-list)
+        (progn
+          (if old (he-reset-string))
+          ())
+      (progn
+        (he-substitute-string (car he-expand-list) t)
+        (setq he-expand-list (cdr he-expand-list))
+        t)))
 
   :config
   (setq hippie-expand-try-functions-list
         '(my-try-expand-company
 	  try-my-dabbrev-substring
-	  my-try-expand-dabbrev-visible
+          my-try-expand-abbrevs
+	  try-expand-dabbrev-visible
 	  try-expand-dabbrev
 	  try-expand-dabbrev-all-buffers
 	  try-expand-dabbrev-from-kill
@@ -1330,13 +1409,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("<f6>" . ivy-resume)
          ("C-x C-b" . ivy-switch-buffer)
          :map ivy-minibuffer-map
-         ("C-j" . ivy-call))
+         ("C-j" . ivy-call)
+         ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
   (setq projectile-completion-system 'ivy)
   (setq magit-completing-read-function 'ivy-completing-read)
   (setq dumb-jump-selector 'ivy)
   (setq rtags-display-result-backend 'ivy)
+  (setq projector-completion-system 'ivy)
   :config (ivy-mode 1))
 
 (use-package java-mode
@@ -1367,14 +1448,19 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   )
 
 (use-package js2-mode
-  :config
-  (js2-imenu-extras-setup))
+  ;; :interpreter (("node" . js2-mode""))
+  :commands js2-imenu-extras-mode
+  :init
+  (add-hook 'js2-mode-hook 'js2-imenu-extras-mode))
 
 (use-package js3-mode
   :commands js3-mode)
 
 (use-package json-mode
-  :mode "\\.json\\'")
+  :mode (("\\.bowerrc$"     . json-mode)
+         ("\\.jshintrc$"    . json-mode)
+         ("\\.json_schema$" . json-mode)
+         ("\\.json\\'" . json-mode)))
 
 (use-package keyfreq
   :disabled
@@ -1454,18 +1540,27 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :init (add-hook 'magit-mode-hook 'magithub-feature-autoinject))
 
 (use-package make-it-so
+  :disabled
   :commands mis-mode
-  :init (add-hook 'dired-mode-hook 'mis-mode))
+  :init (add-hook 'dired-mode-hook 'mis-mode)
+  (bind-keys :map dired-mode-map
+             :prefix ","
+             :prefix-map dired-make-it-so-map
+             :prefix-docstring "Make it so map."
+             ("," . make-it-so)
+             ("f" . mis-finalize)
+             ("a" . mis-abort)
+             ("r" . mis-replace))
+  (use-package make-mode
+    :config
+    (bind-key "<f5>" 'mis-save-and-compile makefile-mode-map))
+  )
 
 (use-package makefile-mode
   :builtin
   :init
   (add-hook 'makefile-mode-hook 'indent-tabs-mode)
   )
-
-(use-package markdown-mode
-  :mode "\\.\\(md\\|markdown\\)\\'"
-  :commands markdown-mode)
 
 (use-package mb-depth
   :builtin
@@ -1514,7 +1609,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :mode "\\.nix\\'")
 
 (use-package notmuch
-  :commands notmuch)
+  :commands notmuch
+  )
 
 (use-package nroff-mode
   :builtin
@@ -1572,6 +1668,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :mode "\\.php\\'")
 
 (use-package popwin
+  :disabled
   ;; :bind-keymap ("C-z" . popwin:keymap)
   :defer 2
   :config
@@ -1674,12 +1771,17 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package projectile
   ;; :bind ("s-f" . hydra-projectile/body)
   :bind-keymap* ("C-c p" . projectile-command-map)
+  :bind (("s-p" . projectile-command-map)
+         ("C-x m" . projectile-run-shell))
 
   :config
+  ;; (setq magit-repository-directories projectile-known-projects)
 
+  (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
                                    compilation-read-command))))
+  (advice-add 'rename-file :after 'projectile-do-invalidate-cache)
 
   (projectile-global-mode)
 
@@ -1849,6 +1951,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind ("C-c C-s" . shell)
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  (create-hook-helper use-histfile ()
+    :hooks (shell-mode-hook)
+    (turn-on-comint-history (getenv "HISTFILE")))
   )
 
 (use-package skewer-mode
@@ -2057,6 +2162,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :init (add-hook 'js2-mode-hook 'tern-mode))
 
 (use-package tex-site
+  :commands (TeX-latex-mode
+             TeX-mode
+             tex-mode
+             LaTeX-mode
+             latex-mode)
   :name "auctex")
 
 (use-package texinfo
@@ -2095,8 +2205,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package undo-tree
   :disabled
-  :init (global-undo-tree-mode 1)
-  :bind ("C-c u" . undo-tree-visualize)
+  :config (global-undo-tree-mode 1)
+  :bind (("C-c u" . undo-tree-visualize)
+         ("s-z" . undo-tree-undo)
+         ("s-Z" . undo-tree-redo))
   :diminish undo-tree-mode)
 
 (use-package vkill
@@ -2174,6 +2286,155 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :config (yas-reload-all))
 
 (use-package ycmd)
+
+(use-package comint
+  :builtin
+  :bind
+  (:map comint-mode-map
+        ("RET"       . comint-return-dwim)
+        ("C-r"       . comint-history-isearch-backward-regexp)
+        ("s-k"       . comint-clear-buffer)
+        ("M-TAB"     . comint-previous-matching-input-from-input)
+        ("<M-S-tab>" . comint-next-matching-input-from-input))
+  :preface
+  (defun turn-on-comint-history (history-file)
+    (setq comint-input-ring-file-name history-file)
+    (comint-read-input-ring 'silent))
+  (defun text-smaller-no-truncation ()
+    (setq truncate-lines nil)
+    (set (make-local-variable 'scroll-margin) 0)
+    (text-scale-decrease 1))
+  (defun comint-return-dwim ()
+    (cond
+     ((comint-after-pmark-p)
+      (comint-send-input))
+     ((ffap-guess-file-name-at-point)
+      (ffap))
+     (t
+      (comint-next-prompt 1))))
+  :config
+  (setq-default comint-process-echoes t
+                comint-input-ignoredups t
+                comint-scroll-show-maximum-output nil
+                comint-output-filter-functions
+                '(ansi-color-process-output
+                  comint-truncate-buffer
+                  comint-watch-for-password-prompt))
+  (add-to-list 'comint-preoutput-filter-functions #'improve-npm-process-output)
+  (add-hook 'kill-buffer-hook #'comint-write-input-ring)
+  (add-hook 'comint-mode-hook #'text-smaller-no-truncation)
+  (create-hook-helper save-history ()
+    :hooks (kill-emacs-hook)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer (comint-write-input-ring)))))
+
+(use-package executable
+  :builtin
+  :commands executable-make-buffer-file-executable-if-script-p
+  :init
+  (add-hook 'after-save-hook
+            'executable-make-buffer-file-executable-if-script-p))
+
+(use-package repl-toggle
+  :disabled
+  :config
+  (repl-toggle-mode)
+  (setq rtog/mode-repl-alist
+        '((emacs-lisp-mode . ielm)
+          (ruby-mode . inf-ruby)
+          (js2-mode . nodejs-repl)
+          (rjsx-mode . nodejs-repl))))
+
+(use-package pandoc-mode
+  :commands (pandoc-mode pandoc-load-default-settings)
+  :init
+  (add-hook 'markdown-mode-hook 'pandoc-mode)
+  (add-hook 'org-mode-hook 'pandoc-mode)
+  (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
+
+(use-package markdown-mode
+  :mode
+  (("\\.md\\'" . gfm-mode)
+   ("\\.markdown\\'" . gfm-mode))
+  :config
+  (bind-key "'" "’" markdown-mode-map
+            (not (or (markdown-code-at-point-p)
+                     (memq 'markdown-pre-face
+                           (face-at-point nil 'mult))))))
+
+(use-package vmd-mode
+  :after markdown-mode
+  :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
+
+(use-package projector
+  :after projectile
+  :bind (("C-x RET"        . projector-run-shell-command-project-root)
+         ("C-x <C-return>" . projector-run-default-shell-command)
+         :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
+
+(use-package smart-tab
+  :disabled
+  :config
+  (global-smart-tab-mode)
+  (setq smart-tab-using-hippie-expand t
+        smart-tab-completion-functions-alist '()))
+
+(use-package toggle-quotes
+  :bind ("C-'" . toggle-quotes))
+
+(use-package smart-newline
+  :disabled
+  :bind ("<s-return>" . eol-then-smart-newline))
+
+(use-package easy-kill
+  :disabled
+  :bind (([remap kill-ring-save] . easy-kill)
+         ([remap mark-sexp]      . easy-mark)))
+
+(use-package shift-number
+  :disabled
+  :bind (("<M-up>"   . shift-number-up)
+         ("<M-down>" . shift-number-down)))
+
+(use-package change-inner
+  :disabled
+  :bind (("M-i" . change-inner)
+         ("M-o" . change-outer)))
+
+(use-package simple
+  :builtin
+  :bind
+  (("s-k" . kill-whole-line)
+   ("C-`" . list-processes)
+   :map minibuffer-local-map
+   ("<escape>"  . abort-recursive-edit)
+   ("M-TAB"     . previous-complete-history-element)
+   ("<M-S-tab>" . next-complete-history-element)))
+
+(use-package newcomment
+  :builtin
+  :bind ("s-/" . comment-or-uncomment-region))
+
+(use-package dired-rainbow
+  :demand
+  :config
+  (dired-rainbow-define html "#4e9a06" ("htm" "html" "xhtml"))
+  (dired-rainbow-define xml "#b4fa70" ("xml" "xsd" "xsl" "xslt" "wsdl"))
+
+  (dired-rainbow-define document "#fce94f" ("doc" "docx" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub"))
+  (dired-rainbow-define excel "#3465a4" ("xlsx"))
+  (dired-rainbow-define media "#ce5c00" my-dired-media-files-extensions)
+  (dired-rainbow-define image "#ff4b4b" ("jpg" "png" "jpeg" "gif"))
+
+  (dired-rainbow-define log "#c17d11" ("log"))
+  (dired-rainbow-define sourcefile "#fcaf3e" ("py" "c" "cc" "h" "java" "pl" "rb" "R" "php"))
+
+  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  (dired-rainbow-define compressed "#ad7fa8" ("zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+  (dired-rainbow-define packaged "#e6a8df" ("deb" "rpm"))
+  (dired-rainbow-define encrypted "LightBlue" ("gpg" "pgp"))
+
+  (dired-rainbow-define-chmod executable-unix "Green" "-.*x.*"))
 
 (provide 'default)
 ;;; default.el ends here
