@@ -2312,6 +2312,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("l" . forward-char)))
 
 (use-package etags
+  :builtin
   :commands (tags-completion-table))
 
 (provide 'default)
