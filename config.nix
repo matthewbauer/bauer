@@ -241,7 +241,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         isync
         ctags
         notmuch
-        texlive.combined.scheme-full
+        (texlive.combine { inherit (texlive) scheme-medium xetex setspace fontspec chktex; })
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh

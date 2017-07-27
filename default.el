@@ -342,7 +342,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(org-support-shift-select t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                      ("melpa" . "https://melpa.org/packages/")))
+                      ("melpa" . "https://melpa.org/packages/")
+                      ("org" . "http://orgmode.org/elpa/")))
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
@@ -653,7 +654,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :diminish company-mode
   :bind (("<C-tab>" . company-complete)
          ("M-C-/" . company-complete)
+         ("M-/" . company-complete)
          :map company-active-map
+         ("M-/" . company-complete)
+         ("C-n" . company-select-next)
+         ("C-p" . company-select-previous)
          ("TAB" . company-complete-common-or-cycle)
          ("<tab>" . company-complete-common-or-cycle)
          ("S-TAB" . company-select-previous)
@@ -666,6 +671,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands (company-mode global-company-mode company-complete-common)
   :defines (company-backends)
   :init (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (setq-default company-backends
+                '((company-capf company-dabbrev-code) company-dabbrev)
+                company-dabbrev-other-buffers 'all)
   )
 
 (use-package company-irony
@@ -781,7 +790,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
          ("M-!" . async-shell-command)
-	 ("e" . eshell))
+         ("e" . eshell))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   )
@@ -800,8 +809,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
-	      ("<tab>" . dired-subtree-toggle)
-	      ("<backtab>" . dired-subtree-cycle)))
+              ("<tab>" . dired-subtree-toggle)
+              ("<backtab>" . dired-subtree-cycle)))
 
 (use-package dired-x
   :builtin
@@ -913,7 +922,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package eshell
   :builtin
   :bind (("C-c M-t" . eshell)
-	 ("C-c x" . eshell))
+         ("C-c x" . eshell))
   :commands (eshell eshell-command)
   :init
   (setq eshell-modules-list
@@ -1000,9 +1009,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package goto-addr
   :builtin
-  :commands goto-address-prog-mode
+  :commands (goto-address-prog-mode goto-address-mode)
   :init
   (add-hook 'prog-mode-hook 'goto-address-prog-mode)
+  (add-hook 'git-commit-mode-hook 'goto-address-mode)
   )
 
 (use-package grep
@@ -1088,9 +1098,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           (if old (he-reset-string))
           ())
       (progn
-	(he-substitute-string (car he-expand-list))
-	(setq he-expand-list (cdr he-expand-list))
-	t)))
+        (he-substitute-string (car he-expand-list))
+        (setq he-expand-list (cdr he-expand-list))
+        t)))
 
   (defun he-tag-beg ()
     (save-excursion
@@ -1178,9 +1188,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           (if old (he-reset-string))
           ())
       (progn
-	(he-substitute-string (car he-expand-list))
-	(setq he-expand-list (cdr he-expand-list))
-	t)))
+        (he-substitute-string (car he-expand-list))
+        (setq he-expand-list (cdr he-expand-list))
+        t)))
 
   (defun he-flexible-abbrev-collect (str)
     "Find and collect all words that flex-matches STR.
@@ -1236,22 +1246,22 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :config
   (setq hippie-expand-try-functions-list
         '(my-try-expand-company
-	  try-my-dabbrev-substring
+          try-my-dabbrev-substring
           my-try-expand-abbrevs
-	  try-expand-dabbrev-visible
-	  try-expand-dabbrev
-	  try-expand-dabbrev-all-buffers
-	  try-expand-dabbrev-from-kill
-	  try-expand-tag
-	  try-expand-flexible-abbrev
-	  try-complete-file-name-partially
-	  try-complete-file-name
-	  try-expand-all-abbrevs
-	  try-expand-list
-	  try-expand-line
-	  try-expand-line-all-buffers
-	  try-complete-lisp-symbol-partially
-	  try-complete-lisp-symbol))
+          try-expand-dabbrev-visible
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-dabbrev-from-kill
+          try-expand-tag
+          try-expand-flexible-abbrev
+          try-complete-file-name-partially
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-expand-list
+          try-expand-line
+          try-expand-line-all-buffers
+          try-complete-lisp-symbol-partially
+          try-complete-lisp-symbol))
   )
 
 (use-package hl-todo
@@ -1472,11 +1482,17 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package kill-or-bury-alive
   :bind (("C-x k" . kill-or-bury-alive)
          ;; ("C-c r" . kill-or-bury-alive-purge-buffers)
-	 ))
+         ))
 
 (use-package lisp-mode
   :builtin
-  )
+  (create-hook-helper hippie-lisp ()
+    "Hippie stuff in lisp."
+    :hooks (lisp-mode-hook)
+    (make-local-variable 'hippie-expand-try-functions-list)
+    (add-to-list 'hippie-expand-try-functions-list 'try-complete-lisp-symbol t)
+    (add-to-list 'hippie-expand-try-functions-list
+                 'try-complete-lisp-symbol-partially t)))
 
 (use-package llvm-mode
   :mode "\\.ll\\'")
@@ -1982,9 +1998,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package smart-shift
   :bind (("C-c <left>" . smart-shift-left)
-	 ("C-c <right>" . smart-shift-right)
-	 ("C-c <up>" . smart-shift-up)
-	 ("C-c <down>" . smart-shift-down)))
+         ("C-c <right>" . smart-shift-right)
+         ("C-c <up>" . smart-shift-up)
+         ("C-c <down>" . smart-shift-down)))
 
 (use-package smart-tabs-mode
   :builtin
@@ -2128,6 +2144,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package subword
   :builtin
+  :disabled
   :init (add-hook 'java-mode-hook 'subword-mode))
 
 (use-package sudo-edit
@@ -2162,12 +2179,13 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :init (add-hook 'js2-mode-hook 'tern-mode))
 
 (use-package tex-site
+  :name "auctex"
   :commands (TeX-latex-mode
              TeX-mode
              tex-mode
              LaTeX-mode
              latex-mode)
-  :name "auctex")
+  :mode ("\\.tex\\'" . TeX-latex-mode))
 
 (use-package texinfo
   :mode ("\\.texi\\'" . texinfo-mode))
@@ -2269,11 +2287,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
   (define-hook-helper compilation-start (proc)
     (when (eq (process-filter proc) 'compilation-filter)
-      (set-process-filter
-       proc
-       (lambda (proc string)
-         (funcall 'compilation-filter proc
-                  (xterm-color-filter string))))))
+      (set-process-filter proc (lambda (proc string)
+                                 (funcall 'compilation-filter proc
+                                          (xterm-color-filter string))))))
   )
 
 (use-package yaml-mode
@@ -2436,6 +2452,11 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (dired-rainbow-define encrypted "LightBlue" ("gpg" "pgp"))
 
   (dired-rainbow-define-chmod executable-unix "Green" "-.*x.*"))
+
+(use-package anaconda
+  :disabled)
+
+(use-package company-anaconda)
 
 (provide 'default)
 ;;; default.el ends here
