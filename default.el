@@ -722,8 +722,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package counsel
   :commands (counsel-descbinds)
-  :bind* (([remap execute-extended-command] . counsel-M-C)
-          ("x-c d" . counsel-dired-jump)
+  :bind* (([remap execute-extended-command] . counsel-M-x)
+          ("C-c d" . counsel-dired-jump)
           ("<f1> f" . counsel-describe-function)
           ("<f1> v" . counsel-describe-variable)
           ("C-x C-f" . counsel-find-file)
@@ -851,7 +851,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :builtin
   :commands eldoc-mode
   :init
-  (setq eldoc-eval-p referred-function 'pp-eval-expression)
+  (setq eldoc-eval-preferred-function 'pp-eval-expression)
   (add-hooks '(((emacs-lisp-mode
                  eval-expression-minibuffer-setup
                  lisp-mode-interactive-mode
@@ -2416,6 +2416,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind ("s-/" . comment-or-uncomment-region))
 
 (use-package dired-rainbow
+  :disabled
   :demand
   :config
   (dired-rainbow-define html "#4e9a06" ("htm" "html" "xhtml"))
