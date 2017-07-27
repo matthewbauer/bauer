@@ -12,7 +12,7 @@
   (require 'use-package))
 
 (add-to-list 'use-package-keywords :builtin)
-(defunmy use-package-handler/:builtin (name keyword arg rest state)
+(defun use-package-handler/:builtin (name keyword arg rest state)
   "Builtin keyword for use-package.
 Set this as a builtin package (don’t try to install)"
   (use-package-process-keywords name rest state))
