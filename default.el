@@ -12,7 +12,7 @@
   (require 'use-package))
 
 (add-to-list 'use-package-keywords :builtin)
-(defun use-package-handler/:builtin (name keyword arg rest state)
+(defunmy use-package-handler/:builtin (name keyword arg rest state)
   "Builtin keyword for use-package.
 Set this as a builtin package (don’t try to install)"
   (use-package-process-keywords name rest state))
@@ -223,18 +223,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-          (when (tramp-tramp-file-p default-directory)
-            (concat
-             (tramp-file-name-user (tramp-dissect-file-name default-directory))
-             "@"
-             (tramp-file-name-real-host (tramp-dissect-file-name
-                                         default-directory))
-             " "))
-          (let ((dir (eshell/pwd)))
-            (if (string= dir (getenv "HOME")) "~"
-              (let ((dirname (file-name-nondirectory dir)))
-                (if (string= dirname "") "/" dirname))))
-          (if (= (user-uid) 0) " # " " $ "))))
+               (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-real-host (tramp-dissect-file-name
+                                              default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -386,6 +386,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair 'always)
  '(sp-hybrid-kill-entire-symbol nil)
+ '(smart-tab-using-hippie-expand t)
  '(truncate-lines nil)
  '(tab-always-indent 'complete)
  '(term-input-autoexpand t)
@@ -851,7 +852,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command)
+  :preface
+  (defun eshell-skip-prompt ()
+    (save-match-data
+      (let ((eol (line-end-position)))
+        (when (and (thing-at-point-looking-at eshell-prompt-regexp)
+                   (<= (match-end 0) eol))
+          (goto-char (match-end 0))))))
   :init
+  (setq eshell-skip-prompt-function 'eshell-skip-prompt)
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1679,7 +1688,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                   compilation-read-command))))
+                                        compilation-read-command))))
 
   (projectile-global-mode)
 

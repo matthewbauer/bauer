@@ -204,7 +204,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         nox
         nix
         nix-prefetch-scripts
-        # nix-index
+        nix-index
         nix-repl
         nix-zsh-completions
         ninja
