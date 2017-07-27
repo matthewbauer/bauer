@@ -89,7 +89,16 @@ dict-dir ${aspellDicts.en}/lib/aspell
               else builtins.getAttr x pkgs) epkgs';
       in epkgs'' ++ [epkgs.melpaStablePackages.use-package
       (runCommand "default.el" {
-        inherit rtags ripgrep ag emacs ant nethack fortune gnutls;
+        inherit rtags ripgrep ag emacs ant nethack fortune gnutls
+                coreutils findutils openssh git bash
+                zsh perl golint perlcritic
+                go asciidoc lessc stack
+                lua gcc; # csslint
+        inherit (pythonPackages) flake8;
+        inherit (nodePackages) jshint;
+        tidy = html-tidy;
+        jsonlint = pythonPackages.demjson;
+        libxml2 = libxml2.bin;
         gpg = gnupg1compat;
         jdeeserver = jdee-server;
         aspell = myAspell;
