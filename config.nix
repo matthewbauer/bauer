@@ -166,77 +166,78 @@ dict-dir ${aspellDicts.en}/lib/aspell
         bashInteractive
         bc
         bzip2
-        cabal-install
-        cabal2nix
-        cargo
-        checkbashisms
-        cmake
+        # cabal-install
+        # cabal2nix
+        # cargo
+        # checkbashisms
+        # cmake
         coreutils
         # clang
         diffutils
-        editorconfig-core-c
-        emscripten
+        # editorconfig-core-c
+        # emscripten
         ffmpeg
-        findutils
-        ripgrep
-        ag
-        ghc
+        # findutils
+        # ripgrep
+        # ag
+        # ghc
         git
         gitAndTools.hub
         # go2nix
         gnugrep
-        gnumake
+        # gnumake
         gnuplot
         gnused
         gnupg1compat
         gnutar
         gnutls
-        go
+        # go
         gzip
-        jdk
-        jq
-        haskellPackages.intero
-        lua
-        less
-        man
-        nano
-        nasm
+        # jdk
+        # jq
+        # haskellPackages.intero
+        # lua
+        # less
+        # man
+        # nano
+        # nasm
         nox
         nix
         nix-prefetch-scripts
         nix-index
         nix-repl
         nix-zsh-completions
-        ninja
-	rtags
-        nmap
-        nodePackages.tern
-        nodejs
+        # ninja
+        # rtags
+        # nmap
+        # nodePackages.tern
+        # nodejs
         openssh
         openssl
         pandoc
         patch
-        pypi2nix
-        python
-        perl
-        php
-        pwgen
+        # pypi2nix
+        # python
+        # perl
+        # php
+        # pwgen
         rsync
-        ruby
-        rustc
-        screen
+        # ruby
+        # rustc
+        # screen
         stack
         time
-        tree
+        # tree
         unzip
         vim
-        w3m
+        which
+        # w3m
         wget
         v8
         xz
         zip
         zsh
-        fortune
+        # fortune
         rEnv
         isync
         ctags

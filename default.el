@@ -1,4 +1,4 @@
-;;; default -- @matthewbauer’s Emacs config
+;;; default -- @matthewbauer’s Emacs config -*- lexical-binding: t -*-
 
 ;;; Commentary:
 
@@ -6,28 +6,30 @@
 
 ;;; Code:
 
-(setq gc-cons-threshold 20000000)
+(setq file-name-handler-alist nil
+      gc-cons-threshold 80000000)
+;; TODO: restore file-name-handler-alist later on
+
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+(add-hook 'focus-out-hook 'garbage-collect)
 
 (eval-when-compile
-  (require 'use-package))
+  (require 'use-package)
 
-(add-to-list 'use-package-keywords :builtin)
-(defun use-package-handler/:builtin (name keyword arg rest state)
-  "Builtin keyword for use-package.
+  (add-to-list 'use-package-keywords :builtin)
+  (defun use-package-handler/:builtin (name _ __ rest state)
+    "Builtin keyword for use-package.
 Set this as a builtin package (don’t try to install)"
-  (use-package-process-keywords name rest state))
+    (use-package-process-keywords name rest state))
 
-(add-to-list 'use-package-keywords :name)
-(defun use-package-handler/:name (name keyword arg rest state)
-  "Name keyword for use-package.
+  (add-to-list 'use-package-keywords :name)
+  (defun use-package-handler/:name (name _ __ rest state)
+    "Name keyword for use-package.
 Specifies package name (not the name used to require)."
-  (use-package-process-keywords name rest state))
+    (use-package-process-keywords name rest state))
 
-(setq use-package-always-defer t
-      use-package-always-ensure nil
-      use-package-expand-minimally t
-      use-package-verbose nil
-      package-enable-at-startup nil)
+  (setq use-package-always-defer t
+        use-package-expand-minimally t))
 
 (use-package apropospriate-theme
   :init
@@ -38,11 +40,11 @@ Specifies package name (not the name used to require)."
 (use-package server
   :disabled
   :builtin
+  :defer 2
   :commands server-start
-  :init
+  :config
   (add-hook 'after-init-hook 'server-start t)
-  ;; (add-hook 'server-switch-hook 'raise-frame)
-  )
+  (add-hook 'server-switch-hook 'raise-frame))
 
 (use-package tramp
   :builtin
@@ -75,19 +77,22 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (dolist (entry args)
     (let* ((symbol (indirect-variable (nth 0 entry)))
            (value (nth 1 entry))
-           (now (nth 2 entry))
+           ;; (now (nth 2 entry))
            (requests (nth 3 entry))
-           (comment (nth 4 entry)))
+           ;; (comment (nth 4 entry))
+           )
       ;; (custom-push-theme 'theme-value symbol 'user 'set value)
       (when requests
         (put symbol 'custom-requests requests)
         (mapc 'require requests))
-      (setq set (or (get symbol 'custom-set) 'custom-set-default))
+
       (put symbol 'default-value (list value))
       ;; (put symbol 'saved-value (list value))
       (put symbol 'standard-value (list value))
       ;; (put symbol 'force-value t)
-      (funcall set symbol (eval value)))))
+
+      (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
+        (funcall set symbol (eval value))))))
 
 (set-defaults
  '(ad-redefinition-action 'accept)
@@ -107,7 +112,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(bm-cycle-all-buffers t)
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
- '(column-number-mode t)
  '(comint-process-echoes t)
  '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
@@ -140,7 +144,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
  '(custom-search-field nil)
- '(cursor-in-non-selected-windows nil)
  '(create-lockfiles nil)
  '(debug-on-signal t)
  '(delete-old-versions t)
@@ -223,18 +226,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-               (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-real-host (tramp-dissect-file-name
-                                              default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
+          (when (tramp-tramp-file-p default-directory)
+            (concat
+             (tramp-file-name-user (tramp-dissect-file-name default-directory))
+             "@"
+             (tramp-file-name-real-host (tramp-dissect-file-name
+                                         default-directory))
+             " "))
+          (let ((dir (eshell/pwd)))
+            (if (string= dir (getenv "HOME")) "~"
+              (let ((dirname (file-name-nondirectory dir)))
+                (if (string= dirname "") "/" dirname))))
+          (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -262,7 +265,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(flyspell-highlight-properties nil)
  '(flyspell-incorrect-hook nil)
  '(flyspell-issue-welcome-flag nil)
- '(flyspell-use-meta-tab nil)
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
  '(frame-title-format '(:eval
@@ -287,7 +289,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ispell-extra-args '("--sug-mode=ultra"))
  '(ispell-silently-savep t)
  '(ispell-quietly t)
- '(ispell-program-name "@aspell@/bin/aspell")
  '(ivy-count-format "\"\"")
  '(ivy-display-style nil)
  '(ivy-minibuffer-faces nil)
@@ -297,7 +298,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(jdee-server-dir "@jdeeserver@")
  '(jdee-ant-home "@ant@/lib/ant")
  '(jdee-ant-program "@ant@/bin/ant")
- '(jit-lock-defer-time 0.05)
+ '(jit-lock-defer-time 0.01)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
@@ -328,8 +329,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
- '(minibuffer-prompt-properties
-   '(read-only t cursor-intangible t face minibuffer-prompt))
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
  '(mwim-beginning-of-line-function 'beginning-of-line)
@@ -347,11 +346,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
                       ("org" . "http://orgmode.org/elpa/")))
+ '(package-enable-at-startup nil)
  '(parse-sexp-ignore-comments t)
  '(proof-splash-enable nil)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-enable-caching t)
- '(projectile-enable-idle-timer nil)
  '(projectile-mode-line
    '(:eval (if (and (projectile-project-p)
                     (not (file-remote-p default-directory)))
@@ -442,8 +441,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                       lines-style))
  )
 
+;; slow set variable calls
+(setq cursor-in-non-selected-windows nil)
+(setq minibuffer-prompt-properties
+      '(read-only t cursor-intangible t face minibuffer-prompt))
+
 (use-package hook-helpers
-  :commands (create-hook-helper define-hook-helper))
+  :commands (create-hook-helper
+              define-hook-helper)
+  :functions (make-hook-helper
+              add-hook-helper
+              hkhlp-normalize-hook-spec
+              hkhlp-update-helper))
 
 (use-package add-hooks
   :commands (add-hooks add-hooks-pair))
@@ -485,7 +494,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "C-c q" 'fill-region)
 (bind-key "C-c s" 'replace-string)
 (bind-key "C-c u" 'rename-uniquely)
-(bind-key "C-c v" 'ffap)
 (bind-key "C-c z" 'clean-buffer-list)
 (bind-key "C-c =" 'count-matches)
 (bind-key "C-c ;" 'comment-or-uncomment-region)
@@ -496,11 +504,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 ;; Compiling
 (bind-key "H-c" 'compile)
-(bind-key "H-r" 'recompile)
-(bind-key "H-s" (lambda ()
-                  (interactive)
-                  (save-buffer)
-                  (recompile)))
 (bind-key "s-1" 'other-frame)
 (bind-key "<s-return>" 'toggle-frame-fullscreen)
 
@@ -542,6 +545,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package ansi-color
   :builtin
+  :commands ansi-color-apply-on-region
   :init (create-hook-helper colorize-compilation-buffer ()
           :hooks (compilation-filter-hook)
           (let ((inhibit-read-only t))
@@ -605,11 +609,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
     :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode))
   )
 
-(use-package cmake-ide
-  :disabled
-  :commands cmake-ide-setup
-  :init (cmake-ide-setup))
-
 (use-package coffee-mode
   :mode (("\\.coffee\\'" . coffee-mode)))
 
@@ -629,7 +628,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          :map company-filter-map
          ("C-n" . company-select-next)
          ("C-p" . company-select-previous))
-  :commands (company-mode global-company-mode company-complete-common)
+  :commands (company-mode
+             global-company-mode
+             company-complete-common
+             company-auto-begin)
   :defines (company-backends)
   ;; :init (add-hook 'after-init-hook 'global-company-mode)
   :config
@@ -781,6 +783,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :config (dtrt-indent-mode 1))
 
 (use-package dumb-jump
+  :disabled
   :bind (("M-g o" . dumb-jump-go-other-window)
          ("M-g j" . dumb-jump-go)
          ("M-g x" . dumb-jump-go-prefer-external)
@@ -852,15 +855,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command)
-  :preface
-  (defun eshell-skip-prompt ()
-    (save-match-data
-      (let ((eol (line-end-position)))
-        (when (and (thing-at-point-looking-at eshell-prompt-regexp)
-                   (<= (match-end 0) eol))
-          (goto-char (match-end 0))))))
   :init
-  (setq eshell-skip-prompt-function 'eshell-skip-prompt)
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -907,6 +902,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package flyspell
   :builtin
   :commands (flyspell-mode flyspell-prog-mode)
+  :config
+  (setq flyspell-use-meta-tab nil
+        ispell-program-name "@aspell@/bin/aspell")
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode))
@@ -990,6 +988,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package hippie-exp
   :builtin
+  :commands (he-dabbrev-beg
+             he-init-string
+             he-lisp-symbol-beg
+             he-string-memebr
+             he-reset-string
+             he-substitute-string
+             he-string-member
+             try-expand-dabbrev)
   :bind (("M-/" . hippie-expand)
          :map read-expression-map ("TAB" . hippie-expand)
          :map minibuffer-local-map ("TAB" . hippie-expand))
@@ -1004,10 +1010,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
       (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
                                         ; options.
-            (while (progn
-                     (funcall hippie-expand-function nil)
-                     (setq last-command 'my-hippie-expand-completions)
-                     (not (equal he-num -1)))))
+        (while (progn
+                 (funcall hippie-expand-function nil)
+                 (setq last-command 'my-hippie-expand-completions)
+                 (not (equal he-num -1)))))
       ;; Evaluating the completions modifies the buffer, however we will finish
       ;; up in the same state that we began.
       (set-buffer-modified-p buffer-modified)
@@ -1357,11 +1363,11 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
-  (setq projectile-completion-system 'ivy)
-  (setq magit-completing-read-function 'ivy-completing-read)
-  (setq dumb-jump-selector 'ivy)
-  (setq rtags-display-result-backend 'ivy)
-  (setq projector-completion-system 'ivy)
+  (setq projectile-completion-system 'ivy
+        magit-completing-read-function 'ivy-completing-read
+        dumb-jump-selector 'ivy
+        rtags-display-result-backend 'ivy
+        projector-completion-system 'ivy)
   :config (ivy-mode 1))
 
 (use-package java-mode
@@ -1468,17 +1474,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (defun magit-dired-other-window ()
     (interactive)
     (dired-other-window (magit-toplevel)))
-  :config
-  (setq magit-repo-dirs
-        (mapcar
-         (lambda (dir)
-           (substring dir 0 -1))
-         (cl-remove-if-not
-          (lambda (project)
-            (unless (file-remote-p project)
-              (file-directory-p (concat project "/.git/"))))
-          (projectile-relevant-known-projects))))
-  :commands (magit-clone)
+  :commands (magit-clone magit-toplevel)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
          :map magit-mode-map
@@ -1683,12 +1679,12 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind-keymap* ("C-c p" . projectile-command-map)
   :bind (("s-p" . projectile-command-map)
          ("C-x m" . projectile-run-shell))
-
+  :commands (projectile-global-mode)
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                        compilation-read-command))))
+                                   compilation-read-command))))
 
   (projectile-global-mode)
 
@@ -1840,11 +1836,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :preface
   (defun shell-command-at-point ()
     (interactive)
-    (setq start-point (save-excursion
-                        (beginning-of-line)
-                        (point)))
-    (shell-command (buffer-substring start-point (point)))
-    )
+    (let ((start-point (save-excursion
+                         (beginning-of-line)
+                         (point))))
+      (shell-command (buffer-substring start-point (point)))))
   :mode (("\\.*bashrc$" . sh-mode)
          ("\\.*bash_profile" . sh-mode)
          ("\\.zsh\\'" . sh-mode))
@@ -1900,7 +1895,11 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :commands smart-tabs-mode)
 
 (use-package smartparens
-  :commands (smartparens-mode show-smartparens-mode smartparens-strict-mode)
+  :commands (smartparens-mode
+             show-smartparens-mode
+             smartparens-strict-mode
+             sp-local-tag
+             sp-local-pair)
   :bind (:map smartparens-mode-map
               ("C-M-k" . sp-kill-sexp)
               ("C-M-f" . sp-forward-sexp)
@@ -2043,6 +2042,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package term
   :builtin
+  :commands (term-mode term-char-mode term-set-escape-char)
   :preface
   (defun my-term ()
     (interactive)
@@ -2092,7 +2092,8 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package time
   :builtin
-  :defer 2
+  :disabled
+  :defer 8
   :config (display-time))
 
 (use-package toc-org
@@ -2121,13 +2122,14 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
-	 ("\\.mustache\\'" . web-mode)
-	 ("\\.html?\\'" . web-mode)
+         ("\\.mustache\\'" . web-mode)
+         ("\\.html?\\'" . web-mode)
          ("\\.php\\'" . web-mode)
          ("\\.jsp\\'" . web-mode)))
 
 (use-package which-func
   :builtin
+  :disabled
   :defer 6
   :commands which-function-mode
   :config (which-function-mode t))
@@ -2159,7 +2161,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind (([remap async-shell-command] . with-editor-async-shell-command)
          ([remap shell-command] . with-editor-shell-command))
   :commands (with-editor-async-shell-command
-	     with-editor-shell-command
+             with-editor-shell-command
              with-editor-export-editor)
   :init (add-hooks '(((shell-mode
                        term-exec
@@ -2170,15 +2172,14 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :commands xterm-color-filter
   :init
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
-
   (setq comint-output-filter-functions
         (remove 'ansi-color-process-output comint-output-filter-functions))
 
-  (define-hook-helper compilation-start (proc)
-    (when (eq (process-filter proc) 'compilation-filter)
-      (set-process-filter proc (lambda (proc string)
-                                 (funcall 'compilation-filter proc
-                                          (xterm-color-filter string))))))
+  ;; (define-hook-helper compilation-start (proc)
+  ;;   (when (eq (process-filter proc) 'compilation-filter)
+  ;;     (set-process-filter proc (lambda (proc string)
+  ;;                                (funcall 'compilation-filter proc
+  ;;                                         (xterm-color-filter string))))))
   )
 
 (use-package yaml-mode
@@ -2196,11 +2197,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :builtin
   :bind
   (:map comint-mode-map
-        ("RET"       . comint-return-dwim)
         ("C-r"       . comint-history-isearch-backward-regexp)
         ("s-k"       . comint-clear-buffer)
         ("M-TAB"     . comint-previous-matching-input-from-input)
         ("<M-S-tab>" . comint-next-matching-input-from-input))
+  :commands (comint-next-prompt
+             comint-write-input-ring
+             comint-after-pmark-p
+             comint-read-input-ring
+             comint-send-input)
   :preface
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
@@ -2209,17 +2214,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (setq truncate-lines nil)
     (set (make-local-variable 'scroll-margin) 0)
     (text-scale-decrease 1))
-  (defun comint-return-dwim ()
-    (cond
-     ((comint-after-pmark-p)
-      (comint-send-input))
-     ((ffap-guess-file-name-at-point)
-      (ffap))
-     (t
-      (comint-next-prompt 1))))
   :config
-  (add-hook 'kill-buffer-hook #'comint-write-input-ring)
-  (add-hook 'comint-mode-hook #'text-smaller-no-truncation)
+  (add-hook 'kill-buffer-hook 'comint-write-input-ring)
+  (add-hook 'comint-mode-hook 'text-smaller-no-truncation)
   (create-hook-helper save-history ()
     :hooks (kill-emacs-hook)
     (dolist (buffer (buffer-list))
@@ -2282,32 +2279,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
    :map minibuffer-local-map
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
-   ("<M-S-tab>" . next-complete-history-element)))
+   ("<M-S-tab>" . next-complete-history-element))
+  ;; :defer 3
+  ;; :config
+  ;; (column-number-mode t)
+  )
 
 (use-package newcomment
   :builtin
   :bind ("s-/" . comment-or-uncomment-region))
-
-(use-package dired-rainbow
-  :after dired
-  :config
-  (dired-rainbow-define html "#4e9a06" ("htm" "html" "xhtml"))
-  (dired-rainbow-define xml "#b4fa70" ("xml" "xsd" "xsl" "xslt" "wsdl"))
-
-  (dired-rainbow-define document "#fce94f" ("doc" "docx" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub"))
-  (dired-rainbow-define excel "#3465a4" ("xlsx"))
-  (dired-rainbow-define image "#ff4b4b" ("jpg" "png" "jpeg" "gif"))
-
-  (dired-rainbow-define log "#c17d11" ("log"))
-  (dired-rainbow-define sourcefile "#fcaf3e" ("py" "c" "cc" "h" "java" "pl" "rb" "R" "php"))
-
-  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
-  (dired-rainbow-define compressed "#ad7fa8" ("zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
-  (dired-rainbow-define packaged "#e6a8df" ("deb" "rpm"))
-  (dired-rainbow-define encrypted "LightBlue" ("gpg" "pgp"))
-
-  ;; (dired-rainbow-define-chmod executable-unix "Green" "-.*x.*")
-  )
 
 (use-package anaconda-mode
   :commands (anaconda-mode anaconda-eldoc-mode)
@@ -2330,6 +2310,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("j" . next-line    )
               ("k" . previous-line)
               ("l" . forward-char)))
+
+(use-package etags
+  :commands (tags-completion-table))
 
 (provide 'default)
 ;;; default.el ends here
