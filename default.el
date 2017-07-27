@@ -16,6 +16,7 @@
   "Builtin keyword for use-package.
 Set this as a builtin package (don’t try to install)"
   (use-package-process-keywords name rest state))
+
 (add-to-list 'use-package-keywords :name)
 (defun use-package-handler/:name (name keyword arg rest state)
   "Name keyword for use-package.
@@ -26,9 +27,7 @@ Specifies package name (not the name used to require)."
       use-package-always-ensure nil
       use-package-expand-minimally t
       use-package-verbose nil
-      package-enable-at-startup nil
-      package--init-file-ensured t
-      use-package-ensure-function 'ignore)
+      package-enable-at-startup nil)
 
 (use-package apropospriate-theme
   :init
@@ -106,8 +105,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
+ '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(column-number-mode t)
+ '(comint-process-echoes t)
+ '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
@@ -237,6 +239,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
      "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar"))
+ '(eldoc-eval-preferred-function 'pp-eval-expression)
  '(eval-expression-debug-on-error t)
  '(explicit-bash-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash"))
  '(explicit-shell-file-name "bash")
@@ -290,11 +293,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ivy-minibuffer-faces nil)
  '(ivy-use-virtual-buffers t)
  '(ivy-fixed-height-minibuffer t)
- '(ivy-extra-directories nil)
  '(ivy-re-builders-alist '((swiper . ivy--regex-plus) (t . ivy--regex-fuzzy)))
  '(jdee-server-dir "@jdeeserver@")
  '(jdee-ant-home "@ant@/lib/ant")
  '(jdee-ant-program "@ant@/bin/ant")
+ '(jit-lock-defer-time 0.05)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
@@ -446,18 +449,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
-;; these should be disabled before Emsacs displays the frame
-;; but we disable them here just in case
-(when (and (fboundp 'menu-bar-mode)
-           (not (eq system-type 'darwin)))
-  (menu-bar-mode -1))
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-;; (when (fboundp 'scroll-bar-mode)
-;;   (scroll-bar-mode -1))
-(when (fboundp 'blink-cursor-mode)
-  (blink-cursor-mode -1))
-
+;; TODO: redo with bind-key
 (global-set-key (kbd "C-c C-u") 'rename-uniquely)
 (global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
 (global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
@@ -473,6 +465,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x 8 g b") "ϐ")
 (global-set-key (kbd "C-x 8 g g") "ɣ")
 (global-set-key (kbd "C-x 8 g a") "α")
+(global-set-key (kbd "C-x 8 \" (") "“")
+(global-set-key (kbd "C-x 8 \" )") "”")
+(global-set-key (kbd "C-x 8 ' (") "‘")
+(global-set-key (kbd "C-x 8 ' )") "’")
 
 (bind-key* "<C-return>" 'other-window)
 (bind-key "C-z" 'delete-other-windows)
@@ -512,44 +508,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "s-C-<down>" 'shrink-window)
 (bind-key "s-C-<up>" 'enlarge-window)
 
-(when (eq system-type 'darwin)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
-  (global-set-key (kbd "M-`") 'ns-next-frame)
-  (global-set-key (kbd "M-~") 'ns-prev-frame)
-  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji")
-  ;;                   (selected-frame) 'prepend)
-  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'defadvice)
-  )
-
-(advice-add 'async-shell-command :before
-            (lambda ()
-              (let ((buf (get-buffer "*Async Shell Command*")))
-                (if buf (let ((proc (get-buffer-process buf)))
-                          (if (and proc (eq 'run (process-status proc)))
-                              (with-current-buffer buf
-                                (rename-uniquely))))))))
-
-(defun sort-package-declarations ()
-  "Sort following package declarations alphabetically."
-  (interactive)
-  (cl-flet ((next-use-package
-             () (if (re-search-forward "^(use-package " nil t)
-                    (goto-char (match-beginning 0))
-                  (goto-char (point-max)))))
-    (sort-subr
-     nil
-     #'next-use-package
-     #'(lambda ()
-         (goto-char (line-end-position))
-         (next-use-package))
-     #'(lambda ()
-         (re-search-forward "(use-package \\([A-Za-z0-9_+-]+\\)")
-         (match-string 1)))))
-
 (use-package ace-window
   :bind (("M-o" . other-window)
-         ([remap next-multiframe-window] . ace-window)
-         ))
+         ([remap next-multiframe-window] . ace-window)))
 
 (use-package ag
   :commands (ag
@@ -576,8 +537,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package align
   :bind (("C-c [" . align-regexp))
   :commands align
-  :builtin
-  )
+  :builtin)
 
 (use-package ansi-color
   :builtin
@@ -592,9 +552,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package autorevert
   :builtin
   :defer 1
+  :commands auto-revert-mode
+  :init
+  (add-hook 'dired-mode-hook 'auto-revert-mode)
   :config
-  (global-auto-revert-mode t)
-  (add-hook 'dired-mode-hook 'auto-revert-mode))
+  (global-auto-revert-mode t))
 
 (use-package bash-completion
   :disabled
@@ -653,8 +615,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package company
   :diminish company-mode
   :bind (("<C-tab>" . company-complete)
-         ("M-C-/" . company-complete)
-         ("M-/" . company-complete)
          :map company-active-map
          ("M-/" . company-complete)
          ("C-n" . company-select-next)
@@ -670,7 +630,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("C-p" . company-select-previous))
   :commands (company-mode global-company-mode company-complete-common)
   :defines (company-backends)
-  :init (add-hook 'after-init-hook 'global-company-mode)
+  ;; :init (add-hook 'after-init-hook 'global-company-mode)
   :config
   (setq-default company-backends
                 '((company-capf company-dabbrev-code) company-dabbrev)
@@ -732,22 +692,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package counsel
   :commands (counsel-descbinds)
   :bind* (([remap execute-extended-command] . counsel-M-x)
-          ("C-c d" . counsel-dired-jump)
           ("<f1> f" . counsel-describe-function)
           ("<f1> v" . counsel-describe-variable)
           ("C-x C-f" . counsel-find-file)
           ("<f1> l" . counsel-find-library)
-          ;; ("C-c g" . counsel-git)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-ag)
           ("C-x l" . counsel-locate)
           ("C-M-i" . counsel-imenu)
           ("M-y" . counsel-yank-pop)))
-
-(use-package counsel-projectile
-  :after projectile
-  :bind ("s-t" . counsel-projectile)
-  :config (counsel-projectile-toggle 1))
 
 (use-package crux
   :bind (("C-c D" . crux-delete-file-and-buffer)
@@ -789,51 +742,37 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
-         ("M-!" . async-shell-command)
          ("e" . eshell))
   :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   )
 
 (use-package dired-collapse
-  :after dired
+  :requires dired
   :commands dired-collapse-mode
   :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
 
 (use-package dired-column
   :builtin
-  :after dired
+  :requires dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
 
 (use-package dired-subtree
-  :after dired
+  :requires dired
   :bind (:map dired-mode-map
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)))
 
 (use-package dired-x
   :builtin
-  :after dired
+  :requires dired
   :commands dired-omit-mode
   :init
   ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  :bind ("s-\\" . dired-jump-other-window)
-  )
-
-(use-package direx
-  :bind (("C-x C-j" . direx:jump-to-directory))
-  :config
-  ;; (push '(direx:direx-mode :position left :width 25 :dedicated t)
-  ;;       popwin:special-display-config)
-  )
-
-(use-package drag-stuff
-  :bind (("C-c d" . drag-stuff-mode)
-         ("<C-s-down>" . drag-stuff-down)
-         ("<C-s-up>"   . drag-stuff-up)))
+  :bind ("s-\\" . dired-jump-other-window))
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
@@ -851,16 +790,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :builtin
   )
 
-(use-package editorconfig
-  :commands editorconfig-mode
-  :diminish editorconfig-mode
-  :init (add-hook 'prog-mode-hook 'editorconfig-mode))
-
 (use-package eldoc
   :builtin
   :commands eldoc-mode
   :init
-  (setq eldoc-eval-preferred-function 'pp-eval-expression)
   (add-hooks '(((emacs-lisp-mode
                  eval-expression-minibuffer-setup
                  lisp-mode-interactive-mode
@@ -903,13 +836,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package emacs-lisp-mode
   :builtin
-  :bind (("M-." . find-function-at-point)
-         ("M-&" . complete-symbol))
   :interpreter (("emacs" . emacs-lisp-mode)))
-
-(use-package erc
-  :builtin
-  :bind ("C-x r c" . erc))
 
 (use-package esh-help
   :commands esh-help-eldoc-command
@@ -965,7 +892,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package flycheck-irony
   :commands flycheck-irony-setup
-  :after flycheck
+  :requires flycheck
   :init (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
 (use-package flyspell
@@ -1026,8 +953,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands gud-gdb
   :bind (("C-. g" . show-debugger)
          ("<f9>" . gud-cont)
-         ("<f10>" . gud-next)
-         ("<f11>" . gud-step)
+         ;; ("<f10>" . gud-next)
+         ;; ("<f11>" . gud-step)
          ("S-<f11>" . gud-finish)))
 
 (use-package haml-mode
@@ -1068,10 +995,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
       (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
                                         ; options.
-        (while (progn
-                 (funcall hippie-expand-function nil)
-                 (setq last-command 'my-hippie-expand-completions)
-                 (not (equal he-num -1)))))
+            (while (progn
+                     (funcall hippie-expand-function nil)
+                     (setq last-command 'my-hippie-expand-completions)
+                     (not (equal he-num -1)))))
       ;; Evaluating the completions modifies the buffer, however we will finish
       ;; up in the same state that we began.
       (set-buffer-modified-p buffer-modified)
@@ -1364,7 +1291,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package ibuffer
   :builtin
-  :bind ("C-x b" . ibuffer))
+  :bind ([remap switch-to-buffer] . ibuffer))
 
 (use-package idle-highlight-mode
   :disabled
@@ -1414,10 +1341,8 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package ivy
   :diminish ivy-mode
-  :after projectile
-  :bind (("C-c C-r" . ivy-resume)
-         ("<f6>" . ivy-resume)
-         ("C-x C-b" . ivy-switch-buffer)
+  :bind (("<f6>" . ivy-resume)
+         ([remap list-buffers] . ivy-switch-buffer)
          :map ivy-minibuffer-map
          ("C-j" . ivy-call)
          ("<escape>" . abort-recursive-edit))
@@ -1480,7 +1405,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (keyfreq-autosave-mode 1))
 
 (use-package kill-or-bury-alive
-  :bind (("C-x k" . kill-or-bury-alive)
+  :bind (([remap kill-buffer] . kill-or-bury-alive)
          ;; ("C-c r" . kill-or-bury-alive-purge-buffers)
          ))
 
@@ -1611,7 +1536,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
    ("M-<mouse-1>" . mc/add-cursor-on-click)
    ("C-c C-<"     . mc/mark-all-like-this)
    ("C-!"         . mc/mark-next-symbol-like-this)
-   ("s-d"         . mc/mark-all-dwim)
    ("C-S-c C-S-c" . mc/edit-lines)))
 
 (use-package mwim
@@ -1683,49 +1607,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package php-mode
   :mode "\\.php\\'")
 
-(use-package popwin
-  :disabled
-  ;; :bind-keymap ("C-z" . popwin:keymap)
-  :defer 2
-  :config
-  (popwin-mode 1)
-  (defvar popwin:special-display-config-backup popwin:special-display-config)
-  (setq display-buffer-function 'popwin:display-buffer)
-  (setq popwin:special-display-config
-        (remove '(compilation-mode :noselect t) popwin:special-display-config))
-  (push '("*Help*" :stick t) popwin:special-display-config)
-  (push '("*Pp Eval Output*" :stick t) popwin:special-display-config)
-  (push '("*dict*" :stick t) popwin:special-display-config)
-  (push '("*sdic*" :stick t) popwin:special-display-config)
-  (push '(slime-repl-mode :stick t) popwin:special-display-config)
-  (push '(Man-mode :stick t :height 20) popwin:special-display-config)
-  (push '("*ielm*" :stick t) popwin:special-display-config)
-  (push '("*eshell pop*" :stick t) popwin:special-display-config)
-  (push '("*Python*"   :stick t) popwin:special-display-config)
-  (push '("*Python Help*" :stick t :height 20) popwin:special-display-config)
-  (push '("*jedi:doc*" :stick t :noselect t) popwin:special-display-config)
-  (push '("*haskell*" :stick t) popwin:special-display-config)
-  (push '("*GHC Info*") popwin:special-display-config)
-  (push '("*git-gutter:diff*" :width 0.5 :stick t)
-        popwin:special-display-config)
-  (push '("*Occur*" :stick t) popwin:special-display-config)
-  (push '("*prodigy*" :stick t) popwin:special-display-config)
-  (push '("*Org tags*" :stick t :height 30)
-        popwin:special-display-config)
-  (push '("*Completions*" :stick t :noselect t) popwin:special-display-config)
-  (push '("*ggtags-global*" :stick t :noselect t :height 30)
-        popwin:special-display-config)
-  (push '("*Async Shell Command*" :stick t) popwin:special-display-config)
-
-  ;; (push '(compilation-mode :noselect t) popwin:special-display-config)
-  (push '(term-mode :position :top :height 16 :stick t)
-        popwin:special-display-config)
-  )
-
 (use-package pp
   :builtin
   :commands pp-eval-last-sexp
-  :bind (("M-:" . pp-eval-expression))
+  :bind (([remap eval-expression] . pp-eval-expression))
   :init
   (global-unset-key (kbd "C-x C-e"))
   (create-hook-helper always-eval-sexp ()
@@ -1791,13 +1676,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ("C-x m" . projectile-run-shell))
 
   :config
-  ;; (setq magit-repository-directories projectile-known-projects)
-
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
                                    compilation-read-command))))
-  (advice-add 'rename-file :after 'projectile-do-invalidate-cache)
 
   (projectile-global-mode)
 
@@ -2020,10 +1902,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("C-M-p" . sp-backward-down-sexp)
               ("C-M-w" . sp-copy-sexp)
               ("M-s" . sp-splice-sexp)
-              ("M-r" . sp-splice-sexp-killing-around)
-              ("C-)" . sp-forward-slurp-sexp)
               ("C-}" . sp-forward-barf-sexp)
-              ("C-(" . sp-backward-slurp-sexp)
               ("C-{" . sp-backward-barf-sexp)
               ("M-S" . sp-split-sexp)
               ("M-J" . sp-join-sexp)
@@ -2036,7 +1915,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("C-S-d" . sp-beginning-of-sexp)
               ("C-S-a" . sp-end-of-sexp)
               ("C-M-e" . sp-up-sexp)
-              ("M-r" . sp-unwrap-sexp)
               ("C-(" . sp-forward-barf-sexp)
               ("C-)" . sp-forward-slurp-sexp)
               ("M-(" . sp-forward-barf-sexp)
@@ -2144,15 +2022,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package subword
   :builtin
-  :disabled
+  :commands subword-mode
   :init (add-hook 'java-mode-hook 'subword-mode))
 
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
 
 (use-package swiper
-  :bind (("C-s" . swiper)
-         ("C-r" . swiper)))
+  :bind (([remap isearch-forward] . swiper)
+         ([remap isearch-backward] . swiper)))
 
 (use-package term
   :builtin
@@ -2262,8 +2140,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package windmove
   :builtin
-  :defer 10
-  :config (windmove-default-keybindings 'meta))
+  :bind (("<s-down>" . windmove-down)
+         ("<s-up>" . windmove-up)
+         ("<s-left>" . windmove-left)
+         ("<s-right>" . windmove-right)))
 
 (use-package with-editor
   :disabled
@@ -2329,14 +2209,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
      (t
       (comint-next-prompt 1))))
   :config
-  (setq-default comint-process-echoes t
-                comint-input-ignoredups t
-                comint-scroll-show-maximum-output nil
-                comint-output-filter-functions
-                '(ansi-color-process-output
-                  comint-truncate-buffer
-                  comint-watch-for-password-prompt))
-  (add-to-list 'comint-preoutput-filter-functions #'improve-npm-process-output)
   (add-hook 'kill-buffer-hook #'comint-write-input-ring)
   (add-hook 'comint-mode-hook #'text-smaller-no-truncation)
   (create-hook-helper save-history ()
@@ -2379,49 +2251,25 @@ string).  It returns t if a new expansion is found, nil otherwise."
                            (face-at-point nil 'mult))))))
 
 (use-package vmd-mode
-  :after markdown-mode
   :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
 
 (use-package projector
-  :after projectile
   :bind (("C-x RET"        . projector-run-shell-command-project-root)
          ("C-x <C-return>" . projector-run-default-shell-command)
          :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
 
-(use-package smart-tab
-  :disabled
-  :config
-  (global-smart-tab-mode)
-  (setq smart-tab-using-hippie-expand t
-        smart-tab-completion-functions-alist '()))
-
 (use-package toggle-quotes
   :bind ("C-'" . toggle-quotes))
-
-(use-package smart-newline
-  :disabled
-  :bind ("<s-return>" . eol-then-smart-newline))
 
 (use-package easy-kill
   :disabled
   :bind (([remap kill-ring-save] . easy-kill)
          ([remap mark-sexp]      . easy-mark)))
 
-(use-package shift-number
-  :disabled
-  :bind (("<M-up>"   . shift-number-up)
-         ("<M-down>" . shift-number-down)))
-
-(use-package change-inner
-  :disabled
-  :bind (("M-i" . change-inner)
-         ("M-o" . change-outer)))
-
 (use-package simple
   :builtin
   :bind
-  (("s-k" . kill-whole-line)
-   ("C-`" . list-processes)
+  (("C-`" . list-processes)
    :map minibuffer-local-map
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
@@ -2432,15 +2280,13 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind ("s-/" . comment-or-uncomment-region))
 
 (use-package dired-rainbow
-  :disabled
-  :demand
+  :after dired
   :config
   (dired-rainbow-define html "#4e9a06" ("htm" "html" "xhtml"))
   (dired-rainbow-define xml "#b4fa70" ("xml" "xsd" "xsl" "xslt" "wsdl"))
 
   (dired-rainbow-define document "#fce94f" ("doc" "docx" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub"))
   (dired-rainbow-define excel "#3465a4" ("xlsx"))
-  (dired-rainbow-define media "#ce5c00" my-dired-media-files-extensions)
   (dired-rainbow-define image "#ff4b4b" ("jpg" "png" "jpeg" "gif"))
 
   (dired-rainbow-define log "#c17d11" ("log"))
@@ -2451,12 +2297,30 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (dired-rainbow-define packaged "#e6a8df" ("deb" "rpm"))
   (dired-rainbow-define encrypted "LightBlue" ("gpg" "pgp"))
 
-  (dired-rainbow-define-chmod executable-unix "Green" "-.*x.*"))
+  ;; (dired-rainbow-define-chmod executable-unix "Green" "-.*x.*")
+  )
 
-(use-package anaconda
-  :disabled)
+(use-package anaconda-mode
+  :commands (anaconda-mode anaconda-eldoc-mode)
+  :init
+  (add-hook 'python-mode-hook 'anaconda-mode)
+  (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+  )
 
-(use-package company-anaconda)
+(use-package company-anaconda
+  :commands company-anaconda
+  :requires company
+  :init
+  (add-to-list 'company-backends 'company-anaconda))
+
+(use-package view
+  :builtin
+  :bind (:map view-mode-map
+              ("n" . next-line    )
+              ("p" . previous-line)
+              ("j" . next-line    )
+              ("k" . previous-line)
+              ("l" . forward-char)))
 
 (provide 'default)
 ;;; default.el ends here
