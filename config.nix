@@ -66,8 +66,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
     myEmacs = let
       epkgs''' = runCommand "packages-list" { buildInputs = [ emacs ]; } ''
         emacs -batch \
-          -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-          -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+          -L ${customEmacsPackages.melpaPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+          -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./use-package-list.el} \
           --eval "(use-package-list \"${default}/share/emacs/site-lisp/default.el\")))" > $out
       '';
@@ -77,7 +77,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 coreutils findutils openssh git bash
                 zsh perl golint perlcritic
                 go asciidoc lessc stack
-                lua gcc; # csslint
+                lua gcc bashInteractive diffutils; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint;
         tidy = html-tidy;
@@ -104,7 +104,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
               else if builtins.hasAttr x emacsPackages
                  then builtins.getAttr x emacsPackages
               else builtins.getAttr x pkgs) epkgs';
-      in epkgs'' ++ [epkgs.melpaStablePackages.use-package default]);
+      in epkgs'' ++ [epkgs.melpaPackages.use-package default]);
 
     bauer = buildEnv {
       buildInputs = [ makeWrapper ];

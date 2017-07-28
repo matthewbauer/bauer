@@ -20,32 +20,21 @@
  exec-path `(,(concat (getenv "HOME") "/.nix-profile/bin"))
  )
 
+;; reset gc
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+;; TODO: set based on default value
+
+;; garbage collect when window focus is lost
 (add-hook 'focus-out-hook 'garbage-collect)
-
-(eval-when-compile
-  (require 'use-package)
-
-  (add-to-list 'use-package-keywords :builtin)
-  (defun use-package-handler/:builtin (name _ __ rest state)
-    "Builtin keyword for use-package.
-Set this as a builtin package (don’t try to install)"
-    (use-package-process-keywords name rest state))
-
-  (add-to-list 'use-package-keywords :name)
-  (defun use-package-handler/:name (name _ __ rest state)
-    "Name keyword for use-package.
-Specifies package name (not the name used to require)."
-    (use-package-process-keywords name rest state))
-
-  (setq use-package-always-defer t
-        use-package-expand-minimally t))
 
 (defun set-envs (&rest env)
   "Set environment variables from ENV alist."
   (dolist (x env)
     (setenv (car x) (car (cdr x)))))
 
+(fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
+
+;; setup environment
 (set-envs
  '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
  '("EDITOR" "emacsclient -nw")
@@ -85,6 +74,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
       (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
         (funcall set symbol (eval value))))))
 
+;; setup defaults
+;; should maintain compatiblity with custom.el
 (set-defaults
  '(ad-redefinition-action 'accept)
  '(apropos-do-all t)
@@ -231,8 +222,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
      "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar"))
  '(eldoc-eval-preferred-function 'pp-eval-expression)
  '(eval-expression-debug-on-error t)
+ ;; TODO: move to paths?
  '(explicit-bash-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash"))
- '(explicit-shell-file-name "bash")
  '(expand-region-contract-fast-key "j")
  '(fased-completing-read-function 'nil)
  '(fill-column 80)
@@ -372,6 +363,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
                                  (nil "\\`root\\'" "/ssh:%h:")
                                  (".*" "\\`root\\'" "/ssh:%h:")))
+ ;; TODO: cleanup?
  '(tramp-remote-path '(tramp-own-remote-path
                        "/run/current-system/sw/bin"
                        tramp-default-remote-path
@@ -419,22 +411,27 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  )
 
 (defun set-paths (&rest args)
-  "Set vars from ARGS create by Nix package paths."
+  "Set paths from ARGS as default values.
+verifies path exists"
   (dolist (entry args)
     (let ((path (nth 1 entry)))
       (unless (file-exists-p path)
         (error "Path %s not found" path))))
   (apply 'set-defaults args))
 
+;; set paths available from Nix substitution
+;; DO NOT evaluate before substitution occurs
 (set-paths
  '(ag-executable "@ag@/bin/ag")
  '(dired-touch-program "@coreutils@/bin/touch")
  '(dired-chown-program "@coreutils@/bin/chown")
  '(dired-free-space-program "@coreutils@/bin/df")
+ '(diff-command "@diffutils@/bin/diff")
  '(find-program "@findutils@/bin/find")
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
+ '(explicit-shell-file-name "@bashInteractive@/bin/bash")
  '(flycheck-sh-bash-executable "@bash@/bin/bash")
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
@@ -464,28 +461,17 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(remote-shell-program "@openssh@/bin/ssh")
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
+ '(tramp-encoding-shell "@bash@/bin/sh")
  ;; '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
  '(xargs-program "@findutils@/bin/xargs")
  '(vc-git-program "@git@/bin/git")
  )
 
 ;; slow set variable calls
+;; separate to make timing startup easier
 (setq cursor-in-non-selected-windows nil)
 (setq minibuffer-prompt-properties
       '(read-only t cursor-intangible t face minibuffer-prompt))
-
-(use-package hook-helpers
-  :commands (create-hook-helper
-              define-hook-helper)
-  :functions (make-hook-helper
-              add-hook-helper
-              hkhlp-normalize-hook-spec
-              hkhlp-update-helper))
-
-(use-package add-hooks
-  :commands (add-hooks add-hooks-pair))
-
-(fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
 ;; TODO: redo with bind-key
 (global-set-key (kbd "C-c C-u") 'rename-uniquely)
@@ -507,6 +493,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (global-set-key (kbd "C-x 8 \" )") "”")
 (global-set-key (kbd "C-x 8 ' (") "‘")
 (global-set-key (kbd "C-x 8 ' )") "’")
+
+(eval-when-compile
+  (require 'bind-key))
 
 (bind-key* "<C-return>" 'other-window)
 (bind-key "C-z" 'delete-other-windows)
@@ -539,6 +528,47 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (bind-key "s-C-<right>" 'enlarge-window-horizontally)
 (bind-key "s-C-<down>" 'shrink-window)
 (bind-key "s-C-<up>" 'enlarge-window)
+
+;; setup use-package and some extra
+;; keywords for use-package-list.el
+;; to work correctly
+(eval-when-compile
+  (require 'use-package)
+
+  (add-to-list 'use-package-keywords :builtin)
+  (defun use-package-handler/:builtin (name _ __ rest state)
+    "Builtin keyword for use-package.
+Set this as a builtin package (don’t try to install)"
+    (use-package-process-keywords name rest state))
+
+  (add-to-list 'use-package-keywords :name)
+  (defun use-package-handler/:name (name _ __ rest state)
+    "Name keyword for use-package.
+Specifies package name (not the name used to require)."
+    (use-package-process-keywords name rest state))
+
+  (setq use-package-always-defer t
+        use-package-expand-minimally t))
+
+;; some utils needed at init stage
+;; should always appear before other use-package
+(use-package add-hooks
+  :commands (add-hooks add-hooks-pair))
+(use-package hook-helpers
+  :commands (create-hook-helper
+              define-hook-helper)
+  :functions (make-hook-helper
+              add-hook-helper
+              hkhlp-normalize-hook-spec
+              hkhlp-update-helper))
+
+;; alphabetical listing of packages
+
+;; run sort-package-declarations after adding a new package from this point
+;; (make sure the provide line is still at the bottom though)
+
+;; each use-package call should be followed by a space to separate it
+;; all comments must be within the sexp
 
 (use-package ace-window
   :bind (("M-o" . other-window)
@@ -706,29 +736,29 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package company-anaconda
   :commands company-anaconda
-  :requires company
-  :init
+  :after company
+  :config
   (add-to-list 'company-backends 'company-anaconda))
 
 (use-package company-irony
+  :after company
   :commands company-irony
-  :requires company
-  :init (add-to-list 'company-backends 'company-irony))
+  :config (add-to-list 'company-backends 'company-irony))
 
 (use-package company-shell
-  :requires company
+  :after company
   :commands company-shell
-  :init (add-to-list 'company-backends 'company-shell))
+  :config (add-to-list 'company-backends 'company-shell))
 
 (use-package company-tern
-  :requires company
+  :after company
   :commands company-tern
-  :init (add-to-list 'company-backends 'company-tern))
+  :config (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
-  :requires company
+  :after company
   :commands (company-web-html company-web-slim company-web-jade)
-  :init
+  :config
   (add-to-list 'company-backends 'company-web-html)
   (add-to-list 'company-backends 'company-web-slim)
   (add-to-list 'company-backends 'company-web-jade))
@@ -820,25 +850,25 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (add-hook 'dired-mode-hook 'dired-hide-details-mode))
 
 (use-package dired-collapse
-  :requires dired
+  :after dired
   :commands dired-collapse-mode
   :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
 
 (use-package dired-column
   :builtin
-  :requires dired
+  :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
 
 (use-package dired-subtree
-  :requires dired
+  :after dired
   :bind (:map dired-mode-map
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)))
 
 (use-package dired-x
   :builtin
-  :requires dired
+  :after dired
   :commands (dired-omit-mode dired-hide-details-mode)
   :init
   (add-hook 'dired-mode-hook 'dired-omit-mode)
@@ -973,7 +1003,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package flycheck-irony
   :commands flycheck-irony-setup
-  :requires flycheck
   :init (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 (use-package flyspell
@@ -1452,7 +1481,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package jka-compr
   :builtin
   :disabled
-  :demand
+  :defer 2
   :config
   ;; binary plist support
   (add-to-list 'jka-compr-compression-info-list
@@ -1962,11 +1991,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
    :map minibuffer-local-map
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
-   ("<M-S-tab>" . next-complete-history-element))
-  ;; :defer 3
-  ;; :config
-  ;; (column-number-mode t)
-  )
+   ("<M-S-tab>" . next-complete-history-element)))
 
 (use-package skewer-mode
   :disabled)
@@ -2194,12 +2219,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (add-hook 'typescript-mode-hook 'tide-setup)
   (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode))
 
-(use-package time
-  :builtin
-  :disabled
-  :defer 8
-  :config (display-time))
-
 (use-package toc-org
   :commands toc-org-enable
   :init (add-hook 'org-mode-hook 'toc-org-enable))
@@ -2238,17 +2257,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ("\\.php\\'" . web-mode)
          ("\\.jsp\\'" . web-mode)))
 
-(use-package which-func
-  :builtin
-  :disabled
-  :defer 6
-  :commands which-function-mode
-  :config (which-function-mode t))
-
 (use-package which-key
   :diminish which-key-mode
   :commands which-key-mode
-  :defer 7
+  :defer 3
   :config (which-key-mode))
 
 (use-package whitespace-cleanup-mode
