@@ -69,26 +69,10 @@ dict-dir ${aspellDicts.en}/lib/aspell
           -L ${customEmacsPackages.melpaStablePackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${customEmacsPackages.melpaStablePackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./use-package-list.el} \
-          --eval "(use-package-list \"${./default.el}\")))" > $out
+          --eval "(use-package-list \"${default}/share/emacs/site-lisp/default.el\")))" > $out
       '';
       epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
-    in customEmacsPackages.emacsWithPackages (epkgs: let
-        epkgs'' = map (x: if x == "rtags" then pkgs.rtags
-              else if x == "nix-mode" then pkgs.nix
-              else if x == "ghc" then pkgs.ghc
-              else if x == "notmuch" then pkgs.notmuch
-              else if builtins.hasAttr x epkgs.elpaPackages
-                then builtins.getAttr x epkgs.elpaPackages
-              else if builtins.hasAttr x epkgs.melpaStablePackages
-                then builtins.getAttr x epkgs.melpaStablePackages
-              else if builtins.hasAttr x epkgs.melpaPackages
-                then builtins.getAttr x epkgs.melpaPackages
-              else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
-              else if builtins.hasAttr x emacsPackages
-                 then builtins.getAttr x emacsPackages
-              else builtins.getAttr x pkgs) epkgs';
-      in epkgs'' ++ [epkgs.melpaStablePackages.use-package
-      (runCommand "default.el" {
+      default = (runCommand "default.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls
                 coreutils findutils openssh git bash
                 zsh perl golint perlcritic
@@ -109,7 +93,23 @@ dict-dir ${aspellDicts.en}/lib/aspell
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
-        '')]);
+        '');
+    in customEmacsPackages.emacsWithPackages (epkgs: let
+        epkgs'' = map (x: if x == "rtags" then pkgs.rtags
+              else if x == "nix-mode" then pkgs.nix
+              else if x == "ghc" then pkgs.ghc
+              else if x == "notmuch" then pkgs.notmuch
+              else if builtins.hasAttr x epkgs.elpaPackages
+                then builtins.getAttr x epkgs.elpaPackages
+              else if builtins.hasAttr x epkgs.melpaStablePackages
+                then builtins.getAttr x epkgs.melpaStablePackages
+              else if builtins.hasAttr x epkgs.melpaPackages
+                then builtins.getAttr x epkgs.melpaPackages
+              else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
+              else if builtins.hasAttr x emacsPackages
+                 then builtins.getAttr x emacsPackages
+              else builtins.getAttr x pkgs) epkgs';
+      in epkgs'' ++ [epkgs.melpaStablePackages.use-package default]);
 
     bauer = buildEnv {
       buildInputs = [ makeWrapper ];
