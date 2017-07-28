@@ -64,7 +64,7 @@ Specifies package name (not the name used to require)."
             ("LC_ALL" . "en_US.UTF-8")
             ("PAGER" . "cat")
             ("NODE_NO_READLINE" . "1")
-            ;; ("PATH" . "~/.nix-profile/bin")
+            ("PATH" . "~/.nix-profile/bin")
             ))
 
 (defun set-defaults (&rest args)
@@ -582,6 +582,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands align
   :builtin)
 
+(use-package anaconda-mode
+  :commands (anaconda-mode anaconda-eldoc-mode)
+  :init
+  (add-hook 'python-mode-hook 'anaconda-mode)
+  (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
+
 (use-package ansi-color
   :builtin
   :commands ansi-color-apply-on-region
@@ -626,9 +632,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package bug-reference
   :builtin
   :commands bug-reference-prog-mode
-  :init
-  (add-hook 'prog-mode-hook 'bug-reference-prog-mode)
-  )
+  :init (add-hook 'prog-mode-hook 'bug-reference-prog-mode))
 
 (use-package bug-reference-github
   :commands bug-reference-github-set-url-format
@@ -645,11 +649,39 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :config
   (use-package c-eldoc
     :commands c-turn-on-eldoc-mode
-    :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode))
-  )
+    :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)))
 
 (use-package coffee-mode
   :mode (("\\.coffee\\'" . coffee-mode)))
+
+(use-package comint
+  :builtin
+  :bind
+  (:map comint-mode-map
+        ("C-r"       . comint-history-isearch-backward-regexp)
+        ("s-k"       . comint-clear-buffer)
+        ("M-TAB"     . comint-previous-matching-input-from-input)
+        ("<M-S-tab>" . comint-next-matching-input-from-input))
+  :commands (comint-next-prompt
+             comint-write-input-ring
+             comint-after-pmark-p
+             comint-read-input-ring
+             comint-send-input)
+  :preface
+  (defun turn-on-comint-history (history-file)
+    (setq comint-input-ring-file-name history-file)
+    (comint-read-input-ring 'silent))
+  (defun text-smaller-no-truncation ()
+    (setq truncate-lines nil)
+    (set (make-local-variable 'scroll-margin) 0)
+    (text-scale-decrease 1))
+  :config
+  (add-hook 'kill-buffer-hook 'comint-write-input-ring)
+  (add-hook 'comint-mode-hook 'text-smaller-no-truncation)
+  (create-hook-helper save-history ()
+    :hooks (kill-emacs-hook)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer (comint-write-input-ring)))))
 
 (use-package company
   :diminish company-mode
@@ -675,8 +707,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (global-company-mode)
   (setq-default company-backends
                 '((company-capf company-dabbrev-code) company-dabbrev)
-                company-dabbrev-other-buffers 'all)
-  )
+                company-dabbrev-other-buffers 'all))
+
+(use-package company-anaconda
+  :commands company-anaconda
+  :requires company
+  :init
+  (add-to-list 'company-backends 'company-anaconda))
 
 (use-package company-irony
   :commands company-irony
@@ -785,8 +822,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("r" . browse-url-of-dired-file)
          ("e" . eshell))
   :init
-  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  )
+  (add-hook 'dired-mode-hook 'dired-hide-details-mode))
 
 (use-package dired-collapse
   :requires dired
@@ -808,12 +844,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package dired-x
   :builtin
   :requires dired
-  :commands dired-omit-mode
+  :commands (dired-omit-mode dired-hide-details-mode)
   :init
-  ;; toggle `dired-omit-mode' with C-x M-o
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  :bind ("s-\\" . dired-jump-other-window))
+  :bind (("s-\\" . dired-jump-other-window)))
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
@@ -828,9 +863,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("M-g z" . dumb-jump-go-prefer-external-other-window))
   :config (dumb-jump-mode))
 
+(use-package easy-kill
+  :disabled
+  :bind (([remap kill-ring-save] . easy-kill)
+         ([remap mark-sexp]      . easy-mark)))
+
 (use-package edebug
-  :builtin
-  )
+  :builtin)
 
 (use-package eldoc
   :builtin
@@ -839,10 +878,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (add-hooks '(((emacs-lisp-mode
                  eval-expression-minibuffer-setup
                  lisp-mode-interactive-mode
-                 typescript-mode) . eldoc-mode)))
-  :config
-  (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
-  )
+                 typescript-mode) . eldoc-mode))))
 
 (use-package elec-pair ;; should disable in sp modes
   :builtin
@@ -855,8 +891,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :init
   (add-hook 'prog-mode-hook 'electric-quote-mode)
   (add-hook 'prog-mode-hook 'electric-indent-mode)
-  (add-hook 'prog-mode-hook 'electric-layout-mode)
-  )
+  (add-hook 'prog-mode-hook 'electric-layout-mode))
 
 (use-package elf-mode
   :commands elf-mode
@@ -873,8 +908,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands em-dired-mode
   :init (add-hook 'eshell-mode-hook 'em-dired-mode)
   ;; in local dir
-  :builtin
-  )
+  :builtin)
 
 (use-package emacs-lisp-mode
   :builtin
@@ -911,8 +945,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           eshell-term
           eshell-tramp
           eshell-unix
-          eshell-xtra))
-  )
+          eshell-xtra)))
 
 (use-package ess-site
   :name "ess"
@@ -920,6 +953,17 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
 (use-package esup
   :commands esup)
+
+(use-package etags
+  :builtin
+  :commands (tags-completion-table))
+
+(use-package executable
+  :builtin
+  :commands executable-make-buffer-file-executable-if-script-p
+  :init
+  (add-hook 'after-save-hook
+            'executable-make-buffer-file-executable-if-script-p))
 
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
@@ -935,7 +979,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package flycheck-irony
   :commands flycheck-irony-setup
   :requires flycheck
-  :init (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  :init (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 (use-package flyspell
   :builtin
@@ -951,8 +995,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind ("C-c m f" . focus-mode))
 
 (use-package ggtags
-  :builtin
-  )
+  :builtin)
 
 (use-package ghc)
 
@@ -984,8 +1027,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands (goto-address-prog-mode goto-address-mode)
   :init
   (add-hook 'prog-mode-hook 'goto-address-prog-mode)
-  (add-hook 'git-commit-mode-hook 'goto-address-mode)
-  )
+  (add-hook 'git-commit-mode-hook 'goto-address-mode))
 
 (use-package grep
   :builtin
@@ -1020,9 +1062,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (use-package hideshowvis
   :disabled
   :commands (hideshowvis-minor-mode hideshowvis-symbols)
-  :init
-  (add-hook 'prog-mode-hook 'hideshowvis-minor-mode)
-  )
+  :init (add-hook 'prog-mode-hook 'hideshowvis-minor-mode))
 
 (use-package hippie-exp
   :builtin
@@ -1242,8 +1282,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
           try-expand-line
           try-expand-line-all-buffers
           try-complete-lisp-symbol-partially
-          try-complete-lisp-symbol))
-  )
+          try-complete-lisp-symbol)))
 
 (use-package hl-todo
   ;; TODO: add font-lock highlighting for @nethack@ substitutions
@@ -1339,9 +1378,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
       ("u" hydra--universal-argument nil)
       ("C-s" (lambda () (interactive) (ace-window 4)) nil)
       ("C-d" (lambda () (interactive) (ace-window 16)) nil)
-      ("q" nil "quit"))
-    )
-  )
+      ("q" nil "quit"))))
 
 (use-package ibuffer
   :builtin
@@ -1359,8 +1396,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind (("C-;" . iedit-mode)
          :map help-map ("C-;" . iedit-mode-toggle-on-function)
          :map esc-map ("C-;" . iedit-mode-toggle-on-function)
-         :map isearch-mode-map ("C-;" . iedit-mode-toggle-on-function))
-  )
+         :map isearch-mode-map ("C-;" . iedit-mode-toggle-on-function)))
 
 (use-package ielm
   :builtin
@@ -1391,14 +1427,14 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package irony-eldoc
   :commands irony-eldoc
-  :init (add-hook 'irony-mode-hook #'irony-eldoc))
+  :init (add-hook 'irony-mode-hook 'irony-eldoc))
 
 (use-package ivy
   :diminish ivy-mode
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
          :map ivy-minibuffer-map
-         ("C-j" . ivy-call)
+         ;; ("C-j" . ivy-call)
          ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
@@ -1433,8 +1469,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
                 "plutil"
                 ("-convert" "xml1" "-o" "-" "-")
                 nil nil "bplist"])
-  (jka-compr-update)
-  )
+  (jka-compr-update))
 
 (use-package js2-mode
   ;; :interpreter (("node" . js2-mode""))
@@ -1459,9 +1494,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (keyfreq-autosave-mode 1))
 
 (use-package kill-or-bury-alive
-  :bind (([remap kill-buffer] . kill-or-bury-alive)
-         ;; ("C-c r" . kill-or-bury-alive-purge-buffers)
-         ))
+  :bind (([remap kill-buffer] . kill-or-bury-alive)))
 
 (use-package lisp-mode
   :builtin
@@ -1491,8 +1524,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (use-package lsp-python
     :demand)
   (use-package lsp-rust
-    :demand)
-  )
+    :demand))
 
 (use-package lua-mode
   :mode "\\.lua\\'")
@@ -1505,8 +1537,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCE" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCF" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xCE\xFA\xED\xFE" . macho-mode))
-  (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode))
-  )
+  (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode)))
 
 (use-package magit
   :preface
@@ -1537,15 +1568,22 @@ string).  It returns t if a new expansion is found, nil otherwise."
              ("a" . mis-abort)
              ("r" . mis-replace))
   (use-package make-mode
-    :config
-    (bind-key "<f5>" 'mis-save-and-compile makefile-mode-map))
-  )
+    :bind (:map makefile-mode-map ("<f5>" . mis-save-and-compile))))
 
 (use-package makefile-mode
   :builtin
   :init
-  (add-hook 'makefile-mode-hook 'indent-tabs-mode)
-  )
+  (add-hook 'makefile-mode-hook 'indent-tabs-mode))
+
+(use-package markdown-mode
+  :mode
+  (("\\.md\\'" . gfm-mode)
+   ("\\.markdown\\'" . gfm-mode))
+  :config
+  (bind-key "'" "’" markdown-mode-map
+            (not (or (markdown-code-at-point-p)
+                     (memq 'markdown-pre-face
+                           (face-at-point nil 'mult))))))
 
 (use-package mb-depth
   :builtin
@@ -1569,8 +1607,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package multi-term
   :bind (("C-. t" . multi-term-next)
-         ("C-. T" . multi-term))
-  )
+         ("C-. T" . multi-term)))
 
 (use-package multiple-cursors
   :bind
@@ -1587,6 +1624,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
 
+(use-package newcomment
+  :builtin
+  :bind ("s-/" . comment-or-uncomment-region))
+
 (use-package nix-buffer
   :commands nix-buffer)
 
@@ -1594,8 +1635,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :mode "\\.nix\\'")
 
 (use-package notmuch
-  :commands notmuch
-  )
+  :commands notmuch)
 
 (use-package nroff-mode
   :builtin
@@ -1605,8 +1645,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :builtin
   :commands nxml-mode
   :init
-  (defalias 'xml-mode 'nxml-mode)
-  )
+  (defalias 'xml-mode 'nxml-mode))
 
 (use-package org
   :builtin
@@ -1633,8 +1672,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
      (sh . t)))
   (use-package ox-latex
     :builtin
-    :demand)
-  )
+    :demand))
 
 (use-package org-bullets
   :commands org-bullets-mode
@@ -1648,6 +1686,13 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :init (add-hooks '(((doc-mode
                        help-mode
                        emacs-lisp-mode) . page-break-lines-mode))))
+
+(use-package pandoc-mode
+  :commands (pandoc-mode pandoc-load-default-settings)
+  :init
+  (add-hook 'markdown-mode-hook 'pandoc-mode)
+  (add-hook 'org-mode-hook 'pandoc-mode)
+  (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
 
 (use-package php-mode
   :mode "\\.php\\'")
@@ -1667,12 +1712,12 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :commands (prettify-symbols-mode global-prettify-symbols-mode)
   :init
   (add-hook 'prog-mode-hook 'prettify-symbols-mode)
+  ;; (global-prettify-symbols-mode)
   (create-hook-helper prettify-symbols-prog ()
     ""
     :hooks (prog-mode-hook)
     (push '("<=" . ?≤) prettify-symbols-alist)
-    (push '(">=" . ?≥) prettify-symbols-alist)
-    )
+    (push '(">=" . ?≥) prettify-symbols-alist))
   (create-hook-helper prettify-symbols-lisp ()
     ""
     :hooks (lisp-mode-hook)
@@ -1680,8 +1725,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (push '("sqrt" . ?√) prettify-symbols-alist)
     (push '("not" . ?¬) prettify-symbols-alist)
     (push '("and" . ?∧) prettify-symbols-alist)
-    (push '("or" . ?∨) prettify-symbols-alist)
-    )
+    (push '("or" . ?∨) prettify-symbols-alist))
   (create-hook-helper prettify-symbols-c ()
     ""
     :hooks (c-mode-hook)
@@ -1691,8 +1735,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (push '("&&" . ?∧) prettify-symbols-alist)
     (push '("||" . ?∨) prettify-symbols-alist)
     (push '(">>" . ?») prettify-symbols-alist)
-    (push '("<<" . ?«) prettify-symbols-alist)
-    )
+    (push '("<<" . ?«) prettify-symbols-alist))
   (create-hook-helper prettify-symbols-c++ ()
     ""
     :hooks (c++-mode-hook)
@@ -1703,30 +1746,26 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (push '("||" . ?∨) prettify-symbols-alist)
     (push '(">>" . ?») prettify-symbols-alist)
     (push '("<<" . ?«) prettify-symbols-alist)
-    (push '("->" . ?→) prettify-symbols-alist)
-    )
+    (push '("->" . ?→) prettify-symbols-alist))
   (create-hook-helper prettify-symbols-js ()
     ""
     :hooks (js2-mode-hook js-mode-hook)
     (push '("function" . ?λ) prettify-symbols-alist)
-    (push '("=>" . ?⇒) prettify-symbols-alist)
-    )
-  ;; (global-prettify-symbols-mode)
-  )
+    (push '("=>" . ?⇒) prettify-symbols-alist)))
 
 (use-package projectile
   ;; :bind ("s-f" . hydra-projectile/body)
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
   :bind (("C-x m" . projectile-run-shell))
-  :commands (projectile-global-mode)
+  :commands (projectile-mode)
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
                                    compilation-read-command))))
 
-  (projectile-global-mode)
+  (projectile-mode)
 
   (use-package easymenu
     :builtin
@@ -1777,6 +1816,12 @@ string).  It returns t if a new expansion is found, nil otherwise."
         ["About" projectile-version]
         ))))
 
+(use-package projector
+  :disabled
+  :bind (("C-x RET"        . projector-run-shell-command-project-root)
+         ("C-x <C-return>" . projector-run-default-shell-command)
+         :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
+
 (use-package proof-site
   :name "proofgeneral"
   :commands (proofgeneral proof-mode proof-shell-mode))
@@ -1814,6 +1859,16 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package realgud
   :commands (realgud:jdb))
+
+(use-package repl-toggle
+  :disabled
+  :config
+  (repl-toggle-mode)
+  (setq rtog/mode-repl-alist
+        '((emacs-lisp-mode . ielm)
+          (ruby-mode . inf-ruby)
+          (js2-mode . nodejs-repl)
+          (rjsx-mode . nodejs-repl))))
 
 (use-package restart-emacs
   :commands restart-emacs)
@@ -1884,8 +1939,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ("\\.*bash_profile" . sh-mode)
          ("\\.zsh\\'" . sh-mode))
   :bind (:map sh-mode-map
-              ("C-x C-e" . shell-command-at-point))
-  )
+              ("C-x C-e" . shell-command-at-point)))
 
 (use-package shell
   :builtin
@@ -1895,7 +1949,19 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
   (create-hook-helper use-histfile ()
     :hooks (shell-mode-hook)
-    (turn-on-comint-history (getenv "HISTFILE")))
+    (turn-on-comint-history (getenv "HISTFILE"))))
+
+(use-package simple
+  :builtin
+  :bind
+  (("C-`" . list-processes)
+   :map minibuffer-local-map
+   ("<escape>"  . abort-recursive-edit)
+   ("M-TAB"     . previous-complete-history-element)
+   ("<M-S-tab>" . next-complete-history-element))
+  ;; :defer 3
+  ;; :config
+  ;; (column-number-mode t)
   )
 
 (use-package skewer-mode
@@ -1919,8 +1985,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (add-hook 'prog-mode-hook 'smart-hungry-delete-default-prog-mode-hook)
   (add-hook 'c-mode-common-hook 'smart-hungry-delete-default-c-mode-common-hook)
   (add-hook 'python-mode-hook 'smart-hungry-delete-default-c-mode-common-hook)
-  (add-hook 'text-mode-hook 'smart-hungry-delete-default-text-mode-hook)
-  )
+  (add-hook 'text-mode-hook 'smart-hungry-delete-default-text-mode-hook))
 
 (use-package smart-shift
   :bind (("C-c <left>" . smart-shift-left)
@@ -1991,7 +2056,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("C-c \"" . wrap-with-double-quotes)
               ("C-c _"  . wrap-with-underscores)
               ("C-c `"  . wrap-with-back-quotes)
-              )
+              :map smartparens-strict-mode-map
+              ([remap c-electric-backspace] . sp-backward-delete-char)
+              :map emacs-lisp-mode-map
+              (";" . sp-comment))
   :init
   (add-hooks '(((emacs-lisp-mode
                  inferior-emacs-lisp-mode
@@ -2019,12 +2087,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     :builtin
     :demand)
 
-  (bind-key [remap c-electric-backspace]
-            'sp-backward-delete-char smartparens-strict-mode-map)
-  (bind-key ";" 'sp-comment emacs-lisp-mode-map)
-
-  (sp-with-modes
-      'org-mode
+  (sp-with-modes 'org-mode
     (sp-local-pair "*" "*"
                    :actions '(insert wrap)
                    :unless '(sp-point-after-word-p sp-point-at-bol-p)
@@ -2056,8 +2119,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
   (sp-local-pair 'org-mode "~" "~" :actions '(wrap))
   (sp-local-pair 'org-mode "/" "/" :actions '(wrap))
-  (sp-local-pair 'org-mode "*" "*" :actions '(wrap))
-  )
+  (sp-local-pair 'org-mode "*" "*" :actions '(wrap)))
 
 (use-package string-inflection
   :bind (("C-c r r" . string-inflection-all-cycle)
@@ -2120,15 +2182,13 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package text-mode
   :builtin
   :init
-  (add-hook 'text-mode-hook 'turn-on-auto-fill)
-  )
+  (add-hook 'text-mode-hook 'turn-on-auto-fill))
 
 (use-package tide
   :commands (tide-setup tide-hl-identifier-mode)
   :init
   (add-hook 'typescript-mode-hook 'tide-setup)
-  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode)
-  )
+  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode))
 
 (use-package time
   :builtin
@@ -2206,22 +2266,28 @@ string).  It returns t if a new expansion is found, nil otherwise."
              with-editor-export-editor)
   :init (add-hooks '(((shell-mode
                        term-exec
-                       eshell-mode) . with-editor-export-editor)))
-  )
+                       eshell-mode) . with-editor-export-editor))))
+
+(use-package view
+  :builtin
+  :bind (:map view-mode-map
+              ("n" . next-line)
+              ("p" . previous-line)
+              ("j" . next-line)
+              ("k" . previous-line)
+              ("l" . forward-char)
+              ("f" . forward-char)
+              ("b" . backward-char)))
+
+(use-package vmd-mode
+  :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
 
 (use-package xterm-color
   :commands xterm-color-filter
   :init
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
   (setq comint-output-filter-functions
-        (remove 'ansi-color-process-output comint-output-filter-functions))
-
-  ;; (define-hook-helper compilation-start (proc)
-  ;;   (when (eq (process-filter proc) 'compilation-filter)
-  ;;     (set-process-filter proc (lambda (proc string)
-  ;;                                (funcall 'compilation-filter proc
-  ;;                                         (xterm-color-filter string))))))
-  )
+        (remove 'ansi-color-process-output comint-output-filter-functions)))
 
 (use-package yaml-mode
   :mode "\\.yaml\\'")
@@ -2229,135 +2295,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package yasnippet
   :disabled
   :commands yas-minor-mode
-  :init (add-hook 'prog-mode-hook #'yas-minor-mode)
+  :init (add-hook 'prog-mode-hook 'yas-minor-mode)
   :config (yas-reload-all))
 
 (use-package ycmd)
-
-(use-package comint
-  :builtin
-  :bind
-  (:map comint-mode-map
-        ("C-r"       . comint-history-isearch-backward-regexp)
-        ("s-k"       . comint-clear-buffer)
-        ("M-TAB"     . comint-previous-matching-input-from-input)
-        ("<M-S-tab>" . comint-next-matching-input-from-input))
-  :commands (comint-next-prompt
-             comint-write-input-ring
-             comint-after-pmark-p
-             comint-read-input-ring
-             comint-send-input)
-  :preface
-  (defun turn-on-comint-history (history-file)
-    (setq comint-input-ring-file-name history-file)
-    (comint-read-input-ring 'silent))
-  (defun text-smaller-no-truncation ()
-    (setq truncate-lines nil)
-    (set (make-local-variable 'scroll-margin) 0)
-    (text-scale-decrease 1))
-  :config
-  (add-hook 'kill-buffer-hook 'comint-write-input-ring)
-  (add-hook 'comint-mode-hook 'text-smaller-no-truncation)
-  (create-hook-helper save-history ()
-    :hooks (kill-emacs-hook)
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer (comint-write-input-ring)))))
-
-(use-package executable
-  :builtin
-  :commands executable-make-buffer-file-executable-if-script-p
-  :init
-  (add-hook 'after-save-hook
-            'executable-make-buffer-file-executable-if-script-p))
-
-(use-package repl-toggle
-  :disabled
-  :config
-  (repl-toggle-mode)
-  (setq rtog/mode-repl-alist
-        '((emacs-lisp-mode . ielm)
-          (ruby-mode . inf-ruby)
-          (js2-mode . nodejs-repl)
-          (rjsx-mode . nodejs-repl))))
-
-(use-package pandoc-mode
-  :commands (pandoc-mode pandoc-load-default-settings)
-  :init
-  (add-hook 'markdown-mode-hook 'pandoc-mode)
-  (add-hook 'org-mode-hook 'pandoc-mode)
-  (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
-
-(use-package markdown-mode
-  :mode
-  (("\\.md\\'" . gfm-mode)
-   ("\\.markdown\\'" . gfm-mode))
-  :config
-  (bind-key "'" "’" markdown-mode-map
-            (not (or (markdown-code-at-point-p)
-                     (memq 'markdown-pre-face
-                           (face-at-point nil 'mult))))))
-
-(use-package vmd-mode
-  :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
-
-(use-package projector
-  :disabled
-  :bind (("C-x RET"        . projector-run-shell-command-project-root)
-         ("C-x <C-return>" . projector-run-default-shell-command)
-         :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
-
-(use-package toggle-quotes
-  :bind ("C-'" . toggle-quotes))
-
-(use-package easy-kill
-  :disabled
-  :bind (([remap kill-ring-save] . easy-kill)
-         ([remap mark-sexp]      . easy-mark)))
-
-(use-package simple
-  :builtin
-  :bind
-  (("C-`" . list-processes)
-   :map minibuffer-local-map
-   ("<escape>"  . abort-recursive-edit)
-   ("M-TAB"     . previous-complete-history-element)
-   ("<M-S-tab>" . next-complete-history-element))
-  ;; :defer 3
-  ;; :config
-  ;; (column-number-mode t)
-  )
-
-(use-package newcomment
-  :builtin
-  :bind ("s-/" . comment-or-uncomment-region))
-
-(use-package anaconda-mode
-  :commands (anaconda-mode anaconda-eldoc-mode)
-  :init
-  (add-hook 'python-mode-hook 'anaconda-mode)
-  (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-  )
-
-(use-package company-anaconda
-  :commands company-anaconda
-  :requires company
-  :init
-  (add-to-list 'company-backends 'company-anaconda))
-
-(use-package view
-  :builtin
-  :bind (:map view-mode-map
-              ("n" . next-line    )
-              ("p" . previous-line)
-              ("j" . next-line    )
-              ("k" . previous-line)
-              ("l" . forward-char)
-              ("f" . forward-char)
-              ("b" . backward-char)))
-
-(use-package etags
-  :builtin
-  :commands (tags-completion-table))
 
 (provide 'default)
 ;;; default.el ends here

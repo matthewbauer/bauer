@@ -15,6 +15,8 @@
 ;; For a full copy of the GNU General Public License
 ;; see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (defvar-local macho-mode nil)
@@ -31,6 +33,7 @@
 
 ;;;###autoload
 (defun macho-mode ()
+  "Read Mach-O executable symbols."
   (interactive)
   (let ((inhibit-read-only t))
     (if macho-mode
