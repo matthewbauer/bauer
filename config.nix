@@ -197,7 +197,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # gnumake
         # gnuplot
         # gnused
-        # gnupg1compat
+        gnupg1compat
         # gnutar
         # gnutls
         # go

@@ -669,11 +669,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          ("C-p" . company-select-previous))
   :commands (company-mode
              global-company-mode
-             company-complete-common
              company-auto-begin)
-  :defines (company-backends)
-  ;; :init (add-hook 'after-init-hook 'global-company-mode)
+  :defer 2
   :config
+  (global-company-mode)
   (setq-default company-backends
                 '((company-capf company-dabbrev-code) company-dabbrev)
                 company-dabbrev-other-buffers 'all)
@@ -929,9 +928,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind ("C-c m s" . firestarter-mode))
 
 (use-package flycheck
+  :defer 3
   :commands global-flycheck-mode
-  :init
-  (add-hook 'after-init-hook 'global-flycheck-mode))
+  :config (global-flycheck-mode))
 
 (use-package flycheck-irony
   :commands flycheck-irony-setup
@@ -1030,14 +1029,15 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :commands (he-dabbrev-beg
              he-init-string
              he-lisp-symbol-beg
-             he-string-memebr
+             he-string-member
              he-reset-string
              he-substitute-string
-             he-string-member
              try-expand-dabbrev)
-  :bind (("M-/" . hippie-expand)
-         :map read-expression-map ("TAB" . hippie-expand)
-         :map minibuffer-local-map ("TAB" . hippie-expand))
+  ;; :bind (("M-/" . hippie-expand)
+  ;;        :map read-expression-map
+  ;;        ("TAB" . hippie-expand)
+  ;;        :map minibuffer-local-map
+  ;;        ("TAB" . hippie-expand))
   ;; :bind* (("M-?" . hippie-expand-line))
   :preface
   (defun my-hippie-expand-completions (&optional hippie-expand-function)
@@ -1049,10 +1049,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
           (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
       (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
                                         ; options.
-        (while (progn
-                 (funcall hippie-expand-function nil)
-                 (setq last-command 'my-hippie-expand-completions)
-                 (not (equal he-num -1)))))
+            (while (progn
+                     (funcall hippie-expand-function nil)
+                     (setq last-command 'my-hippie-expand-completions)
+                     (not (equal he-num -1)))))
       ;; Evaluating the completions modifies the buffer, however we will finish
       ;; up in the same state that we began.
       (set-buffer-modified-p buffer-modified)
@@ -1563,6 +1563,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     :demand))
 
 (use-package move-text
+  :disabled
   :bind (([(meta shift up)] . move-text-up)
          ([(meta shift down)] . move-text-down)))
 
@@ -1715,9 +1716,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package projectile
   ;; :bind ("s-f" . hydra-projectile/body)
-  :bind-keymap* ("C-c p" . projectile-command-map)
-  :bind (("s-p" . projectile-command-map)
-         ("C-x m" . projectile-run-shell))
+  :bind-keymap* (("C-c p" . projectile-command-map)
+                 ("s-p" . projectile-command-map))
+  :bind (("C-x m" . projectile-run-shell))
   :commands (projectile-global-mode)
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
@@ -2192,8 +2193,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :builtin
   :bind (("<s-down>" . windmove-down)
          ("<s-up>" . windmove-up)
-         ("<s-left>" . windmove-left)
-         ("<s-right>" . windmove-right)))
+         ;; ("<s-left>" . windmove-left)
+         ;; ("<s-right>" . windmove-right)
+         ))
 
 (use-package with-editor
   :disabled
@@ -2299,6 +2301,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
 
 (use-package projector
+  :disabled
   :bind (("C-x RET"        . projector-run-shell-command-project-root)
          ("C-x <C-return>" . projector-run-default-shell-command)
          :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
