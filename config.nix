@@ -96,13 +96,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
         epkgs'' = map (x: if x == "rtags" then pkgs.rtags
-              else if x == "nix-mode" then pkgs.nix
-              else if x == "ghc" then pkgs.ghc
-              else if x == "notmuch" then pkgs.notmuch
               else if builtins.hasAttr x epkgs.elpaPackages
                 then builtins.getAttr x epkgs.elpaPackages
-              else if builtins.hasAttr x epkgs.melpaStablePackages
-                then builtins.getAttr x epkgs.melpaStablePackages
               else if builtins.hasAttr x epkgs.melpaPackages
                 then builtins.getAttr x epkgs.melpaPackages
               else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
@@ -190,7 +185,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # ripgrep
         # ag
         # ghc
-        # git
+        git
         # gitAndTools.hub
         # go2nix
         # gnugrep
