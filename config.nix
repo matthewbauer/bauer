@@ -166,15 +166,15 @@ dict-dir ${aspellDicts.en}/lib/aspell
       extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
       name = "bauer";
       paths = [
-        bash-completion
-        zsh-completions
-        myAspell
+        # bash-completion
+        # zsh-completions
+        # myAspell
         myEmacs
-        gcc
-        gawk
+        # gcc
+        # gawk
         bashInteractive
-        bc
-        bzip2
+        # bc
+        # bzip2
         # cabal-install
         # cabal2nix
         # cargo
@@ -182,26 +182,26 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # cmake
         coreutils
         # clang
-        diffutils
+        # diffutils
         # editorconfig-core-c
         # emscripten
-        ffmpeg
+        # ffmpeg
         # findutils
         # ripgrep
         # ag
         # ghc
-        git
-        gitAndTools.hub
+        # git
+        # gitAndTools.hub
         # go2nix
-        gnugrep
+        # gnugrep
         # gnumake
-        gnuplot
-        gnused
-        gnupg1compat
-        gnutar
-        gnutls
+        # gnuplot
+        # gnused
+        # gnupg1compat
+        # gnutar
+        # gnutls
         # go
-        gzip
+        # gzip
         # jdk
         # jq
         # haskellPackages.intero
@@ -212,45 +212,45 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # nasm
         nox
         nix
-        nix-prefetch-scripts
+        # nix-prefetch-scripts
         nix-index
-        nix-repl
-        nix-zsh-completions
+        # nix-repl
+        # nix-zsh-completions
         # ninja
         # rtags
         # nmap
         # nodePackages.tern
         # nodejs
-        openssh
-        openssl
-        pandoc
-        patch
+        # openssh
+        # openssl
+        # pandoc
+        # patch
         # pypi2nix
         # python
         # perl
         # php
         # pwgen
-        rsync
+        # rsync
         # ruby
         # rustc
         # screen
-        stack
-        time
+        # stack
+        # time
         # tree
-        unzip
-        vim
-        which
+        # unzip
+        # vim
+        # which
         # w3m
-        wget
-        v8
-        xz
-        zip
+        # wget
+        # v8
+        # xz
+        # zip
         zsh
         # fortune
         rEnv
         isync
-        ctags
-        notmuch
+        # ctags
+        # notmuch
         (texlive.combine { inherit (texlive) scheme-medium xetex setspace fontspec chktex; })
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
