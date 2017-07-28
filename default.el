@@ -6,9 +6,19 @@
 
 ;;; Code:
 
-(setq file-name-handler-alist nil
-      gc-cons-threshold 80000000)
-;; TODO: restore file-name-handler-alist later on
+(setq
+ ;; TODO: restore file-name-handler-alist later on
+ file-name-handler-alist nil
+
+ ;; disable gc while initializing
+ ;; will be reset to default later on
+ gc-cons-threshold 80000000
+
+ ;; ideally this would just use $out
+ ;; but we need emacs to be built first
+ ;; maybe in the future
+ exec-path `(,(concat (getenv "HOME") "/.nix-profile/bin"))
+ )
 
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
 (add-hook 'focus-out-hook 'garbage-collect)
@@ -31,41 +41,20 @@ Specifies package name (not the name used to require)."
   (setq use-package-always-defer t
         use-package-expand-minimally t))
 
-(use-package apropospriate-theme
-  :init
-  (let ((filename (locate-library "apropospriate-theme")))
-    (when filename
-      (add-to-list 'custom-theme-load-path (file-name-directory filename)))))
-
-(use-package server
-  :disabled
-  :builtin
-  :defer 2
-  :commands server-start
-  :config
-  (add-hook 'after-init-hook 'server-start t)
-  (add-hook 'server-switch-hook 'raise-frame))
-
-(use-package tramp
-  :builtin
-  :commands (tramp-tramp-file-p
-             tramp-file-name-user
-             tramp-file-name-real-host
-             tramp-dissect-file-name))
-
-(defun set-envs (env)
+(defun set-envs (&rest env)
   "Set environment variables from ENV alist."
   (dolist (x env)
-    (setenv (car x) (cdr x))))
+    (setenv (car x) (car (cdr x)))))
 
-(set-envs '(("NIX_SSL_CERT_FILE" . "/etc/ssl/certs/ca-bundle.crt")
-            ("EDITOR" . "emacsclient -nw")
-            ("LANG" . "en_US.UTF-8")
-            ("LC_ALL" . "en_US.UTF-8")
-            ("PAGER" . "cat")
-            ("NODE_NO_READLINE" . "1")
-            ("PATH" . "~/.nix-profile/bin")
-            ))
+(set-envs
+ '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+ '("EDITOR" "emacsclient -nw")
+ '("LANG" "en_US.UTF-8")
+ '("LC_ALL" "en_US.UTF-8")
+ '("PAGER" "cat")
+ '("NODE_NO_READLINE" "1")
+ `("PATH" ,(concat (getenv "HOME") "/.nix-profile/bin"))
+ )
 
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
@@ -95,57 +84,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 
       (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
         (funcall set symbol (eval value))))))
-
-(defun set-paths (&rest args)
-  "Set vars from ARGS create by Nix package paths."
-  (dolist (entry args)
-    (let ((path (nth 1 entry)))
-      (unless (file-exists-p path)
-        (error "Path %s not found" path))))
-  (apply 'set-defaults args))
-
-(set-paths
- '(ag-executable "@ag@/bin/ag")
- '(dired-touch-program "@coreutils@/bin/touch")
- '(dired-chown-program "@coreutils@/bin/chown")
- '(dired-free-space-program "@coreutils@/bin/df")
- '(find-program "@findutils@/bin/find")
- '(epg-gpg-program "@gpg@/bin/gpg")
- '(epg-gpgconf-program "@gpg@/bin/gpgconf")
- '(epg-gpgsm-program "@gpg@/bin/gpgsm")
- '(flycheck-sh-bash-executable "@bash@/bin/bash")
- '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
- '(flycheck-perl-executable "@perl@/bin/perl")
- ;; '(flycheck-css-csslint-executable "@csslint@/bin/csslint")
- '(flycheck-go-golint-executable "@golint@/bin/golint")
- '(flycheck-python-flake8-executable "@flake8@/bin/flake8")
- '(flycheck-asciidoc-executable "@asciidoc@/bin/asciidoc")
- '(flycheck-less-executable "@lessc@/bin/lessc")
- '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
- '(flycheck-c/c++-gcc-executable "@gcc@/bin/gcc")
- ;; '(flycheck-json-jsonlint-executable "@jsonlint@/bin/jsonlint")
- '(flycheck-javascript-jshint-executable "@jshint@/bin/jshint")
- '(flycheck-go-build-executable "@go@/bin/go")
- '(flycheck-go-test-executable "@go@/bin/go")
- '(flycheck-lua-executable "@lua@/bin/luac")
- '(flycheck-xml-xmllint-executable "@libxml2@/bin/xmllint")
- '(flycheck-perl-perlcritic-executable "@perlcritic@/bin/perlcritic")
- '(flycheck-html-tidy-executable "@tidy@/bin/tidy")
- ;; TODO: add more flycheck executables
- '(fortune-dir "@fortune@/share/games/fortunes")
- '(fortune-file "@fortune@/share/games/fortunes/food")
- ;; '(grep-program "@coreutils@/bin/grep")
- ;; '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
- '(jka-compr-dd-program "@coreutils@/bin/dd")
- '(jdee-server-dir "@jdeeserver@")
- '(remote-shell-program "@openssh@/bin/ssh")
- '(ripgrep-executable "@ripgrep@/bin/rg")
- '(rtags-path "@rtags@/bin")
- ;; '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
- '(xargs-program "@findutils@/bin/xargs")
- '(vc-git-program "@git@/bin/git")
- )
-;; TODO: verify that paths exist
 
 (set-defaults
  '(ad-redefinition-action 'accept)
@@ -480,6 +418,57 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                       lines-style))
  )
 
+(defun set-paths (&rest args)
+  "Set vars from ARGS create by Nix package paths."
+  (dolist (entry args)
+    (let ((path (nth 1 entry)))
+      (unless (file-exists-p path)
+        (error "Path %s not found" path))))
+  (apply 'set-defaults args))
+
+(set-paths
+ '(ag-executable "@ag@/bin/ag")
+ '(dired-touch-program "@coreutils@/bin/touch")
+ '(dired-chown-program "@coreutils@/bin/chown")
+ '(dired-free-space-program "@coreutils@/bin/df")
+ '(find-program "@findutils@/bin/find")
+ '(epg-gpg-program "@gpg@/bin/gpg")
+ '(epg-gpgconf-program "@gpg@/bin/gpgconf")
+ '(epg-gpgsm-program "@gpg@/bin/gpgsm")
+ '(flycheck-sh-bash-executable "@bash@/bin/bash")
+ '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
+ '(flycheck-perl-executable "@perl@/bin/perl")
+ ;; '(flycheck-css-csslint-executable "@csslint@/bin/csslint")
+ '(flycheck-go-golint-executable "@golint@/bin/golint")
+ '(flycheck-python-flake8-executable "@flake8@/bin/flake8")
+ '(flycheck-asciidoc-executable "@asciidoc@/bin/asciidoc")
+ '(flycheck-less-executable "@lessc@/bin/lessc")
+ '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
+ '(flycheck-c/c++-gcc-executable "@gcc@/bin/gcc")
+ ;; '(flycheck-json-jsonlint-executable "@jsonlint@/bin/jsonlint")
+ '(flycheck-javascript-jshint-executable "@jshint@/bin/jshint")
+ '(flycheck-go-build-executable "@go@/bin/go")
+ '(flycheck-go-test-executable "@go@/bin/go")
+ '(flycheck-lua-executable "@lua@/bin/luac")
+ '(flycheck-xml-xmllint-executable "@libxml2@/bin/xmllint")
+ '(flycheck-perl-perlcritic-executable "@perlcritic@/bin/perlcritic")
+ '(flycheck-html-tidy-executable "@tidy@/bin/tidy")
+ ;; TODO: add more flycheck executables
+ '(fortune-dir "@fortune@/share/games/fortunes")
+ '(fortune-file "@fortune@/share/games/fortunes/food")
+ ;; '(grep-program "@coreutils@/bin/grep")
+ ;; '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
+ '(jka-compr-dd-program "@coreutils@/bin/dd")
+ '(jdee-server-dir "@jdeeserver@")
+ '(magit-git-executable "@git@/bin/git")
+ '(remote-shell-program "@openssh@/bin/ssh")
+ '(ripgrep-executable "@ripgrep@/bin/rg")
+ '(rtags-path "@rtags@/bin")
+ ;; '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
+ '(xargs-program "@findutils@/bin/xargs")
+ '(vc-git-program "@git@/bin/git")
+ )
+
 ;; slow set variable calls
 (setq cursor-in-non-selected-windows nil)
 (setq minibuffer-prompt-properties
@@ -581,6 +570,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   :bind (("C-c [" . align-regexp))
   :commands align
   :builtin)
+
+(use-package apropospriate-theme
+  :init
+  (let ((filename (locate-library "apropospriate-theme")))
+    (when filename
+      (add-to-list 'custom-theme-load-path (file-name-directory filename)))))
 
 (use-package anaconda-mode
   :commands (anaconda-mode anaconda-eldoc-mode)
@@ -1923,6 +1918,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package scss-mode
   :mode "\\.scss\\'")
 
+(use-package server
+  :disabled
+  :builtin
+  :defer 2
+  :commands server-start
+  :config
+  (add-hook 'after-init-hook 'server-start t)
+  (add-hook 'server-switch-hook 'raise-frame))
+
 (use-package shrink-whitespace
   :bind ("H-SPC" . shrink-whitespace))
 
@@ -2199,6 +2203,13 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package toc-org
   :commands toc-org-enable
   :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+(use-package tramp
+  :builtin
+  :commands (tramp-tramp-file-p
+             tramp-file-name-user
+             tramp-file-name-real-host
+             tramp-dissect-file-name))
 
 (use-package transpose-frame
   :bind ("H-t" . transpose-frame))
