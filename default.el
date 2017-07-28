@@ -633,12 +633,6 @@ Specifies package name (not the name used to require)."
   :config
   (global-auto-revert-mode t))
 
-(use-package bash-completion
-  :disabled
-  :commands bash-completion-dynamic-complete
-  :init (add-hook 'shell-dynamic-complete-functions
-                  'bash-completion-dynamic-complete))
-
 (use-package bm)
 
 (use-package bool-flip
@@ -879,14 +873,6 @@ Specifies package name (not the name used to require)."
   :commands dtrt-indent-mode
   :defer 3
   :config (dtrt-indent-mode 1))
-
-(use-package dumb-jump
-  :disabled
-  :bind (("M-g o" . dumb-jump-go-other-window)
-         ("M-g j" . dumb-jump-go)
-         ("M-g x" . dumb-jump-go-prefer-external)
-         ("M-g z" . dumb-jump-go-prefer-external-other-window))
-  :config (dumb-jump-mode))
 
 (use-package easy-kill
   :disabled
@@ -1624,11 +1610,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
     :builtin
     :demand))
 
-(use-package move-text
-  :disabled
-  :bind (([(meta shift up)] . move-text-up)
-         ([(meta shift down)] . move-text-down)))
-
 (use-package multi-term
   :bind (("C-. t" . multi-term-next)
          ("C-. T" . multi-term)))
@@ -1840,12 +1821,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
         ["About" projectile-version]
         ))))
 
-(use-package projector
-  :disabled
-  :bind (("C-x RET"        . projector-run-shell-command-project-root)
-         ("C-x <C-return>" . projector-run-default-shell-command)
-         :map comint-mode-map ("s-R" . projector-rerun-buffer-process)))
-
 (use-package proof-site
   :name "proofgeneral"
   :commands (proofgeneral proof-mode proof-shell-mode))
@@ -1993,14 +1968,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
    ("M-TAB"     . previous-complete-history-element)
    ("<M-S-tab>" . next-complete-history-element)))
 
-(use-package skewer-mode
-  :disabled)
-
-(use-package skewer-less
-  :disabled
-  :commands skewer-less-mode
-  :init (add-hook 'less-css-mode-hook 'skewer-less-mode))
-
 (use-package slime)
 
 (use-package smart-hungry-delete
@@ -2021,12 +1988,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ("C-c <right>" . smart-shift-right)
          ("C-c <up>" . smart-shift-up)
          ("C-c <down>" . smart-shift-down)))
-
-(use-package smart-tabs-mode
-  :builtin
-  :disabled
-  :init (add-hook 'prog-mode-hook 'smart-tabs-mode)
-  :commands smart-tabs-mode)
 
 (use-package smartparens
   :commands (smartparens-mode
@@ -2279,17 +2240,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
          ;; ("<s-left>" . windmove-left)
          ;; ("<s-right>" . windmove-right)
          ))
-
-(use-package with-editor
-  :disabled
-  :bind (([remap async-shell-command] . with-editor-async-shell-command)
-         ([remap shell-command] . with-editor-shell-command))
-  :commands (with-editor-async-shell-command
-             with-editor-shell-command
-             with-editor-export-editor)
-  :init (add-hooks '(((shell-mode
-                       term-exec
-                       eshell-mode) . with-editor-export-editor))))
 
 (use-package view
   :builtin
