@@ -97,10 +97,11 @@ ARGS are a list in the form of (SYMBOL VALUE)."
         (funcall set symbol (eval value))))))
 
 (defun set-paths (&rest args)
+  "Set vars from ARGS create by Nix package paths."
   (dolist (entry args)
     (let ((path (nth 1 entry)))
       (unless (file-exists-p path)
-        (error "path %s not found" path))))
+        (error "Path %s not found" path))))
   (apply 'set-defaults args))
 
 (set-paths
