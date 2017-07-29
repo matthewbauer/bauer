@@ -453,8 +453,7 @@ verifies path exists"
  ;; TODO: add more flycheck executables
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
- ;; '(grep-program "@coreutils@/bin/grep")
- ;; '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
+ '(grep-program "@coreutils@/bin/grep")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
  '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
@@ -462,9 +461,13 @@ verifies path exists"
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
  '(tramp-encoding-shell "@bash@/bin/sh")
- ;; '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
  '(xargs-program "@findutils@/bin/xargs")
  '(vc-git-program "@git@/bin/git")
+ )
+
+(set-defaults
+ '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
+ '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
  )
 
 ;; slow set variable calls
