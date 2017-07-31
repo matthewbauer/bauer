@@ -8,7 +8,7 @@
 
 (setq
  ;; TODO: restore file-name-handler-alist later on
- file-name-handler-alist nil
+ ;; file-name-handler-alist nil
 
  ;; disable gc while initializing
  ;; will be reset to default later on
@@ -17,7 +17,11 @@
  ;; ideally this would just use $out
  ;; but we need emacs to be built first
  ;; maybe in the future
- exec-path `(,(concat (getenv "HOME") "/.nix-profile/bin"))
+ exec-path `(,(concat (getenv "HOME") "/.nix-profile/bin")
+
+             ;; handle /usr/bin/open and other system-specific stuff
+             "/usr/sbin" "/usr/bin" "/sbin" "/bin")
+ ;; TODO: hack browse-url.el to allow customizable open
  )
 
 ;; reset gc
@@ -423,7 +427,19 @@ verifies path exists"
 ;; DO NOT evaluate before substitution occurs
 (set-paths
  '(ag-executable "@ag@/bin/ag")
+ '(company-clang-executable "@clang@/bin/clang")
+ '(company-cmake-executable "@cmake@/bin/cmake")
+ '(company-gtags-executable "@cmake@/bin/cmake")
+ '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
+ ;; '(doc-view-dvipdfm-program "")
+ ;; '(doc-view-pdfdraw-program "")
+ ;; '(doc-view-pdftotext-program "")
+ ;; '(doc-view-pdfdraw-program "")
+ ;; '(doc-view-odf->pdf-converter-program "")
+ ;; '(doc-view-pdftotext-program "")
+ '(doc-view-ps2pdf-program "@ghostscript@/bin/ps2pdf")
  '(dired-touch-program "@coreutils@/bin/touch")
+ '(dired-chmod-program "@coreutils@/bin/chmod")
  '(dired-chown-program "@coreutils@/bin/chown")
  '(dired-free-space-program "@coreutils@/bin/df")
  '(diff-command "@diffutils@/bin/diff")
@@ -453,14 +469,24 @@ verifies path exists"
  ;; TODO: add more flycheck executables
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
- '(grep-program "@coreutils@/bin/grep")
+ '(grep-program "@gnugrep@/bin/grep")
+ '(irony-cmake-executable "@cmake@/bin/cmake")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
  '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
+ '(manual-program "@man@/bin/man")
+ '(man-awk-command "@gawk@/bin/awk")
+ '(man-sed-command "@gnused@/bin/sed")
+ '(man-untabify-command "@coreutils@/bin/pr")
+ '(pandoc-binary "@pandoc@/bin/pandoc")
  '(remote-shell-program "@openssh@/bin/ssh")
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
  '(tramp-encoding-shell "@bash@/bin/sh")
+ ;; '(tls-certtool-program "")
+ ;; '(tramp-smb-program "")
+ ;; '(tramp-smb-winexe "")
+ ;; '(url-gateway-nslookup-program "")
  '(xargs-program "@findutils@/bin/xargs")
  '(vc-git-program "@git@/bin/git")
  )
@@ -476,31 +502,19 @@ verifies path exists"
 (setq minibuffer-prompt-properties
       '(read-only t cursor-intangible t face minibuffer-prompt))
 
-;; TODO: redo with bind-key
-(global-set-key (kbd "C-c C-u") 'rename-uniquely)
-(global-set-key (kbd "C-x ~") (lambda () (interactive) (find-file "~")))
-(global-set-key (kbd "C-x /") (lambda () (interactive) (find-file "/")))
-(global-set-key (kbd "C-c l") 'browse-url-at-point)
-(global-set-key (kbd "C-x 5 3") 'iconify-frame)
-(global-set-key (kbd "C-x 5 4") 'toggle-frame-fullscreen)
-(global-set-key (kbd "C-x v f") 'vc-git-grep)
-(global-set-key (kbd "s-SPC") 'cycle-spacing)
-(global-set-key (kbd "C-c w w") 'whitespace-mode)
-
-(global-set-key (kbd "C-x 8 : )") "☺")
-(global-set-key (kbd "C-x 8 g a") "α")
-(global-set-key (kbd "C-x 8 g b") "ϐ")
-(global-set-key (kbd "C-x 8 g g") "ɣ")
-(global-set-key (kbd "C-x 8 g a") "α")
-(global-set-key (kbd "C-x 8 \" (") "“")
-(global-set-key (kbd "C-x 8 \" )") "”")
-(global-set-key (kbd "C-x 8 ' (") "‘")
-(global-set-key (kbd "C-x 8 ' )") "’")
-
 (eval-when-compile
   (require 'bind-key))
 
-(bind-key* "<C-return>" 'other-window)
+(bind-key "C-c C-u" 'rename-uniquely)
+(bind-key "C-x ~" (lambda () (interactive) (find-file "~")))
+(bind-key "C-x /" (lambda () (interactive) (find-file "/")))
+(bind-key "C-c C-o" 'browse-url-at-point)
+(bind-key "C-x 5 3" 'iconify-frame)
+(bind-key "C-x 5 4" 'toggle-frame-fullscreen)
+(bind-key "s-SPC" 'cycle-spacing)
+(bind-key "C-c w w" 'whitespace-mode)
+
+(bind-key "<C-return>" 'other-window)
 (bind-key "C-z" 'delete-other-windows)
 (bind-key "M-g l" 'goto-line)
 (bind-key "<C-M-backspace>" 'backward-kill-sexp)
@@ -522,7 +536,6 @@ verifies path exists"
 (bind-key "M-+" 'text-scale-increase)
 (bind-key "M-_" 'text-scale-decrease)
 
-;; Compiling
 (bind-key "H-c" 'compile)
 (bind-key "s-1" 'other-frame)
 (bind-key "<s-return>" 'toggle-frame-fullscreen)
@@ -531,6 +544,8 @@ verifies path exists"
 (bind-key "s-C-<right>" 'enlarge-window-horizontally)
 (bind-key "s-C-<down>" 'shrink-window)
 (bind-key "s-C-<up>" 'enlarge-window)
+
+(bind-key "<s-tab>" 'pcomplete)
 
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
@@ -565,13 +580,27 @@ Specifies package name (not the name used to require)."
               hkhlp-normalize-hook-spec
               hkhlp-update-helper))
 
-;; alphabetical listing of packages
+;; Alphabetical listing of all packages
 
-;; run sort-package-declarations after adding a new package from this point
+;; Run sort-package-declarations after adding a new package from this point
 ;; (make sure the provide line is still at the bottom though)
 
-;; each use-package call should be followed by a space to separate it
-;; all comments must be within the sexp
+;; Each use-package call should be followed by a space to separate it
+;; all comments must be within the sexp.
+
+;; No packages on the top level should have the :demand keyword. Each package
+;; should be setup as either commands, hooks, modes, or key bindings. Defer
+;; timers are allowed but should be used sparingly. Currently, these packages
+;; need defer timers:
+
+;; - autorevert (1)
+;; - company (2)
+;; - delsel (2)
+;; - dtrt-indent (3)
+;; - flycheck (3)
+;; - savehist (4)
+;; - save-place (5)
+;; - which-key (3)
 
 (use-package ace-window
   :bind (("M-o" . other-window)
@@ -1300,8 +1329,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package hl-todo
   ;; TODO: add font-lock highlighting for @nethack@ substitutions
   :commands hl-todo-mode
-  :init
-  (add-hook 'prog-mode-hook 'hl-todo-mode))
+  :init (add-hook 'prog-mode-hook 'hl-todo-mode))
 
 (use-package hookify
   :commands hookify)
@@ -1659,11 +1687,16 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :builtin
   ;; :mode "\\.\\(org\\)\\'"
   :commands org-capture
-  :bind (("C-c c" . org-capture)
-         ("C-c a" . org-agenda)
-         ("C-c C-l" . org-store-link))
+  :bind* (("C-c c" . org-capture)
+          ("C-c a" . org-agenda)
+          ("C-c l" . org-store-link)
+          ("C-c b" . org-iswitchb))
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (add-hook 'completion-at-point-functions
+                        'pcomplete-completions-at-point nil t)))
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -1683,6 +1716,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     :demand))
 
 (use-package org-bullets
+  :disabled
   :commands org-bullets-mode
   :init (add-hook 'org-mode-hook 'org-bullets-mode))
 
@@ -1699,7 +1733,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :commands (pandoc-mode pandoc-load-default-settings)
   :init
   (add-hook 'markdown-mode-hook 'pandoc-mode)
-  (add-hook 'org-mode-hook 'pandoc-mode)
+  ;; (add-hook 'org-mode-hook 'pandoc-mode)
   (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
 
 (use-package php-mode
@@ -2042,13 +2076,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
               ("M-[" . sp-backward-unwrap-sexp)
               ("M-]" . sp-unwrap-sexp)
               ("C-x C-t" . sp-transpose-hybrid-sexp)
-              ("C-c ("  . wrap-with-parens)
-              ("C-c ["  . wrap-with-brackets)
-              ("C-c {"  . wrap-with-braces)
-              ("C-c '"  . wrap-with-single-quotes)
-              ("C-c \"" . wrap-with-double-quotes)
-              ("C-c _"  . wrap-with-underscores)
-              ("C-c `"  . wrap-with-back-quotes)
               :map smartparens-strict-mode-map
               ([remap c-electric-backspace] . sp-backward-delete-char)
               :map emacs-lisp-mode-map
@@ -2269,12 +2296,14 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :mode "\\.yaml\\'")
 
 (use-package yasnippet
-  :disabled
+  :disabled ;; haven’t found yasnippet very useful
   :commands yas-minor-mode
   :init (add-hook 'prog-mode-hook 'yas-minor-mode)
   :config (yas-reload-all))
 
-(use-package ycmd)
+(use-package ycmd
+  ;; TODO: add hooks
+  )
 
 (provide 'default)
 ;;; default.el ends here

@@ -77,7 +77,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 coreutils findutils openssh git bash
                 zsh perl golint perlcritic
                 go asciidoc lessc stack
-                lua gcc bashInteractive diffutils gnugrep; # csslint
+                lua gcc bashInteractive diffutils
+                pandoc clang cmake ghostscript
+                gnugrep man gawk gnused; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint;
         tidy = html-tidy;
