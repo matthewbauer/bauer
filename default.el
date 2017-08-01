@@ -42,7 +42,8 @@
 
 ;; setup environment
 (set-envs
- ;; '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+ '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+ '("NIX_REMOTE" "daemon")
  '("EDITOR" "emacsclient -nw")
  '("LANG" "en_US.UTF-8")
  '("LC_ALL" "en_US.UTF-8")
@@ -426,7 +427,6 @@ verifies path exists"
   (apply 'set-defaults args))
 
 ;; set paths available from Nix substitution
-;; DO NOT evaluate before substitution occurs
 (set-paths
  '(ag-executable "@ag@/bin/ag")
  '(company-clang-executable "@clang@/bin/clang")
