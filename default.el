@@ -38,15 +38,17 @@
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
+(require 'subr-x)
+
 ;; setup environment
 (set-envs
- '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+ ;; '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
  '("EDITOR" "emacsclient -nw")
  '("LANG" "en_US.UTF-8")
  '("LC_ALL" "en_US.UTF-8")
  '("PAGER" "cat")
  '("NODE_NO_READLINE" "1")
- `("PATH" ,(concat (getenv "HOME") "/.nix-profile/bin"))
+ `("PATH" ,(string-join exec-path ":"))
  )
 
 (defun set-defaults (&rest args)
@@ -782,6 +784,7 @@ Specifies package name (not the name used to require)."
   :config (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
+  :disabled
   :after company
   :commands (company-web-html company-web-slim company-web-jade)
   :config
