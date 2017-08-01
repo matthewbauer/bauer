@@ -1588,11 +1588,26 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (defun magit-dired-other-window ()
     (interactive)
     (dired-other-window (magit-toplevel)))
+  (defun magit-remote-github (username)
+    (interactive (list (magit-read-string-ns "User name")))
+    (let* ((url (magit-get "remote.origin.url"))
+           (match (string-match "^https?://github\.com/[^/]*/\\(.*\\)" url)))
+      (unless match
+        (error "Not a github remote"))
+      (let ((repo (match-string 1 url)))
+        (magit-remote-add username (format "https://github.com/%s/%s"
+                                           username repo)))))
   :commands (magit-clone magit-toplevel)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
          :map magit-mode-map
-         ("C-o" . magit-dired-other-window)))
+         ("C-o" . magit-dired-other-window))
+  :config
+  (add-hook 'magit-mode-hook (lambda ()
+                               (magit-define-popup-action 'magit-remote-popup
+                                 ?g "Add remote from github user name"
+                                 #'magit-remote-github)
+                               )))
 
 (use-package magithub
   :disabled
