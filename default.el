@@ -17,10 +17,13 @@
  ;; ideally this would just use $out
  ;; but we need emacs to be built first
  ;; maybe in the future
- exec-path `(,(concat (getenv "HOME") "/.nix-profile/bin")
+ exec-path (append `(,(concat (getenv "HOME") "/.nix-profile/bin")
 
-             ;; handle /usr/bin/open and other system-specific stuff
-             "/usr/sbin" "/usr/bin" "/sbin" "/bin")
+                     ;; handle /usr/bin/open and other system-specific stuff
+                     "/usr/sbin" "/usr/bin"
+                     "/sbin" "/bin"
+                     )
+                   exec-path)
  ;; TODO: hack browse-url.el to allow customizable open
  )
 
