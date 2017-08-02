@@ -1615,6 +1615,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (defun magit-dired-other-window ()
     (interactive)
     (dired-other-window (magit-toplevel)))
+
   (defun magit-remote-github (username)
     (interactive (list (magit-read-string-ns "User name")))
     (let* ((url (magit-get "remote.origin.url"))
@@ -1624,7 +1625,14 @@ string).  It returns t if a new expansion is found, nil otherwise."
       (let ((repo (match-string 1 url)))
         (magit-remote-add username (format "https://github.com/%s/%s"
                                            username repo)))))
-  :commands (magit-clone magit-toplevel)
+
+  :commands (magit-clone
+             magit-toplevel
+             magit-read-string-ns
+             magit-get
+             magit-remote-add
+             magit-define-popup-action)
+
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
          :map magit-mode-map
@@ -1761,6 +1769,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
      (sh . t)))
   (use-package ox-latex
     :builtin
+    :demand)
+  (use-package ox-mediawiki
+    :demand)
+  (use-package ox-pandoc
     :demand))
 
 (use-package org-bullets
@@ -1778,6 +1790,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
                        emacs-lisp-mode) . page-break-lines-mode))))
 
 (use-package pandoc-mode
+  :disabled
   :commands (pandoc-mode pandoc-load-default-settings)
   :init
   (add-hook 'markdown-mode-hook 'pandoc-mode)
@@ -2352,6 +2365,8 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package ycmd
   ;; TODO: add hooks
   )
+
+(use-package mediawiki)
 
 (provide 'default)
 ;;; default.el ends here
