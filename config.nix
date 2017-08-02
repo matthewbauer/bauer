@@ -92,9 +92,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 pandoc clang cmake ghostscript
                 gnugrep man gawk gnused; # csslint
         inherit (pythonPackages) flake8;
-        inherit (nodePackages) jshint;
+        inherit (nodePackages) jshint eslint; # jsonlint
         tidy = html-tidy;
-        jsonlint = pythonPackages.demjson;
+        # jsonlint = pythonPackages.demjson;
         libxml2 = libxml2.bin;
         gpg = gnupg1compat;
         jdeeserver = jdee-server;
@@ -201,15 +201,16 @@ dict-dir ${aspellDicts.en}/lib/aspell
         git
         # gitAndTools.hub
         # go2nix
+        gawk
         # gnugrep
         # gnumake
         # gnuplot
-        # gnused
+        gnused
         gnupg1compat
-        # gnutar
+        gnutar
         # gnutls
         # go
-        # gzip
+        gzip
         # jdk
         # jq
         # haskellPackages.intero
@@ -243,6 +244,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # rustc
         # screen
         # stack
+        nodePackages.tern
         # time
         # tree
         # unzip
@@ -251,15 +253,15 @@ dict-dir ${aspellDicts.en}/lib/aspell
         # w3m
         # wget
         # v8
-        # xz
-        # zip
+        xz
+        zip
         zsh
         # fortune
         rEnv
         isync
         # ctags
         # notmuch
-        (texlive.combine { inherit (texlive) scheme-medium xetex setspace fontspec chktex; })
+        (texlive.combine { inherit (texlive) scheme-full xetex setspace fontspec chktex enumitem xifthen ifmtarg filehook; })
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
