@@ -28,11 +28,12 @@
  )
 
 ;; reset gc
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
-;; TODO: set based on default value
+(add-hook 'after-init-hook
+          (lambda () (setq gc-cons-threshold
+                      (car (get 'gc-cons-threshold 'standard-value)))))
 
 ;; garbage collect when window focus is lost
-(add-hook 'focus-out-hook 'garbage-collect)
+;; (add-hook 'focus-out-hook 'garbage-collect)
 
 (defun set-envs (&rest env)
   "Set environment variables from ENV alist."
@@ -132,6 +133,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(create-lockfiles nil)
+ '(cursor-in-non-selected-windows nil)
  '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
  '(custom-search-field nil)
@@ -313,6 +315,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(make-backup-files nil)
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
+ '(minibuffer-prompt-properties '(read-only t
+                                            cursor-intangible t
+                                            face minibuffer-prompt))
  '(mwim-beginning-of-line-function 'beginning-of-line)
  '(mwim-end-of-line-function 'end-of-line)
  '(neo-theme 'arrow)
@@ -464,6 +469,7 @@ verifies path exists"
  '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
  '(flycheck-c/c++-gcc-executable "@gcc@/bin/gcc")
  ;; '(flycheck-json-jsonlint-executable "@jsonlint@/bin/jsonlint")
+ '(flycheck-javascript-eslint-executable "@eslint@/bin/eslint")
  '(flycheck-javascript-jshint-executable "@jshint@/bin/jshint")
  '(flycheck-go-build-executable "@go@/bin/go")
  '(flycheck-go-test-executable "@go@/bin/go")
@@ -501,12 +507,6 @@ verifies path exists"
  '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
  )
 
-;; slow set variable calls
-;; separate to make timing startup easier
-(setq cursor-in-non-selected-windows nil)
-(setq minibuffer-prompt-properties
-      '(read-only t cursor-intangible t face minibuffer-prompt))
-
 (eval-when-compile
   (require 'bind-key))
 
@@ -514,6 +514,7 @@ verifies path exists"
 (bind-key "C-x ~" (lambda () (interactive) (find-file "~")))
 (bind-key "C-x /" (lambda () (interactive) (find-file "/")))
 (bind-key "C-c C-o" 'browse-url-at-point)
+(bind-key "H-l" 'browse-url-at-point)
 (bind-key "C-x 5 3" 'iconify-frame)
 (bind-key "C-x 5 4" 'toggle-frame-fullscreen)
 (bind-key "s-SPC" 'cycle-spacing)
@@ -1519,6 +1520,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
   (jka-compr-update))
 
 (use-package js2-mode
+  :mode (("\\.js\\'" . js2-mode))
   ;; :interpreter (("node" . js2-mode""))
   :commands js2-imenu-extras-mode
   :init
