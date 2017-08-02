@@ -1,6 +1,17 @@
 {
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
+    emacs-devel = callPackage ./emacs.nix {
+        # use override to enable additional features
+        libXaw = xorg.libXaw;
+        Xaw3d = null;
+        gconf = null;
+        alsaLib = null;
+        imagemagick = null;
+        acl = null;
+        gpm = null;
+        inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS Kerberos ImageIO;
+    };
 
     rls = let mozpkgs = (import (fetchFromGitHub {
         owner = "mozilla";
