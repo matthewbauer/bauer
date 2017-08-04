@@ -27,6 +27,16 @@
  ;; TODO: hack browse-url.el to allow customizable open
  )
 
+;; install advice to prevent custom-declare-variable from overwriting defaults
+;; below
+(require 'custom)
+(advice-add 'custom-declare-variable
+            :around (lambda (orig-fun symbol default doc &rest args)
+                      (apply orig-fun symbol
+                             (cond ((car (get symbol 'standard-value)))
+                                   (default))
+                             doc args)))
+
 ;; reset gc
 (add-hook 'after-init-hook
           (lambda () (setq gc-cons-threshold
