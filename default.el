@@ -573,6 +573,10 @@ verifies path exists"
 
 (bind-key "C-x 8 ' /" "′")
 (bind-key "C-x 8 \" /" "″")
+(bind-key "C-x 8 \" (" "“")
+(bind-key "C-x 8 \" )" "”")
+(bind-key "C-x 8 ' (" "‘")
+(bind-key "C-x 8 ' )" "’")
 
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
