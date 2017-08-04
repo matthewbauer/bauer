@@ -98,6 +98,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 ;; setup defaults
 ;; should maintain compatiblity with custom.el
 (set-defaults
+ '(TeX-auto-save t)
+ '(TeX-engine 'xetex)
  '(ad-redefinition-action 'accept)
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
@@ -143,6 +145,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(create-lockfiles nil)
+ '(cursor-type 'bar)
  '(cursor-in-non-selected-windows nil)
  '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
@@ -293,6 +296,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ivy-fixed-height-minibuffer t)
  '(ivy-re-builders-alist '((swiper . ivy--regex-plus) (t . ivy--regex-fuzzy)))
  '(jit-lock-defer-time 0.01)
+ '(jit-lock-stealth-time 1)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
@@ -338,6 +342,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(nsm-save-host-names t)
  '(ns-function-modifier 'hyper)
  '(ns-pop-up-frames nil)
+ '(org-blank-before-new-entry '((heading) (plain-list-item)))
+ '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
