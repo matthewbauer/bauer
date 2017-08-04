@@ -106,6 +106,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
           cp ${./em-dired.el} $out/share/emacs/site-lisp/em-dired.el
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+          cp ${./nix-fontify.el} $out/share/emacs/site-lisp/nix-fontify.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let

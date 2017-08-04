@@ -1698,6 +1698,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (use-package nix-mode
   :mode "\\.nix\\'")
 
+(use-package nix-fontify
+  :builtin
+  :commands nix-fontify-mode)
+
 (use-package notmuch
   :commands notmuch)
 
