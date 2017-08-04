@@ -1,4 +1,5 @@
 {
+  allowBroken = true;
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
     emacs-devel = callPackage ./emacs.nix {
@@ -90,7 +91,9 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 go asciidoc lessc stack
                 lua gcc bashInteractive diffutils
                 pandoc clang cmake ghostscript
-                gnugrep man gawk gnused; # csslint
+                gnugrep man gawk gnused
+                sqliteInteractive freetds mariadb
+                parallel unixODBC ncompress; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
         markdown2 = pythonPackages.markdown2;
@@ -107,7 +110,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
           cp ${./em-dired.el} $out/share/emacs/site-lisp/em-dired.el
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-          cp ${./nix-fontify.el} $out/share/emacs/site-lisp/nix-fontify.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
