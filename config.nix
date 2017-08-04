@@ -93,6 +93,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 gnugrep man gawk gnused; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
+        markdown2 = pythonPackages.markdown2;
         tidy = html-tidy;
         # jsonlint = pythonPackages.demjson;
         libxml2 = libxml2.bin;

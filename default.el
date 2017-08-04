@@ -485,6 +485,7 @@ verifies path exists"
  '(jka-compr-dd-program "@coreutils@/bin/dd")
  '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
+ '(markdown-command "@markdown2@/bin/markdown2")
  '(manual-program "@man@/bin/man")
  '(man-awk-command "@gawk@/bin/awk")
  '(man-sed-command "@gnused@/bin/sed")
