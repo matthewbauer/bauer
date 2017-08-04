@@ -554,6 +554,9 @@ verifies path exists"
 
 (bind-key "<s-tab>" 'pcomplete)
 
+(bind-key "C-x 8 ' /" "′")
+(bind-key "C-x 8 \" /" "″")
+
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
 ;; to work correctly
@@ -1534,7 +1537,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
   :mode (("\\.bowerrc$"     . json-mode)
          ("\\.jshintrc$"    . json-mode)
          ("\\.json_schema$" . json-mode)
-         ("\\.json\\'" . json-mode)))
+         ("\\.json\\'" . json-mode))
+  :config
+  (make-local-variable 'js-indent-level))
 
 (use-package keyfreq
   :disabled
@@ -1609,11 +1614,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
          :map magit-mode-map
          ("C-o" . magit-dired-other-window))
   :config
-  (add-hook 'magit-mode-hook (lambda ()
-                               (magit-define-popup-action 'magit-remote-popup
-                                 ?g "Add remote from github user name"
-                                 #'magit-remote-github)
-                               )))
+  (create-hook-helper magit-github-hook ()
+    :hooks (magit-mode-hook)
+    (magit-define-popup-action 'magit-remote-popup
+      ?g "Add remote from github user name" #'magit-remote-github)))
 
 (use-package magithub
   :disabled
