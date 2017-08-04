@@ -506,6 +506,7 @@ verifies path exists"
  '(man-awk-command "@gawk@/bin/awk")
  '(man-sed-command "@gnused@/bin/sed")
  '(man-untabify-command "@coreutils@/bin/pr")
+ '(org-pandoc-command "@pandoc@/bin/pandoc")
  '(pandoc-binary "@pandoc@/bin/pandoc")
  '(remote-shell-program "@openssh@/bin/ssh")
  '(ripgrep-executable "@ripgrep@/bin/rg")
