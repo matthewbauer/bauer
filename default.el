@@ -451,7 +451,6 @@ verifies path exists"
 
 ;; set paths available from Nix substitution
 (set-paths
- '(ag-executable "@ag@/bin/ag")
  '(company-clang-executable "@clang@/bin/clang")
  '(company-cmake-executable "@cmake@/bin/cmake")
  '(company-gtags-executable "@cmake@/bin/cmake")
@@ -644,18 +643,6 @@ Specifies package name (not the name used to require)."
 (use-package ace-window
   :bind (("M-o" . other-window)
          ([remap next-multiframe-window] . ace-window)))
-
-(use-package ag
-  :commands (ag
-             ag-files
-             ag-regexp
-             ag-project
-             ag-project-files
-             ag-project-regexp
-             ag-project-dired
-             ag-dired
-             ag-dired-regexp)
-  :bind ("C-?" . ag-project))
 
 (use-package aggressive-indent
   :commands aggressive-indent-mode
