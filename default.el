@@ -296,7 +296,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ivy-fixed-height-minibuffer t)
  '(ivy-re-builders-alist '((swiper . ivy--regex-plus) (t . ivy--regex-fuzzy)))
  '(jit-lock-defer-time 0.01)
- '(jit-lock-stealth-time 1)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
