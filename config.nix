@@ -11,7 +11,8 @@
         imagemagick = null;
         acl = null;
         gpm = null;
-        inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS Kerberos ImageIO;
+        inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS
+                                              Kerberos ImageIO;
     };
 
     rls = let mozpkgs = (import (fetchFromGitHub {
@@ -76,12 +77,15 @@ dict-dir ${aspellDicts.en}/lib/aspell
     };
 
     myEmacs = let
-      epkgs''' = runCommand "packages-list" { buildInputs = [ emacs ]; } ''
+      epkgs''' = with customEmacsPackages.melpaPackages;
+        runCommand "packages-list" { buildInputs = [ emacs ]; } ''
         emacs -batch \
-          -L ${customEmacsPackages.melpaPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-          -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+          -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+          -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./use-package-list.el} \
-          --eval "(use-package-list \"${default}/share/emacs/site-lisp/default.el\")))" > $out
+          --eval "(use-package-list \
+            \"${default}/share/emacs/site-lisp/default.el\")))" \
+          > $out
       '';
       epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
       default = (runCommand "default.el" {
