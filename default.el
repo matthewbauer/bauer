@@ -391,6 +391,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(rtags-completions-enabled t)
  '(rtags-imenu-syntax-highlighting 10)
  '(ruby-insert-encoding-magic-comment nil)
+ '(sh-guess-basic-offset t)
  '(same-window-buffer-names
    '("*eshell*" "*shell*" "*mail*" "*inferior-lisp*" "*ielm*" "*scheme*"))
  '(save-abbrevs 'silently)
@@ -536,7 +537,6 @@ verifies path exists"
  '(remote-shell-program "@openssh@/bin/ssh")
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
- '(sh-guess-basic-offset t)
  '(sql-ingres-program "@parallel@/bin/sql")
  '(sql-interbase-program "@unixODBC@/bin/isql")
  '(sql-mysql-program "@mariadb@/bin/mysql")
