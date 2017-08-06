@@ -123,18 +123,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-backends
-   '(company-capf
-     (company-abbrev company-bbdb company-clang
-                     company-cmake company-css
-                     company-eclim company-elisp
-                     company-etags company-gtags
-                     company-keywords company-nxml company-oddmuse
-                     company-semantic company-tempo company-xcode
-                     company-files company-dabbrev-code)
-     company-dabbrev
-     ))
+   '((company-capf
+      company-abbrev company-bbdb company-clang company-cmake company-css
+      company-eclim company-elisp company-etags company-gtags company-keywords
+      company-nxml company-oddmuse company-tempo company-xcode company-semantic
+      company-files company-dabbrev)))
  '(company-frontends
-   '(company-echo-metadata-frontend company-preview-frontend))
+   '(;; company-echo-metadata-frontend
+     company-preview-frontend))
  '(company-continue-commands
    '(not save-buffer
          save-some-buffers
@@ -143,6 +139,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          comint-previous-matching-input-from-input
          comint-next-matching-input-from-input))
  '(company-require-match nil)
+ '(company-selection-wrap-around t)
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
@@ -539,6 +536,7 @@ verifies path exists"
  '(remote-shell-program "@openssh@/bin/ssh")
  '(ripgrep-executable "@ripgrep@/bin/rg")
  '(rtags-path "@rtags@/bin")
+ '(sh-guess-basic-offset t)
  '(sql-ingres-program "@parallel@/bin/sql")
  '(sql-interbase-program "@unixODBC@/bin/isql")
  '(sql-mysql-program "@mariadb@/bin/mysql")
@@ -574,10 +572,12 @@ verifies path exists"
  '(dvips-command "@texlive@/bin/dvips")
  '(dvipng-command "@texlive@/bin/dvipng")
  '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
+ '(locate-executable "@findutils@/bin/locate")
+ '(ag-executable "@ag@/bin/ag")
  )
 
 (set-defaults
- '(imap-ssl-program '((concat gnutls" --tofu -p %p %s")))
+ '(imap-ssl-program '((concat gnutls " --tofu -p %p %s")))
  '(tls-program (concat gnutls " --tofu -p %p %h"))
  '(preview-pdf2dsc-command
    (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
@@ -588,7 +588,7 @@ verifies path exists"
  '(preview-dvipng-command
    (concat dvipng-command
            " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
- '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
+ '(TeX-engine-alist '((xetex "XeTeX" xetex-command xelatex-command
                              xetex-command)
                       (luatex "LuaTeX" luatex-command
                               (concat luatex-command " --jobname=%s")
@@ -660,6 +660,12 @@ verifies path exists"
      ("Clean All" "(TeX-clean t)" TeX-run-function nil t
       :help "Delete generated intermediate and output files")
      ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
+ '(counsel-grep-base-command (concat grep-program " -nE '%s' %s"))
+ '(counsel-rg-base-command
+   (concat ripgrep-executable " -i --no-heading --line-number %s ."))
+ '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
+ '(counsel-locate-cmd
+   (lambda (input) (format "%s -i '%s'" locate-executable input)))
  )
 
 (eval-when-compile
@@ -2144,6 +2150,8 @@ Specifies package name (not the name used to require)."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
+  (defcustom nethack-executable "nethack"
+    "executable to use to run nethack")
   (defun nethack ()
     (interactive)
     (set-buffer (make-term "nethack" nethack-executable))
