@@ -22,7 +22,7 @@
                      ;; handle /usr/bin/open and other system-specific stuff
                      "/usr/sbin" "/usr/bin"
                      "/sbin" "/bin"
-                     "@texlive@/bin"
+                     ;; "@texlive@/bin"
                      )
                    exec-path)
  ;; TODO: hack browse-url.el to allow customizable open
@@ -104,14 +104,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ad-redefinition-action 'accept)
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
- '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+ '(auto-save-file-name-transforms '((".*" temporary-file-directory t)))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-by-copying t)
- '(backup-directory-alist `((".*" . ,temporary-file-directory)))
+ '(backup-directory-alist '((".*" . temporary-file-directory)))
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
@@ -190,7 +190,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
         (reusable-frames . visible)))))
  '(display-buffer-reuse-frames t)
  '(dumb-jump-quiet t)
- '(echo-keystrokes 0.02)
+ '(echo-keystrokes 0)
  '(enable-recursive-minibuffers t)
  '(erc-autoaway-idle-seconds 600)
  '(erc-autoaway-use-emacs-idle t)
@@ -664,8 +664,6 @@ verifies path exists"
  '(counsel-rg-base-command
    (concat ripgrep-executable " -i --no-heading --line-number %s ."))
  '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
- '(counsel-locate-cmd
-   (lambda (input) (format "%s -i '%s'" locate-executable input)))
  )
 
 (eval-when-compile
