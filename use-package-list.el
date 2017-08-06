@@ -16,7 +16,7 @@
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
-  (setq debug-on-error t)
+  ;; (setq debug-on-error t)
 
   (require 'use-package)
 
