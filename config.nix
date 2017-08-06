@@ -107,6 +107,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 texinfoInteractive; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
+        intero = haskellPackages.intero-nix-shim;
         texlive = myTex;
         markdown2 = pythonPackages.markdown2;
         tidy = html-tidy;

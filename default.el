@@ -127,9 +127,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
       company-eclim company-elisp company-etags company-gtags company-keywords
       company-nxml company-oddmuse company-tempo company-xcode company-semantic
       company-files company-dabbrev)))
- '(company-frontends
-   '(;; company-echo-metadata-frontend
-     company-preview-frontend))
+ '(company-frontends '(company-echo-metadata-frontend
+                       company-preview-frontend))
  '(company-continue-commands
    '(not save-buffer
          save-some-buffers
@@ -564,6 +563,7 @@ verifies path exists"
  '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
  '(locate-executable "@findutils@/bin/locate")
  '(ag-executable "@ag@/bin/ag")
+ '(intero-stack-executable "@intero@/bin/stack")
  )
 
 (set-defaults
@@ -882,12 +882,15 @@ Specifies package name (not the name used to require)."
       (with-current-buffer buffer (comint-write-input-ring)))))
 
 (use-package company
-  :defer 2
+  :defer 1
   :bind (:map company-active-map
-              ("TAB" . company-select-next)
-              ("<tab>" . company-select-next)
-              ("S-TAB" . company-select-previous)
-              ("<backtab>" . company-select-previous))
+              ("TAB" . company-complete-common-or-cycle)
+              ("<tab>" . company-complete-common-or-cycle)
+              ;; ("TAB" . company-select-next)
+              ;; ("<tab>" . company-select-next)
+              ;; ("S-TAB" . company-select-previous)
+              ;; ("<backtab>" . company-select-previous)
+              )
   :commands (company-mode
              global-company-mode
              company-auto-begin
@@ -920,7 +923,6 @@ Specifies package name (not the name used to require)."
   :config (add-to-list 'company-backends 'company-tern))
 
 (use-package company-web
-  :disabled
   :after company
   :commands (company-web-html company-web-slim company-web-jade)
   :config
@@ -2267,7 +2269,27 @@ Specifies package name (not the name used to require)."
   :config (yas-reload-all))
 
 (use-package ycmd
-  ;; TODO: add hooks
+  :disabled
+  :commands global-ycmd-mode
+  :init
+  (add-hook 'after-init-hook #'global-ycmd-mode)
+  :config
+  (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
+  (use-package ycmd-eldoc
+    :builtin
+    :demand
+    :config
+    (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup))
+  (use-package flycheck-ycmd
+    :builtin
+    :demand
+    :config
+    (flycheck-ycmd-setup))
+  (use-package company-ycmd
+    :builtin
+    :demand
+    :config
+    (company-ycmd-setup))
   )
 
 (use-package mediawiki)
@@ -2279,6 +2301,30 @@ Specifies package name (not the name used to require)."
 (use-package company-statistics
   :commands company-statistics-mode
   :init (add-hook 'company-mode-hook 'company-statistics-mode))
+
+(use-package company-auctex
+  :commands (company-auctex-labels
+             company-auctex-bibs
+             company-auctex-macros
+             company-auctex-symbols
+             company-auctex-environments)
+  :after company
+  :init
+  (add-to-list 'company-backends 'company-auctex-labels)
+  (add-to-list 'company-backends 'company-auctex-bibs)
+  (add-to-list 'company-backends
+               '(company-auctex-macros
+                 company-auctex-symbols
+                 company-auctex-environments)))
+
+(use-package company-jedi
+  :disabled
+  :after company
+  :commands company-statistics-mode
+  :init (add-hook 'company-mode-hook 'company-statistics-mode))
+
+(use-package checkbox
+  :bind (("C-c C-t" . checkbox-toggle)))
 
 (provide 'default)
 ;;; default.el ends here
