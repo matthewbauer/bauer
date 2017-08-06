@@ -660,7 +660,10 @@ verifies path exists"
      ("Clean All" "(TeX-clean t)" TeX-run-function nil t
       :help "Delete generated intermediate and output files")
      ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
- '(counsel-grep-base-command (concat grep-program " -nE '%s' %s"))
+ ;; '(counsel-grep-base-command (concat grep-program " -nE '%s' %s"))
+ '(counsel-grep-base-command
+   (concat ripgrep-executable
+           " -i -M 120 --no-heading --line-number --color never '%s' %s"))
  '(counsel-rg-base-command
    (concat ripgrep-executable " -i --no-heading --line-number %s ."))
  '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
@@ -977,6 +980,7 @@ Specifies package name (not the name used to require)."
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
           ;; ([remap completion-at-point] . counsel-company)
+          ;; ([remap isearch-forward] . counsel-grep-or-swiper)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-ag)
@@ -1774,7 +1778,7 @@ Specifies package name (not the name used to require)."
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                   compilation-read-command))))
+                                        compilation-read-command))))
 
   (projectile-mode)
 
@@ -2132,8 +2136,9 @@ Specifies package name (not the name used to require)."
   :bind (("C-c C-r" . sudo-edit)))
 
 (use-package swiper
-  :bind (([remap isearch-forward] . swiper)
-         ([remap isearch-backward] . swiper)))
+  ;; :bind (([remap isearch-forward] . swiper)
+  ;;        ([remap isearch-backward] . swiper))
+  )
 
 (use-package term
   :builtin
@@ -2282,7 +2287,8 @@ Specifies package name (not the name used to require)."
 
 (use-package mediawiki)
 
-(use-package counsel-projectile)
+(use-package counsel-projectile
+  :init (add-hook 'projectile-mode-hook 'counsel-projectile-on))
 
 (use-package company-statistics
   :commands company-statistics-mode
