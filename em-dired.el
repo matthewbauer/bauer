@@ -121,6 +121,7 @@ FILE is the file text that we will add properties to."
                        (car file))
   file)
 
+;;;###autoload
 (define-minor-mode em-dired-mode
   "Toggle Eshell Dir Extras mode."
   :group 'eshell

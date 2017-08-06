@@ -122,12 +122,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-backends
-   '((company-abbrev company-bbdb company-capf company-clang
-                     company-cmake company-css company-dabbrev
-                     company-dabbrev-code company-eclim company-elisp
-                     company-etags company-files company-gtags
+   '(company-capf
+     (company-abbrev company-bbdb company-clang
+                     company-cmake company-css
+                     company-eclim company-elisp
+                     company-etags company-gtags
                      company-keywords company-nxml company-oddmuse
-                     company-semantic company-tempo company-xcode)))
+                     company-semantic company-tempo company-xcode
+                     company-files company-dabbrev-code)
+     company-dabbrev
+     ))
+ '(company-frontends
+   '(company-echo-metadata-frontend company-preview-frontend))
  '(company-continue-commands
    '(not save-buffer
          save-some-buffers
@@ -135,12 +141,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
          save-buffers-kill-emacs
          comint-previous-matching-input-from-input
          comint-next-matching-input-from-input))
- '(company-idle-delay 0.5)
- '(company-minimum-prefix-length 2)
- '(company-occurrence-weight-function 'company-occurrence-prefer-any-closest)
- '(company-tooltip-align-annotations t)
- '(company-tooltip-flip-when-above t)
- '(company-tooltip-limit 10)
+ '(company-require-match nil)
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
@@ -233,6 +234,24 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                                     eshell-truncate-buffer))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
+ '(eshell-rebind-keys-alist
+   (quote
+    (([(control 97)]
+      . eshell-bol)
+     ([home]
+      . eshell-bol)
+     ([(control 100)]
+      . eshell-delchar-or-maybe-eof)
+     ([backspace]
+      . eshell-delete-backward-char)
+     ([delete]
+      . eshell-delete-backward-char)
+     ([(control 119)]
+      . backward-kill-word)
+     ([(control 117)]
+      . eshell-kill-input)
+     ([tab]
+      . completion-at-point))))
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
@@ -391,7 +410,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(shell-input-autoexpand nil)
  '(sp-autoskip-closing-pair 'always)
  '(sp-hybrid-kill-entire-symbol nil)
- '(smart-tab-using-hippie-expand t)
  '(truncate-lines nil)
  '(tab-always-indent 'complete)
  '(term-input-autoexpand t)
@@ -501,6 +519,7 @@ verifies path exists"
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
  '(grep-program "@gnugrep@/bin/grep")
+ '(ispell-program-name "@aspell@/bin/aspell")
  '(irony-cmake-executable "@cmake@/bin/cmake")
  '(jka-compr-info-compress-program "@ncompress@/bin/compress")
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
@@ -513,6 +532,7 @@ verifies path exists"
  '(man-awk-command "@gawk@/bin/awk")
  '(man-sed-command "@gnused@/bin/sed")
  '(man-untabify-command "@coreutils@/bin/pr")
+ '(nethack-executable "@nethack@/bin/nethack")
  '(org-pandoc-command "@pandoc@/bin/pandoc")
  '(pandoc-binary "@pandoc@/bin/pandoc")
  '(remote-shell-program "@openssh@/bin/ssh")
@@ -764,18 +784,13 @@ Specifies package name (not the name used to require)."
 
 (use-package company
   :defer 2
-  :bind* (([remap completion-at-point] . company-complete-common-or-cycle))
-  :bind (
-         :map company-active-map
-              ("M-/" . company-complete)
+  :bind (:map company-active-map
               ("C-n" . company-select-next)
               ("C-p" . company-select-previous)
-              ("TAB" . company-complete-common-or-cycle)
-              ("<tab>" . company-complete-common-or-cycle)
+              ("TAB" . company-select-next)
+              ("<tab>" . company-select-next)
               ("S-TAB" . company-select-previous)
               ("<backtab>" . company-select-previous)
-              ("C-n" . company-select-next)
-              ("C-p" . company-select-previous)
               :map company-filter-map
               ("C-n" . company-select-next)
               ("C-p" . company-select-previous))
@@ -783,7 +798,9 @@ Specifies package name (not the name used to require)."
              global-company-mode
              company-auto-begin
              company-complete-common-or-cycle)
-  :config (global-company-mode 1))
+  :config
+  (global-company-mode 1)
+  (advice-add 'completion-at-point :override 'company-complete-common-or-cycle))
 
 (use-package company-anaconda
   :commands company-anaconda
@@ -983,8 +1000,10 @@ Specifies package name (not the name used to require)."
   :mode ("\\.py\\'" . elpy-mode))
 
 (use-package em-dired
-  :commands em-dired-mode
-  :init (add-hook 'eshell-mode-hook 'em-dired-mode)
+  :commands (em-dired-mode em-dired-new)
+  :init
+  (add-hook 'eshell-mode-hook 'em-dired-mode)
+  (advice-add 'eshell :before 'em-dired-new)
   ;; in local dir
   :builtin)
 
@@ -1023,14 +1042,7 @@ Specifies package name (not the name used to require)."
           eshell-term
           eshell-tramp
           eshell-unix
-          eshell-xtra))
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (define-key eshell-mode-map (kbd "<tab>")
-                'company-complete-common-or-cycle)
-              (define-key eshell-mode-map (kbd "TAB")
-                'company-complete-common-or-cycle)))
-  )
+          eshell-xtra)))
 
 (use-package ess-site
   :name "ess"
@@ -1069,8 +1081,7 @@ Specifies package name (not the name used to require)."
   :builtin
   :commands (flyspell-mode flyspell-prog-mode)
   :config
-  (setq flyspell-use-meta-tab nil
-        ispell-program-name "@aspell@/bin/aspell")
+  (setq flyspell-use-meta-tab nil)
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode))
@@ -1150,223 +1161,7 @@ Specifies package name (not the name used to require)."
 
 (use-package hippie-exp
   :builtin
-  :commands (he-dabbrev-beg
-             he-init-string
-             he-lisp-symbol-beg
-             he-string-member
-             he-reset-string
-             he-substitute-string
-             try-expand-dabbrev)
-  ;; :bind (("M-/" . hippie-expand)
-  ;;        :map read-expression-map
-  ;;        ("TAB" . hippie-expand)
-  ;;        :map minibuffer-local-map
-  ;;        ("TAB" . hippie-expand))
-  ;; :bind* (("M-?" . hippie-expand-line))
-  :preface
-  (defun my-hippie-expand-completions (&optional hippie-expand-function)
-    "Return the full list of possible completions generated by `hippie-expand'.
-   The optional argument can be generated with `make-hippie-expand-function'."
-    (let ((this-command 'my-hippie-expand-completions)
-          (last-command last-command)
-          (buffer-modified (buffer-modified-p))
-          (hippie-expand-function (or hippie-expand-function 'hippie-expand)))
-      (flet ((ding))        ; avoid the (ding) when hippie-expand exhausts its
-                                        ; options.
-            (while (progn
-                     (funcall hippie-expand-function nil)
-                     (setq last-command 'my-hippie-expand-completions)
-                     (not (equal he-num -1)))))
-      ;; Evaluating the completions modifies the buffer, however we will finish
-      ;; up in the same state that we began.
-      (set-buffer-modified-p buffer-modified)
-      ;; Provide the options in the order in which they are normally generated.
-      (delete he-search-string (reverse he-tried-table))))
-
-  (defun my-try-expand-company (old)
-    (require 'company)
-    (unless company-candidates
-      (company-auto-begin))
-    (if (not old)
-        (progn
-          (he-init-string (he-lisp-symbol-beg) (point))
-          (if (not (he-string-member he-search-string he-tried-table))
-              (setq he-tried-table (cons he-search-string he-tried-table)))
-          (setq he-expand-list
-                (and (not (equal he-search-string ""))
-                     company-candidates))))
-    (while (and he-expand-list
-                (he-string-member (car he-expand-list) he-tried-table))
-      (setq he-expand-list (cdr he-expand-list)))
-    (if (null he-expand-list)
-        (progn
-          (if old (he-reset-string))
-          ())
-      (progn
-        (he-substitute-string (car he-expand-list))
-        (setq he-expand-list (cdr he-expand-list))
-        t)))
-
-  (defun he-tag-beg ()
-    (save-excursion
-      (backward-word 1)
-      (point)))
-
-  (defun tags-complete-tag (string predicate what)
-    (save-excursion
-      ;; If we need to ask for the tag table, allow that.
-      (if (eq what t)
-          (all-completions string (tags-completion-table) predicate)
-        (try-completion string (tags-completion-table) predicate))))
-
-  (defun try-expand-tag (old)
-    (when tags-table-list
-      (unless old
-        (he-init-string (he-tag-beg) (point))
-        (setq he-expand-list
-              (sort (all-completions he-search-string 'tags-complete-tag)
-                    'string-lessp)))
-      (while (and he-expand-list
-                  (he-string-member (car he-expand-list) he-tried-table))
-        (setq he-expand-list (cdr he-expand-list)))
-      (if (null he-expand-list)
-          (progn
-            (when old (he-reset-string))
-            ())
-        (he-substitute-string (car he-expand-list))
-        (setq he-expand-list (cdr he-expand-list))
-        t)))
-
-  (defun my-dabbrev-substring-search (pattern &optional reverse limit)
-    (let ((result ())
-          (regpat (cond ((not hippie-expand-dabbrev-as-symbol)
-                         (concat (regexp-quote pattern) "\\sw+"))
-                        ((eq (char-syntax (aref pattern 0)) ?_)
-                         (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))
-                        (t
-                         (concat (regexp-quote pattern)
-                                 "\\(\\sw\\|\\s_\\)+")))))
-      (while (and (not result)
-                  (if reverse
-                      (re-search-backward regpat limit t)
-                    (re-search-forward regpat limit t)))
-        (setq result (buffer-substring-no-properties
-                      (save-excursion
-                        (goto-char (match-beginning 0))
-                        (skip-syntax-backward "w_")
-                        (point))
-                      (match-end 0)))
-        (if (he-string-member result he-tried-table t)
-            (setq result nil)))     ; ignore if bad prefix or already in table
-      result))
-
-  (defun try-my-dabbrev-substring (old)
-    (let ((old-fun (symbol-function 'he-dabbrev-search)))
-      (fset 'he-dabbrev-search (symbol-function 'my-dabbrev-substring-search))
-      (unwind-protect
-          (try-expand-dabbrev old)
-        (fset 'he-dabbrev-search old-fun))))
-
-  (defun try-expand-flexible-abbrev (old)
-    "Try to complete word using flexible matching.
-  Flexible matching works by taking the search string and then
-  interspersing it with a regexp for any character. So, if you try
-  to do a flexible match for `foo' it will match the word
-  `findOtherOtter' but also `fixTheBoringOrange' and
-  `ifthisisboringstopreadingnow'.
-  The argument OLD has to be nil the first call of this function, and t
-  for subsequent calls (for further possible completions of the same
-  string).  It returns t if a new completion is found, nil otherwise."
-    (if (not old)
-        (progn
-          (he-init-string (he-lisp-symbol-beg) (point))
-          (if (not (he-string-member he-search-string he-tried-table))
-              (setq he-tried-table (cons he-search-string he-tried-table)))
-          (setq he-expand-list
-                (and (not (equal he-search-string ""))
-                     (he-flexible-abbrev-collect he-search-string)))))
-    (while (and he-expand-list
-                (he-string-member (car he-expand-list) he-tried-table))
-      (setq he-expand-list (cdr he-expand-list)))
-    (if (null he-expand-list)
-        (progn
-          (if old (he-reset-string))
-          ())
-      (progn
-        (he-substitute-string (car he-expand-list))
-        (setq he-expand-list (cdr he-expand-list))
-        t)))
-
-  (defun he-flexible-abbrev-collect (str)
-    "Find and collect all words that flex-matches STR.
-  See docstring for `try-expand-flexible-abbrev' for information
-  about what flexible matching means in this context."
-    (let ((collection nil)
-          (regexp (he-flexible-abbrev-create-regexp str)))
-      (save-excursion
-        (goto-char (point-min))
-        (while (search-forward-regexp regexp nil t)
-          ;; Is there a better or quicker way than using `thing-at-point'
-          ;; here?
-          (setq collection (cons (thing-at-point 'word) collection))))
-      collection))
-
-  (defun he-flexible-abbrev-create-regexp (str)
-    "Generate regexp for flexible matching of STR.
-  See docstring for `try-expand-flexible-abbrev' for information
-  about what flexible matching means in this context."
-    (concat "\\b" (mapconcat (lambda (x) (concat "\\w*" (list x))) str "")
-            "\\w*" "\\b"))
-
-  (defun my-try-expand-abbrevs (old)
-    "Try to expand word before point according to all abbrev tables.
-The argument OLD has to be nil the first call of this function, and t
-for subsequent calls (for further possible expansions of the same
-string).  It returns t if a new expansion is found, nil otherwise."
-    (if (not old)
-        (progn
-          (he-init-string (he-dabbrev-beg) (point))
-          (setq he-expand-list
-                (and (not (equal he-search-string ""))
-                     (mapcar (function (lambda (sym)
-                                         (if (and (boundp sym) (vectorp (eval sym)))
-                                             (abbrev-expansion (downcase he-search-string)
-                                                               (eval sym)))))
-                             ;; FUCO: here we only use the local table,
-                             ;; not all tables
-                             (list 'local-abbrev-table))))))
-    (while (and he-expand-list
-                (or (not (car he-expand-list))
-                    (he-string-member (car he-expand-list) he-tried-table t)))
-      (setq he-expand-list (cdr he-expand-list)))
-    (if (null he-expand-list)
-        (progn
-          (if old (he-reset-string))
-          ())
-      (progn
-        (he-substitute-string (car he-expand-list) t)
-        (setq he-expand-list (cdr he-expand-list))
-        t)))
-
-  :config
-  (setq hippie-expand-try-functions-list
-        '(my-try-expand-company
-          try-my-dabbrev-substring
-          my-try-expand-abbrevs
-          try-expand-dabbrev-visible
-          try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-expand-tag
-          try-expand-flexible-abbrev
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line
-          try-expand-line-all-buffers
-          try-complete-lisp-symbol-partially
-          try-complete-lisp-symbol)))
+  :bind* (("M-/". hippie-expand)))
 
 (use-package hl-todo
   ;; TODO: add font-lock highlighting for @nethack@ substitutions
@@ -1581,16 +1376,6 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package kill-or-bury-alive
   :bind (([remap kill-buffer] . kill-or-bury-alive)))
-
-(use-package lisp-mode
-  :builtin
-  (create-hook-helper hippie-lisp ()
-    "Hippie stuff in lisp."
-    :hooks (lisp-mode-hook)
-    (make-local-variable 'hippie-expand-try-functions-list)
-    (add-to-list 'hippie-expand-try-functions-list 'try-complete-lisp-symbol t)
-    (add-to-list 'hippie-expand-try-functions-list
-                 'try-complete-lisp-symbol-partially t)))
 
 (use-package llvm-mode
   :mode "\\.ll\\'")
@@ -1964,6 +1749,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
                        slime-repl-mode) . rainbow-mode))))
 
 (use-package readline-complete
+  :disabled
   :after company
   :config
   (add-to-list 'company-backends 'company-readline)
@@ -2255,7 +2041,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
     (switch-to-buffer "*my-term*"))
   (defun nethack ()
     (interactive)
-    (set-buffer (make-term "nethack" "@nethack@/bin/nethack"))
+    (set-buffer (make-term "nethack" nethack-executable))
     (term-mode)
     (term-char-mode)
     (term-set-escape-char ?\C-x)
@@ -2388,12 +2174,9 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (use-package counsel-projectile)
 
-(use-package imenu+
-  :disabled
-  :commands imenu-add-defs-to-menubar
-  :init
-  (add-hook 'prog-mode-hook 'imenu-add-defs-to-menubar)
-  (add-hook 'org-mode-hook  'imenu-add-defs-to-menubar))
+(use-package company-statistics
+  :commands company-statistics-mode
+  :init (add-hook 'company-mode-hook 'company-statistics-mode))
 
 (provide 'default)
 ;;; default.el ends here
