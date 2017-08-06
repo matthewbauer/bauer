@@ -121,6 +121,13 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
+ '(company-backends
+   '((company-abbrev company-bbdb company-capf company-clang
+                     company-cmake company-css company-dabbrev
+                     company-dabbrev-code company-eclim company-elisp
+                     company-etags company-files company-gtags
+                     company-keywords company-nxml company-oddmuse
+                     company-semantic company-tempo company-xcode)))
  '(company-continue-commands
    '(not save-buffer
          save-some-buffers
@@ -416,7 +423,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(uniquify-separator "/")
  '(use-dialog-box nil)
  '(use-file-dialog nil)
- '(use-package-enable-imenu-support t)
  '(version-control t)
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
@@ -589,6 +595,10 @@ verifies path exists"
 ;; keywords for use-package-list.el
 ;; to work correctly
 (eval-when-compile
+  (setq use-package-always-defer t
+        use-package-expand-minimally t
+        use-package-enable-imenu-support t)
+
   (require 'use-package)
 
   (add-to-list 'use-package-keywords :builtin)
@@ -601,10 +611,7 @@ Set this as a builtin package (don’t try to install)"
   (defun use-package-handler/:name (name _ __ rest state)
     "Name keyword for use-package.
 Specifies package name (not the name used to require)."
-    (use-package-process-keywords name rest state))
-
-  (setq use-package-always-defer t
-        use-package-expand-minimally t))
+    (use-package-process-keywords name rest state)))
 
 ;; some utils needed at init stage
 ;; should always appear before other use-package
@@ -748,43 +755,35 @@ Specifies package name (not the name used to require)."
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
     (comint-read-input-ring 'silent))
-  (defun text-smaller-no-truncation ()
-    (setq truncate-lines nil)
-    (set (make-local-variable 'scroll-margin) 0)
-    (text-scale-decrease 1))
   :config
   (add-hook 'kill-buffer-hook 'comint-write-input-ring)
-  (add-hook 'comint-mode-hook 'text-smaller-no-truncation)
   (create-hook-helper save-history ()
     :hooks (kill-emacs-hook)
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer (comint-write-input-ring)))))
 
 (use-package company
-  :diminish company-mode
-  :bind (("<C-tab>" . company-complete)
+  :defer 2
+  :bind* (([remap completion-at-point] . company-complete-common-or-cycle))
+  :bind (
          :map company-active-map
-         ("M-/" . company-complete)
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous)
-         ("TAB" . company-complete-common-or-cycle)
-         ("<tab>" . company-complete-common-or-cycle)
-         ("S-TAB" . company-select-previous)
-         ("<backtab>" . company-select-previous)
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous)
-         :map company-filter-map
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous))
+              ("M-/" . company-complete)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
+              ("TAB" . company-complete-common-or-cycle)
+              ("<tab>" . company-complete-common-or-cycle)
+              ("S-TAB" . company-select-previous)
+              ("<backtab>" . company-select-previous)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
+              :map company-filter-map
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous))
   :commands (company-mode
              global-company-mode
-             company-auto-begin)
-  :defer 2
-  :config
-  (global-company-mode)
-  (setq-default company-backends
-                '((company-capf company-dabbrev-code) company-dabbrev)
-                company-dabbrev-other-buffers 'all))
+             company-auto-begin
+             company-complete-common-or-cycle)
+  :config (global-company-mode 1))
 
 (use-package company-anaconda
   :commands company-anaconda
@@ -798,6 +797,7 @@ Specifies package name (not the name used to require)."
   :config (add-to-list 'company-backends 'company-irony))
 
 (use-package company-shell
+  :disabled
   :after company
   :commands company-shell
   :config (add-to-list 'company-backends 'company-shell))
@@ -848,15 +848,23 @@ Specifies package name (not the name used to require)."
 (use-package counsel
   :commands (counsel-descbinds)
   :bind* (([remap execute-extended-command] . counsel-M-x)
-          ("<f1> f" . counsel-describe-function)
-          ("<f1> v" . counsel-describe-variable)
-          ("C-x C-f" . counsel-find-file)
+          ([remap find-file] . counsel-find-file)
+          ([remap describe-function] . counsel-describe-function)
+          ([remap describe-variable] . counsel-describe-variable)
+          ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+          ;; ([remap completion-at-point] . counsel-company)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-ag)
           ("C-x l" . counsel-locate)
           ("C-M-i" . counsel-imenu)
-          ("M-y" . counsel-yank-pop)))
+          ("M-y" . counsel-yank-pop)
+          ("C-c i 8" . counsel-unicode-char)
+          ;; :map irony-mode-map
+          ;; ([remap completion-at-point] . counsel-irony)
+          ;; ([remap complete-symbol] . counsel-irony)
+          )
+  )
 
 (use-package crux
   :bind (("C-c D" . crux-delete-file-and-buffer)
@@ -1015,7 +1023,14 @@ Specifies package name (not the name used to require)."
           eshell-term
           eshell-tramp
           eshell-unix
-          eshell-xtra)))
+          eshell-xtra))
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (define-key eshell-mode-map (kbd "<tab>")
+                'company-complete-common-or-cycle)
+              (define-key eshell-mode-map (kbd "TAB")
+                'company-complete-common-or-cycle)))
+  )
 
 (use-package ess-site
   :name "ess"
@@ -1949,8 +1964,8 @@ string).  It returns t if a new expansion is found, nil otherwise."
                        slime-repl-mode) . rainbow-mode))))
 
 (use-package readline-complete
-  :requires company
-  :init
+  :after company
+  :config
   (add-to-list 'company-backends 'company-readline)
   (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1))))
 
@@ -2064,7 +2079,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
    :map minibuffer-local-map
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
-   ("<M-S-tab>" . next-complete-history-element)))
+   ("<M-S-tab>" . next-complete-history-element))
+  :commands visual-line-mode
+  :init
+  (add-hook 'text-mode-hook 'visual-line-mode))
 
 (use-package slime)
 
@@ -2367,6 +2385,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
   )
 
 (use-package mediawiki)
+
+(use-package counsel-projectile)
+
+(use-package imenu+
+  :disabled
+  :commands imenu-add-defs-to-menubar
+  :init
+  (add-hook 'prog-mode-hook 'imenu-add-defs-to-menubar)
+  (add-hook 'org-mode-hook  'imenu-add-defs-to-menubar))
 
 (provide 'default)
 ;;; default.el ends here
