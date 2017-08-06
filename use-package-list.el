@@ -13,12 +13,11 @@
 
 ;;; Code:
 
+(require 'json)
+(require 'use-package)
+
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
-
-  ;; (setq debug-on-error t)
-
-  (require 'use-package)
 
   (defvar package-list '())
 
@@ -45,18 +44,19 @@
                         (let ((body (use-package-process-keywords name rest
                                       (plist-put state :deferred t)))
                               (name-string (use-package-as-string name)))
-                          (dolist (command (delete-dups (plist-get state :commands)))
+                          (dolist (command
+                                   (delete-dups (plist-get state :commands)))
                             (unless (or
-                                     (string= (symbol-name command) "create-hook-helper")
-                                     (string= (symbol-name command) "define-hook-helper"))
+                                     (string= (symbol-name command)
+                                              "create-hook-helper")
+                                     (string= (symbol-name command)
+                                              "define-hook-helper"))
                               (fset command (lambda (&rest args)))))
                           body)))
 
   (advice-add 'use-package-load-name :override #'ignore)
 
   (load script)
-
-  (require 'json)
 
   (princ (json-encode package-list))
 
