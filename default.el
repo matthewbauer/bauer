@@ -22,7 +22,6 @@
                      ;; handle /usr/bin/open and other system-specific stuff
                      "/usr/sbin" "/usr/bin"
                      "/sbin" "/bin"
-                     ;; "@texlive@/bin"
                      )
                    exec-path)
  ;; TODO: hack browse-url.el to allow customizable open
@@ -104,14 +103,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ad-redefinition-action 'accept)
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
- '(auto-save-file-name-transforms '((".*" temporary-file-directory t)))
+ '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-by-copying t)
- '(backup-directory-alist '((".*" . temporary-file-directory)))
+ '(backup-directory-alist `((".*" . ,temporary-file-directory)))
  '(bm-buffer-persistence t)
  '(bm-restore-repository-on-load t)
  '(bm-cycle-all-buffers t)
@@ -121,7 +120,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
- '(company-auto-complete nil)
+ '(company-auto-complete t)
  '(company-backends
    '((company-capf
       company-abbrev company-bbdb company-clang company-cmake company-css
@@ -233,23 +232,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rebind-keys-alist
-   (quote
-    (([(control 97)]
-      . eshell-bol)
-     ([home]
-      . eshell-bol)
-     ([(control 100)]
-      . eshell-delchar-or-maybe-eof)
-     ([backspace]
-      . eshell-delete-backward-char)
-     ([delete]
-      . eshell-delete-backward-char)
-     ([(control 119)]
-      . backward-kill-word)
-     ([(control 117)]
-      . eshell-kill-input)
-     ([tab]
-      . completion-at-point))))
+   '(([(control 97)] . eshell-bol)
+     ([home] . eshell-bol)
+     ([(control 100)] . eshell-delchar-or-maybe-eof)
+     ([backspace] . eshell-delete-backward-char)
+     ([delete] . eshell-delete-backward-char)
+     ([(control 119)] . backward-kill-word)
+     ([(control 117)] . eshell-kill-input)
+     ([tab] . completion-at-point)))
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
@@ -577,7 +567,7 @@ verifies path exists"
  )
 
 (set-defaults
- '(imap-ssl-program '((concat gnutls " --tofu -p %p %s")))
+ '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
  '(tls-program (concat gnutls " --tofu -p %p %h"))
  '(preview-pdf2dsc-command
    (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
@@ -588,13 +578,13 @@ verifies path exists"
  '(preview-dvipng-command
    (concat dvipng-command
            " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
- '(TeX-engine-alist '((xetex "XeTeX" xetex-command xelatex-command
+ '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
                              xetex-command)
                       (luatex "LuaTeX" luatex-command
-                              (concat luatex-command " --jobname=%s")
+                              ,(concat luatex-command " --jobname=%s")
                               luatex-command)))
  '(TeX-command-list
-   '(("TeX"
+   `(("TeX"
       "%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
       TeX-run-TeX nil
       (plain-tex-mode ams-tex-mode texinfo-mode)
@@ -602,55 +592,55 @@ verifies path exists"
      ("LaTeX" "%`%l%(mode)%' %t" TeX-run-TeX nil
       (latex-mode doctex-mode)
       :help "Run LaTeX")
-     ("Makeinfo" (concat makeinfo-command " %(extraopts) %t")
+     ("Makeinfo" ,(concat makeinfo-command " %(extraopts) %t")
       TeX-run-compile nil
       (texinfo-mode)
       :help "Run Makeinfo with Info output")
-     ("Makeinfo HTML" (concat makeinfo-command " %(extraopts) --html %t")
+     ("Makeinfo HTML" ,(concat makeinfo-command " %(extraopts) --html %t")
       TeX-run-compile nil
       (texinfo-mode)
       :help "Run Makeinfo with HTML output")
      ("AmSTeX"
-      (concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
+      ,(concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
       TeX-run-TeX nil
       (ams-tex-mode)
       :help "Run AMSTeX")
      ("ConTeXt"
-      (concat context-command " --once --texutil %(extraopts) %(execopts)%t")
+      ,(concat context-command " --once --texutil %(extraopts) %(execopts)%t")
       TeX-run-TeX nil
       (context-mode)
       :help "Run ConTeXt once")
-     ("ConTeXt Full" (concat context-command " %(extraopts) %(execopts)%t")
+     ("ConTeXt Full" ,(concat context-command " %(extraopts) %(execopts)%t")
       TeX-run-TeX nil
       (context-mode)
       :help "Run ConTeXt until completion")
-     ("BibTeX" (concat bibtex-command " %s")
+     ("BibTeX" ,(concat bibtex-command " %s")
       TeX-run-BibTeX nil t :help "Run BibTeX")
      ("Biber" "biber %s" TeX-run-Biber nil t :help "Run Biber")
      ("View" "%V" TeX-run-discard-or-function t t :help "Run Viewer")
      ("Print" "%p" TeX-run-command t t :help "Print the file")
      ("Queue" "%q" TeX-run-background nil t
       :help "View the printer queue" :visible TeX-queue-command)
-     ("File" (concat dvips-command " %d -o %f ")
+     ("File" ,(concat dvips-command " %d -o %f ")
       TeX-run-dvips t t :help "Generate PostScript file")
-     ("Dvips" (concat dvips-command " %d -o %f ")
+     ("Dvips" ,(concat dvips-command " %d -o %f ")
       TeX-run-dvips nil t :help "Convert DVI file to PostScript")
-     ("Dvipdfmx" (concat dvipdfmx-command " %d")
+     ("Dvipdfmx" ,(concat dvipdfmx-command " %d")
       TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
-     ("Ps2pdf" (concat ps2pdf-command " %f")
+     ("Ps2pdf" ,(concat ps2pdf-command " %f")
       TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
-     ("Glossaries" (concat makeglossaries-command " %s")
+     ("Glossaries" ,(concat makeglossaries-command " %s")
       TeX-run-command nil t :help "Run makeglossaries to create glossary file")
-     ("Index" (concat makeindex-command " %s")
+     ("Index" ,(concat makeindex-command " %s")
       TeX-run-index nil t :help "Run makeindex to create index file")
      ("upMendex" "upmendex %s"
       TeX-run-index t t :help "Run mendex to create index file")
      ("Xindy" "xindy %s"
       TeX-run-command nil t :help "Run xindy to create index file")
-     ("Check" (concat lacheck-command " %s") TeX-run-compile nil
+     ("Check" ,(concat lacheck-command " %s") TeX-run-compile nil
       (latex-mode)
       :help "Check LaTeX file for correctness")
-     ("ChkTeX" (concat chktex-command " -v6 %s") TeX-run-compile nil
+     ("ChkTeX" ,(concat chktex-command " -v6 %s") TeX-run-compile nil
       (latex-mode)
       :help "Check LaTeX file for common mistakes")
      ("Spell" "(TeX-ispell-document \"\")"
@@ -894,15 +884,10 @@ Specifies package name (not the name used to require)."
 (use-package company
   :defer 2
   :bind (:map company-active-map
-              ("C-n" . company-select-next)
-              ("C-p" . company-select-previous)
               ("TAB" . company-select-next)
               ("<tab>" . company-select-next)
               ("S-TAB" . company-select-previous)
-              ("<backtab>" . company-select-previous)
-              :map company-filter-map
-              ("C-n" . company-select-next)
-              ("C-p" . company-select-previous))
+              ("<backtab>" . company-select-previous))
   :commands (company-mode
              global-company-mode
              company-auto-begin
