@@ -22,6 +22,7 @@
                      ;; handle /usr/bin/open and other system-specific stuff
                      "/usr/sbin" "/usr/bin"
                      "/sbin" "/bin"
+                     "@texlive@/bin"
                      )
                    exec-path)
  ;; TODO: hack browse-url.el to allow customizable open
@@ -549,13 +550,116 @@ verifies path exists"
  ;; '(tramp-smb-program "")
  ;; '(tramp-smb-winexe "")
  ;; '(url-gateway-nslookup-program "")
+ '(tex-shell "@bash@/bin/sh")
  '(xargs-program "@findutils@/bin/xargs")
  '(vc-git-program "@git@/bin/git")
+ '(gnutls "@gnutls@/bin/gnutls-cli")
+ '(pdf2dsc-command "@ghostscript@/bin/pdf2dsc")
+ '(preview-gs-command "@texlive@/bin/rungs")
+ '(TeX-command "@texlive@/bin/tex")
+ '(LaTeX-command "@texlive@/bin/latex")
+ '(luatex-command "@texlive@/bin/luatex")
+ '(xetex-command "@texlive@/bin/xetex")
+ '(xelatex-command "@texlive@/bin/xelatex")
+ '(makeinfo-command "@texinfoInteractive@/bin/makeinfo")
+ '(pdftex-command "@texlive@/bin/pdftex")
+ '(context-command "@texlive@/bin/context")
+ '(bibtex-command "@texlive@/bin/bibtex")
+ '(dvipdfmx-command "@texlive@/bin/dvipdfmx")
+ '(makeglossaries-command "@texlive@/bin/makeglossaries")
+ '(makeindex-command "@texlive@/bin/makeindex")
+ '(chktex-command "@texlive@/bin/chktex")
+ '(lacheck-command "@texlive@/bin/lacheck")
+ '(dvipdfmx-command "@texlive@/bin/dvipdfmx")
+ '(dvips-command "@texlive@/bin/dvips")
+ '(dvipng-command "@texlive@/bin/dvipng")
+ '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
  )
 
 (set-defaults
- '(imap-ssl-program '("@gnutls@/bin/gnutls-cli --tofu -p %p %s"))
- '(tls-program "@gnutls@/bin/gnutls-cli --tofu -p %p %h")
+ '(imap-ssl-program '((concat gnutls" --tofu -p %p %s")))
+ '(tls-program (concat gnutls " --tofu -p %p %h"))
+ '(preview-pdf2dsc-command
+   (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
+ '(preview-dvips-command
+   (concat dvips-command " -Pwww %d -o %m/preview.ps"))
+ '(preview-fast-dvips-command
+   (concat dvips-command " -Pwww %d -o %m/preview.ps"))
+ '(preview-dvipng-command
+   (concat dvipng-command
+           " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
+ '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
+                             xetex-command)
+                      (luatex "LuaTeX" luatex-command
+                              (concat luatex-command " --jobname=%s")
+                              luatex-command)))
+ '(TeX-command-list
+   '(("TeX"
+      "%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
+      TeX-run-TeX nil
+      (plain-tex-mode ams-tex-mode texinfo-mode)
+      :help "Run plain TeX")
+     ("LaTeX" "%`%l%(mode)%' %t" TeX-run-TeX nil
+      (latex-mode doctex-mode)
+      :help "Run LaTeX")
+     ("Makeinfo" (concat makeinfo-command " %(extraopts) %t")
+      TeX-run-compile nil
+      (texinfo-mode)
+      :help "Run Makeinfo with Info output")
+     ("Makeinfo HTML" (concat makeinfo-command " %(extraopts) --html %t")
+      TeX-run-compile nil
+      (texinfo-mode)
+      :help "Run Makeinfo with HTML output")
+     ("AmSTeX"
+      (concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
+      TeX-run-TeX nil
+      (ams-tex-mode)
+      :help "Run AMSTeX")
+     ("ConTeXt"
+      (concat context-command " --once --texutil %(extraopts) %(execopts)%t")
+      TeX-run-TeX nil
+      (context-mode)
+      :help "Run ConTeXt once")
+     ("ConTeXt Full" (concat context-command " %(extraopts) %(execopts)%t")
+      TeX-run-TeX nil
+      (context-mode)
+      :help "Run ConTeXt until completion")
+     ("BibTeX" (concat bibtex-command " %s")
+      TeX-run-BibTeX nil t :help "Run BibTeX")
+     ("Biber" "biber %s" TeX-run-Biber nil t :help "Run Biber")
+     ("View" "%V" TeX-run-discard-or-function t t :help "Run Viewer")
+     ("Print" "%p" TeX-run-command t t :help "Print the file")
+     ("Queue" "%q" TeX-run-background nil t
+      :help "View the printer queue" :visible TeX-queue-command)
+     ("File" (concat dvips-command " %d -o %f ")
+      TeX-run-dvips t t :help "Generate PostScript file")
+     ("Dvips" (concat dvips-command " %d -o %f ")
+      TeX-run-dvips nil t :help "Convert DVI file to PostScript")
+     ("Dvipdfmx" (concat dvipdfmx-command " %d")
+      TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
+     ("Ps2pdf" (concat ps2pdf-command " %f")
+      TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
+     ("Glossaries" (concat makeglossaries-command " %s")
+      TeX-run-command nil t :help "Run makeglossaries to create glossary file")
+     ("Index" (concat makeindex-command " %s")
+      TeX-run-index nil t :help "Run makeindex to create index file")
+     ("upMendex" "upmendex %s"
+      TeX-run-index t t :help "Run mendex to create index file")
+     ("Xindy" "xindy %s"
+      TeX-run-command nil t :help "Run xindy to create index file")
+     ("Check" (concat lacheck-command " %s") TeX-run-compile nil
+      (latex-mode)
+      :help "Check LaTeX file for correctness")
+     ("ChkTeX" (concat chktex-command " -v6 %s") TeX-run-compile nil
+      (latex-mode)
+      :help "Check LaTeX file for common mistakes")
+     ("Spell" "(TeX-ispell-document \"\")"
+      TeX-run-function nil t :help "Spell-check the document")
+     ("Clean" "TeX-clean"
+      TeX-run-function nil t :help "Delete generated intermediate files")
+     ("Clean All" "(TeX-clean t)" TeX-run-function nil t
+      :help "Delete generated intermediate and output files")
+     ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
  )
 
 (eval-when-compile
@@ -1573,6 +1677,8 @@ Specifies package name (not the name used to require)."
   (use-package ox-mediawiki
     :demand)
   (use-package ox-pandoc
+    :demand)
+  (use-package ox-reveal
     :demand))
 
 (use-package org-bullets
@@ -1590,7 +1696,6 @@ Specifies package name (not the name used to require)."
                        emacs-lisp-mode) . page-break-lines-mode))))
 
 (use-package pandoc-mode
-  :disabled
   :commands (pandoc-mode pandoc-load-default-settings)
   :init
   (add-hook 'markdown-mode-hook 'pandoc-mode)

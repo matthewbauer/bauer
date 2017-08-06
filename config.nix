@@ -76,6 +76,12 @@ dict-dir ${aspellDicts.en}/lib/aspell
       installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
     };
 
+    myTex = texlive.combine {
+      inherit (texlive) scheme-full xetex setspace
+                        fontspec chktex enumitem xifthen
+                        ifmtarg filehook;
+    };
+
     myEmacs = let
       epkgs''' = with customEmacsPackages.melpaPackages;
         runCommand "packages-list" { buildInputs = [ emacs ]; } ''
@@ -97,9 +103,11 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 pandoc clang cmake ghostscript
                 gnugrep man gawk gnused
                 sqliteInteractive freetds mariadb
-                parallel unixODBC ncompress; # csslint
+                parallel unixODBC ncompress
+                texinfoInteractive; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
+        texlive = myTex;
         markdown2 = pythonPackages.markdown2;
         tidy = html-tidy;
         irony = irony-server;
@@ -270,7 +278,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         isync
         # ctags
         # notmuch
-        (texlive.combine { inherit (texlive) scheme-full xetex setspace fontspec chktex enumitem xifthen ifmtarg filehook; })
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
