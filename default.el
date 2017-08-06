@@ -120,7 +120,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
- '(company-auto-complete t)
+ '(company-auto-complete nil)
  '(company-backends
    '((company-capf
       company-abbrev company-bbdb company-clang company-cmake company-css
@@ -1763,7 +1763,7 @@ Specifies package name (not the name used to require)."
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                        compilation-read-command))))
+                                   compilation-read-command))))
 
   (projectile-mode)
 
