@@ -1,5 +1,4 @@
 {
-  allowBroken = true;
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
     emacs-devel = callPackage ./emacs.nix {
@@ -231,7 +230,6 @@ dict-dir ${aspellDicts.en}/lib/aspell
         gzip
         # jdk
         # jq
-        # haskellPackages.intero
         # lua
         # less
         # man

@@ -27,6 +27,9 @@
  ;; TODO: hack browse-url.el to allow customizable open
  )
 
+(unless (>= emacs-major-version 25)
+  (error "Need Emacs 25+ to work properly"))
+
 ;; install advice to prevent custom-declare-variable from overwriting defaults
 ;; below
 (require 'custom)
