@@ -980,7 +980,7 @@ Specifies package name (not the name used to require)."
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
           ;; ([remap completion-at-point] . counsel-company)
-          ;; ([remap isearch-forward] . counsel-grep-or-swiper)
+          ([remap isearch-forward] . counsel-grep-or-swiper)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-ag)
@@ -2288,6 +2288,7 @@ Specifies package name (not the name used to require)."
 (use-package mediawiki)
 
 (use-package counsel-projectile
+  :commands counsel-projectile-on
   :init (add-hook 'projectile-mode-hook 'counsel-projectile-on))
 
 (use-package company-statistics
