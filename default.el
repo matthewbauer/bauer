@@ -712,8 +712,6 @@ verifies path exists"
 (bind-key "s-C-<down>" 'shrink-window)
 (bind-key "s-C-<up>" 'enlarge-window)
 
-(bind-key "<s-tab>" 'pcomplete)
-
 (bind-key "C-x 8 ' /" "′")
 (bind-key "C-x 8 \" /" "″")
 (bind-key "C-x 8 \" (" "“")
@@ -910,6 +908,7 @@ Specifies package name (not the name used to require)."
              company-complete-common-or-cycle)
   :config
   (global-company-mode 1)
+  (add-hook 'minibuffer-setup-hook 'company-mode)
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle))
 
 (use-package company-anaconda
