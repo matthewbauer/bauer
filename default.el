@@ -901,6 +901,11 @@ Specifies package name (not the name used to require)."
   :config
   (global-company-mode 1)
   (add-hook 'minibuffer-setup-hook 'company-mode)
+  (add-hook 'minibuffer-setup-hook
+            (lambda ()
+              (setq-local company-frontends
+                          '(company-pseudo-tooltip-unless-just-one-frontend
+                            company-preview-if-just-one-frontend))))
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle))
 
 (use-package company-anaconda
