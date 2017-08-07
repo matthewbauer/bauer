@@ -125,13 +125,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete nil)
  '(company-backends
-   '((company-capf
-      company-abbrev company-bbdb company-clang company-cmake company-css
-      company-eclim company-elisp company-etags company-gtags company-keywords
-      company-nxml company-oddmuse company-tempo company-xcode company-semantic
-      company-files company-dabbrev)))
- '(company-frontends '(company-echo-metadata-frontend
-                       company-preview-frontend))
+   '((company-css :with company-dabbrev)
+     (company-nxml :with company-dabbrev)
+     (company-elisp :with company-dabbrev company-capf)
+     (company-etags company-gtags company-clang company-cmake
+                    :with company-dabbrev)
+     (company-semantic :with company-dabbrev company-capf)
+     (company-capf :with company-files company-keywords)
+     (company-abbrev company-dabbrev company-keywords)
+     ))
+ '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                       company-preview-if-just-one-frontend
+                       company-echo-metadata-frontend))
  '(company-continue-commands
    '(not save-buffer
          save-some-buffers
