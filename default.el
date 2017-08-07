@@ -123,19 +123,20 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
- '(company-auto-complete nil)
+ '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
+                                    (company-explicit-action-p))))
  '(company-backends
    '((company-css :with company-dabbrev)
      (company-nxml :with company-dabbrev)
-     (company-elisp :with company-dabbrev company-capf)
+     (company-elisp :with company-capf)
+     (company-capf :with company-files company-keywords)
      (company-etags company-gtags company-clang company-cmake
                     :with company-dabbrev)
      (company-semantic :with company-dabbrev company-capf)
-     (company-capf :with company-files company-keywords)
      (company-abbrev company-dabbrev company-keywords)
      ))
  '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                       company-preview-if-just-one-frontend
+                       company-preview-frontend
                        company-echo-metadata-frontend))
  '(company-continue-commands
    '(not save-buffer
@@ -892,12 +893,16 @@ Specifies package name (not the name used to require)."
 (use-package company
   :defer 1
   :bind (:map company-active-map
-              ("TAB" . company-complete-common-or-cycle)
-              ("<tab>" . company-complete-common-or-cycle)
+              ;; ("TAB" . company-complete-common-or-cycle)
+              ;; ("<tab>" . company-complete-common-or-cycle)
               ;; ("TAB" . company-select-next)
               ;; ("<tab>" . company-select-next)
-              ;; ("S-TAB" . company-select-previous)
-              ;; ("<backtab>" . company-select-previous)
+              ("TAB" .
+               company-select-next-if-tooltip-visible-or-complete-selection)
+              ("<tab>" .
+               company-select-next-if-tooltip-visible-or-complete-selection)
+              ("S-TAB" . company-select-previous)
+              ("<backtab>" . company-select-previous)
               )
   :commands (company-mode
              global-company-mode
