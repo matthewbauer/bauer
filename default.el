@@ -567,7 +567,7 @@ verifies path exists"
  '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
  '(locate-executable "@findutils@/bin/locate")
  '(ag-executable "@ag@/bin/ag")
- '(intero-stack-executable "@intero@/bin/stack")
+ '(intero-stack-executable "@intero@/bin/intero-nix-shim")
  )
 
 (set-defaults
