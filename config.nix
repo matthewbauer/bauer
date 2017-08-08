@@ -103,7 +103,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 gnugrep man gawk gnused
                 sqliteInteractive freetds mariadb
                 parallel unixODBC ncompress
-                texinfoInteractive; # csslint
+                texinfoInteractive cacert; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
         intero = haskellPackages.intero-nix-shim;

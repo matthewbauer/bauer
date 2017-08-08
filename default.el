@@ -59,8 +59,12 @@
 
 ;; setup environment
 (set-envs
- '("NIX_SSL_CERT_FILE" "/etc/ssl/certs/ca-bundle.crt")
+ '("NIX_SSL_CERT_FILE" "@cacert@/etc/ssl/certs/ca-bundle.crt")
  '("NIX_REMOTE" "daemon")
+ `("NIX_PATH" ,(concat
+                "nixpkgs=/nix/var/nix/profiles/per-user/"
+                (getenv "USER")
+                "/channels/nixpkgs"))
  '("EDITOR" "emacsclient -nw")
  '("LANG" "en_US.UTF-8")
  '("LC_ALL" "en_US.UTF-8")
