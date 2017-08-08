@@ -2183,8 +2183,12 @@ Specifies package name (not the name used to require)."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
+  (defgroup nethack nil
+    "Nethack"
+    :group 'processes)
   (defcustom nethack-executable "nethack"
-    "executable to use to run nethack")
+    "Executable to use to run nethack"
+    :group 'nethack)
   (defun nethack ()
     (interactive)
     (set-buffer (make-term "nethack" nethack-executable))
