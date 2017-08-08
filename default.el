@@ -338,6 +338,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
  '(make-backup-files nil)
+ ;; '(mode-line-format nil)
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
  '(minibuffer-prompt-properties '(read-only t
@@ -2332,6 +2333,7 @@ Specifies package name (not the name used to require)."
 (use-package mediawiki)
 
 (use-package counsel-projectile
+  :disabled
   :commands counsel-projectile-on
   :init (add-hook 'projectile-mode-hook 'counsel-projectile-on))
 
