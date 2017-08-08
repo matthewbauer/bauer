@@ -904,11 +904,11 @@ Specifies package name (not the name used to require)."
              company-auto-begin
              company-complete-common-or-cycle)
   :preface
-  (require 's)
-  (require 'cl)
-  (require 'em-hist)
   (defun company-eshell-history (command &optional arg &rest ignored)
     (interactive (list 'interactive))
+    (require 'cl)
+    (require 'em-hist)
+    (require 's)
     (cl-case command
       (interactive (company-begin-backend 'company-eshell-history))
       (prefix (and (eq major-mode 'eshell-mode)
@@ -1120,7 +1120,9 @@ Specifies package name (not the name used to require)."
 (use-package elec-pair ;; should disable in sp modes
   :builtin
   :commands electric-pair-mode
-  :init (add-hook 'prog-mode-hook 'electric-pair-mode))
+  :init
+  (add-hook 'prog-mode-hook 'electric-pair-mode)
+  (add-hook 'smartparens-mode-hook (lambda () (electric-pair-mode -1))))
 
 (use-package electric ;; should disable in sp modes
   :builtin
@@ -1165,7 +1167,7 @@ Specifies package name (not the name used to require)."
   :builtin
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
-  :commands (eshell eshell-command)
+  :commands (eshell eshell-command eshell-bol)
   :init
   (setq eshell-modules-list
         '(eshell-alias
