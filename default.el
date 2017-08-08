@@ -814,7 +814,7 @@ Specifies package name (not the name used to require)."
 
 (use-package autorevert
   :builtin
-  :defer 1
+  :demand
   :commands auto-revert-mode
   :init
   (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -886,7 +886,7 @@ Specifies package name (not the name used to require)."
       (with-current-buffer buffer (comint-write-input-ring)))))
 
 (use-package company
-  :defer 1
+  :demand
   :bind (:map company-active-map
               ;; ("TAB" . company-complete-common-or-cycle)
               ;; ("<tab>" . company-complete-common-or-cycle)
@@ -944,6 +944,7 @@ Specifies package name (not the name used to require)."
 
 (use-package company-anaconda
   :commands company-anaconda
+  :disabled
   :after company
   :config
   (add-to-list 'company-backends 'company-anaconda))
@@ -966,6 +967,7 @@ Specifies package name (not the name used to require)."
 
 (use-package company-web
   :after company
+  :disabled
   :commands (company-web-html company-web-slim company-web-jade)
   :config
   (add-to-list 'company-backends 'company-web-html)
@@ -1042,7 +1044,7 @@ Specifies package name (not the name used to require)."
 
 (use-package delsel
   :builtin
-  :defer 2
+  :demand
   :config (delete-selection-mode t))
 
 (use-package diff-hl
@@ -1095,7 +1097,7 @@ Specifies package name (not the name used to require)."
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
-  :defer 3
+  :demand
   :config (dtrt-indent-mode 1))
 
 (use-package easy-kill
@@ -1209,7 +1211,7 @@ Specifies package name (not the name used to require)."
   :bind ("C-c m s" . firestarter-mode))
 
 (use-package flycheck
-  :defer 3
+  :demand
   :commands global-flycheck-mode
   :config (global-flycheck-mode))
 
@@ -1475,7 +1477,7 @@ Specifies package name (not the name used to require)."
 (use-package jka-compr
   :builtin
   :disabled
-  :defer 2
+  :demand
   :config
   ;; binary plist support
   (add-to-list 'jka-compr-compression-info-list
@@ -1803,6 +1805,7 @@ Specifies package name (not the name used to require)."
                  ("s-p" . projectile-command-map))
   :bind (("C-x m" . projectile-run-shell))
   :commands (projectile-mode)
+  :defer 1
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
@@ -1813,7 +1816,6 @@ Specifies package name (not the name used to require)."
 
   (use-package easymenu
     :builtin
-    :demand
     :config
 
     ;; just make mode line clickable
@@ -1946,14 +1948,14 @@ Specifies package name (not the name used to require)."
 
 (use-package savehist
   :builtin
-  :defer 4
+  :demand
   :commands savehist-mode
   :config (savehist-mode 1))
 
 (use-package saveplace
   :builtin
   :commands save-place-mode
-  :defer 5
+  :demand
   :config (save-place-mode t))
 
 (use-package scala-mode
@@ -1965,7 +1967,7 @@ Specifies package name (not the name used to require)."
 (use-package server
   :disabled
   :builtin
-  :defer 2
+  :demand
   :commands server-start
   :config
   (add-hook 'after-init-hook 'server-start t)
@@ -2260,7 +2262,7 @@ Specifies package name (not the name used to require)."
 (use-package which-key
   :diminish which-key-mode
   :commands which-key-mode
-  :defer 3
+  :demand
   :config (which-key-mode))
 
 (use-package whitespace-cleanup-mode
@@ -2346,13 +2348,14 @@ Specifies package name (not the name used to require)."
   :init (add-hook 'company-mode-hook 'company-statistics-mode))
 
 (use-package company-auctex
+  :disabled
   :commands (company-auctex-labels
              company-auctex-bibs
              company-auctex-macros
              company-auctex-symbols
              company-auctex-environments)
   :after company
-  :init
+  :config
   (add-to-list 'company-backends 'company-auctex-labels)
   (add-to-list 'company-backends 'company-auctex-bibs)
   (add-to-list 'company-backends
