@@ -125,16 +125,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
                                     (company-explicit-action-p))))
- '(company-backends
-   '((company-css :with company-dabbrev)
-     (company-nxml :with company-dabbrev)
-     (company-elisp :with company-capf)
-     (company-capf :with company-files company-keywords)
-     (company-etags company-gtags company-clang company-cmake
-                    :with company-dabbrev)
-     (company-semantic :with company-dabbrev company-capf)
-     (company-abbrev company-dabbrev company-keywords)
-     ))
  '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                        company-preview-frontend
                        company-echo-metadata-frontend))
@@ -908,7 +898,36 @@ Specifies package name (not the name used to require)."
              global-company-mode
              company-auto-begin
              company-complete-common-or-cycle)
+  :preface
+  (require 's)
+  (require 'cl)
+  (require 'em-hist)
+  (defun company-eshell-history (command &optional arg &rest ignored)
+    (interactive (list 'interactive))
+    (cl-case command
+      (interactive (company-begin-backend 'company-eshell-history))
+      (prefix (and (eq major-mode 'eshell-mode)
+                   (let ((word (company-grab-word)))
+                     (save-excursion
+                       (eshell-bol)
+                       (and (looking-at-p (s-concat word "$")) word)))))
+      (candidates (remove-duplicates
+                   (->> (ring-elements eshell-history-ring)
+                        (remove-if-not (lambda (item) (s-prefix-p arg item)))
+                        (mapcar 's-trim))
+                   :test 'string=))
+      (sorted t)))
   :config
+  (setq company-backends
+        '((company-css :with company-dabbrev)
+          (company-nxml :with company-dabbrev)
+          (company-elisp :with company-capf)
+          (company-capf :with company-files company-keywords)
+          (company-etags company-gtags company-clang company-cmake
+                         :with company-dabbrev)
+          (company-semantic :with company-dabbrev company-capf)
+          (company-abbrev company-dabbrev company-keywords)
+          ))
   (global-company-mode 1)
   (add-hook 'minibuffer-setup-hook 'company-mode)
   (add-hook 'minibuffer-setup-hook
