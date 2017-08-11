@@ -128,7 +128,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
-                                    (company-explicit-action-p))))
+                                         (company-explicit-action-p))))
  '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                        company-preview-frontend
                        company-echo-metadata-frontend))
@@ -246,18 +246,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-          (when (tramp-tramp-file-p default-directory)
-            (concat
-             (tramp-file-name-user (tramp-dissect-file-name default-directory))
-             "@"
-             (tramp-file-name-real-host (tramp-dissect-file-name
-                                         default-directory))
-             " "))
-          (let ((dir (eshell/pwd)))
-            (if (string= dir (getenv "HOME")) "~"
-              (let ((dirname (file-name-nondirectory dir)))
-                (if (string= dirname "") "/" dirname))))
-          (if (= (user-uid) 0) " # " " $ "))))
+               (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-real-host (tramp-dissect-file-name
+                                              default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -1532,6 +1532,7 @@ Specifies package name (not the name used to require)."
   :mode "\\.ll\\'")
 
 (use-package lsp-mode
+  :disabled
   :commands lsp-mode
   :init (add-hook 'prog-major-mode #'lsp-mode)
 
