@@ -48,7 +48,7 @@
 ;; garbage collect when window focus is lost
 ;; (add-hook 'focus-out-hook 'garbage-collect)
 
-(defun set-envs (&rest env)
+(defun setenvs (&rest env)
   "Set environment variables from ENV alist."
   (dolist (x env)
     (setenv (car x) (car (cdr x)))))
@@ -58,7 +58,7 @@
 (require 'subr-x)
 
 ;; setup environment
-(set-envs
+(setenvs
  '("NIX_SSL_CERT_FILE" "@cacert@/etc/ssl/certs/ca-bundle.crt")
  '("NIX_REMOTE" "daemon")
  `("NIX_PATH" ,(concat
@@ -235,6 +235,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-review-quick-commands t)
  '(eshell-rebind-keys-alist
    '(([(control 97)] . eshell-bol)
+     ([(control 101)] . eshell-eol)
      ([home] . eshell-bol)
      ([(control 100)] . eshell-delchar-or-maybe-eof)
      ([backspace] . eshell-delete-backward-char)
@@ -1168,6 +1169,11 @@ Specifies package name (not the name used to require)."
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command eshell-bol)
+  :preface
+  (defun eshell-eol ()
+    "Goes to the end of line."
+    (interactive)
+    (end-of-line))
   :init
   (setq eshell-modules-list
         '(eshell-alias
@@ -1291,6 +1297,7 @@ Specifies package name (not the name used to require)."
          ("\\.cabal\\'" . haskell-cabal-mode)))
 
 (use-package hideshow
+  :disabled
   :builtin
   :commands hs-minor-mode
   :init (add-hooks '(((c-mode-common
@@ -2377,6 +2384,10 @@ Specifies package name (not the name used to require)."
 
 (use-package checkbox
   :bind (("C-c C-t" . checkbox-toggle)))
+
+(use-package yafolding
+  :commands yafolding-mode
+  :init (add-hook 'prog-mode-hook 'yafolding-mode))
 
 (provide 'default)
 ;;; default.el ends here
