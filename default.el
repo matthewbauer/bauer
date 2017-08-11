@@ -128,7 +128,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
  '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
-                                         (company-explicit-action-p))))
+                                    (company-explicit-action-p))))
  '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                        company-preview-frontend
                        company-echo-metadata-frontend))
@@ -311,7 +311,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(ivy-minibuffer-faces nil)
  '(ivy-use-virtual-buffers t)
  '(ivy-fixed-height-minibuffer t)
- '(ivy-re-builders-alist '((swiper . ivy--regex-plus) (t . ivy--regex-fuzzy)))
+ ;; '(ivy-re-builders-alist '((swiper . ivy--regex-plus)
+ ;;                           (t . ivy--regex-fuzzy)))
  '(jit-lock-defer-time 0.01)
  '(js2-mode-show-parse-errors nil)
  '(js2-mode-show-strict-warnings nil)
