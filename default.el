@@ -1569,15 +1569,16 @@ Specifies package name (not the name used to require)."
     (interactive)
     (dired-other-window (magit-toplevel)))
 
-  (defun magit-remote-github (username)
-    (interactive (list (magit-read-string-ns "User name")))
+  (defun magit-remote-github (username &optional args)
+    (interactive (list (magit-read-string-ns "User name")
+                       (magit-remote-arguments)))
     (let* ((url (magit-get "remote.origin.url"))
            (match (string-match "^https?://github\.com/[^/]*/\\(.*\\)" url)))
       (unless match
         (error "Not a github remote"))
       (let ((repo (match-string 1 url)))
-        (magit-remote-add username (format "https://github.com/%s/%s"
-                                           username repo)))))
+        (apply 'magit-remote-add username (format "https://github.com/%s/%s"
+                                                  username repo) args))))
 
   :commands (magit-clone
              magit-toplevel
