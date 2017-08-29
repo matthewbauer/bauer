@@ -2177,6 +2177,11 @@ Specifies package name (not the name used to require)."
 (use-package term
   :builtin
   :commands (term-mode term-char-mode term-set-escape-char)
+  :init
+  (add-hook 'term-mode-hook (lambda ()
+                              (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+                              (setq-local transient-mark-mode nil)
+                              (auto-fill-mode -1)))
   :preface
   (defun my-term ()
     (interactive)
