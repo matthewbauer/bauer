@@ -30,16 +30,6 @@
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
 
-;; install advice to prevent custom-declare-variable from overwriting defaults
-;; below
-(require 'custom)
-(advice-add 'custom-declare-variable
-            :around (lambda (orig-fun symbol default doc &rest args)
-                      (apply orig-fun symbol
-                             (cond ((car (get symbol 'standard-value)))
-                                   (default))
-                             doc args)))
-
 ;; reset gc
 (add-hook 'after-init-hook
           (lambda () (setq gc-cons-threshold
@@ -48,17 +38,16 @@
 ;; garbage collect when window focus is lost
 ;; (add-hook 'focus-out-hook 'garbage-collect)
 
-(defun setenvs (&rest env)
-  "Set environment variables from ENV alist."
-  (dolist (x env)
-    (setenv (car x) (car (cdr x)))))
-
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
-(require 'subr-x)
+(eval-and-compile
+  ;; (add-to-list 'load-path "~/.nixpkgs")
+  (require 'subr-x)
+  (require 'set-defaults)
+  )
 
 ;; setup environment
-(setenvs
+(set-envs
  '("NIX_SSL_CERT_FILE" "@cacert@/etc/ssl/certs/ca-bundle.crt")
  '("NIX_REMOTE" "daemon")
  `("NIX_PATH" ,(concat
@@ -72,35 +61,6 @@
  '("NODE_NO_READLINE" "1")
  `("PATH" ,(string-join exec-path ":"))
  )
-
-(defun set-defaults (&rest args)
-  "Set defaults in the same way as ’custom-set-variables’.
-ARGS are a list in the form of (SYMBOL VALUE)."
-  (dolist (entry args)
-    (let* ((symbol (indirect-variable (nth 0 entry))))
-      (unless (or (get symbol 'standard-value)
-                  (memq (get symbol 'custom-autoload) '(nil noset)))
-        ;; This symbol needs to be autoloaded, even just for a `set'.
-        (custom-load-symbol symbol))))
-  (dolist (entry args)
-    (let* ((symbol (indirect-variable (nth 0 entry)))
-           (value (nth 1 entry))
-           ;; (now (nth 2 entry))
-           (requests (nth 3 entry))
-           ;; (comment (nth 4 entry))
-           )
-      ;; (custom-push-theme 'theme-value symbol 'user 'set value)
-      (when requests
-        (put symbol 'custom-requests requests)
-        (mapc 'require requests))
-
-      (put symbol 'default-value (list value))
-      ;; (put symbol 'saved-value (list value))
-      (put symbol 'standard-value (list value))
-      ;; (put symbol 'force-value t)
-
-      (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
-        (funcall set symbol (eval value))))))
 
 ;; setup defaults
 ;; should maintain compatiblity with custom.el
@@ -152,7 +112,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(create-lockfiles nil)
- '(cursor-type 'bar)
+ ;; '(cursor-type 'bar)
  '(cursor-in-non-selected-windows nil)
  '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
@@ -170,8 +130,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
  '(disabled-command-function nil)
- '(display-time-default-load-average nil)
- '(display-time-format "")
  '(display-buffer-alist
    (\`(((\,(rx bos (or "*Flycheck errors*"
                        "*Backtrace"
@@ -235,7 +193,6 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-review-quick-commands t)
  '(eshell-rebind-keys-alist
    '(([(control 97)] . eshell-bol)
-     ([(control 101)] . eshell-eol)
      ([home] . eshell-bol)
      ([(control 100)] . eshell-delchar-or-maybe-eof)
      ([backspace] . eshell-delete-backward-char)
@@ -246,18 +203,18 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
-               (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-real-host (tramp-dissect-file-name
-                                              default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
+          (when (tramp-tramp-file-p default-directory)
+            (concat
+             (tramp-file-name-user (tramp-dissect-file-name default-directory))
+             "@"
+             (tramp-file-name-real-host (tramp-dissect-file-name
+                                         default-directory))
+             " "))
+          (let ((dir (eshell/pwd)))
+            (if (string= dir (getenv "HOME")) "~"
+              (let ((dirname (file-name-nondirectory dir)))
+                (if (string= dirname "") "/" dirname))))
+          (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-visual-commands
    '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
      "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
@@ -320,6 +277,7 @@ ARGS are a list in the form of (SYMBOL VALUE)."
  '(kill-do-not-save-duplicates t)
  '(kill-whole-line t)
  '(load-prefer-newer t)
+ '(mac-allow-anti-aliasing t)
  '(mac-command-key-is-meta t)
  '(mac-command-modifier 'meta)
  '(mac-option-key-is-meta nil)
@@ -396,6 +354,14 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                                    kill-ring
                                    comint-input-ring))
  '(savehist-autosave-interval 60)
+ '(scroll-margin 3)
+ '(scroll-conservatively 101)
+ '(scroll-up-aggressively 0.01)
+ '(scroll-down-aggressively 0.01)
+ '(scroll-preserve-screen-position t)
+ '(auto-window-vscroll nil)
+ '(hscroll-margin 5)
+ '(hscroll-step 5)
  '(scroll-preserve-screen-position 'always)
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
@@ -458,20 +424,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
                       lines-style))
  )
 
-(defun set-paths (&rest args)
-  "Set paths from ARGS as default values.
-verifies path exists"
-  (dolist (entry args)
-    (let ((path (nth 1 entry)))
-      (unless (file-exists-p path)
-        (error "Path %s not found" path))))
-  (apply 'set-defaults args))
-
 ;; set paths available from Nix substitution
 (set-paths
- '(company-clang-executable "@clang@/bin/clang")
+ ;; '(company-clang-executable "@clang@/bin/clang")
  '(company-cmake-executable "@cmake@/bin/cmake")
- '(company-gtags-executable "@cmake@/bin/cmake")
  '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
  ;; '(doc-view-dvipdfm-program "")
  ;; '(doc-view-pdfdraw-program "")
@@ -517,7 +473,7 @@ verifies path exists"
  '(irony-cmake-executable "@cmake@/bin/cmake")
  '(jka-compr-info-compress-program "@ncompress@/bin/compress")
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
- '(irony-server-install-prefix "@irony@")
+ ;; '(irony-server-install-prefix "@irony@")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
  '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
@@ -570,6 +526,7 @@ verifies path exists"
  '(locate-executable "@findutils@/bin/locate")
  '(ag-executable "@ag@/bin/ag")
  '(intero-stack-executable "@intero@/bin/intero-nix-shim")
+ '(notmuch-executable "@notmuch@/bin/notmuch")
  )
 
 (set-defaults
@@ -663,6 +620,19 @@ verifies path exists"
  '(counsel-rg-base-command
    (concat ripgrep-executable " -i --no-heading --line-number %s ."))
  '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
+ '(org-preview-latex-process-alist
+   `((dvipng :programs ("latex" "dvipng")
+             :description "dvi > png"
+             :message ""
+             :image-input-type "dvi"
+             :image-output-type "png"
+             :image-size-adjust (1.0 . 1.0)
+             :latex-compiler
+             (,(concat LaTeX-command
+                       " -interaction nonstopmode -output-directory %o %f"))
+             :image-converter
+             (,(concat dvipng-command
+                       " -fg %F -bg %B -D %D -T tight -o %O %f")))))
  )
 
 (eval-when-compile
@@ -716,13 +686,26 @@ verifies path exists"
 (bind-key "C-x 8 ' (" "‘")
 (bind-key "C-x 8 ' )" "’")
 
+(bind-key "C-x 8 4 < -" "←")
+(bind-key "C-x 8 4 - >" "→")
+(bind-key "C-x 8 4 b" "←")
+(bind-key "C-x 8 4 f" "→")
+(bind-key "C-x 8 4 p" "↑")
+(bind-key "C-x 8 4 n" "↓")
+
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
 ;; to work correctly
 (eval-when-compile
+  (defvar use-package-enable-imenu-support)
+  (defvar use-package-expand-minimally)
+  (defvar use-package-always-defer)
+
   (setq use-package-always-defer t
         use-package-expand-minimally t
         use-package-enable-imenu-support t)
+
+  (autoload 'use-package-autoload-keymap "use-package")
 
   (require 'use-package)
 
@@ -740,15 +723,21 @@ Specifies package name (not the name used to require)."
 
 ;; some utils needed at init stage
 ;; should always appear before other use-package
-(use-package add-hooks
-  :commands (add-hooks add-hooks-pair))
-(use-package hook-helpers
-  :commands (create-hook-helper
-              define-hook-helper)
-  :functions (make-hook-helper
-              add-hook-helper
-              hkhlp-normalize-hook-spec
-              hkhlp-update-helper))
+(eval-when-compile
+  (use-package add-hooks
+    :commands (add-hooks add-hooks-pair))
+  (use-package hook-helpers
+    :commands (create-hook-helper
+                define-hook-helper)
+    :functions (make-hook-helper
+                add-hook-helper
+                hkhlp-normalize-hook-spec
+                hkhlp-update-helper))
+  )
+
+(create-hook-helper save-on-unfocus ()
+  :hooks (focus-out-hook)
+  (save-some-buffers t))
 
 ;; Alphabetical listing of all packages
 
@@ -905,25 +894,6 @@ Specifies package name (not the name used to require)."
              global-company-mode
              company-auto-begin
              company-complete-common-or-cycle)
-  :preface
-  (defun company-eshell-history (command &optional arg &rest ignored)
-    (interactive (list 'interactive))
-    (require 'cl)
-    (require 'em-hist)
-    (require 's)
-    (cl-case command
-      (interactive (company-begin-backend 'company-eshell-history))
-      (prefix (and (eq major-mode 'eshell-mode)
-                   (let ((word (company-grab-word)))
-                     (save-excursion
-                       (eshell-bol)
-                       (and (looking-at-p (s-concat word "$")) word)))))
-      (candidates (remove-duplicates
-                   (->> (ring-elements eshell-history-ring)
-                        (remove-if-not (lambda (item) (s-prefix-p arg item)))
-                        (mapcar 's-trim))
-                   :test 'string=))
-      (sorted t)))
   :config
   (setq company-backends
         '((company-css :with company-dabbrev)
@@ -963,6 +933,7 @@ Specifies package name (not the name used to require)."
   :config (add-to-list 'company-backends 'company-shell))
 
 (use-package company-tern
+  :disabled
   :after company
   :commands company-tern
   :config (add-to-list 'company-backends 'company-tern))
@@ -1072,6 +1043,7 @@ Specifies package name (not the name used to require)."
   (add-hook 'dired-mode-hook 'dired-hide-details-mode))
 
 (use-package dired-collapse
+  :disabled
   :after dired
   :commands dired-collapse-mode
   :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
@@ -1176,6 +1148,7 @@ Specifies package name (not the name used to require)."
     (interactive)
     (end-of-line))
   :init
+  (add-to-list 'eshell-rebind-keys-alist '([(control 101)] . eshell-eol))
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1468,6 +1441,11 @@ Specifies package name (not the name used to require)."
          ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
+  (defvar projectile-completion-system)
+  (defvar magit-completing-read-function)
+  (defvar dumb-jump-selector)
+  (defvar rtags-display-result-backend)
+  (defvar projector-completion-system)
   (setq projectile-completion-system 'ivy
         magit-completing-read-function 'ivy-completing-read
         dumb-jump-selector 'ivy
@@ -1583,6 +1561,7 @@ Specifies package name (not the name used to require)."
   :commands (magit-clone
              magit-toplevel
              magit-read-string-ns
+             magit-remote-arguments
              magit-get
              magit-remote-add
              magit-define-popup-action)
@@ -1815,7 +1794,6 @@ Specifies package name (not the name used to require)."
   ;; :bind ("s-f" . hydra-projectile/body)
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
-  :bind (("C-x m" . projectile-run-shell))
   :commands (projectile-mode)
   :defer 1
   :config
@@ -2195,19 +2173,6 @@ Specifies package name (not the name used to require)."
     (term-char-mode)
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
-  (defgroup nethack nil
-    "Nethack"
-    :group 'processes)
-  (defcustom nethack-executable "nethack"
-    "Executable to use to run nethack"
-    :group 'nethack)
-  (defun nethack ()
-    (interactive)
-    (set-buffer (make-term "nethack" nethack-executable))
-    (term-mode)
-    (term-char-mode)
-    (term-set-escape-char ?\C-x)
-    (switch-to-buffer "*nethack*"))
   :bind ("C-c t" . my-term))
 
 (use-package tern
@@ -2386,11 +2351,20 @@ Specifies package name (not the name used to require)."
   :init (add-hook 'company-mode-hook 'company-statistics-mode))
 
 (use-package checkbox
+  :disabled
   :bind (("C-c C-t" . checkbox-toggle)))
 
 (use-package yafolding
   :commands yafolding-mode
   :init (add-hook 'prog-mode-hook 'yafolding-mode))
+
+(use-package nethack
+  :commands nethack
+  :builtin)
+
+(use-package cider)
+
+(use-package xah-math-input)
 
 (provide 'default)
 ;;; default.el ends here

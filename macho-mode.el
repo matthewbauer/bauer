@@ -28,7 +28,7 @@
   (add-to-list 'magic-mode-alist '("\xCE\xFA\xED\xFE" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode)))
 
-(defvar macho-mode-command "objdump -p \"%s\""
+(defvar macho-mode-command "objdump -D \"%s\""
   "The shell command to use for `macho-mode'.")
 
 ;;;###autoload

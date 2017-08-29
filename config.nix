@@ -87,6 +87,7 @@ dict-dir ${aspellDicts.en}/lib/aspell
         emacs -batch \
           -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
+          -l ${./set-defaults.el} \
           -l ${./use-package-list.el} \
           --eval "(use-package-list \
             \"${default}/share/emacs/site-lisp/default.el\")))" \
@@ -103,14 +104,14 @@ dict-dir ${aspellDicts.en}/lib/aspell
                 gnugrep man gawk gnused
                 sqliteInteractive freetds mariadb
                 parallel unixODBC ncompress
-                texinfoInteractive cacert; # csslint
+                texinfoInteractive cacert notmuch; # csslint
         inherit (pythonPackages) flake8;
         inherit (nodePackages) jshint eslint; # jsonlint
         intero = haskellPackages.intero-nix-shim;
         texlive = myTex;
         markdown2 = pythonPackages.markdown2;
         tidy = html-tidy;
-        irony = irony-server;
+        # irony = irony-server;
         # jsonlint = pythonPackages.demjson;
         libxml2 = libxml2.bin;
         gpg = gnupg1compat;
@@ -122,6 +123,8 @@ dict-dir ${aspellDicts.en}/lib/aspell
           cp ${./em-dired.el} $out/share/emacs/site-lisp/em-dired.el
           cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+          cp ${./nethack.el} $out/share/emacs/site-lisp/nethack.el
+          cp ${./set-defaults.el} $out/share/emacs/site-lisp/set-defaults.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let

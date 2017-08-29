@@ -17,6 +17,9 @@ export DICPATH=$PREFIX/share/hunspell
 
 export CLICOLOR=1
 export LSCOLORS=ExFxCxDxBxegedabagacad
+export GREP_OPTIONS='--color=auto'
+export GREP_COLOR='3;33'
+export LC_COLLATE=C
 
 # alias ls="ls -G --color"
 alias ls="TERM=ansi ls --color=always"
