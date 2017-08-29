@@ -51,22 +51,25 @@ fi
 export SHELL_SESSION_HISTORY=1
 
 update_terminal_cwd() {
-    local URL_PATH=''
-    {
-        # Use LC_CTYPE=C to process text byte-by-byte.
-        local i ch hexch LC_CTYPE=C
-        for ((i = 1; i <= ${#PWD}; ++i)); do
-            ch="$PWD[i]"
-            if [[ "$ch" =~ [/._~A-Za-z0-9-] ]]; then
-                URL_PATH+="$ch"
-            else
-                hexch=$(printf "%02X" "'$ch")
-                URL_PATH+="%$hexch"
-            fi
-        done
-    }
+    # local URL_PATH=''
+    # {
+    #     # Use LC_CTYPE=C to process text byte-by-byte.
+    #     local i ch hexch LC_CTYPE=C
+    #     for ((i = 1; i <= ${#PWD}; ++i)); do
+    #         ch="$PWD[i]"
+    #         if [[ "$ch" =~ [/._~A-Za-z0-9-] ]]; then
+    #             URL_PATH+="$ch"
+    #         else
+    #             hexch=$(printf "%02X" "'$ch")
+    #             URL_PATH+="%$hexch"
+    #         fi
+    #     done
+    # }
 
-    local PWD_URL="file://$HOST$URL_PATH"
-    #echo "$PWD_URL"        # testing
+    # local PWD_URL="file://$HOST$URL_PATH"
+
+    local SEARCH=' '
+    local REPLACE='%20'
+    local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
     printf '\e]7;%s\a' "$PWD_URL"
 }
