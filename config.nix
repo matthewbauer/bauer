@@ -272,6 +272,8 @@
         # fortune
         rEnv
         isync
+        stack
+        ghc
         # ctags
         # notmuch
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
