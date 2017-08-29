@@ -1423,7 +1423,18 @@ Specifies package name (not the name used to require)."
 
 (use-package intero
   :commands intero-mode
-  :init (add-hook 'haskell-mode-hook 'intero-mode))
+  :preface
+  (defun intero-mode-unless-global-project ()
+    "Run intero-mode iff we're in a project with a stack.yaml"
+    (unless (string-match-p
+             (regexp-quote ".stack/global-project")
+             (shell-command-to-string
+              "stack path --project-root --verbosity silent"))
+      (intero-mode)))
+  :init
+  ;; (add-hook 'haskell-mode-hook 'intero-mode)
+  (add-hook 'haskell-mode-hook 'intero-mode-unless-global-project)
+  )
 
 (use-package irony
   :commands irony-mode
