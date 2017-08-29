@@ -1999,6 +1999,7 @@ Specifies package name (not the name used to require)."
   :bind ("C-c C-s" . shell)
   :init
   (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  (add-hook 'shell-mode-hook 'dirtrack-mode)
   (create-hook-helper use-histfile ()
     :hooks (shell-mode-hook)
     (turn-on-comint-history (getenv "HISTFILE"))))
