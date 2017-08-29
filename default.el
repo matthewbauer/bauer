@@ -922,6 +922,7 @@ Specifies package name (not the name used to require)."
   (add-to-list 'company-backends 'company-anaconda))
 
 (use-package company-irony
+  :disabled
   :after company
   :commands company-irony
   :config (add-to-list 'company-backends 'company-irony))
