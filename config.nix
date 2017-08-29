@@ -52,13 +52,7 @@
       emacs = emacs;
     });
 
-    myAspell = runCommand "aspell" { buildInputs = [ makeWrapper ]; } ''
-      mkdir -p $out/bin
-      makeWrapper ${aspell}/bin/aspell $out/bin/aspell \
-        --add-flags "--conf=${writeText "aspell.conf" ''
-dict-dir ${aspellDicts.en}/lib/aspell
-        ''}"
-    '';
+    myAspell = aspellWithDicts (ps : with ps; [ en ]);
 
     jdee-server = stdenv.mkDerivation {
       src = fetchFromGitHub {
