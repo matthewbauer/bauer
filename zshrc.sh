@@ -25,7 +25,6 @@ fpath+=(@out@/share/zsh/site-functions)
 
 autoload -U colors && colors
 
-
 unsetopt \
   menu_complete \
   flowcontrol
@@ -120,9 +119,8 @@ for color in {000..255}; do
     BG[$color]="%{[48;5;${color}m%}"
 done
 
-export RPROMPT=
+RPROMPT=
 
-local ret_status="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ )"
 PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$fg[yellow]%} $%{$reset_color%} '
 
 ######################### history options ############################
@@ -135,32 +133,7 @@ if [[ $TERM == "xterm-256color" ]]; then
 fi
 
 # Tell the terminal about the working directory whenever it changes.
-if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]] && [[ -z "$INSIDE_EMACS" ]]; then
-    update_terminal_cwd() {
-        # Identify the directory using a "file:" scheme URL, including
-        # the host name to disambiguate local vs. remote paths.
-
-        # Percent-encode the pathname.
-        local URL_PATH=''
-        {
-            # Use LC_CTYPE=C to process text byte-by-byte.
-            local i ch hexch LC_CTYPE=C
-            for ((i = 1; i <= ${#PWD}; ++i)); do
-                ch="$PWD[i]"
-                if [[ "$ch" =~ [/._~A-Za-z0-9-] ]]; then
-                    URL_PATH+="$ch"
-                else
-                    hexch=$(printf "%02X" "'$ch")
-                    URL_PATH+="%$hexch"
-                fi
-            done
-        }
-
-        local PWD_URL="file://$HOST$URL_PATH"
-        #echo "$PWD_URL"        # testing
-        printf '\e]7;%s\a' "$PWD_URL"
-    }
-
+if [ "$TERM_PROGRAM" = "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ]; then
     # Register the function so it is called whenever the working
     # directory changes.
     autoload add-zsh-hook

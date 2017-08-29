@@ -1,5 +1,21 @@
 . @out@/etc/profile
 
+case "$TERM" in
+    dumb)
+        PS1="\W > "
+        return
+        ;;
+    # eterm*)
+    #           cd()    { command cd    "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+    #           pushd() { command pushd "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+    #           popd()  { command popd  "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+
+    #           printf '\033AnSiTc %s\n' "$PWD"
+    #           printf '\033AnSiTh %s\n' "$HOSTNAME"
+    #           printf '\033AnSiTu %s\n' "$USER"
+    #             ;;
+esac
+
 shopt -s \
       cdspell \
       checkwinsize \
@@ -52,12 +68,6 @@ BLUE="\[$(/usr/bin/tput setaf 4)\]"
 RESET="\[$(/usr/bin/tput sgr0)\]"
 
 case "$TERM" in
-    dumb)
-        PS1="\W > "
-        ;;
-    eterm-color)
-        PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
-        ;;
     *)
         PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
         ;;
@@ -66,6 +76,11 @@ esac
 if [[ $- == *i* ]]; then
     bind '"\e/": dabbrev-expand'
     bind '"\ee": edit-and-execute-command'
+fi
+
+if [ "$TERM_PROGRAM" = "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ]; then
+      PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
+      update_terminal_cwd
 fi
 
 # @fortune@/bin/fortune
