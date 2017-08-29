@@ -2382,7 +2382,8 @@ Specifies package name (not the name used to require)."
 
 (use-package cider)
 
-(use-package xah-math-input)
+(use-package xah-math-input
+  :commands xah-math-input-mode)
 
 (provide 'default)
 ;;; default.el ends here
