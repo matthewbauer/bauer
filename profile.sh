@@ -6,6 +6,7 @@ export LC_ALL=en_US.UTF-8
 # export NIX_REMOTE=daemon
 
 export INFOPATH=$PREFIX/share/info
+export MANPATH=$PREFIX/share/man
 export DICPATH=$PREFIX/share/hunspell
 # export EDITOR=@emacs@/bin/emacsclient
 

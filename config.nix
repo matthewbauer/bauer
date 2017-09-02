@@ -123,8 +123,8 @@
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
         epkgs'' = map (x: if x == "rtags" then pkgs.rtags
-              else if builtins.hasAttr x epkgs.elpaPackages
-                then builtins.getAttr x epkgs.elpaPackages
+              # else if builtins.hasAttr x epkgs.elpaPackages
+              #   then builtins.getAttr x epkgs.elpaPackages
               else if builtins.hasAttr x epkgs.melpaPackages
                 then builtins.getAttr x epkgs.melpaPackages
               else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs

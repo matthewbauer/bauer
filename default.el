@@ -6,6 +6,10 @@
 
 ;;; Code:
 
+;; eventually switcht to @out@
+;; IMPURE: reference to nix-profile!
+(defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
+
 (setq
  ;; TODO: restore file-name-handler-alist later on
  ;; file-name-handler-alist nil
@@ -17,7 +21,7 @@
  ;; ideally this would just use $out
  ;; but we need emacs to be built first
  ;; maybe in the future
- exec-path (append `(,(concat (getenv "HOME") "/.nix-profile/bin")
+ exec-path (append `(,(expand-file-name "bin" output-directory)
 
                      ;; handle /usr/bin/open and other system-specific stuff
                      "/usr/sbin" "/usr/bin"
@@ -26,6 +30,8 @@
                    exec-path)
  ;; TODO: hack browse-url.el to allow customizable open
  )
+
+;; Different from "@out@"
 
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
@@ -40,11 +46,21 @@
 
 (fset 'yes-or-no-p 'y-or-n-p) ;; shorten y or n confirm
 
+;; Work around a bug on OS X where system-name is FQDN.
+;; (if (or
+;;      (eq system-type 'darwin)
+;;      (eq system-type 'berkeley-unix))
+;;     (setq system-name (car (split-string (system-name) "\\."))))
+
 (eval-and-compile
   ;; (add-to-list 'load-path "~/.nixpkgs")
   (require 'subr-x)
   (require 'set-defaults)
   )
+
+(defvar man-path `("/usr/share/man"
+                   "/usr/local/share/man"
+                   ,(expand-file-name "share/man" output-directory)))
 
 ;; setup environment
 (set-envs
@@ -60,6 +76,7 @@
  '("PAGER" "cat")
  '("NODE_NO_READLINE" "1")
  `("PATH" ,(string-join exec-path ":"))
+ `("MANPATH" ,(string-join man-path ":"))
  )
 
 ;; setup defaults
@@ -116,6 +133,7 @@
  '(cursor-in-non-selected-windows nil)
  '(custom-safe-themes t)
  '(custom-buffer-done-kill t)
+ '(custom-file (expand-file-name "settings.el" user-emacs-directory))
  '(custom-search-field nil)
  '(create-lockfiles nil)
  '(debug-on-signal t)
@@ -226,9 +244,10 @@
  '(expand-region-contract-fast-key "j")
  '(fased-completing-read-function 'nil)
  '(fill-column 80)
- '(flycheck-check-syntax-automatically '(save idle-change mode-enabled))
+ '(flycheck-check-syntax-automatically '(save idle-change mode-enabled new-line))
  '(flycheck-display-errors-function
    'flycheck-display-error-messages-unless-error-list)
+ '(flycheck-idle-change-delay 0.001)
  '(flycheck-standard-error-navigation nil)
  '(flycheck-global-modes '(not erc-mode
                                message-mode
@@ -258,6 +277,7 @@
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(inhibit-startup-echo-area-message t)
+ '(Info-directory-list `(,(expand-file-name "share/info" output-directory)))
  '(initial-major-mode 'fundamental-mode)
  '(initial-scratch-message "")
  '(ispell-extra-args '("--sug-mode=ultra"))
@@ -354,10 +374,10 @@
                                    kill-ring
                                    comint-input-ring))
  '(savehist-autosave-interval 60)
- '(scroll-margin 3)
- '(scroll-conservatively 101)
- '(scroll-up-aggressively 0.01)
- '(scroll-down-aggressively 0.01)
+ ;; '(scroll-margin 3)
+ ;; '(scroll-conservatively 101)
+ ;; '(scroll-up-aggressively 0.01)
+ ;; '(scroll-down-aggressively 0.01)
  '(scroll-preserve-screen-position t)
  '(auto-window-vscroll nil)
  '(hscroll-margin 5)
@@ -379,7 +399,7 @@
                                  (nil "\\`root\\'" "/ssh:%h:")
                                  (".*" "\\`root\\'" "/ssh:%h:")))
  ;; TODO: cleanup?
- '(tramp-remote-path '(tramp-own-remote-path
+ '(tramp-remote-path `(tramp-own-remote-path
                        "/run/current-system/sw/bin"
                        tramp-default-remote-path
                        "/bin"
@@ -390,7 +410,7 @@
                        "/usr/local/sbin"
                        "/opt/bin"
                        "/opt/sbin"
-                       "~/.nix-profile/bin"
+                       ,(expand-file-name "bin" output-directory)
                        ))
  '(text-quoting-style 'quote)
  '(tls-checktrust t)
@@ -412,6 +432,7 @@
  '(visible-bell nil)
  '(visible-cursor nil)
  '(woman-imenu t)
+ '(woman-manpath man-path)
  '(whitespace-line-column 80)
  '(whitespace-auto-cleanup t)
  '(whitespace-rescan-timer-time nil)
@@ -423,6 +444,8 @@
                       empty
                       lines-style))
  )
+
+(load custom-file 'noerror)
 
 ;; set paths available from Nix substitution
 (set-paths
@@ -445,7 +468,7 @@
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
- '(explicit-shell-file-name "@bashInteractive@/bin/bash")
+ ;; '(explicit-shell-file-name "@bashInteractive@/bin/bash")
  '(flycheck-sh-bash-executable "@bash@/bin/bash")
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
@@ -679,19 +702,21 @@
 (bind-key "s-C-<down>" 'shrink-window)
 (bind-key "s-C-<up>" 'enlarge-window)
 
-(bind-key "C-x 8 ' /" "′")
-(bind-key "C-x 8 \" /" "″")
-(bind-key "C-x 8 \" (" "“")
-(bind-key "C-x 8 \" )" "”")
-(bind-key "C-x 8 ' (" "‘")
-(bind-key "C-x 8 ' )" "’")
-
-(bind-key "C-x 8 4 < -" "←")
-(bind-key "C-x 8 4 - >" "→")
-(bind-key "C-x 8 4 b" "←")
-(bind-key "C-x 8 4 f" "→")
-(bind-key "C-x 8 4 p" "↑")
-(bind-key "C-x 8 4 n" "↓")
+;; (autoload 'iso-transl-ctl-x-8-map
+;;   "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
+(require 'iso-transl)
+(bind-key "' /" "′" iso-transl-ctl-x-8-map)
+(bind-key "\" /" "″" iso-transl-ctl-x-8-map)
+(bind-key "\" (" "“" iso-transl-ctl-x-8-map)
+(bind-key "\" )" "”" iso-transl-ctl-x-8-map)
+(bind-key "' (" "‘" iso-transl-ctl-x-8-map)
+(bind-key "' )" "’" iso-transl-ctl-x-8-map)
+(bind-key "4 < -" "←" iso-transl-ctl-x-8-map)
+(bind-key "4 - >" "→" iso-transl-ctl-x-8-map)
+(bind-key "4 b" "←" iso-transl-ctl-x-8-map)
+(bind-key "4 f" "→" iso-transl-ctl-x-8-map)
+(bind-key "4 p" "↑" iso-transl-ctl-x-8-map)
+(bind-key "4 n" "↓" iso-transl-ctl-x-8-map)
 
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
@@ -889,6 +914,8 @@ Specifies package name (not the name used to require)."
                company-select-next-if-tooltip-visible-or-complete-selection)
               ("S-TAB" . company-select-previous)
               ("<backtab>" . company-select-previous)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
               )
   :commands (company-mode
              global-company-mode
@@ -908,10 +935,8 @@ Specifies package name (not the name used to require)."
   (global-company-mode 1)
   (add-hook 'minibuffer-setup-hook 'company-mode)
   (add-hook 'minibuffer-setup-hook
-            (lambda ()
-              (setq-local company-frontends
-                          '(company-pseudo-tooltip-unless-just-one-frontend
-                            company-preview-if-just-one-frontend))))
+            (lambda () (setq-local company-frontends
+                              '(company-preview-frontend))))
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle))
 
 (use-package company-anaconda
@@ -1149,6 +1174,7 @@ Specifies package name (not the name used to require)."
     (interactive)
     (end-of-line))
   :init
+  (defvar eshell-rebind-keys-alist)
   (add-to-list 'eshell-rebind-keys-alist '([(control 101)] . eshell-eol))
   (setq eshell-modules-list
         '(eshell-alias
@@ -1419,7 +1445,8 @@ Specifies package name (not the name used to require)."
 
 (use-package info
   :builtin
-  :bind ("C-h C-i" . info-lookup-symbol))
+  :bind ("C-h C-i" . info-lookup-symbol)
+  )
 
 (use-package intero
   :commands intero-mode
