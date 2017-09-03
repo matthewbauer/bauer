@@ -244,7 +244,10 @@
  '(expand-region-contract-fast-key "j")
  '(fased-completing-read-function 'nil)
  '(fill-column 80)
- '(flycheck-check-syntax-automatically '(save idle-change mode-enabled new-line))
+ '(flycheck-check-syntax-automatically '(save
+                                         idle-change
+                                         mode-enabled
+                                         new-line))
  '(flycheck-display-errors-function
    'flycheck-display-error-messages-unless-error-list)
  '(flycheck-idle-change-delay 0.001)
@@ -468,7 +471,7 @@
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
- ;; '(explicit-shell-file-name "@bashInteractive@/bin/bash")
+ ;; '(explicit-shell-file-name (expand-file-name "/bin/bash"))
  '(flycheck-sh-bash-executable "@bash@/bin/bash")
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
@@ -2411,6 +2414,11 @@ Specifies package name (not the name used to require)."
 
 (use-package xah-math-input
   :commands xah-math-input-mode)
+
+(use-package ffap
+  :builtin
+  ;; TODO: handle line numbers like filename:line:col
+  )
 
 (provide 'default)
 ;;; default.el ends here
