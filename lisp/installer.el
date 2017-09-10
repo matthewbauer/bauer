@@ -143,7 +143,7 @@ BUFFER is the buffer to show output in."
 BUFFER to show output in."
   (interactive)
   (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
-  (unless (processp installer-running-process)
+  (unless (process-live-p installer-running-process)
     (switch-to-buffer-other-window buffer)
     (with-current-buffer buffer
       (erase-buffer)
@@ -159,7 +159,7 @@ BUFFER to show output in."
   "Upgrade Emacs.
 BUFFER to show output in."
   (interactive)
-  (unless (processp installer-running-process)
+  (unless (process-live-p installer-running-process)
     (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
     (with-current-buffer buffer
       (erase-buffer)
