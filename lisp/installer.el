@@ -156,7 +156,7 @@ BUFFER to show output in."
       (run-sequentially buffer '(nix-install
                                  ;; nix-update
                                  repo-update
-                                 repo-install
+                                 repo-build
                                  restart-info)))))
 
 (defun upgrade (&optional buffer)
@@ -173,7 +173,7 @@ BUFFER to show output in."
         (run-sequentially buffer '(nix-install
                                    ;; nix-update
                                    repo-update
-                                   repo-install
+                                   repo-build
                                    restart-info))))))
 
 (when installer-auto-upgrade
