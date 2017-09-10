@@ -82,6 +82,8 @@
           -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./set-defaults.el} \
+          -l ${./restart-emacs.el} \
+          -l ${./installer.el} \
           -l ${./use-package-list.el} \
           --eval "(use-package-list \
             \"${default}/share/emacs/site-lisp/default.el\")))" \
@@ -119,6 +121,10 @@
           cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
           cp ${./nethack.el} $out/share/emacs/site-lisp/nethack.el
           cp ${./set-defaults.el} $out/share/emacs/site-lisp/set-defaults.el
+          cp ${./installer.el} $out/share/emacs/site-lisp/installer.el
+          cp ${./restart-emacs.el} $out/share/emacs/site-lisp/restart-emacs.el
+          cp ${./company-eshell-history.el} $out/share/emacs/site-lisp/company-eshell-history.el
+          cp ${./use-package-list.el} $out/share/emacs/site-lisp/use-package-list.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let

@@ -1,4 +1,4 @@
-;;; company-eshell-hisotry.el --- Eshell history backend for company
+;;; company-eshell-history.el --- Eshell history backend for company
 
 ;; This file is NOT part of GNU Emacs.
 

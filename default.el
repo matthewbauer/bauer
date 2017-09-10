@@ -6,7 +6,7 @@
 
 ;;; Code:
 
-;; eventually switcht to @out@
+;; eventually switch to @out@
 ;; IMPURE: reference to nix-profile!
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
 
@@ -56,15 +56,18 @@
   ;; (add-to-list 'load-path "~/.nixpkgs")
   (require 'subr-x)
   (require 'set-defaults)
+  (require 'installer)
   )
 
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
                    ,(expand-file-name "share/man" output-directory)))
 
+(defvar cacert-file "@cacert@/etc/ssl/certs/ca-bundle.crt")
+
 ;; setup environment
 (set-envs
- '("NIX_SSL_CERT_FILE" "@cacert@/etc/ssl/certs/ca-bundle.crt")
+ `("NIX_SSL_CERT_FILE" ,cacert-file)
  '("NIX_REMOTE" "daemon")
  `("NIX_PATH" ,(concat
                 "nixpkgs=/nix/var/nix/profiles/per-user/"
@@ -136,11 +139,14 @@
  '(custom-file (expand-file-name "settings.el" user-emacs-directory))
  '(custom-search-field nil)
  '(create-lockfiles nil)
+ '(checkdoc-spellcheck-documentation-flag t)
  '(debug-on-signal t)
  '(delete-old-versions t)
+ '(delete-by-moving-to-trash t)
  '(dired-auto-revert-buffer t)
  '(dired-hide-details-hide-symlink-targets nil)
  '(dired-dwim-target t)
+ '(dired-listing-switches "-alhv")
  '(dired-omit-verbose nil)
  '(dired-omit-files "^\\.")
  '(dired-recursive-copies 'always)
@@ -239,6 +245,8 @@
      "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar"))
  '(eldoc-eval-preferred-function 'pp-eval-expression)
  '(eval-expression-debug-on-error t)
+ '(eval-expression-print-length 20)
+ '(eval-expression-print-level nil)
  ;; TODO: move to paths?
  '(explicit-bash-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash"))
  '(expand-region-contract-fast-key "j")
@@ -343,7 +351,9 @@
  '(ns-pop-up-frames nil)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
  '(org-return-follows-link t)
+ '(org-special-ctrl-a/e t)
  '(org-support-shift-select t)
+ '(org-src-fontify-natively t)
  '(parens-require-spaces t)
  '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
@@ -381,7 +391,6 @@
  ;; '(scroll-conservatively 101)
  ;; '(scroll-up-aggressively 0.01)
  ;; '(scroll-down-aggressively 0.01)
- '(scroll-preserve-screen-position t)
  '(auto-window-vscroll nil)
  '(hscroll-margin 5)
  '(hscroll-step 5)
@@ -415,6 +424,7 @@
                        "/opt/sbin"
                        ,(expand-file-name "bin" output-directory)
                        ))
+ '(tramp-default-user nil)
  '(text-quoting-style 'quote)
  '(tls-checktrust t)
  '(undo-limit 800000)
@@ -428,6 +438,7 @@
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
  '(vc-git-diff-switches '("-w" "-U3"))
+ '(vc-follow-symlinks nil)
  '(vc-ignore-dir-regexp
    "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
  '(view-read-only t)
@@ -720,6 +731,15 @@
 (bind-key "4 f" "→" iso-transl-ctl-x-8-map)
 (bind-key "4 p" "↑" iso-transl-ctl-x-8-map)
 (bind-key "4 n" "↓" iso-transl-ctl-x-8-map)
+(bind-key "<down>" "⇓" iso-transl-ctl-x-8-map)
+(bind-key "<S-down>" "↓" iso-transl-ctl-x-8-map)
+(bind-key "<left>" "⇐" iso-transl-ctl-x-8-map)
+(bind-key "<S-left>" "←" iso-transl-ctl-x-8-map)
+(bind-key "<right>" "⇒" iso-transl-ctl-x-8-map)
+(bind-key "<S-right>" "→" iso-transl-ctl-x-8-map)
+(bind-key "<up>" "⇑" iso-transl-ctl-x-8-map)
+(bind-key "<S-up>" "↑" iso-transl-ctl-x-8-map)
+(bind-key "," "…" iso-transl-ctl-x-8-map)
 
 ;; setup use-package and some extra
 ;; keywords for use-package-list.el
@@ -736,18 +756,7 @@
   (autoload 'use-package-autoload-keymap "use-package")
 
   (require 'use-package)
-
-  (add-to-list 'use-package-keywords :builtin)
-  (defun use-package-handler/:builtin (name _ __ rest state)
-    "Builtin keyword for use-package.
-Set this as a builtin package (don’t try to install)"
-    (use-package-process-keywords name rest state))
-
-  (add-to-list 'use-package-keywords :name)
-  (defun use-package-handler/:name (name _ __ rest state)
-    "Name keyword for use-package.
-Specifies package name (not the name used to require)."
-    (use-package-process-keywords name rest state)))
+  (require 'use-package-list))
 
 ;; some utils needed at init stage
 ;; should always appear before other use-package
@@ -766,6 +775,11 @@ Specifies package name (not the name used to require)."
 (create-hook-helper save-on-unfocus ()
   :hooks (focus-out-hook)
   (save-some-buffers t))
+
+(column-number-mode t)
+
+(when (not (window-system))
+  (xterm-mouse-mode +1))
 
 ;; Alphabetical listing of all packages
 
@@ -929,6 +943,7 @@ Specifies package name (not the name used to require)."
         '((company-css :with company-dabbrev)
           (company-nxml :with company-dabbrev)
           (company-elisp :with company-capf)
+          (company-eshell-history :with company-capf company-files)
           (company-capf :with company-files company-keywords)
           (company-etags company-gtags company-clang company-cmake
                          :with company-dabbrev)
@@ -1058,7 +1073,7 @@ Specifies package name (not the name used to require)."
   (add-hook 'prog-mode-hook 'diff-hl-mode)
   (add-hook 'vc-dir-mode-hook 'diff-hl-mode)
   (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
-  ;; (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   )
 
 (use-package dired
@@ -1067,9 +1082,7 @@ Specifies package name (not the name used to require)."
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
-         ("e" . eshell))
-  :init
-  (add-hook 'dired-mode-hook 'dired-hide-details-mode))
+         ("e" . eshell)))
 
 (use-package dired-collapse
   :disabled
@@ -1096,7 +1109,9 @@ Specifies package name (not the name used to require)."
   :init
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  :bind (("s-\\" . dired-jump-other-window)))
+  :bind (("s-\\" . dired-jump-other-window)
+         :map dired-mode-map
+         (")" . dired-omit-mode)))
 
 (use-package dtrt-indent
   :commands dtrt-indent-mode
@@ -1298,7 +1313,12 @@ Specifies package name (not the name used to require)."
 
 (use-package haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
-         ("\\.cabal\\'" . haskell-cabal-mode)))
+         ("\\.cabal\\'" . haskell-cabal-mode))
+  :commands haskell-indentation-moe
+  :init
+  (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
+  :config
+  (require 'haskell-doc))
 
 (use-package hideshow
   :disabled
@@ -1612,6 +1632,8 @@ Specifies package name (not the name used to require)."
          ("C-x G" . magit-dispatch-popup)
          :map magit-mode-map
          ("C-o" . magit-dired-other-window))
+  :init
+  (defvar magit-last-seen-setup-instructions "1.4.0")
   :config
   (create-hook-helper magit-github-hook ()
     :hooks (magit-mode-hook)
@@ -1750,6 +1772,12 @@ Specifies package name (not the name used to require)."
   (use-package ox-pandoc
     :demand)
   (use-package ox-reveal
+    :demand)
+  (use-package ox-ref
+    :disabled
+    :demand)
+  (use-package ox-beamer
+    :builtin
     :demand))
 
 (use-package org-bullets
@@ -1986,6 +2014,7 @@ Specifies package name (not the name used to require)."
 
 (use-package saveplace
   :builtin
+  :disabled
   :commands save-place-mode
   :demand
   :config (save-place-mode t))
@@ -2419,6 +2448,66 @@ Specifies package name (not the name used to require)."
   :builtin
   ;; TODO: handle line numbers like filename:line:col
   )
+
+(use-package helpful
+  :bind (("C-h f" . helpful-callable)
+         ("C-h k" . helpful-key)))
+
+(use-package pabbrev
+  :disabled
+  :commands pabbrev-mode
+  :init (add-hook 'prog-mode-hook 'pabbrev-mode))
+
+(use-package company-eshell-history
+  :builtin
+  :commands company-eshell-history
+  )
+
+(use-package auto-compile
+  :disabled
+  :demand t
+  :init
+  (setq auto-compile-display-buffer nil)
+  (setq auto-compile-mode-line-counter t)
+  (setq auto-compile-source-recreate-deletes-dest t)
+  (setq auto-compile-toggle-deletes-nonlib-dest t)
+  (setq auto-compile-update-autoloads t)
+  :config
+  (auto-compile-on-load-mode)
+  (auto-compile-on-save-mode)
+  (add-hook 'auto-compile-inhibit-compile-hook
+            'auto-compile-inhibit-compile-detached-git-head))
+
+(use-package tooltip
+  :builtin
+  :demand
+  :config
+  (tooltip-mode -1))
+
+(use-package ws-butler
+  :disabled
+  :diminish ws-butler-mode
+  :commands (ws-butler-mode)
+  :init
+  (add-hook 'prog-mode-hook 'ws-butler-mode))
+
+(use-package help
+  :builtin
+  :bind (:map help-map
+              ("C-v" . find-variable)
+              ("C-k" . find-function-on-key)
+              ("C-f" . find-function)
+              ("C-l" . find-library)
+              :map help-mode-map
+              ("g" . revert-buffer-no-confirm))
+  :preface
+  (defun revert-buffer-no-confirm (&optional ignore-auto)
+    "Revert current buffer without asking."
+    (interactive (list (not current-prefix-arg)))
+    (revert-buffer ignore-auto t nil)))
+
+(use-package dired-imenu
+  :after dired)
 
 (provide 'default)
 ;;; default.el ends here

@@ -2,10 +2,6 @@
 
 ;; Copyright (C) 2017 Matthew Bauer
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
-;; Git: https://github.com/matthewbauer/eshell-extras
-;; Version: 0.01
-;; Created: 2017-06-05
-;; Keywords: eshell, prompt
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -16,17 +12,30 @@
 (require 'json)
 (require 'use-package)
 
+(defun use-package-handler/:builtin (name _ __ rest state)
+  "Builtin keyword for use-package.
+Set this as a builtin package (don’t try to install)
+
+NAME the name of the keyword
+REST rest of args
+STATE use-package state var"
+  (use-package-process-keywords name rest state))
+(add-to-list 'use-package-keywords :builtin)
+
+(defun use-package-handler/:name (name _ __ rest state)
+  "Name keyword for use-package.
+Specifies package name (not the name used to require).
+
+NAME the name of the keyword
+REST rest of args
+STATE use-package state var"
+  (use-package-process-keywords name rest state))
+(add-to-list 'use-package-keywords :name)
+
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
   (defvar package-list '())
-
-  (add-to-list 'use-package-keywords :builtin)
-  (defun use-package-handler/:builtin (name keyword arg rest state)
-    (use-package-process-keywords name rest state))
-  (add-to-list 'use-package-keywords :name)
-  (defun use-package-handler/:name (name keyword arg rest state)
-    (use-package-process-keywords name rest state))
 
   (advice-add 'use-package
               :before (lambda (name &rest args)
