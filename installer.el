@@ -52,16 +52,18 @@
                             installer-repo-dir))))
                  (emacs-binary (expand-file-name
                                 "Applications/Emacs.app/Contents/MacOS/Emacs"
-                                nix-output)))
-    (advice-add 'restart-emacs--get-emacs-binary
-                :override (lambda () emacs-binary)))
-  (with-current-buffer buffer
-    (goto-char (point-max))
-    (insert "\nEmacs repo buffer updated!")
-    (insert "\nRun M-x restart-emacs to use.")
-    (insert "\n"))
-  (when installer-auto-restart
-    (restart-emacs)))
+                                nix-output))
+                 (old-emacs-binary (restart-emacs--get-emacs-binary)))
+    (unless (string= old-emacs-binary emacs-binary)
+      (advice-add 'restart-emacs--get-emacs-binary
+                  :override (lambda () emacs-binary))
+      (with-current-buffer buffer
+        (goto-char (point-max))
+        (insert "\nEmacs repo buffer updated!")
+        (insert "\nRun M-x restart-emacs to use.")
+        (insert "\n"))
+      (when installer-auto-restart
+        (restart-emacs)))))
 
 (defun nix-install (&rest _)
   "Install Nix."
