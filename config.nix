@@ -189,6 +189,7 @@
         "/bin"
         "/etc/profile.d"
         "/etc/bash_completion.d"
+        "/etc/ssl"
         "/Applications"
         "/share/doc"
         "/share/man"
@@ -285,6 +286,7 @@
         isync
         stack
         ghc
+        cacert
         # ctags
         # notmuch
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''

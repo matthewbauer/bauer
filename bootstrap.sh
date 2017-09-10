@@ -12,8 +12,4 @@ if ! [ -f default.nix ]; then
     cd $repo_dir
 fi
 
-# nixpkgs-17.09-darwin at 2017-09-10
-# nixpkgsRev=2b1521bfc754df4a2dc8ecd8581178d22988a04c
-# NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/$nixpkgsRev.tar.gz
-
-nix-env -if.
+nix-env -if .
