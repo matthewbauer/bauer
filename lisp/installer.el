@@ -105,12 +105,9 @@
   (let* ((git-command (format "git --work-tree=%s" installer-repo-dir))
          (command
           (if (file-exists-p installer-repo-dir)
-              `(,shell-file-name
-                ,shell-command-switch
-                ,(format "%s fetch --all && %s reset --hard origin/master"
-                         git-command git-command))
-            `("git" "clone" "--depth=1"
-              ,installer-repo-url ,installer-repo-dir))))
+              `(,shell-file-name ,shell-command-switch
+                                 ,(format "%s pull origin master" git-command))
+            `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
 
@@ -172,7 +169,7 @@ BUFFER to show output in."
                                    repo-install
                                    restart-info))))))
 
-(run-with-timer 1 (* 24 60 60) 'upgrade)
+(run-with-timer 15 (* 24 60 60) 'upgrade)
 
 (provide 'installer)
 ;;; installer.el ends here
