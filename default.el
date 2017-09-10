@@ -1467,6 +1467,7 @@
   :commands (indium-mode indium-interaction-mode indium-scratch))
 
 (use-package info
+  :disabled
   :builtin
   :bind ("C-h C-i" . info-lookup-symbol)
   )

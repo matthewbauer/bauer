@@ -81,12 +81,14 @@
 
 (defun repo-update (&rest _)
   "Update/install repo."
-  (let ((command
-         (if (file-exists-p installer-repo-dir)
-             `("git"
-               ,(format "--work-tree=%s" installer-repo-dir)
-               "pull" "origin" "master")
-           `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
+  (let* ((git-command (format "git --work-tree=%s" installer-repo-dir))
+         (command
+          (if (file-exists-p installer-repo-dir)
+              `(,shell-file-name
+                ,shell-command-switch
+                ,(format "%s fetch --all && %s reset --hard origin/master"
+                         git-command git-command))
+            `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
 
