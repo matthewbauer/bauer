@@ -8,6 +8,7 @@
 (require 'comint)
 (require 'subr-x)
 (require 'restart-emacs)
+(require 'timer)
 (eval-when-compile (require 'cl))
 
 (defvar nix-profile (expand-file-name ".nix-profile" (getenv "HOME")))
@@ -57,10 +58,12 @@
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
                   :override (lambda () emacs-binary))
+      (switch-to-buffer-other-window buffer)
       (with-current-buffer buffer
         (goto-char (point-max))
-        (insert "\nEmacs repo buffer updated!")
-        (insert "\nRun M-x restart-emacs to use.")
+        (erase-buffer)
+        (insert "\nEmacs updated!")
+        (insert "\nRun M-x restart-emacs to upgrade.")
         (insert "\n"))
       (when installer-auto-restart
         (restart-emacs)))))
@@ -118,11 +121,10 @@ BUFFER is the buffer to show output in."
       (unless proc (run-sequentially buffer fns)))))
 
 (defun install (&optional buffer)
-  "Upgrade/install Emacs.
+  "Install Emacs.
 BUFFER to show output in."
   (interactive)
-  (when (not buffer)
-    (setq buffer (get-buffer-create "*installer*")))
+  (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
   (switch-to-buffer-other-window buffer)
   (with-current-buffer buffer
     (erase-buffer)
@@ -133,6 +135,23 @@ BUFFER to show output in."
                                repo-update
                                repo-install
                                restart-info))))
+
+(defun upgrade (&optional buffer)
+  "Upgrade Emacs.
+BUFFER to show output in."
+  (interactive)
+  (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
+  (with-current-buffer buffer
+    (erase-buffer)
+    (comint-mode)
+    (lexical-let ((installer-auto-restart nil))
+      (run-sequentially buffer '(nix-install
+                                 nix-update
+                                 repo-update
+                                 repo-install
+                                 restart-info)))))
+
+(run-with-timer 1 (* 24 60 60) 'upgrade)
 
 (provide 'installer)
 ;;; installer.el ends here

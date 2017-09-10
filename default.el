@@ -1972,9 +1972,6 @@
           (js2-mode . nodejs-repl)
           (rjsx-mode . nodejs-repl))))
 
-(use-package restart-emacs
-  :commands restart-emacs)
-
 (use-package restclient
   :mode (("\\.rest\\'" . restclient-mode)
          ("\\.restclient\\'" . restclient-mode)))
