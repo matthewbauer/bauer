@@ -22,7 +22,8 @@
   (add-to-list 'load-path default-directory))
 (require 'restart-emacs)
 
-(defvar nix-profile (expand-file-name ".nix-profile" (getenv "HOME")))
+(defvar nix-profile (expand-file-name ".nix-profile"
+                                      (getenv "HOME")))
 
 (defgroup installer nil
   "Installer package"
@@ -68,14 +69,16 @@
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
-  (lexical-let* ((nix-output
-                  (string-trim
-                   (shell-command-to-string
-                    (format "nix-build %s" installer-repo-dir))))
-                 (emacs-binary (expand-file-name
-                                (nix-emacs-path)
-                                nix-output))
-                 (old-emacs-binary (restart-emacs--get-emacs-binary)))
+  (lexical-let* ((emacs-binary
+                  (file-truename
+                   (expand-file-name
+                    (nix-emacs-path)
+                    (string-trim
+                     (shell-command-to-string
+                      (format "nix-build %s" installer-repo-dir))))))
+                 (old-emacs-binary (file-truename
+                                    (expand-file-name (nix-emacs-path)
+                                                      nix-profile))))
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
                   :override (lambda () emacs-binary))
