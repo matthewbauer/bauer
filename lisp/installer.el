@@ -109,7 +109,8 @@
                 ,shell-command-switch
                 ,(format "%s fetch --all && %s reset --hard origin/master"
                          git-command git-command))
-            `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
+            `("git" "clone" "--depth=1"
+              ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
 
@@ -149,7 +150,7 @@ BUFFER to show output in."
       (comint-mode)
       (local-set-key (kbd "q") 'quit-window)
       (run-sequentially buffer '(nix-install
-                                 nix-update
+                                 ;; nix-update
                                  repo-update
                                  repo-install
                                  restart-info)))))
@@ -166,7 +167,7 @@ BUFFER to show output in."
       (local-set-key (kbd "q") 'quit-window)
       (lexical-let ((installer-auto-restart nil))
         (run-sequentially buffer '(nix-install
-                                   nix-update
+                                   ;; nix-update
                                    repo-update
                                    repo-install
                                    restart-info))))))
