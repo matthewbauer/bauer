@@ -247,7 +247,7 @@
         nix
         # nix-prefetch-scripts
         nix-index
-        # nix-repl
+        nix-repl
         # nix-zsh-completions
         # ninja
         # rtags

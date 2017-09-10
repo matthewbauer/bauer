@@ -66,10 +66,7 @@
   (lexical-let* ((nix-output
                   (string-trim
                    (shell-command-to-string
-                    (format "NIX_PATH=nixpkgs=%s nix-build %s"
-                            (expand-file-name ".nix-defexpr/channels/nixpkgs"
-                                              (getenv "HOME"))
-                            installer-repo-dir))))
+                    (format "nix-build %s" installer-repo-dir))))
                  (emacs-binary (expand-file-name
                                 (nix-emacs-path)
                                 nix-output))
