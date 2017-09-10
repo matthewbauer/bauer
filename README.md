@@ -2,9 +2,7 @@
 
 ## Install/upgrade
 ```
-curl
-https://raw.githubusercontent.com/matthewbauer/nixpkgs-config/master/bootstrap.sh
-| sh
+curl https://raw.githubusercontent.com/matthewbauer/nixpkgs-config/master/bootstrap.sh | sh
 ```
 
 ## Develop
