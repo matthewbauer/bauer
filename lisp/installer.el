@@ -69,13 +69,13 @@
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
-  (lexical-let* ((emacs-binary
+  (lexical-let* ((new-profile (string-trim
+                               (shell-command-to-string
+                                (format "nix-build --no-out-link %s"
+                                        installer-repo-dir))))
+                 (emacs-binary
                   (file-truename
-                   (expand-file-name
-                    (nix-emacs-path)
-                    (string-trim
-                     (shell-command-to-string
-                      (format "nix-build %s" installer-repo-dir))))))
+                   (expand-file-name (nix-emacs-path) new-profile)))
                  (old-emacs-binary (file-truename
                                     (expand-file-name (nix-emacs-path)
                                                       nix-profile))))
@@ -86,6 +86,7 @@
       (with-current-buffer buffer
         (goto-char (point-max))
         (erase-buffer)
+        (shell-command (format "nix-env -i %s" new-profile) buffer)
         (insert "\nEmacs updated!")
         (insert "\nRun M-x restart-emacs to upgrade.")
         (insert "\n"))
@@ -119,12 +120,10 @@
     (make-process :name "repo-update"
                   :command command)))
 
-(defun repo-install (&rest _)
-  "Install repo."
+(defun repo-build (&rest _)
+  "Build repo."
   (make-process :name "repo-install"
-                :command `("nix-env"
-                           "-i"
-                           "-f" ,installer-repo-dir)))
+                :command `("nix-build" "--no-out-link" ,installer-repo-dir)))
 
 (defun run-sequentially (buffer fns)
   "Run each process in BUFFER generator, FNS, sequentially.
