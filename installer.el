@@ -2,14 +2,25 @@
 
 ;;; Commentary:
 
+;; This will install or upgrade this Emacs distribution for you.
+;; To use, load this file and type:
+
+;; M-x install<RET>
+
+;; within Emacs. Alternatively, you can see the README for other installation
+;; methods.
+
 ;;; Code:
 
 (require 'url-handlers)
 (require 'comint)
 (require 'subr-x)
-(require 'restart-emacs)
 (require 'timer)
 (eval-when-compile (require 'cl))
+
+(unless (locate-library "restart-emacs")
+  (add-to-list 'load-path default-directory))
+(require 'restart-emacs)
 
 (defvar nix-profile (expand-file-name ".nix-profile" (getenv "HOME")))
 
