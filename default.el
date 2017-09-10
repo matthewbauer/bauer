@@ -510,7 +510,7 @@
  '(irony-cmake-executable "@cmake@/bin/cmake")
  '(jka-compr-info-compress-program "@ncompress@/bin/compress")
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
- ;; '(irony-server-install-prefix "@irony@")
+ '(irony-server-install-prefix "@irony@")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
  '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
@@ -2452,7 +2452,7 @@
 
 (use-package helpful
   :bind (("C-h f" . helpful-callable)
-         ("C-h k" . helpful-key)))
+         ("C-h v" . helpful-variable)))
 
 (use-package pabbrev
   :disabled

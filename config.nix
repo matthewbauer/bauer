@@ -107,7 +107,7 @@
         texlive = myTex;
         markdown2 = pythonPackages.markdown2;
         tidy = html-tidy;
-        # irony = irony-server;
+        irony = irony-server;
         # jsonlint = pythonPackages.demjson;
         libxml2 = libxml2.bin;
         gpg = gnupg1compat;
