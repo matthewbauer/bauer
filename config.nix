@@ -178,6 +178,11 @@
 
         wrapProgram $out/bin/zsh \
           --set ZDOTDIR $out/etc
+
+        cp ${./runemacs.sh} $out/runemacs.sh
+        substituteInPlace $out/runemacs.sh \
+          --replace @out@ $out
+        chmod +x $out/runemacs.sh
       '';
       meta.priority = 10;
       pathsToLink = [

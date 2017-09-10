@@ -53,6 +53,12 @@
     (shell-command-to-string
      (format "which %s" command)))))
 
+(defun nix-emacs-path ()
+  "Get relative path to Emacs."
+  (pcase (system-type)
+    ('darwin "Applications/Emacs.app/Contents/MacOS/Emacs")
+    (- "bin/emacs")))
+
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
   (lexical-let* ((nix-output
@@ -63,7 +69,7 @@
                                               (getenv "HOME"))
                             installer-repo-dir))))
                  (emacs-binary (expand-file-name
-                                "Applications/Emacs.app/Contents/MacOS/Emacs"
+                                (nix-emacs-path)
                                 nix-output))
                  (old-emacs-binary (restart-emacs--get-emacs-binary)))
     (unless (string= old-emacs-binary emacs-binary)
