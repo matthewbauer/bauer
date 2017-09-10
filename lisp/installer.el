@@ -46,6 +46,11 @@
   :group 'installer
   :type 'boolean)
 
+(defcustom installer-auto-upgrade nil
+  "Whether to auto upgrade Emacs using timer."
+  :group 'installer
+  :type 'boolean)
+
 (defvar installer-running-process nil)
 
 (defun is-exec (command)
@@ -102,11 +107,11 @@
 
 (defun repo-update (&rest _)
   "Update/install repo."
-  (let* ((git-command (format "git --work-tree=%s" installer-repo-dir))
-         (command
+  (let* ((command
           (if (file-exists-p installer-repo-dir)
-              `(,shell-file-name ,shell-command-switch
-                                 ,(format "%s pull origin master" git-command))
+              `(,shell-file-name
+                ,shell-command-switch
+                ,(format "cd %s && git pull origin master" installer-repo-dir))
             `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
@@ -169,7 +174,8 @@ BUFFER to show output in."
                                    repo-install
                                    restart-info))))))
 
-(run-with-timer 15 (* 24 60 60) 'upgrade)
+(when installer-auto-upgrade
+  (run-with-timer 15 (* 24 60 60) 'upgrade))
 
 (provide 'installer)
 ;;; installer.el ends here
