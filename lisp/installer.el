@@ -84,8 +84,6 @@
                   :override (lambda () emacs-binary))
       (switch-to-buffer-other-window buffer)
       (with-current-buffer buffer
-        (goto-char (point-max))
-        (erase-buffer)
         (shell-command (format "nix-env -i %s" new-profile) buffer)
         (insert "\nEmacs updated!")
         (insert "\nRun M-x restart-emacs to upgrade.")
@@ -134,6 +132,8 @@ BUFFER is the buffer to show output in."
                   (buffer buffer))
       (when (processp proc)
         (setq installer-running-process proc)
+        (with-current-buffer buffer
+          (goto-char (point-max)))
         (set-process-buffer proc buffer)
         (set-process-sentinel proc (lambda (proc _)
                                      (when (and
