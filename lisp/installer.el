@@ -46,6 +46,8 @@
   :group 'installer
   :type 'boolean)
 
+(defvar installer-running-process nil)
+
 (defun is-exec (command)
   "Return true if `COMMAND' is an executable on the system search path."
   (file-executable-p
@@ -55,7 +57,7 @@
 
 (defun nix-emacs-path ()
   "Get relative path to Emacs."
-  (pcase (system-type)
+  (pcase system-type
     ('darwin "Applications/Emacs.app/Contents/MacOS/Emacs")
     (- "bin/emacs")))
 
@@ -129,6 +131,7 @@ BUFFER is the buffer to show output in."
                   (fns (cdr fns))
                   (buffer buffer))
       (when (processp proc)
+        (setq installer-running-process proc)
         (set-process-buffer proc buffer)
         (set-process-sentinel proc (lambda (proc _)
                                      (when (and
@@ -142,31 +145,34 @@ BUFFER is the buffer to show output in."
 BUFFER to show output in."
   (interactive)
   (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
-  (switch-to-buffer-other-window buffer)
-  (with-current-buffer buffer
-    (erase-buffer)
-    (comint-mode)
-    (local-set-key (kbd "q") 'quit-window)
-    (run-sequentially buffer '(nix-install
-                               nix-update
-                               repo-update
-                               repo-install
-                               restart-info))))
-
-(defun upgrade (&optional buffer)
-  "Upgrade Emacs.
-BUFFER to show output in."
-  (interactive)
-  (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
-  (with-current-buffer buffer
-    (erase-buffer)
-    (comint-mode)
-    (lexical-let ((installer-auto-restart nil))
+  (unless (processp installer-running-process)
+    (switch-to-buffer-other-window buffer)
+    (with-current-buffer buffer
+      (erase-buffer)
+      (comint-mode)
+      (local-set-key (kbd "q") 'quit-window)
       (run-sequentially buffer '(nix-install
                                  nix-update
                                  repo-update
                                  repo-install
                                  restart-info)))))
+
+(defun upgrade (&optional buffer)
+  "Upgrade Emacs.
+BUFFER to show output in."
+  (interactive)
+  (unless (processp installer-running-process)
+    (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (comint-mode)
+      (local-set-key (kbd "q") 'quit-window)
+      (lexical-let ((installer-auto-restart nil))
+        (run-sequentially buffer '(nix-install
+                                   nix-update
+                                   repo-update
+                                   repo-install
+                                   restart-info))))))
 
 (run-with-timer 1 (* 24 60 60) 'upgrade)
 

@@ -81,10 +81,10 @@
         emacs -batch \
           -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
-          -l ${./set-defaults.el} \
-          -l ${./restart-emacs.el} \
-          -l ${./installer.el} \
-          -l ${./use-package-list.el} \
+          -l ${./lisp/set-defaults.el} \
+          -l ${./lisp/restart-emacs.el} \
+          -l ${./lisp/installer.el} \
+          -l ${./lisp/use-package-list.el} \
           --eval "(use-package-list \
             \"${default}/share/emacs/site-lisp/default.el\")))" \
           > $out
@@ -115,16 +115,16 @@
         aspell = myAspell;
       } ''
           mkdir -p $out/share/emacs/site-lisp
-          cp ${./default.el} $out/share/emacs/site-lisp/default.el
-          cp ${./em-dired.el} $out/share/emacs/site-lisp/em-dired.el
-          cp ${./dired-column.el} $out/share/emacs/site-lisp/dired-column.el
-          cp ${./macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-          cp ${./nethack.el} $out/share/emacs/site-lisp/nethack.el
-          cp ${./set-defaults.el} $out/share/emacs/site-lisp/set-defaults.el
-          cp ${./installer.el} $out/share/emacs/site-lisp/installer.el
-          cp ${./restart-emacs.el} $out/share/emacs/site-lisp/restart-emacs.el
-          cp ${./company-eshell-history.el} $out/share/emacs/site-lisp/company-eshell-history.el
-          cp ${./use-package-list.el} $out/share/emacs/site-lisp/use-package-list.el
+          cp ${./lisp/default.el} $out/share/emacs/site-lisp/default.el
+          cp ${./lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
+          cp ${./lisp/dired-column.el} $out/share/emacs/site-lisp/dired-column.el
+          cp ${./lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+          cp ${./lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
+          cp ${./lisp/set-defaults.el} $out/share/emacs/site-lisp/set-defaults.el
+          cp ${./lisp/installer.el} $out/share/emacs/site-lisp/installer.el
+          cp ${./lisp/restart-emacs.el} $out/share/emacs/site-lisp/restart-emacs.el
+          cp ${./lisp/company-eshell-history.el} $out/share/emacs/site-lisp/company-eshell-history.el
+          cp ${./lisp/use-package-list.el} $out/share/emacs/site-lisp/use-package-list.el
           substituteAllInPlace $out/share/emacs/site-lisp/default.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
