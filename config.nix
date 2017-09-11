@@ -82,6 +82,7 @@
           -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
           -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
           -l ${./lisp/set-defaults.el} \
+          -l ${./lisp/site-paths.el} \
           -l ${./lisp/restart-emacs.el} \
           -l ${./lisp/installer.el} \
           -l ${./lisp/use-package-list.el} \
@@ -130,7 +131,8 @@
              $out/share/emacs/site-lisp/company-eshell-history.el
           cp ${./lisp/use-package-list.el} \
              $out/share/emacs/site-lisp/use-package-list.el
-          substituteAllInPlace $out/share/emacs/site-lisp/default.el
+          cp ${./lisp/site-paths.el} $out/share/emacs/site-lisp/site-paths.el
+          substituteAllInPlace $out/share/emacs/site-lisp/site-paths.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
         epkgs'' = map (x: if x == "rtags" then pkgs.rtags

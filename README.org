@@ -1,5 +1,7 @@
 * bauer
 
+  An [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE
+
   This is my development environment, built with [[https://nixos.org/nix/][Nix]] and [[https://nixos.org/nixpkgs/][Nixpkgs]].
 
 ** Usage
@@ -12,9 +14,26 @@
 *** Develop
     #+BEGIN_SRC
     git clone https://github.com/matthewbauer/bauer
-    cd nixpkgs-config
+    cd bauer
     nix-build
     ./result/runemacs.sh
+    #+END_SRC
+
+*** w/o Nix
+
+    You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
+    configuration. To get started, run the following:
+
+    #+BEGIN_SRC
+    mkdir -p ~/.emacs.d
+    git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
+    #+END_SRC
+
+    Then, add the following to your Emacs init file:
+
+    #+BEGIN_SRC
+    (add-to-list 'load-path (expand-file-name "bauer" user-emacs-directory)
+    (require 'default)
     #+END_SRC
 
 ** Files
