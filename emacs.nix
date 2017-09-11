@@ -6,7 +6,8 @@
 , withX ? !stdenv.isDarwin
 , withGTK2 ? false, gtk2 ? null
 , withGTK3 ? true, gtk3 ? null, gsettings_desktop_schemas ? null
-, withXwidgets ? false, webkitgtk24x-gtk3 ? null, wrapGAppsHook ? null, glib_networking ? null
+, withXwidgets ? false, webkitgtk24x-gtk3 ? null
+, wrapGAppsHook ? null, glib_networking ? null
 , withCsrc ? true
 , srcRepo ? true, autoconf ? null, automake ? null, texinfo ? null
 }:
@@ -32,8 +33,8 @@ stdenv.mkDerivation rec {
 
   src = fetchgit {
     url = "https://git.savannah.gnu.org/git/emacs.git";
-    rev = "3a8d0cc825635e07da2a90c4ac987b476fc9b05d";
-    sha256 = "13z01gx0vngy2w8zn1x5kb9gpv7vwrid8ngi469lzmpqg7yzyq4h";
+    rev = "01c885f21f343045783eb9ad1ff5f9b83d6cd789";
+    sha256 = "0amn6xxh4vgii1xi24xcx6lfhlbd4x6y60alnw0n2ih6i4991k5p";
   };
 
   nativeBuildInputs = [ pkgconfig ]
@@ -44,12 +45,14 @@ stdenv.mkDerivation rec {
     [ ncurses gconf libxml2 gnutls alsaLib acl gpm gettext ]
     ++ lib.optionals stdenv.isLinux [ dbus libselinux ]
     ++ lib.optionals withX
-      [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg libungif libtiff librsvg libXft
-        imagemagick gconf ]
+    [ xlibsWrapper libXaw Xaw3d libXpm libpng libjpeg
+      libungif libtiff librsvg libXft
+      imagemagick gconf ]
     ++ lib.optional (withX && withGTK2) gtk2
     ++ lib.optionals (withX && withGTK3) [ gtk3 gsettings_desktop_schemas ]
     ++ lib.optional (stdenv.isDarwin && withX) cairo
-    ++ lib.optionals (withX && withXwidgets) [ webkitgtk24x-gtk3 glib_networking ];
+    ++ lib.optionals (withX && withXwidgets) [ webkitgtk24x-gtk3
+                                               glib_networking ];
 
   propagatedBuildInputs = lib.optionals stdenv.isDarwin [ AppKit GSS ImageIO ];
 
@@ -80,7 +83,8 @@ stdenv.mkDerivation rec {
   postInstall = ''
     mkdir -p $out/share/emacs/site-lisp
     cp ${./site-start.el} $out/share/emacs/site-lisp/site-start.el
-    $out/bin/emacs --batch -f batch-byte-compile $out/share/emacs/site-lisp/site-start.el
+    $out/bin/emacs --batch -f batch-byte-compile \
+      $out/share/emacs/site-lisp/site-start.el
 
     rm -rf $out/var
     rm -rf $out/share/emacs/${version}/site-lisp
@@ -101,7 +105,8 @@ stdenv.mkDerivation rec {
     description = "The extensible, customizable GNU text editor";
     homepage    = http://www.gnu.org/software/emacs/;
     license     = licenses.gpl3Plus;
-    maintainers = with maintainers; [ chaoflow lovek323 peti the-kenny jwiegley ];
+    maintainers = with maintainers; [ chaoflow lovek323 peti the-kenny
+                                      jwiegley ];
     platforms   = platforms.all;
 
     longDescription = ''

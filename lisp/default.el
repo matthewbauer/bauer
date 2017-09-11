@@ -563,7 +563,7 @@
  '(locate-executable "@findutils@/bin/locate")
  '(ag-executable "@ag@/bin/ag")
  '(intero-stack-executable "@intero@/bin/intero-nix-shim")
- '(notmuch-executable "@notmuch@/bin/notmuch")
+ '(notmuch-command "@notmuch@/bin/notmuch")
  )
 
 (set-defaults

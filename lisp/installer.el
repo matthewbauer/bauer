@@ -93,7 +93,7 @@
 
 (defun nix-install (&rest _)
   "Install Nix."
-  (unless (is-exec "nix-env")
+  (unless (is-exec "nix-build")
     (let ((nix-file (expand-file-name "nix.sh" temporary-file-directory)))
       (url-copy-file installer-nix-url nix-file t)
       (let ((current-mode (file-modes nix-file))
@@ -113,7 +113,8 @@
           (if (file-exists-p installer-repo-dir)
               `(,shell-file-name
                 ,shell-command-switch
-                ,(format "cd %s && git pull origin master" installer-repo-dir))
+                ,(format "cd %s && git pull --no-rebase origin master"
+                         installer-repo-dir))
             `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
@@ -147,8 +148,8 @@ BUFFER is the buffer to show output in."
 BUFFER to show output in."
   (interactive)
   (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
+  (switch-to-buffer-other-window buffer)
   (unless (process-live-p installer-running-process)
-    (switch-to-buffer-other-window buffer)
     (with-current-buffer buffer
       (erase-buffer)
       (comint-mode)
@@ -163,8 +164,8 @@ BUFFER to show output in."
   "Upgrade Emacs.
 BUFFER to show output in."
   (interactive)
+  (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
   (unless (process-live-p installer-running-process)
-    (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
     (with-current-buffer buffer
       (erase-buffer)
       (comint-mode)

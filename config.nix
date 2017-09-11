@@ -293,7 +293,7 @@
         ghc
         cacert
         # ctags
-        # notmuch
+        notmuch
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
