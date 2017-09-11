@@ -12,9 +12,15 @@
 ** Usage
 *** Install/upgrade
 
+    Run this from your shell:
+
     #+BEGIN_SRC bash
 curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | sh
     #+END_SRC
+
+    Alternatively, you can accomplish the same thing from Emacs by downloading
+    [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (M-x load-file<RET>) and running ‘install’ (M-x
+    install<RET>).
 
 *** Develop
 
@@ -425,9 +431,11 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
  '(org-support-shift-select t)
  '(org-src-fontify-natively t)
  '(parens-require-spaces t)
- '(package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+ '(package-archives '(("melpa-stable" . "http://stable.melpa.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
-                      ("org" . "http://orgmode.org/elpa/")))
+                      ("org" . "http://orgmode.org/elpa/")
+                      ("gnu" . "https://elpa.gnu.org/packages/")
+                      ))
  '(package-enable-at-startup nil)
  '(proof-splash-enable nil)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
