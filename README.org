@@ -5,7 +5,7 @@
 
   An [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE
 
-  @matthewbauer’s Emacs config
+  @[[https://matthewbauer.us][matthewbauer]]’s Emacs config
 
   This is my development environment, built with [[https://nixos.org/nix/][Nix]] and [[https://nixos.org/nixpkgs/][Nixpkgs]].
 
@@ -38,9 +38,10 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     Then, add the following to your Emacs init file [[~/.emacs.d/init.el]]:
 
     #+BEGIN_SRC emacs-lisp :tangle no
-(defvar bauer-dir (expand-file-name "bauer" user-emacs-directory))
-(add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
-(org-babel-load-file (expand-file-name "README.org" bauer-dir))
+(unless (locate-library "site-paths")
+  (defvar bauer-dir (expand-file-name "bauer" user-emacs-directory))
+  (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
+  (org-babel-load-file (expand-file-name "README.org" bauer-dir)))
     #+END_SRC
 
 ** Header
@@ -51,6 +52,15 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+BEGIN_SRC emacs-lisp
 ;;; -*- lexical-binding: t -*-
    #+END_SRC
+
+** Verify that Emacs is >= 25
+
+   Emacs 24 is unsupported currently
+
+    #+BEGIN_SRC emacs-lisp
+(unless (>= emacs-major-version 25)
+  (error "Need Emacs 25+ to work properly"))
+    #+END_SRC
 
 ** Speed tweaks
 
@@ -84,15 +94,6 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (add-hook 'focus-out-hook 'garbage-collect)
      #+END_SRC
 
-** Verify that Emacs is >= 25
-
-   Emacs 24 is unsupported currently
-
-    #+BEGIN_SRC emacs-lisp
-(unless (>= emacs-major-version 25)
-  (error "Need Emacs 25+ to work properly"))
-    #+END_SRC
-
 ** Use y or n instead of yes or no
 
    Shortens confirmation to y or n.
@@ -110,6 +111,12 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (require 'installer nil t)
    #+END_SRC
 
+** Autoloads
+   These autoloads are needed for some reason.
+
+   #+BEGIN_SRC emacs-lisp
+(autoload 'tramp-tramp-file-p "tramp")
+   #+END_SRC
 ** Custom config
 
    Use [[set-defaults.el]] file. This should maintain compatiblity with [[custom.el]].
@@ -518,6 +525,55 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     #+END_SRC
 
 ** TODO hack browse-url.el to allow customizable open
+** Setup use-package
+   Setup use-package and some extra keywords for use-package-list.el to work
+   correctly.
+
+   First, let’s define some variables and autoloads to get rid of complaints from Flycheck.
+
+   #+BEGIN_SRC emacs-lisp
+(defvar use-package-enable-imenu-support)
+(defvar use-package-expand-minimally)
+(defvar use-package-always-defer)
+(autoload 'use-package-autoload-keymap "use-package")
+   #+END_SRC
+
+   Then, set some use-package global variables.
+
+   #+BEGIN_SRC emacs-lisp
+(setq use-package-always-defer t
+      use-package-expand-minimally t
+      use-package-enable-imenu-support t)
+   #+END_SRC
+
+   Require [[package.el]] and initialize it if site-paths is not setup (meaning we’re
+   outside the Nix expression).
+
+   #+BEGIN_SRC emacs-lisp
+(unless (featurep 'site-paths)
+  (require 'package)
+  (package-initialize)
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (setq use-package-always-ensure t))
+   #+END_SRC
+
+   Actually require use-package,
+
+   #+BEGIN_SRC emacs-lisp
+(require 'use-package)
+   #+END_SRC
+
+   and some more requires,
+
+   #+BEGIN_SRC emacs-lisp
+(require 'use-package-list nil t)
+   #+END_SRC
+
+   This is needed to recognize the keywords =:builtin= and =:name=. See
+   [[use-package-list.el]] for documentation.
+
 ** Key bindings
 
    Using bind-key, setup some simple key bindings. None of these should overwrite
@@ -592,55 +648,6 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (bind-key "<S-up>" "↑" iso-transl-ctl-x-8-map)
 (bind-key "," "…" iso-transl-ctl-x-8-map)
    #+END_SRC
-
-** Setup use-package
-   Setup use-package and some extra keywords for use-package-list.el to work
-   correctly.
-
-   First, let’s define some variables and autoloads to get rid of complaints from Flycheck.
-
-   #+BEGIN_SRC emacs-lisp
-(defvar use-package-enable-imenu-support)
-(defvar use-package-expand-minimally)
-(defvar use-package-always-defer)
-(autoload 'use-package-autoload-keymap "use-package")
-   #+END_SRC
-
-   Then, set some use-package global variables.
-
-   #+BEGIN_SRC emacs-lisp
-(setq use-package-always-defer t
-      use-package-expand-minimally t
-      use-package-enable-imenu-support t)
-   #+END_SRC
-
-   Require [[package.el]] and initialize it if site-paths is not setup (meaning we’re
-   outside the Nix expression).
-
-   #+BEGIN_SRC emacs-lisp
-(unless (featurep 'site-paths)
-  (require 'package)
-  (package-initialize)
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-  (setq use-package-always-ensure t))
-   #+END_SRC
-
-   Actually require use-package,
-
-   #+BEGIN_SRC emacs-lisp
-(require 'use-package)
-   #+END_SRC
-
-   and some more requires,
-
-   #+BEGIN_SRC emacs-lisp
-(require 'use-package-list nil t)
-   #+END_SRC
-
-   This is needed to recognize the keywords =:builtin= and =:name=. See
-   [[use-package-list.el]] for documentation.
 
 ** Hooks
 

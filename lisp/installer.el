@@ -47,7 +47,7 @@
   :group 'installer
   :type 'boolean)
 
-(defcustom installer-auto-upgrade t
+(defcustom installer-auto-upgrade nil
   "Whether to auto upgrade Emacs using timer."
   :group 'installer
   :type 'boolean)
@@ -168,7 +168,8 @@ BUFFER to show output in."
 BUFFER to show output in."
   (interactive)
   (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
-  (unless (process-live-p installer-running-process)
+  (when (and (not (process-live-p installer-running-process))
+             (is-exec "nix-build"))
     (with-current-buffer buffer
       (erase-buffer)
       (comint-mode)
