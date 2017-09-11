@@ -79,17 +79,20 @@
                  (old-emacs-binary (file-truename
                                     (expand-file-name (nix-emacs-path)
                                                       nix-profile))))
+    (switch-to-buffer-other-window buffer)
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
                   :override (lambda () emacs-binary))
-      (switch-to-buffer-other-window buffer)
-      (with-current-buffer buffer
-        (shell-command (format "nix-env -i %s" new-profile) buffer)
-        (insert "\nEmacs updated!")
-        (insert "\nRun M-x restart-emacs to upgrade.")
-        (insert "\n"))
+      (shell-command (format "nix-env -i %s" new-profile) buffer)
       (when installer-auto-restart
-        (restart-emacs)))))
+        (restart-emacs)))
+    (with-current-buffer buffer
+      (if (string= old-emacs-binary emacs-binary)
+          (progn
+            (insert "\nEmacs is already up to date."))
+        (progn (insert "\nEmacs updated!")
+               (insert "\nRun M-x restart-emacs to upgrade.")
+               (insert "\n"))))))
 
 (defun nix-install (&rest _)
   "Install Nix."
