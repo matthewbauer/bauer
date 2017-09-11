@@ -47,7 +47,7 @@
   :group 'installer
   :type 'boolean)
 
-(defcustom installer-auto-upgrade nil
+(defcustom installer-auto-upgrade t
   "Whether to auto upgrade Emacs using timer."
   :group 'installer
   :type 'boolean)
@@ -170,9 +170,7 @@ BUFFER to show output in."
       (comint-mode)
       (local-set-key (kbd "q") 'quit-window)
       (lexical-let ((installer-auto-restart nil))
-        (run-sequentially buffer '(nix-install
-                                   ;; nix-update
-                                   repo-update
+        (run-sequentially buffer '(repo-update
                                    repo-build
                                    restart-info))))))
 
