@@ -8,7 +8,7 @@ fi
 
 if ! [ -f default.nix ]; then
     repo_dir=$(mktemp -d)
-    git clone https://github.com/matthewbauer/nixpkgs-config $repo_dir
+    git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
 fi
 

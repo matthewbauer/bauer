@@ -29,7 +29,7 @@
   "Installer package"
   :group 'emacs)
 
-(defcustom installer-repo-url "https://github.com/matthewbauer/nixpkgs-config"
+(defcustom installer-repo-url "https://github.com/matthewbauer/bauer"
   "URL to clone with git."
   :group 'installer)
 
@@ -38,7 +38,7 @@
   :group 'installer)
 
 (defcustom installer-repo-dir
-  (expand-file-name "nixpkgs-config" temporary-file-directory)
+  (expand-file-name "bauer" temporary-file-directory)
   "Location of repo config."
   :group 'installer)
 
