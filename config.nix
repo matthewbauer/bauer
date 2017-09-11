@@ -76,22 +76,7 @@
     };
 
     myEmacs = let
-      epkgs''' = with customEmacsPackages.melpaPackages;
-        runCommand "packages-list" { buildInputs = [ emacs ]; } ''
-        emacs -batch \
-          -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-          -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
-          -l ${./lisp/set-defaults.el} \
-          -l ${./lisp/site-paths.el} \
-          -l ${./lisp/restart-emacs.el} \
-          -l ${./lisp/installer.el} \
-          -l ${./lisp/use-package-list.el} \
-          --eval "(use-package-list \
-            \"${default}/share/emacs/site-lisp/default.el\")))" \
-          > $out
-      '';
-      epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
-      default = (runCommand "default.el" {
+      site-paths = runCommand "site-paths.el" {
         inherit rtags ripgrep ag emacs ant nethack fortune gnutls
                 coreutils findutils openssh git bash
                 zsh perl golint perlcritic
@@ -115,8 +100,33 @@
         jdeeserver = jdee-server;
         aspell = myAspell;
       } ''
+          cp ${./site-paths.el.in} $out
+          substituteAllInPlace $out
+      '';
+      default-el = runCommand "default.el" { buildInputs = [ emacs ]; } ''
+        emacs --batch -l ob-tangle \
+              --eval "(org-babel-tangle-file \"${./README.org}\" \"$out\" \"emacs-lisp\")"
+      '';
+      epkgs''' = with customEmacsPackages.melpaPackages;
+        runCommand "packages-list" { buildInputs = [ emacs ]; } ''
+          emacs --batch \
+                -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+                -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
+                -l ${./lisp/set-defaults.el} \
+                -l ${site-paths} \
+                -l ${./lisp/restart-emacs.el} \
+                -l ${./lisp/installer.el} \
+                -l ${./lisp/use-package-list.el} \
+                --eval "(use-package-list \"${default-el}\")" \
+                > $out
+      '';
+      epkgs' = builtins.fromJSON (builtins.readFile epkgs''');
+      default = (runCommand "default.el" { buildInputs = [emacs]; } ''
           mkdir -p $out/share/emacs/site-lisp
-          cp ${./lisp/default.el} $out/share/emacs/site-lisp/default.el
+
+          cp ${default-el} $out/share/emacs/site-lisp/default.el
+          cp ${site-paths} $out/share/emacs/site-lisp/site-paths.el
+
           cp ${./lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
           cp ${./lisp/dired-column.el} \
              $out/share/emacs/site-lisp/dired-column.el
@@ -131,8 +141,6 @@
              $out/share/emacs/site-lisp/company-eshell-history.el
           cp ${./lisp/use-package-list.el} \
              $out/share/emacs/site-lisp/use-package-list.el
-          cp ${./lisp/site-paths.el} $out/share/emacs/site-lisp/site-paths.el
-          substituteAllInPlace $out/share/emacs/site-lisp/site-paths.el
         '');
     in customEmacsPackages.emacsWithPackages (epkgs: let
         epkgs'' = map (x: if x == "rtags" then pkgs.rtags
@@ -186,10 +194,10 @@
         wrapProgram $out/bin/zsh \
           --set ZDOTDIR $out/etc
 
-        cp ${./runemacs.sh} $out/runemacs.sh
-        substituteInPlace $out/runemacs.sh \
+        cp ${./runemacs.sh} $out/bin/run
+        substituteInPlace $out/bin/run \
           --replace @out@ $out
-        chmod +x $out/runemacs.sh
+        chmod +x $out/bin/run
       '';
       meta.priority = 10;
       pathsToLink = [
