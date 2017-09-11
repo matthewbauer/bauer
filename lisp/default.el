@@ -2360,7 +2360,7 @@
         (remove 'ansi-color-process-output comint-output-filter-functions)))
 
 (use-package yaml-mode
-  :mode "\\.yaml\\'")
+  :mode "\\.ya?ml\\'")
 
 (use-package yasnippet
   :disabled ;; haven’t found yasnippet very useful
