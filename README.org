@@ -10,7 +10,7 @@
 
     Run this from your shell:
 
-    #+BEGIN_SRC bash
+    #+BEGIN_SRC shell
 curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | sh
     #+END_SRC
 
@@ -20,7 +20,7 @@ curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | 
 
 *** Develop
 
-    #+BEGIN_SRC bash
+    #+BEGIN_SRC shell
 git clone https://github.com/matthewbauer/bauer
 cd bauer
 nix-build
@@ -32,7 +32,7 @@ nix-build
     You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
     configuration. To get started, run the following.
 
-    #+BEGIN_SRC bash :tangle no
+    #+BEGIN_SRC shell :tangle no
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     #+END_SRC
@@ -319,7 +319,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
  '(eval-expression-print-length 20)
  '(eval-expression-print-level nil)
  ;; TODO: move to paths?
- '(explicit-bash-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; bash"))
+ '(explicit-shell-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
  '(expand-region-contract-fast-key "j")
  '(fased-completing-read-function 'nil)
  '(fill-column 80)
@@ -2721,8 +2721,8 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
                          (beginning-of-line)
                          (point))))
       (shell-command (buffer-substring start-point (point)))))
-  :mode (("\\.*bashrc$" . sh-mode)
-         ("\\.*bash_profile" . sh-mode)
+  :mode (("\\.*shellrc$" . sh-mode)
+         ("\\.*shell_profile" . sh-mode)
          ("\\.zsh\\'" . sh-mode))
   :bind (:map sh-mode-map
               ("C-x C-e" . shell-command-at-point)))
