@@ -1,42 +1,6 @@
 {
   packageOverrides = pkgs: with pkgs; rec {
     nix = nixStable;
-    emacs-devel = callPackage ./emacs.nix {
-        # use override to enable additional features
-        libXaw = xorg.libXaw;
-        Xaw3d = null;
-        gconf = null;
-        alsaLib = null;
-        imagemagick = null;
-        acl = null;
-        gpm = null;
-        inherit (darwin.apple_sdk.frameworks) AppKit CoreWLAN GSS
-                                              Kerberos ImageIO;
-    };
-
-    rls = let mozpkgs = (import (fetchFromGitHub {
-        owner = "mozilla";
-        repo = "nixpkgs-mozilla";
-        rev = "26c8cccaeb152db32f02a97e055ff58df649cd78";
-        sha256 = "0y7wfz0nh59k19kc5qk6w822yds2wi18bcngzypwh4b0n6dw0szx";
-      }) {});
-      rustNightlyNixRepo = pkgs.fetchFromGitHub {
-        owner = "solson";
-        repo = "rust-nightly-nix";
-        rev = "9e09d579431940367c1f6de9463944eef66de1d4";
-        sha256 = "03zkjnzd13142yla52aqmgbbnmws7q8kn1l5nqaly22j31f125xy";
-      };
-      rustPackages = pkgs.callPackage rustNightlyNixRepo { };
-      rustPlatform = makeRustPlatform rustBeta;
-      # rustPlatform = rustNightlyBin;
-    in callPackage ./rls {
-      # inherit rustPlatform;
-      rustPlatform = makeRustPlatform rustNightly;
-    };
-    python-language-server = callPackage ./python-language-server {};
-    haskell-lsp = haskellPackages.callPackage ./haskell-lsp {};
-    jdt-language-server = callPackage ./jdt-language-server;
-    go-langserver = callPackage ./go-langserver {};
 
     rEnv = pkgs.rWrapper.override {
       packages = with pkgs.rPackages; [
