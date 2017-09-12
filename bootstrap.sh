@@ -6,6 +6,10 @@ if ! command -v nix-env >/dev/null 2>&1; then
     sh $nix_installer
 fi
 
+if [ -d .git ]; then
+    git pull origin master
+fi
+
 if ! [ -f default.nix ]; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
