@@ -214,96 +214,11 @@
       ];
       extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
       name = "bauer";
+
       paths = [
-        # bash-completion
-        # zsh-completions
-        # myAspell
         myEmacs
-        # gcc
-        # gawk
-        bashInteractive
-        # bc
-        # bzip2
-        # cabal-install
-        # cabal2nix
-        # cargo
-        # checkbashisms
-        # cmake
-        coreutils
-        # clang
-        # diffutils
-        # editorconfig-core-c
-        # emscripten
-        # ffmpeg
-        # findutils
-        # ripgrep
-        # ag
-        # ghc
-        git
-        # gitAndTools.hub
-        # go2nix
-        gawk
-        # gnugrep
-        # gnumake
-        # gnuplot
-        gnused
-        gnupg1compat
-        gnutar
-        # gnutls
-        # go
-        gzip
-        # jdk
-        # jq
-        # lua
-        # less
-        # man
-        # nano
-        # nasm
-        nox
-        nix
-        # nix-prefetch-scripts
-        nix-index
-        nix-repl
-        # nix-zsh-completions
-        # ninja
-        # rtags
-        # nmap
-        # nodePackages.tern
-        # nodejs
-        # openssh
-        # openssl
-        # pandoc
-        # patch
-        # pypi2nix
-        # python
-        # perl
-        # php
-        # pwgen
-        # rsync
-        # ruby
-        # rustc
-        # screen
-        # stack
-        nodePackages.tern
-        # time
-        # tree
-        # unzip
-        # vim
-        # which
-        # w3m
-        # wget
-        # v8
-        xz
-        zip
-        zsh
-        # fortune
+        myTex
         rEnv
-        isync
-        stack
-        ghc
-        cacert
-        # ctags
-        notmuch
         (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
           mkdir -p $out/etc/profile.d
           cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
@@ -312,6 +227,18 @@
             --replace @fortune@ ${fortune} \
             --replace @cacert@ ${cacert}
         '')
+      ] ++ [bashInteractive zsh coreutils git
+            gawk gnused gzip gnutar gnupg1compat xz cacert] # base tools
+      ++ [ # most of these should be wrapped into Emacs
+        nox
+        nix
+        nix-index
+        nix-repl
+        nodePackages.tern
+        isync
+        stack
+        ghc
+        notmuch
       ];
     };
 
