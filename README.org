@@ -141,7 +141,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   #+END_SRC
 * Custom config
 
-  Use [[./set-defaults.el]] file. This should maintain compatiblity with custom.el.
+  Use [[./lisp/set-defaults.el]] file. This should maintain compatiblity with custom.el.
 
   #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
@@ -1294,29 +1294,6 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   )
     #+END_SRC
 
-    :PROPERTIES:
-    :header-args: :tangle no
-    :END:
-
-    Add some binary plist decompression. This is currently disabled.
-
-    #+BEGIN_SRC emacs-lisp
-(use-package jka-compr
-  :builtin
-  :demand
-  :config
-  (add-to-list 'jka-compr-compression-info-list
-               ["\\.plist$"
-                "converting text XML to binary plist"
-                "plutil"
-                ("-convert" "binary1" "-o" "-" "-")
-                "converting binary plist to text XML"
-                "plutil"
-                ("-convert" "xml1" "-o" "-" "-")
-                nil nil "bplist"])
-  (jka-compr-update))
-    #+END_SRC
-
 *** ivy
 
     #+BEGIN_SRC emacs-lisp
@@ -1342,6 +1319,121 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     #+END_SRC
 
 *** jka-compr                                                      :noexport:
+
+    :PROPERTIES:
+    :header-args: :tangle no
+    :END:
+
+    Add some binary plist decompression. This is currently disabled.
+
+    #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :builtin
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+    #+END_SRC
+
+    :PROPERTIES:
+    :header-args: :tangle no
+    :END:
+
+    Add some binary plist decompression. This is currently disabled.
+
+    #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :builtin
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+    #+END_SRC
+
+    :PROPERTIES:
+    :header-args: :tangle no
+    :END:
+
+    Add some binary plist decompression. This is currently disabled.
+
+    #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :builtin
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+    #+END_SRC
+
+    :PROPERTIES:
+    :header-args: :tangle no
+    :END:
+
+    Add some binary plist decompression. This is currently disabled.
+
+    #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :builtin
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+    #+END_SRC
+
+    :PROPERTIES:
+    :header-args: :tangle no
+    :END:
+
+    Add some binary plist decompression. This is currently disabled.
+
+    #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :builtin
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+    #+END_SRC
 *** kill-or-bury-alive
 
     #+BEGIN_SRC emacs-lisp
@@ -2783,6 +2875,12 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :builtin)
     #+END_SRC
 
+*** nix-fontify
+*** macho-mode
+*** set-defaults
+*** installer
+*** em-dired
+*** use-package-list
 ** Other
 
    These should correspond to minor modes or helper functions. Some of them are
@@ -3369,6 +3467,11 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     :config
     (company-ycmd-setup))
   )
+    #+END_SRC
+*** htmlize
+
+    #+BEGIN_SRC emacs-lisp
+(use-package htmlize)
     #+END_SRC
 
 * Footer
