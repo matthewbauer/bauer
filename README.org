@@ -592,7 +592,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (require 'use-package-list nil t)
   #+END_SRC
 
-  This is needed to recognize the keywords =:builtin= and =:name=. See
+  This is needed to recognize the =:name= keyword. See
   [[./lisp/use-package-list.el]] for documentation.
 
 * Key bindings
@@ -733,7 +733,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package mb-depth
-  :builtin
+  :ensure nil
   :commands minibuffer-depth-indicate-mode
   :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
     #+END_SRC
@@ -854,7 +854,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package company-eshell-history
-  :builtin
+  :ensure nil
   :commands company-eshell-history
   )
      #+END_SRC
@@ -959,7 +959,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package compile
-  :builtin
+  :ensure nil
   :bind (("C-c C-c" . compile)
          ("M-O" . show-compilation)
          :map compilation-mode-map
@@ -1039,7 +1039,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package dired
-  :builtin
+  :ensure nil
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
@@ -1065,7 +1065,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
   #+BEGIN_SRC emacs-lisp
 (use-package dired-column
-  :builtin
+  :ensure nil
   :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
@@ -1092,7 +1092,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package dired-x
-  :builtin
+  :ensure nil
   :after dired
   :commands (dired-omit-mode dired-hide-details-mode)
   :init
@@ -1118,7 +1118,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package eldoc
-  :builtin
+  :ensure nil
   :commands eldoc-mode
   :init
   (add-hooks '(((emacs-lisp-mode
@@ -1131,7 +1131,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package eshell
-  :builtin
+  :ensure nil
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command eshell-bol)
@@ -1179,17 +1179,18 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package em-dired
+  :ensure nil
   :commands (em-dired-mode em-dired-new)
   :init
   (add-hook 'eshell-mode-hook 'em-dired-mode)
-  (advice-add 'eshell :before 'em-dired-new)
-  :builtin)
+  (advice-add 'eshell :before 'em-dired-new))
      #+END_SRC
 
 *** Emacs speaks statistics
 
     #+BEGIN_SRC emacs-lisp
 (use-package ess-site
+  :ensure nil
   :name "ess"
   :commands R)
     #+END_SRC
@@ -1222,7 +1223,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package flyspell
-  :builtin
+  :ensure nil
   :commands (flyspell-mode flyspell-prog-mode)
   :config
   (setq flyspell-use-meta-tab nil)
@@ -1235,7 +1236,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package gnus
-  :builtin
+  :ensure nil
   :commands gnus
   :init
   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
@@ -1253,7 +1254,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package gud
-  :builtin
+  :ensure nil
   :commands gud-gdb
   )
     #+END_SRC
@@ -1262,7 +1263,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package help
-  :builtin
+  :ensure nil
   :bind (:map help-map
               ("C-v" . find-variable)
               ("C-k" . find-function-on-key)
@@ -1294,7 +1295,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package info
-  :builtin
+  :ensure nil
   :bind ("C-h C-i" . info-lookup-symbol)
   )
     #+END_SRC
@@ -1507,7 +1508,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :commands mmm-mode
   :config
   (use-package mmm-auto
-    :builtin
+    :ensure nil
     :demand))
     #+END_SRC
 
@@ -1538,7 +1539,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package org
-  :builtin
+  :ensure nil
   :commands org-capture
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
@@ -1565,7 +1566,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
      (clojure . t)
      (sh . t)))
   (use-package ox-latex
-    :builtin
+    :ensure nil
     :demand)
   (use-package ox-mediawiki
     :demand)
@@ -1577,7 +1578,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     :disabled
     :demand)
   (use-package ox-beamer
-    :builtin
+    :ensure nil
     :demand))
     #+END_SRC
 
@@ -1622,7 +1623,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   (projectile-mode)
 
   (use-package easymenu
-    :builtin
+    :ensure nil
     :config
 
     (easy-menu-define projectile-menu projectile-mode-map "Projectile"
@@ -1688,7 +1689,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package shell
-  :builtin
+  :ensure nil
   :commands (shell shell-mode)
   :bind ("C-c C-s" . shell)
   :init
@@ -1794,10 +1795,10 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
                  html-mode) . smartparens-mode)))
   :config
   (use-package smartparens-html
-    :builtin
+    :ensure nil
     :demand)
   (use-package smartparens-config
-    :builtin
+    :ensure nil
     :demand)
 
   (sp-with-modes 'org-mode
@@ -1851,7 +1852,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package term
-  :builtin
+  :ensure nil
   :commands (term-mode term-char-mode term-set-escape-char)
   :init
   (add-hook 'term-mode-hook (lambda ()
@@ -1873,7 +1874,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package tramp
-  :builtin
+  :ensure nil
   :commands (tramp-tramp-file-p
              tramp-file-name-user
              tramp-file-name-real-host
@@ -1916,7 +1917,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package whitespace-mode
-  :builtin
+  :ensure nil
   :commands whitespace-mode
   :init (add-hook 'prog-mode-hook 'whitespace-mode))
     #+END_SRC
@@ -1943,7 +1944,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package hideshow
-  :builtin
+  :ensure nil
   :commands hs-minor-mode
   :init (add-hooks '(((c-mode-common
                        lisp-mode
@@ -1963,7 +1964,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package subword
-  :builtin
+  :ensure nil
   :commands subword-mode
   :init (add-hook 'java-mode-hook 'subword-mode))
     #+END_SRC
@@ -1974,7 +1975,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (use-package align
   :bind (("C-c [" . align-regexp))
   :commands align
-  :builtin)
+  :ensure nil)
     #+END_SRC
 
 *** ansi-color
@@ -1983,7 +1984,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package ansi-color
-  :builtin
+  :ensure nil
   :commands ansi-color-apply-on-region
   :init (create-hook-helper colorize-compilation-buffer ()
           :hooks (compilation-filter-hook)
@@ -1995,7 +1996,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package autorevert
-  :builtin
+  :ensure nil
   :demand
   :commands auto-revert-mode
   :init
@@ -2008,7 +2009,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package bug-reference
-  :builtin
+  :ensure nil
   :commands bug-reference-prog-mode
   :init (add-hook 'prog-mode-hook 'bug-reference-prog-mode))
     #+END_SRC
@@ -2025,7 +2026,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package comint
-  :builtin
+  :ensure nil
   :bind
   (:map comint-mode-map
         ("C-r"       . comint-history-isearch-backward-regexp)
@@ -2053,7 +2054,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package delsel
-  :builtin
+  :ensure nil
   :demand
   :config (delete-selection-mode t))
     #+END_SRC
@@ -2062,7 +2063,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package edebug
-  :builtin)
+  :ensure nil)
     #+END_SRC
 
 *** electric
@@ -2075,7 +2076,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package electric
-  :builtin
+  :ensure nil
   :commands (electric-quote-mode electric-indent-mode electric-layout-mode)
   :init
   (add-hook 'prog-mode-hook 'electric-quote-mode)
@@ -2090,7 +2091,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package elec-pair
-  :builtin
+  :ensure nil
   :commands electric-pair-mode
   :init
   (add-hook 'prog-mode-hook 'electric-pair-mode)
@@ -2101,7 +2102,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package etags
-  :builtin
+  :ensure nil
   :commands (tags-completion-table))
     #+END_SRC
 
@@ -2109,7 +2110,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package executable
-  :builtin
+  :ensure nil
   :commands executable-make-buffer-file-executable-if-script-p
   :init
   (add-hook 'after-save-hook
@@ -2120,7 +2121,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package ffap
-  :builtin
+  :ensure nil
   )
     #+END_SRC
 
@@ -2130,7 +2131,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package goto-addr
-  :builtin
+  :ensure nil
   :commands (goto-address-prog-mode goto-address-mode)
   :init
   (add-hook 'prog-mode-hook 'goto-address-prog-mode)
@@ -2141,7 +2142,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package grep
-  :builtin
+  :ensure nil
   :bind (("M-s d" . find-grep-dired)
          ("M-s F" . find-grep)
          ("M-s G" . grep)))
@@ -2151,7 +2152,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package hippie-exp
-  :builtin
+  :ensure nil
   :bind* (("M-/". hippie-expand)))
     #+END_SRC
 
@@ -2159,7 +2160,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package ibuffer
-  :builtin
+  :ensure nil
   :bind ([remap switch-to-buffer] . ibuffer))
     #+END_SRC
 
@@ -2183,7 +2184,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package newcomment
-  :builtin
+  :ensure nil
   :bind ("s-/" . comment-or-uncomment-region))
     #+END_SRC
 
@@ -2198,7 +2199,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package prog-mode
-  :builtin
+  :ensure nil
   :commands (prettify-symbols-mode global-prettify-symbols-mode)
   :init
   (add-hook 'prog-mode-hook 'prettify-symbols-mode)
@@ -2247,7 +2248,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package savehist
-  :builtin
+  :ensure nil
   :demand
   :commands savehist-mode
   :config (savehist-mode 1))
@@ -2262,7 +2263,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package saveplace
-  :builtin
+  :ensure nil
   :commands save-place-mode
   :demand
   :config (save-place-mode t))
@@ -2277,7 +2278,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package server
-  :builtin
+  :ensure nil
   :demand
   :commands server-start
   :config
@@ -2289,7 +2290,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package simple
-  :builtin
+  :ensure nil
   :demand
   :bind
   (("C-`" . list-processes)
@@ -2308,7 +2309,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package text-mode
-  :builtin
+  :ensure nil
   :init
   (add-hook 'text-mode-hook 'turn-on-auto-fill))
     #+END_SRC
@@ -2317,7 +2318,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package pp
-  :builtin
+  :ensure nil
   :commands pp-eval-last-sexp
   :bind (([remap eval-expression] . pp-eval-expression))
   :init
@@ -2341,7 +2342,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package tooltip
-  :builtin
+  :ensure nil
   :demand
   :config
   (tooltip-mode -1))
@@ -2351,7 +2352,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package view
-  :builtin
+  :ensure nil
   :bind (:map view-mode-map
               ("n" . next-line)
               ("p" . previous-line)
@@ -2366,7 +2367,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package windmove
-  :builtin
+  :ensure nil
   :bind (("<s-down>" . windmove-down)
          ("<s-up>" . windmove-up)
          ))
@@ -2381,7 +2382,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package cc-mode
-  :builtin
+  :ensure nil
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
          ("\\.m\\'" . c-mode)
          ("\\.c\\'" . c-mode)
@@ -2414,7 +2415,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package ggtags
-  :builtin)
+  :ensure nil)
      #+END_SRC
 
 **** rtags
@@ -2446,7 +2447,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package css-mode
-  :builtin
+  :ensure nil
   :mode "\\.css\\'"
   :commands css-mode
   :config
@@ -2530,7 +2531,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
   :config
   (use-package haskell-doc
-    :builtin
+    :ensure nil
     :demand))
      #+END_SRC
 
@@ -2538,7 +2539,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package java-mode
-  :builtin)
+  :ensure nil)
     #+END_SRC
 
 **** jdee
@@ -2616,7 +2617,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package emacs-lisp-mode
-  :builtin
+  :ensure nil
   :interpreter (("emacs" . emacs-lisp-mode)))
     #+END_SRC
 
@@ -2636,7 +2637,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package ielm
-  :builtin
+  :ensure nil
   :bind ("C-c :" . ielm))
      #+END_SRC
 
@@ -2660,7 +2661,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     #+BEGIN_SRC emacs-lisp
 (use-package macho-mode
   :commands macho-mode
-  :builtin
+  :ensure nil
   :init
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCE" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCF" . macho-mode))
@@ -2675,7 +2676,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package makefile-mode
-  :builtin
+  :ensure nil
   :init
   (add-hook 'makefile-mode-hook 'indent-tabs-mode))
      #+END_SRC
@@ -2720,7 +2721,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package nroff-mode
-  :builtin
+  :ensure nil
   :commands nroff-mode)
     #+END_SRC
 
@@ -2747,7 +2748,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
      #+BEGIN_SRC emacs-lisp
 (use-package python-mode
-  :builtin
+  :ensure nil
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
      #+END_SRC
@@ -2763,7 +2764,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package ruby-mode
-  :builtin
+  :ensure nil
   :mode ("\\.rb\\'" . ruby-mode)
   :interpreter ("ruby" . ruby-mode))
     #+END_SRC
@@ -2800,7 +2801,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package sh-script
-  :builtin
+  :ensure nil
   :preface
   (defun shell-command-at-point ()
     (interactive)
@@ -2854,7 +2855,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
     #+BEGIN_SRC emacs-lisp
 (use-package nxml-mode
-  :builtin
+  :ensure nil
   :commands nxml-mode
   :init
   (defalias 'xml-mode 'nxml-mode))
@@ -2881,7 +2882,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     #+BEGIN_SRC emacs-lisp
 (use-package nethack
   :commands nethack
-  :builtin)
+  :ensure nil)
     #+END_SRC
 
 *** nix-fontify
@@ -3275,13 +3276,13 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
 *** pandoc-mode
 
- #+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
 (use-package pandoc-mode
   :commands (pandoc-mode pandoc-load-default-settings)
   :init
   (add-hook 'markdown-mode-hook 'pandoc-mode)
   (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
- #+END_SRC
+    #+END_SRC
 
 *** rainbow-delimiters
 
@@ -3458,17 +3459,17 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :config
   (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
   (use-package ycmd-eldoc
-    :builtin
+    :ensure nil
     :demand
     :config
     (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup))
   (use-package flycheck-ycmd
-    :builtin
+    :ensure nil
     :demand
     :config
     (flycheck-ycmd-setup))
   (use-package company-ycmd
-    :builtin
+    :ensure nil
     :demand
     :config
     (company-ycmd-setup))

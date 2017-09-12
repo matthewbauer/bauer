@@ -12,16 +12,6 @@
 (require 'json)
 (require 'use-package)
 
-(defun use-package-handler/:builtin (name _ __ rest state)
-  "Builtin keyword for use-package.
-Set this as a builtin package (don’t try to install)
-
-NAME the name of the keyword
-REST rest of args
-STATE use-package state var"
-  (use-package-process-keywords name rest state))
-(add-to-list 'use-package-keywords :builtin)
-
 (defun use-package-handler/:name (name _ __ rest state)
   "Name keyword for use-package.
 Specifies package name (not the name used to require).
@@ -40,7 +30,9 @@ STATE use-package state var"
   (advice-add 'use-package
               :before (lambda (name &rest args)
                         (unless (or (member :disabled args)
-                                    (member :builtin args))
+                                    (and (not (member :name args))
+                                         (member :ensure args)
+                                         (not (alist-get :ensure args))))
                           (when (member :name args)
                             (setq name (plist-get args :name)))
                           (add-to-list 'package-list name))))
