@@ -51,10 +51,10 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 (defun set-paths (&rest args)
   "Set paths from ARGS as default values.
 verifies path exists"
-  ;; (dolist (entry args)
-  ;;   (let ((path (nth 1 entry)))
-  ;;     (unless (file-exists-p path)
-  ;;       (error "Path %s not found" path))))
+  (dolist (entry args)
+    (let ((path (nth 1 entry)))
+      (unless (file-exists-p path)
+        (error "Path %s not found" path))))
   (apply 'set-defaults args))
 
 (provide 'set-defaults)
