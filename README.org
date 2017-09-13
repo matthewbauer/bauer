@@ -590,14 +590,14 @@ git checkout v24
   #+BEGIN_SRC emacs-lisp
 (unless (featurep 'site-paths)
   (require 'package)
-  ;; (setq package-enable-at-startup t)
+  (setq package-enable-at-startup nil)
   (setq use-package-always-ensure t))
-;; (when package-enable-at-startup
-;;   (eval-and-compile
-;;     (package-initialize)
-;;     (unless (package-installed-p 'use-package)
-;;       (package-refresh-contents)
-;;       (package-install 'use-package))))
+(when package-enable-at-startup
+  (eval-and-compile
+    (package-initialize)
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))))
   #+END_SRC
 
   Actually require use-package,
@@ -3583,7 +3583,12 @@ cp ${./lisp/company-eshell-history.el} \
   $out/share/emacs/site-lisp/company-eshell-history.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
+#+END_SRC
 
+Ideally, we could compile the .el file into a .elc, but it doesn’t work so well.
+The below block should do it, but it gives lots of errors.
+
+#+BEGIN_SRC nix :tangle no
 cd $out/share/emacs/site-lisp
 emacs --batch \
       --eval "(let ((default-directory \"${emacsWrapper
@@ -3592,7 +3597,10 @@ emacs --batch \
                                           }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . \
       -f batch-byte-compile \
-      ,*.el
+      *.el
+#+END_SRC
+
+#+BEGIN_SRC nix
   '';
 
   requiredPackages = epkgs: map (x: if x == "rtags" then pkgs.rtags
