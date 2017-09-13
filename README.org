@@ -49,6 +49,9 @@ nix-build
    #+END_SRC
 
 ** w/o Nix
+   :PROPERTIES:
+   :CUSTOM_ID: nonix
+   :END:
 
    You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
    configuration. To get started, run the following.
@@ -84,6 +87,17 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
    #+END_SRC
+
+** EXPERIMENTAL Emacs 24 support
+   If Nix is unavailable and only Emacs 24 is install for you, then you can try
+   the experimental v24 branch. From the Git root of this repository, just run:
+
+   #+BEGIN_SRC shell
+git checkout v24
+   #+END_SRC
+
+   and make sure you have setup the Nix-less version in your
+   [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
 
 * Speed tweaks
 
