@@ -12,7 +12,6 @@ import (stdenv.mkDerivation {
 mkdir -p $out
 cd $out
 cp ${./README.org} README.org
-cp ${./site-paths.el.in} $out/site-paths.el.in
 cp -r ${./lisp} $out/lisp
 emacs --batch -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
 cp bauer.nix default.nix
