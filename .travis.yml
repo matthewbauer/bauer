@@ -9,9 +9,9 @@ os:
 
 env:
   - NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
+  - NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
-  - NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
 
 matrix:
   exclude:
@@ -21,6 +21,9 @@ matrix:
       env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
     - os: osx
       env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+  allow_failures:
+    - env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+    - env: NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
 
 cache:
   directories:
