@@ -590,17 +590,21 @@ git checkout v24
   #+BEGIN_SRC emacs-lisp
 (unless (featurep 'site-paths)
   (require 'package)
-  (package-initialize)
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
+  (setq package-enable-at-startup t)
   (setq use-package-always-ensure t))
+(when package-enable-at-startup
+  (eval-and-compile
+    (package-initialize)
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))))
+
   #+END_SRC
 
   Actually require use-package,
 
   #+BEGIN_SRC emacs-lisp
-(require 'use-package)
+(eval-when-compile (require 'use-package))
   #+END_SRC
 
   and some more requires,
