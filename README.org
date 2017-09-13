@@ -13,7 +13,7 @@
 #+LATEX_HEADER: \usepackage{alltt}
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
-#+INFOJS_OPT: view:showall toc:t ltoc:t mouse:underline path:http://orgmode.org/org-info.js
+#+INFOJS_OPT: view:showall toc:t ltoc:nil mouse:underline path:http://orgmode.org/org-info.js
 
 * About
 
@@ -4077,14 +4077,14 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
    #+END_SRC
 
 ** =config.nix=
+   :PROPERTIES:
+   :header-args: :tangle config.nix
+   :END:
 
    This file is just for convenience if you wanted to build with the Nixpkgs in
    your channel. Having this file available means you can place this repo in
    \tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
 
-   :PROPERTIES:
-   :header-args: :tangle config.nix
-   :END:
 #+BEGIN_SRC nix
 {
   packageOverrides = pkgs: with pkgs; rec {
