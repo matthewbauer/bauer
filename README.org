@@ -109,41 +109,6 @@ git checkout v24
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
 
-** Speed tweaks
-
-*** TODO set file-name-handler-alist to nil
-    :PROPERTIES:
-    :header-args: :tangle no
-    :END:
-
-    Supposedly, this speeds up initialization. It’s disabled for now.
-
-    #+BEGIN_SRC emacs-lisp
-(file-name-handler-alist nil)
-    #+END_SRC
-
-*** Temporarily increase GC Cons Threshold
-
-    #+BEGIN_SRC emacs-lisp
-(setq gc-cons-threshold 80000000)
-    #+END_SRC
-
-**** Reset after init
-
-     #+BEGIN_SRC emacs-lisp
-(add-hook 'after-init-hook
-          (lambda () (setq gc-cons-threshold
-                           (car (get 'gc-cons-threshold 'standard-value)))))
-     #+END_SRC
-
-**** GC on focus-out
-
-     Garbage collect when window focus is lost.
-
-     #+BEGIN_SRC emacs-lisp
-(add-hook 'focus-out-hook 'garbage-collect)
-     #+END_SRC
-
 ** Use y or n instead of yes or no
 
    Shortens confirmation to y or n.
