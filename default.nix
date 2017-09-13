@@ -11,7 +11,7 @@ in
 
 { nixpkgs ? defaultNixpkgs }:
 
-with (import nixpkgs {});
+with import nixpkgs {};
 
 let config = import ./config.nix;
     pkgs_ = config.packageOverrides pkgs;

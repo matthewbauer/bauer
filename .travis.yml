@@ -1,14 +1,14 @@
 language: nix
 sudo: false
 
-script: nix-build --arg nixpkgs "import (builtins.fetchTarball \"$NIXPKGS\") {}"
+script: nix-build --arg nixpkgs "builtins.fetchTarball \"$NIXPKGS\""
 
 matrix:
   include:
     - os: linux
       env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
     - os: linux
-      env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
+      env: NIXPKGS=nixos.org/channels/nixos-17.03/nixexprs.tar.xz
     - os: osx
       env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
 
