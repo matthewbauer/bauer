@@ -57,7 +57,7 @@ STATE use-package state var"
 
   (advice-add 'use-package-load-name :override #'ignore)
 
-  (load script)
+  (load script nil nil t)
 
   (princ (json-encode package-list))
 

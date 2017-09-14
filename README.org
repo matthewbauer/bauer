@@ -113,14 +113,6 @@ git checkout v24
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
 
-** Use y or n instead of yes or no
-
-   Shortens confirmation to y or n.
-
-    #+BEGIN_SRC emacs-lisp
-(fset 'yes-or-no-p 'y-or-n-p)
-    #+END_SRC
-
 ** Setup installer
 
    Provides installation and upgrading functionality. You can upgrade the IDE at
@@ -163,6 +155,18 @@ git checkout v24
 (require 'set-defaults)
    #+END_SRC
 
+   Now, pull in generated paths from =site-paths.el=. Nix will generate this
+   file automatically for us and different Emacs variables will be set to their
+   Nix store derivations. Everything should work fine if you don’t have this
+   available, though. If you are in Emacs and already have the IDE install you
+   can inspect this file by typing =M-: (find-file (locate-library
+   "site-paths"))=. It will look similar to a =settings.el= file where each line
+   corresponds to a customizable variable. Unlike =settings.el=, each entry is
+   path in the Nix store and we verify it exists before setting it.
+
+   #+BEGIN_SRC emacs-lisp
+(require 'site-paths nil t)
+   #+END_SRC
 
    These are some *better* defaults for Emacs. They shouldn’t require any
    packages to be installed to work (those go in use-package).
@@ -234,23 +238,6 @@ git checkout v24
  '(dired-subtree-line-prefix " ")
  '(dtrt-indent-verbosity 0)
  '(disabled-command-function nil)
- '(display-buffer-alist
-   (\`(((\,(rx bos (or "*Flycheck errors*"
-                       "*Backtrace"
-                       "*Warnings"
-                       "*compilation"
-                       "*Help"
-                       "*less-css-compilation"
-                       "*Packages"
-                       "*magit-process"
-                       "*SQL"
-                       "*tldr")))
-        (display-buffer-reuse-window display-buffer-in-side-window)
-        (side . bottom)
-        (reusable-frames . visible)
-        (window-height . 0.33))
-       ("." nil
-        (reusable-frames . visible)))))
  '(display-buffer-reuse-frames t)
  '(echo-keystrokes 0)
  '(enable-recursive-minibuffers t)
@@ -420,12 +407,13 @@ git checkout v24
  '(ns-function-modifier 'hyper)
  '(ns-pop-up-frames nil)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
+ '(org-export-in-background t)
  '(org-src-tab-acts-natively t)
  '(org-return-follows-link t)
  '(org-special-ctrl-a/e t)
- '(org-src-preserve-indentation t)
+ ;; '(org-src-preserve-indentation t)
  '(org-support-shift-select t)
- '(org-src-fontify-natively t)
+ ;; '(org-src-fontify-natively t)
  '(parens-require-spaces t)
  '(package-archives '(("melpa-stable" . "http://stable.melpa.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
@@ -514,19 +502,6 @@ git checkout v24
                       lines-style))
  )
     #+END_SRC
-
-   Now, pull in generated paths from =site-paths.el=. Nix will generate this
-   file automatically for us and different Emacs variables will be set to their
-   Nix store derivations. Everything should work fine if you don’t have this
-   available, though. If you are in Emacs and already have the IDE install you
-   can inspect this file by typing =M-: (find-file (locate-library
-   "site-paths"))=. It will look similar to a =settings.el= file where each line
-   corresponds to a customizable variable. Unlike =settings.el=, each entry is
-   path in the Nix store and we verify it exists before setting it.
-
-   #+BEGIN_SRC emacs-lisp
-(require 'site-paths nil t)
-   #+END_SRC
 
 *** Set environment
 
@@ -713,15 +688,6 @@ git checkout v24
 
     Some of these are included in Emacs, others aren’t. All of them are necessary
     for using Emacs as a full featured IDE.
-
-**** mb-depth
-
-     #+BEGIN_SRC emacs-lisp
-(use-package mb-depth
-  :ensure nil
-  :commands minibuffer-depth-indicate-mode
-  :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
-     #+END_SRC
 
 **** ace window
      #+BEGIN_SRC emacs-lisp
@@ -1393,6 +1359,15 @@ git checkout v24
   :init (add-hook 'magit-mode-hook 'magithub-feature-autoinject))
       #+END_SRC
 
+**** mb-depth
+
+     #+BEGIN_SRC emacs-lisp
+(use-package mb-depth
+  :ensure nil
+  :commands minibuffer-depth-indicate-mode
+  :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
+     #+END_SRC
+
 **** mmm-mode
 
      #+BEGIN_SRC emacs-lisp
@@ -1806,40 +1781,6 @@ git checkout v24
     These are available automatically, so these =use-package= blocks just
     configure them.
 
-**** hideshow                                                      :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package hideshow
-  :ensure nil
-  :commands hs-minor-mode
-  :init (add-hooks '(((c-mode-common
-                       lisp-mode
-                       emacs-lisp-mode
-                       java-mode) . hs-minor-mode))))
-     #+END_SRC
-
-***** hideshowvis
-
-      #+BEGIN_SRC emacs-lisp
-(use-package hideshowvis
-  :commands (hideshowvis-minor-mode hideshowvis-symbols)
-  :init (add-hook 'prog-mode-hook 'hideshowvis-minor-mode))
-      #+END_SRC
-
-**** subword
-
-     #+BEGIN_SRC emacs-lisp
-(use-package subword
-  :ensure nil
-  :commands subword-mode
-  :init (add-hook 'java-mode-hook 'subword-mode))
-     #+END_SRC
-
 **** align
 
      #+BEGIN_SRC emacs-lisp
@@ -2019,6 +1960,31 @@ git checkout v24
          ("M-s G" . grep)))
      #+END_SRC
 
+**** hideshow                                                      :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+      This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package hideshow
+  :ensure nil
+  :commands hs-minor-mode
+  :init (add-hooks '(((c-mode-common
+                       lisp-mode
+                       emacs-lisp-mode
+                       java-mode) . hs-minor-mode))))
+     #+END_SRC
+
+***** hideshowvis
+
+      #+BEGIN_SRC emacs-lisp
+(use-package hideshowvis
+  :commands (hideshowvis-minor-mode hideshowvis-symbols)
+  :init (add-hook 'prog-mode-hook 'hideshowvis-minor-mode))
+      #+END_SRC
+
 **** hippie-exp
 
      #+BEGIN_SRC emacs-lisp
@@ -2064,6 +2030,20 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package notmuch
   :commands notmuch)
+     #+END_SRC
+
+**** pp
+
+     #+BEGIN_SRC emacs-lisp
+(use-package pp
+  :ensure nil
+  :commands pp-eval-last-sexp
+  :bind (([remap eval-expression] . pp-eval-expression))
+  :init
+  (global-unset-key (kbd "C-x C-e"))
+  (create-hook-helper always-eval-sexp ()
+    :hooks (lisp-mode-hook emacs-lisp-mode-hook)
+    (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp)))
      #+END_SRC
 
 **** prog-mode
@@ -2176,6 +2156,15 @@ git checkout v24
   (column-number-mode))
      #+END_SRC
 
+**** subword
+
+     #+BEGIN_SRC emacs-lisp
+(use-package subword
+  :ensure nil
+  :commands subword-mode
+  :init (add-hook 'java-mode-hook 'subword-mode))
+     #+END_SRC
+
 **** text-mode
 
      #+BEGIN_SRC emacs-lisp
@@ -2183,20 +2172,6 @@ git checkout v24
   :ensure nil
   :init
   (add-hook 'text-mode-hook 'turn-on-auto-fill))
-     #+END_SRC
-
-**** pp
-
-     #+BEGIN_SRC emacs-lisp
-(use-package pp
-  :ensure nil
-  :commands pp-eval-last-sexp
-  :bind (([remap eval-expression] . pp-eval-expression))
-  :init
-  (global-unset-key (kbd "C-x C-e"))
-  (create-hook-helper always-eval-sexp ()
-    :hooks (lisp-mode-hook emacs-lisp-mode-hook)
-    (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp)))
      #+END_SRC
 
 **** time
@@ -2936,6 +2911,12 @@ git checkout v24
   :commands hookify)
      #+END_SRC
 
+**** htmlize
+
+     #+BEGIN_SRC emacs-lisp
+(use-package htmlize)
+     #+END_SRC
+
 **** hydra                                                         :noexport:
      :PROPERTIES:
      :header-args: :tangle no
@@ -3351,10 +3332,10 @@ git checkout v24
     (company-ycmd-setup))
   )
      #+END_SRC
-**** htmlize
+** Footer
 
      #+BEGIN_SRC emacs-lisp
-(use-package htmlize)
+(provide 'default)
      #+END_SRC
 
 * Profiles
@@ -3951,6 +3932,8 @@ fi
                        ))
  '(woman-manpath man-path)
  )
+
+(provide 'site-paths)
 #+END_SRC
 
 ** =bootstrap.sh=
@@ -4008,12 +3991,14 @@ let # nixpkgs-17.09-darwin at 2017-09-10
     defaultNixpkgs = builtins.fetchTarball
       "github.com/NixOS/nixpkgs/archive/${nixpkgsRev}.tar.gz";
 in { nixpkgs ? defaultNixpkgs, nixpkgs' ? import nixpkgs {} }: with nixpkgs';
-
+  #+END_SRC
+  #+BEGIN_SRC nix
 import (stdenv.mkDerivation {
           name = "README";
           unpackPhase = "true";
           buildInputs = [ emacs ];
           installPhase = ''
+export HOME=$PWD
 mkdir -p $out
 cd $out
 cp ${./README.org} README.org
@@ -4033,24 +4018,32 @@ let # nixpkgs-17.09-darwin at 2017-09-10
   rev = "b50193f0ca3e9a0d8db2bedfae628995653197d7";
   defaultNixpkgs = builtins.fetchTarball
     "github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
-
+  #+END_SRC
+  #+BEGIN_SRC nix
 in { nixpkgs ? defaultNixpkgs }: with import nixpkgs {};
-
+  #+END_SRC
+  #+BEGIN_SRC nix
 let
+  #+END_SRC
+  #+BEGIN_SRC nix
   nix = nixStable;
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   rEnv = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [
       RCurl
     ];
   };
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     emacs = emacs;
   });
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   jdee-server = stdenv.mkDerivation {
     src = fetchFromGitHub {
       owner = "jdee-emacs";
@@ -4065,13 +4058,15 @@ mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
     '';
     installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
   };
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   myTex = texlive.combine {
     inherit (texlive) scheme-full xetex setspace
       fontspec chktex enumitem xifthen
       ifmtarg filehook;
   };
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   site-paths = runCommand "site-paths.el" {
     inherit rtags ripgrep ag emacs ant nethack fortune gnutls
       coreutils findutils openssh git bash
@@ -4098,22 +4093,28 @@ mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
   '';
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   myPackages = builtins.fromJSON (builtins.readFile (
     with customEmacsPackages.melpaPackages;
-      runCommand "packages-list" { buildInputs = [ emacs ]; } ''
+      stdenv.mkDerivation {
+        name = "package-list";
+        buildInputs = [ emacs ];
+        unpackPhase = "true";
+        installPhase = ''
+cp ${./README.el} README.el
+cp -r ${./lisp} lisp
+cp ${site-paths} site-paths.el
+export HOME=$PWD
 emacs --batch \
       -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
       -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
-      -l ${./lisp/set-defaults.el} \
-      -l ${site-paths} \
-      -l ${./lisp/restart-emacs.el} \
-      -l ${./lisp/installer.el} \
-      -l ${./lisp/use-package-list.el} \
-      --eval "(use-package-list \"${./README.el}\")" \
-      > $out
-    ''));
-
+      -L lisp -L . -l use-package-list \
+      --eval "(use-package-list \"README.el\")" > $out
+        '';
+      }));
+  #+END_SRC
+  #+BEGIN_SRC nix :tangle no
   emacsWrapper = packages: runCommand "emacs-packages-deps"
    { inherit emacs; explicitRequires = packages; lndir = xorg.lndir; }
    ''
@@ -4137,27 +4138,13 @@ emacs --batch \
        linkPath "$1" "bin" "bin"
        linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
      }
-     # Iterate over the array of inputs (avoiding nix's own interpolation)
      for pkg in "''${requires[@]}"; do
        linkEmacsPackage $pkg
      done
-     siteStart="$out/share/emacs/site-lisp/site-start.el"
-     siteStartByteCompiled="$siteStart"c
-     # A dependency may have brought the original siteStart, delete it and
-     # create our own
-     # Begin the new site-start.el by loading the original, which sets some
-     # NixOS-specific paths. Paths are searched in the reverse of the order
-     # they are specified in, so user and system profile paths are searched last.
-     rm -f $siteStart $siteStartByteCompiled
-     cat >"$siteStart" <<EOF
-(load-file "$emacs/share/emacs/site-lisp/site-start.el")
-(add-to-list 'load-path "$out/share/emacs/site-lisp")
-(add-to-list 'exec-path "$out/bin")
-EOF
-     # Byte-compiling improves start-up time only slightly, but costs nothing.
      $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
   '';
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   default = runCommand "default.el" { buildInputs = [emacs]; } ''
 mkdir -p $out/share/emacs/site-lisp
 
@@ -4185,6 +4172,7 @@ The below block should do it, but it gives lots of errors.
 
 #+BEGIN_SRC nix :tangle no
 cd $out/share/emacs/site-lisp
+export HOME=$PWD
 emacs --batch \
       --eval "(let ((default-directory \"${emacsWrapper
         ((requiredPackages emacsPackagesNg myPackages) ++
@@ -4197,7 +4185,9 @@ emacs --batch \
 
 #+BEGIN_SRC nix
   '';
+#+END_SRC
 
+#+BEGIN_SRC nix
   requiredPackages = epkgs: map (x: if x == "rtags" then pkgs.rtags
     else if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
@@ -4207,12 +4197,14 @@ emacs --batch \
     else if builtins.hasAttr x epkgs.elpaPackages
     then builtins.getAttr x epkgs.elpaPackages
     else builtins.getAttr x pkgs);
-
+  #+END_SRC
+  #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages emacsPackagesNg myPackages)
-    ++ [epkgs.melpaPackages.use-package default]
+    ++ [default epkgs.melpaPackages.use-package]
   );
-
+  #+END_SRC
+  #+BEGIN_SRC nix
 in
 buildEnv {
   buildInputs = [ makeWrapper ];
@@ -4223,7 +4215,8 @@ if [ -w $out/share/info ]; then
     ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
   done
 fi
-
+#+END_SRC
+#+BEGIN_SRC nix
 mkdir -p $out/etc
 
 cp ${./gitconfig} $out/etc/gitconfig
@@ -4247,7 +4240,6 @@ cp $out/etc/.zshrc $out/etc/zshrc
 cp ${./etc-profile.sh} $out/etc/profile
 substituteInPlace $out/etc/profile \
   --replace @out@ $out
-
 
 wrapProgram $out/bin/bash \
   --add-flags "--rcfile $out/etc/bashrc"
@@ -4351,3 +4343,15 @@ cache:
 notifications:
   email: false
   #+END_SRC
+
+  #+BEGIN_EXPORT html :tangle no
+<a href="https://travis-ci.org/matthewbauer/bauer.svg">
+  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
+</a>
+  #+END_EXPORT
+
+* COMMENT Footer
+# Local Variables:
+# mode: org
+# fill-column: 80
+# End:
