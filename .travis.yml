@@ -1,7 +1,9 @@
 
 language: nix
 
-script: nix-build --argstr nixpkgs-url $NIXPKGS
+script:
+  - nix-build --argstr nixpkgs-url $NIXPKGS
+  - sh info.sh result
 
 os:
   - linux
@@ -14,18 +16,16 @@ env:
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
 
 matrix:
-
-exclude:
-  - os: linux
-    env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
-  - os: osx
-    env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
-  - os: osx
-    env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
-
-allow_failures:
-  - env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
-  - env: NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
+  exclude:
+    - os: linux
+      env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
+    - os: osx
+      env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
+    - os: osx
+      env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+  allow_failures:
+    - env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+    - env: NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
 
 cache:
   directories:
