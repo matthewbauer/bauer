@@ -6,11 +6,12 @@
 ;; This file is NOT part of GNU Emacs.
 
 ;;; Commentary:
-
 ;;; Code:
 
 (require 'json)
 (require 'use-package)
+
+(defvar use-package-list--is-running)
 
 (defun use-package-handler/:name (name _ __ rest state)
   "Name keyword for use-package.
@@ -22,10 +23,18 @@ STATE use-package state var"
   (use-package-process-keywords name rest state))
 (add-to-list 'use-package-keywords :name)
 
+(defvar use-package-list--packages)
+
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
-  (defvar package-list '())
+
+  (setq use-package-list-verbose nil
+        use-package-list-always-defer t
+        use-package-list-debug nil)
+
+  (setq use-package-list--packages nil
+        use-package-list--is-running t)
 
   (advice-add 'use-package
               :before (lambda (name &rest args)
@@ -35,7 +44,7 @@ STATE use-package state var"
                                          (not (alist-get :ensure args))))
                           (when (member :name args)
                             (setq name (plist-get args :name)))
-                          (add-to-list 'package-list name))))
+                          (add-to-list 'use-package-list--packages name))))
 
   (defmacro define-hook-helper (&rest args))
   (defmacro create-hook-helper (&rest args))
@@ -59,9 +68,9 @@ STATE use-package state var"
 
   (load script nil nil t)
 
-  (princ (json-encode package-list))
+  (princ (json-encode use-package-list--packages))
 
-  package-list)
+  use-package-list--packages)
 
 (provide 'use-package-list)
 ;;; use-package-list.el ends here

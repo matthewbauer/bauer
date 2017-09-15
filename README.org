@@ -75,10 +75,11 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
    Then, add the following to your Emacs init file [[~/.emacs.d/init.el]]:
 
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC text :tangle init.el
 (defvar bauer-dir (expand-file-name "bauer" user-emacs-directory))
-(add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
-(org-babel-load-file (expand-file-name "README.org" bauer-dir))
+(unless (featurep "site-paths")
+  (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
+  (org-babel-load-file (expand-file-name "README.org" bauer-dir)))
    #+END_SRC
 
 * Emacs Init file
@@ -112,34 +113,21 @@ git checkout v24
 
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
-
-** Setup installer
-
-   Provides installation and upgrading functionality. You can upgrade the IDE at
-   any time by typing =M-x upgrade= from within Emacs. You may have to restart
-   Emacs for the upgrade to take place. See [[./lisp/installer.el]] for
-   documentation.
-
-   #+BEGIN_SRC emacs-lisp
-(require 'installer nil t)
-   #+END_SRC
-
 ** HACK Autoloads
 
    These autoloads are needed for some reason. Can’t figure out why they aren’t
    being setup later on.
 
-   #+BEGIN_SRC emacs-lisp
-(defun org-define-error (name message))
-(defun org-link-types ())
-(defvar use-package-enable-imenu-support)
-(defvar use-package-expand-minimally)
-(defvar use-package-always-defer)
-(defvar use-package-always-ensure)
+  For some reason, package developers have forgotten to autoload these function,
+  so we can just define them here.
 
-(autoload 'tramp-tramp-file-p "tramp")
+  #+BEGIN_SRC
 (autoload 'use-package-autoload-keymap "use-package")
-   #+END_SRC
+(autoload 'tramp-tramp-file-p "tramp")
+(autoload 'org-define-error "org")
+(autoload 'org-link-types "org")
+(autolaod eshell-rebind-keys-alist "eshell")
+  #+END_SRC
 
 ** Custom config
 
@@ -153,19 +141,6 @@ git checkout v24
 
    #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
-   #+END_SRC
-
-   Now, pull in generated paths from =site-paths.el=. Nix will generate this
-   file automatically for us and different Emacs variables will be set to their
-   Nix store derivations. Everything should work fine if you don’t have this
-   available, though. If you are in Emacs and already have the IDE install you
-   can inspect this file by typing =M-: (find-file (locate-library
-   "site-paths"))=. It will look similar to a =settings.el= file where each line
-   corresponds to a customizable variable. Unlike =settings.el=, each entry is
-   path in the Nix store and we verify it exists before setting it.
-
-   #+BEGIN_SRC emacs-lisp
-(require 'site-paths nil t)
    #+END_SRC
 
    These are some *better* defaults for Emacs. They shouldn’t require any
@@ -478,6 +453,9 @@ git checkout v24
  '(uniquify-separator "/")
  '(use-dialog-box nil)
  '(use-file-dialog nil)
+ '(use-package-always-defer t)
+ '(use-package-enable-imenu-support t)
+ '(use-package-always-ensure nil)
  '(version-control t)
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
@@ -503,6 +481,19 @@ git checkout v24
  )
     #+END_SRC
 
+   Now, pull in generated paths from =site-paths.el=. Nix will generate this
+   file automatically for us and different Emacs variables will be set to their
+   Nix store derivations. Everything should work fine if you don’t have this
+   available, though. If you are in Emacs and already have the IDE install you
+   can inspect this file by typing =M-: (find-file (locate-library
+   "site-paths"))=. It will look similar to a =settings.el= file where each line
+   corresponds to a customizable variable. Unlike =settings.el=, each entry is
+   path in the Nix store and we verify it exists before setting it.
+
+   #+BEGIN_SRC emacs-lisp
+(load "site-paths" :noerror)
+   #+END_SRC
+
 *** Set environment
 
     =set-envs= is provided by [[./lisp/set-defaults.el][set-defaults]]. We can use it like
@@ -526,51 +517,40 @@ git checkout v24
     #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
     #+END_SRC
+
 ** Setup use-package
-   First, let’s set some use-package global variables that are needed before
-   require it.
-
-   #+BEGIN_SRC emacs-lisp
-(setq use-package-always-defer t
-      use-package-expand-minimally t
-      use-package-enable-imenu-support t)
-   #+END_SRC
-
    Now to get =use-package= we will require package.el and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
-   site-paths should be available (unless you don’t have Nix), we can skip this step.
+   site-paths should be available (unless you don’t have Nix), we can skip this
+   step.
 
    #+BEGIN_SRC emacs-lisp
-(unless (featurep 'site-paths)
+(unless (or (featurep 'site-paths)
+            (and (boundp use-package-list--is-running)
+                 use-package-list--is-running))
   (require 'package)
-  (setq package-enable-at-startup nil)
-  (setq use-package-always-ensure t)
-  (eval-and-compile
-    (package-initialize)
-    (unless (package-installed-p 'use-package)
-      (package-refresh-contents)
-      (package-install 'use-package))))
+  (package-initialize)
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package)))
    #+END_SRC
 
-   Actually require use-package,
-
-   #+BEGIN_SRC emacs-lisp
-(eval-when-compile (require 'use-package))
-   #+END_SRC
-
-   and some more requires,
+   =use-package-list= is needed to recognize the =:name= keyword in
+   =use-package= declarations. In addition, it’s used by [[./config.nix]] to
+   generate a list of packages to install. That means that every package below
+   is /ensured/ to be installed when Nix builds this Elisp file. Using Nix’s IFD
+   feature, this entire process is automatic and done at build-time. See
+   [[./lisp/use-package-list.el]] and [[./config.nix]] for more documentation.
 
    #+BEGIN_SRC emacs-lisp
 (require 'use-package-list nil t)
    #+END_SRC
 
-   =use-package-list= is needed to recognize the =:name= keyword in =use-package=
-   declarations. In addition, it’s used by [[./config.nix]] to generate a list of
-   packages to install. That means that every package below is /ensured/ to be
-   installed when Nix builds this Elisp file. Using Nix’s IFD feature, this
-   entire process is automatic and done at build-time. See
-   [[./lisp/use-package-list.el]] and [[./config.nix]] for more documentation.
+   Actually require use-package,
 
+   #+BEGIN_SRC emacs-lisp
+(require 'use-package)
+   #+END_SRC
 ** Key bindings
 
    Using bind-key, setup some simple key bindings. None of these should
@@ -645,6 +625,16 @@ git checkout v24
 (bind-key "<S-up>" "↑" iso-transl-ctl-x-8-map)
 (bind-key "," "…" iso-transl-ctl-x-8-map)
    #+END_SRC
+** Setup installer
+
+   Provides installation and upgrading functionality. You can upgrade the IDE at
+   any time by typing =M-x upgrade= from within Emacs. You may have to restart
+   Emacs for the upgrade to take place. See [[./lisp/installer.el]] for
+   documentation.
+
+   #+BEGIN_SRC emacs-lisp
+(require 'installer nil t)
+   #+END_SRC
 ** Helpers
    These utils are needed at init stage and should always appear before other
    use-package declarations.
@@ -680,6 +670,7 @@ git checkout v24
  - savehist (4)
  - save-place (5)
  - which-key (3)
+ - apropostriate (2)
 
    To resort, go to one of the package group headings and type C-c ^ (the
    shortcut for org-sort).
@@ -1092,7 +1083,6 @@ git checkout v24
     (interactive)
     (end-of-line))
   :init
-  (defvar eshell-rebind-keys-alist)
   (add-to-list 'eshell-rebind-keys-alist '([(control 101)] . eshell-eol))
   (setq eshell-modules-list
         '(eshell-alias
@@ -2265,8 +2255,11 @@ git checkout v24
       #+END_SRC
 
 ***** rtags
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
 
-      Rtags is started with C and C++ projects.
+      Rtags is started with C and C++ projects. This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package rtags
@@ -2751,29 +2744,13 @@ git checkout v24
 
 **** apropospriate-theme
 
-     This is the theme I use. However, it is not enabled by default.
+     This is the theme I use. This has to be defered for some reason.
 
      #+BEGIN_SRC emacs-lisp
 (use-package apropospriate-theme
-  :init
-  (let ((filename (locate-library "apropospriate-theme")))
-    (when filename
-      (add-to-list 'custom-theme-load-path (file-name-directory filename)))))
+  :demand
+  :config (load-theme 'apropospriate-dark t))
      #+END_SRC
-
-***** Usage
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      If you want to use apropospriate, try this in your init.el:
-
-      #+BEGIN_SRC emacs-lisp
-(when (and
-       (fboundp 'custom-theme--load-path)
-       (locate-file "apropospriate-dark-theme.el" (custom-theme--load-path)))
-  (load-theme 'apropospriate-dark t))
-      #+END_SRC
 
 **** auto-compile                                                  :noexport:
      :PROPERTIES:
@@ -3332,7 +3309,7 @@ git checkout v24
     (company-ycmd-setup))
   )
      #+END_SRC
-** Footer
+** COMMENT Footer
 
      #+BEGIN_SRC emacs-lisp
 (provide 'default)
@@ -3351,10 +3328,10 @@ scripts as well.
 
    To use this, you must create a short ~/.profile file. Here is an example,
 
-#+BEGIN_SRC shell :tangle no
+   #+BEGIN_SRC shell :tangle no
 bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
-#+END_SRC
+   #+END_SRC
 
 
 #+BEGIN_SRC shell
@@ -3763,7 +3740,7 @@ fi
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
  '(irony-server-install-prefix "@irony@")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
- '(jdee-server-dir "@jdeeserver@")
+;; '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
  '(markdown-command "@markdown2@/bin/markdown2")
  '(manual-program "@man@/bin/man")
@@ -3986,48 +3963,55 @@ esac
    :END:
 
    #+BEGIN_SRC nix
-let # nixpkgs-17.09-darwin at 2017-09-10
-    nixpkgsRev = "b50193f0ca3e9a0d8db2bedfae628995653197d7";
-    defaultNixpkgs = builtins.fetchTarball
-      "github.com/NixOS/nixpkgs/archive/${nixpkgsRev}.tar.gz";
-in { nixpkgs ? defaultNixpkgs, nixpkgs' ? import nixpkgs {} }: with nixpkgs';
+{               # nixpkgs-17.09-darwin at 2017-09-10
+  nixpkgs-rev ? "b50193f0ca3e9a0d8db2bedfae628995653197d7"
+, nixpkgs-url ? "github.com/NixOS/nixpkgs/archive/${nixpkgs-rev}.tar.gz"
+, nixpkgs ? builtins.fetchTarball nixpkgs-url
+, nixpkgs' ? import nixpkgs {}
+}: with nixpkgs';
   #+END_SRC
+
+  Now let's tangle README.org...
+
   #+BEGIN_SRC nix
-import (stdenv.mkDerivation {
-          name = "README";
-          unpackPhase = "true";
-          buildInputs = [ emacs ];
-          installPhase = ''
-export HOME=$PWD
+import (runCommand "README" { buildInputs = [ emacs ]; } ''
 mkdir -p $out
 cd $out
-cp ${./README.org} README.org
 cp -r ${./lisp} $out/lisp
-emacs --batch -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
+cp ${./README.org} README.org
+emacs --batch --quick \
+                -l ob-tangle \
+                --eval "(org-babel-tangle-file \"README.org\")"
 cp bauer.nix default.nix
-          '';
-}) {}
+'') {inherit nixpkgs';}
    #+END_SRC
 ** =bauer.nix=
    :PROPERTIES:
    :header-args: :tangle bauer.nix
    :END:
 
-   #+BEGIN_SRC nix
-let # nixpkgs-17.09-darwin at 2017-09-10
-  rev = "b50193f0ca3e9a0d8db2bedfae628995653197d7";
-  defaultNixpkgs = builtins.fetchTarball
-    "github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
-  #+END_SRC
+   =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
+   will be =nixpkgs= instantiated.
+
   #+BEGIN_SRC nix
-in { nixpkgs ? defaultNixpkgs }: with import nixpkgs {};
+{               # nixpkgs-17.09-darwin at 2017-09-10
+  nixpkgs-rev ? "b50193f0ca3e9a0d8db2bedfae628995653197d7"
+, nixpkgs-url ? "github.com/NixOS/nixpkgs/archive/${nixpkgs-rev}.tar.gz"
+, nixpkgs ? builtins.fetchTarball nixpkgs-url
+, nixpkgs' ? import nixpkgs {}
+}: with nixpkgs'; let
   #+END_SRC
-  #+BEGIN_SRC nix
-let
-  #+END_SRC
+
+  We start out by defining the Nix version to use. nixStable corresponds to the
+  last released version, 1.11.
+
   #+BEGIN_SRC nix
   nix = nixStable;
   #+END_SRC
+
+  Next we start defining some packages. R is one of the simpler ones right now,
+  so let's start with that.
+
   #+BEGIN_SRC nix
   rEnv = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [
@@ -4035,30 +4019,25 @@ let
     ];
   };
   #+END_SRC
+
+  Here we define our package set. This will just give us access to all of the
+  Emacs packages defined in Nixpkgs.
+
   #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
-    emacs = emacs;
+    inherit emacs;
   });
   #+END_SRC
+
+  Next, we define aspell with the English language. This is used by Emacs
+  ispell.
+
   #+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
   #+END_SRC
-  #+BEGIN_SRC nix
-  jdee-server = stdenv.mkDerivation {
-    src = fetchFromGitHub {
-      owner = "jdee-emacs";
-      repo = "jdee-server";
-      rev = "446b262bdacb88e68f81af601a2ee0adfea41e24";
-      sha256 = "0qakixx9cvd7m1dsilmwq99gk3g10mfxvf19pqkq24vvixavd8w5";
-    };
-    name = "jdee-server";
-    buildInputs = [ maven ];
-    buildPhase = ''
-mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
-    '';
-    installPhase = "mkdir $out; cp target/jdee-bundle-*.jar $out";
-  };
-  #+END_SRC
+
+  Tex live provides some LaTeX commads for us.
+
   #+BEGIN_SRC nix
   myTex = texlive.combine {
     inherit (texlive) scheme-full xetex setspace
@@ -4066,6 +4045,10 @@ mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
       ifmtarg filehook;
   };
   #+END_SRC
+
+  Here, we start building up the site-paths.el file. This does a simple
+  substitution of all the attributes set.
+
   #+BEGIN_SRC nix
   site-paths = runCommand "site-paths.el" {
     inherit rtags ripgrep ag emacs ant nethack fortune gnutls
@@ -4087,63 +4070,30 @@ mvn -DskipTests=true -Dmaven.repo.local=$(pwd) assembly:assembly
       irony = irony-server;
       libxml2 = libxml2.bin;
       gpg = gnupg1compat;
-      jdeeserver = jdee-server;
+      # jdeeserver = jdee-server;
       aspell = myAspell;
   } ''
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
   '';
   #+END_SRC
+
+  myPackages gets a listing of all of the packages that are needed by the Emacs
+  configuration. use-package-list generates this list automatically.
+
   #+BEGIN_SRC nix
   myPackages = builtins.fromJSON (builtins.readFile (
     with customEmacsPackages.melpaPackages;
-      stdenv.mkDerivation {
-        name = "package-list";
-        buildInputs = [ emacs ];
-        unpackPhase = "true";
-        installPhase = ''
-cp ${./README.el} README.el
-cp -r ${./lisp} lisp
-cp ${site-paths} site-paths.el
-export HOME=$PWD
-emacs --batch \
-      -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-      -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
-      -L lisp -L . -l use-package-list \
-      --eval "(use-package-list \"README.el\")" > $out
-        '';
-      }));
+      runCommand "package-list" { buildInputs = [ emacs ]; } ''
+emacs --batch --quick \
+                -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+                -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
+                -L ${./lisp} -l use-package-list \
+                --eval "(use-package-list \"${./README.el}\")" > $out
+      ''
+  ));
   #+END_SRC
-  #+BEGIN_SRC nix :tangle no
-  emacsWrapper = packages: runCommand "emacs-packages-deps"
-   { inherit emacs; explicitRequires = packages; lndir = xorg.lndir; }
-   ''
-     mkdir -p $out/bin
-     mkdir -p $out/share/emacs/site-lisp
-     local requires
-     for pkg in $explicitRequires; do
-       findInputs $pkg requires propagated-user-env-packages
-     done
-     # requires now holds all requested packages and their transitive dependencies
-     linkPath() {
-       local pkg=$1
-       local origin_path=$2
-       local dest_path=$3
-       # Add the path to the search path list, but only if it exists
-       if [[ -d "$pkg/$origin_path" ]]; then
-         $lndir/bin/lndir -silent "$pkg/$origin_path" "$out/$dest_path"
-       fi
-     }
-     linkEmacsPackage() {
-       linkPath "$1" "bin" "bin"
-       linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
-     }
-     for pkg in "''${requires[@]}"; do
-       linkEmacsPackage $pkg
-     done
-     $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
-  '';
-  #+END_SRC
+
   #+BEGIN_SRC nix
   default = runCommand "default.el" { buildInputs = [emacs]; } ''
 mkdir -p $out/share/emacs/site-lisp
@@ -4172,24 +4122,24 @@ The below block should do it, but it gives lots of errors.
 
 #+BEGIN_SRC nix :tangle no
 cd $out/share/emacs/site-lisp
-export HOME=$PWD
-emacs --batch \
-      --eval "(let ((default-directory \"${emacsWrapper
-        ((requiredPackages emacsPackagesNg myPackages) ++
-         [emacsPackagesNg.melpaPackages.use-package])
-                                          }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
-      -L . \
-      -f batch-byte-compile \
-      *.el
+emacs --batch --quick \
+      --eval "(let ((default-directory \"${
+emacsWrapper (
+  (requiredPackages customEmacsPackages myPackages) ++
+  [customEmacsPackages.melpaPackages.use-package]
+)}/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
+      -L . -f batch-byte-compile *.el
 #+END_SRC
 
 #+BEGIN_SRC nix
   '';
 #+END_SRC
 
+  requiredPackages is a function that takes two arguments. 
+
 #+BEGIN_SRC nix
-  requiredPackages = epkgs: map (x: if x == "rtags" then pkgs.rtags
-    else if builtins.hasAttr x epkgs.melpaPackages
+  requiredPackages = epkgs: map (x:
+    if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
     else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
     else if builtins.hasAttr x emacsPackages
@@ -4198,12 +4148,18 @@ emacs --batch \
     then builtins.getAttr x epkgs.elpaPackages
     else builtins.getAttr x pkgs);
   #+END_SRC
+
+  Now we build our Emacs distribution.
+
   #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages emacsPackagesNg myPackages)
     ++ [default epkgs.melpaPackages.use-package]
   );
   #+END_SRC
+
+  Finally, we can actually build the environment.
+
   #+BEGIN_SRC nix
 in
 buildEnv {
@@ -4215,8 +4171,7 @@ if [ -w $out/share/info ]; then
     ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
   done
 fi
-#+END_SRC
-#+BEGIN_SRC nix
+
 mkdir -p $out/etc
 
 cp ${./gitconfig} $out/etc/gitconfig
@@ -4299,7 +4254,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 #+BEGIN_SRC nix
 {
   packageOverrides = pkgs: with pkgs; rec {
-    bauer = import ./default.nix { nixpkgs_ = pkgs; };
+    bauer = import ./default.nix { nixpkgs' = pkgs; };
     userPackages = bauer;
   };
 }
@@ -4309,22 +4264,51 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
    :header-args: :tangle .travis.yml
    :END:
 
+  #+BEGIN_EXPORT html :tangle no
+<a href="https://travis-ci.org/matthewbauer/bauer.svg">
+<img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
+</a>
+  #+END_EXPORT
+
+  We'll set up Travis support here. We start by defining the language.
+
   #+BEGIN_SRC yaml
 language: nix
+  #+END_SRC
 
-script: nix-build --arg nixpkgs "builtins.fetchTarball \"$NIXPKGS\""
+  Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
+  #+BEGIN_SRC yaml
+script: nix-build --argstr nixpkgs-url $NIXPKGS
+  #+END_SRC
+
+  Setup the OSs. Sadly no Windows support yet.
+
+  #+BEGIN_SRC yaml
 os:
   - linux
   - osx
+  #+END_SRC
 
+  Setup some values for =NIXPKGS= variables.
+
+  #+BEGIN_SRC yaml
 env:
   - NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
+  #+END_SRC
 
+  Configure the matrix...
+
+  #+BEGIN_SRC yaml
 matrix:
+  #+END_SRC
+
+  Exclude some unusual combos.
+
+  #+BEGIN_SRC yaml
   exclude:
     - os: linux
       env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
@@ -4332,24 +4316,44 @@ matrix:
       env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
     - os: osx
       env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+  #+END_SRC
+
+  Allow unstable failures.
+
+  #+BEGIN_SRC yaml
   allow_failures:
     - env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
     - env: NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
+  #+END_SRC
 
+  Setup the cache.
+
+  #+BEGIN_SRC yaml
 cache:
   directories:
     - /nix/store
+  #+END_SRC
 
+  Turn off those annoying Travis notifications.
+
+  #+BEGIN_SRC yaml
 notifications:
   email: false
   #+END_SRC
 
-  #+BEGIN_EXPORT html :tangle no
-<a href="https://travis-ci.org/matthewbauer/bauer.svg">
-  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
-</a>
-  #+END_EXPORT
+* Extra
+** =update.sh=
+   :PROPERTIES: 
+   :header-args: :tangle update.sh
+   :END:      
 
+   This is a simple file I use to make sure I've updated the generated files.
+   #+BEGIN_SRC shell
+#!/bin/sh
+emacs --batch \
+      -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
+git clean -xf
+   #+END_SRC
 * COMMENT Footer
 # Local Variables:
 # mode: org
