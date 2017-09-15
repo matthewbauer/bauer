@@ -4279,7 +4279,9 @@ language: nix
   Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
   #+BEGIN_SRC yaml
-script: nix-build --argstr nixpkgs-url $NIXPKGS
+script:
+  - nix-build --argstr nixpkgs-url $NIXPKGS
+  - sh info.sh result
   #+END_SRC
 
   Setup the OSs. Sadly no Windows support yet.
@@ -4343,7 +4345,7 @@ notifications:
 
 * Extra
 ** =update.sh=
-   :PROPERTIES: 
+   :PROPERTIES:
    :header-args: :tangle update.sh
    :END:      
 
@@ -4359,3 +4361,26 @@ git clean -xf
 # mode: org
 # fill-column: 80
 # End:
+
+
+** =info.sh=
+   :PROPERTIES:
+   :header-args: :tangle info.sh
+   :END:
+
+   This file gives us some info on the built derivation.
+
+   #+BEGIN_SRC shell
+#!/bin/sh
+out=$1
+
+if [ -z "$out" ]; then
+  out=$(nix-build)
+fi
+
+echo Store size:
+du -scl $out
+
+echo Dependencies:
+du -scl $(nix-store -qR $out) | sort -n
+   #+END_SRC
