@@ -4347,13 +4347,6 @@ emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
 git clean -xf
    #+END_SRC
-* COMMENT Footer
-# Local Variables:
-# mode: org
-# fill-column: 80
-# End:
-
-
 ** =info.sh=
    :PROPERTIES:
    :header-args: :tangle info.sh
@@ -4373,9 +4366,16 @@ if [ -L "$out" ]; then
   out=$(readlink -f $out)
 fi
 
-echo Store size:
-du -scl $out
+if [ -e $out ]; then
+  echo Store size:
+  du -scl $out
 
-echo Dependencies:
-du -scl $(nix-store -qR $out) | sort -n
+  echo Dependencies:
+  du -scl $(nix-store -qR $out) | sort -n
+fi
    #+END_SRC
+* COMMENT Footer
+# Local Variables:
+# mode: org
+# fill-column: 80
+# End:

@@ -10,8 +10,10 @@ if [ -L "$out" ]; then
   out=$(readlink -f $out)
 fi
 
-echo Store size:
-du -scl $out
+if [ -e $out ]; then
+  echo Store size:
+  du -scl $out
 
-echo Dependencies:
-du -scl $(nix-store -qR $out) | sort -n
+  echo Dependencies:
+  du -scl $(nix-store -qR $out) | sort -n
+fi
