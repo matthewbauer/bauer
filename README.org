@@ -42,7 +42,8 @@ curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | 
 
 ** Develop
 
-   To make changes to the IDE, it is recommended you setup your environment like so,
+   To make changes to the IDE, it is recommended you setup your environment like
+   so,
 
    #+BEGIN_SRC shell
 git clone https://github.com/matthewbauer/bauer ~/bauer
@@ -107,9 +108,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     If Nix is unavailable and only Emacs 24 is install for you, then you can try
     the experimental v24 branch. From the Git root of this repository, just run:
 
-    #+BEGIN_SRC shell
-git checkout v24
-    #+END_SRC
+    src_shell[]{git checkout v24}
 
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
@@ -126,7 +125,7 @@ git checkout v24
 (autoload 'tramp-tramp-file-p "tramp")
 (autoload 'org-define-error "org")
 (autoload 'org-link-types "org")
-(autolaod eshell-rebind-keys-alist "eshell")
+(autoload ’eshell-rebind-keys-alist "eshell")
   #+END_SRC
 
 ** Custom config
@@ -382,7 +381,6 @@ git checkout v24
  '(ns-function-modifier 'hyper)
  '(ns-pop-up-frames nil)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
- '(org-export-in-background t)
  '(org-src-tab-acts-natively t)
  '(org-return-follows-link t)
  '(org-special-ctrl-a/e t)
@@ -3333,8 +3331,7 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-
-#+BEGIN_SRC shell
+  #+BEGIN_SRC shell
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export INFOPATH=$PREFIX/share/info
@@ -3373,20 +3370,21 @@ update_terminal_cwd() {
     local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
     printf '\e]7;%s\a' "$PWD_URL"
 }
-#+END_SRC
+  #+END_SRC
 ** =.bashrc=
    :PROPERTIES:
    :header-args: :tangle bashrc.sh
    :END:
 
-   To use this, you must create a short ~/.bash_profile file. Here is an example,
+   To use this, you must create a short ~/.bash_profile file. Here is an
+   example,
 
-#+BEGIN_SRC bash :tangle no
+   #+BEGIN_SRC bash :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
-#+END_SRC
+   #+END_SRC
 
-#+BEGIN_SRC bash
+   #+BEGIN_SRC bash
 source @out@/etc/profile
 
 case "$TERM" in
@@ -3444,7 +3442,7 @@ if [ "$TERM_PROGRAM" = "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ]; then
       PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
       update_terminal_cwd
 fi
-#+END_SRC
+   #+END_SRC
 
 ** =.zshrc=
    :PROPERTIES:
@@ -3453,10 +3451,10 @@ fi
 
    To use this, you must create a short ~/.zshrc file. Here is an example,
 
-#+BEGIN_SRC shell :tangle no
+   #+BEGIN_SRC shell :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
-#+END_SRC
+   #+END_SRC
 
    #+BEGIN_SRC shell
 source @out@/etc/profile
@@ -3598,7 +3596,9 @@ fi
    :header-args: :tangle etc-profile.sh
    :END:
 
-#+BEGIN_SRC shell
+   This just sources everything in the =/etc/profile.d= dir.
+
+   #+BEGIN_SRC shell
 export PREFIX=@out@
 
 if [ -d @out@/etc/profile.d ]; then
@@ -3608,13 +3608,13 @@ if [ -d @out@/etc/profile.d ]; then
     fi
   done
 fi
-#+END_SRC
+   #+END_SRC
 ** =.gitignore=
    :PROPERTIES:
    :header-args: :tangle gitignore
    :END:
 
-#+BEGIN_SRC gitignore
+   #+BEGIN_SRC gitignore
 *~
 \#*\#
 *.DS_Store
@@ -3625,14 +3625,14 @@ fi
 # Package Files
 *.jar
 *.war
-#+END_SRC
+   #+END_SRC
 
 ** =.gitconfig=
    :PROPERTIES:
    :header-args: :tangle gitconfig
    :END:
 
-#+BEGIN_SRC gitconfig
+   #+BEGIN_SRC gitconfig
 [core]
 	editor = emacsclient
 	excludesfile = @gitignore@
@@ -3657,7 +3657,7 @@ fi
 
 [color]
 	ui = true
-#+END_SRC
+   #+END_SRC
 * Bootstrapping
 ** =site-paths.el.in=
    :PROPERTIES:
@@ -3668,7 +3668,7 @@ fi
    Nix before we can actually run it in Emacs. To prevent Emacs from trying to
    run this, I’ve set the syntax to =text=.
 
-#+BEGIN_SRC text
+   #+BEGIN_SRC text
 (require 'set-defaults)
 (require 'subr-x)
 
@@ -3911,14 +3911,14 @@ fi
  )
 
 (provide 'site-paths)
-#+END_SRC
+   #+END_SRC
 
 ** =bootstrap.sh=
    :PROPERTIES:
    :header-args: :tangle bootstrap.sh
    :END:
 
-#+BEGIN_SRC shell
+   #+BEGIN_SRC shell
 #!/bin/sh
 
 if ! command -v nix-env >/dev/null 2>&1; then
@@ -3938,13 +3938,14 @@ if ! [ -f default.nix ]; then
 fi
 
 nix-env -if .
-#+END_SRC
+   #+END_SRC
 
 ** =runemacs.sh=
    :PROPERTIES:
    :header-args: :tangle runemacs.sh
    :END:
-#+BEGIN_SRC shell
+
+   #+BEGIN_SRC shell
 #!/usr/bin/env sh
 
 case $(uname) in
@@ -3955,7 +3956,7 @@ case $(uname) in
         @out@/bin/emacs
     ;;
 esac
-#+END_SRC
+   #+END_SRC
 * Building
 ** =default.nix=
    :PROPERTIES:
@@ -4260,13 +4261,13 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 }
 #+END_SRC
 * Continuous integration
-   :PROPERTIES:
-   :header-args: :tangle .travis.yml
-   :END:
+  :PROPERTIES: 
+  :header-args: :tangle .travis.yml
+  :END:
 
   #+BEGIN_EXPORT html :tangle no
 <a href="https://travis-ci.org/matthewbauer/bauer.svg">
-<img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
+  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
 </a>
   #+END_EXPORT
 
@@ -4281,7 +4282,7 @@ language: nix
   #+BEGIN_SRC yaml
 script:
   - nix-build --argstr nixpkgs-url $NIXPKGS
-  - sh info.sh ./result
+  - sh info.sh result
   #+END_SRC
 
   Setup the OSs. Sadly no Windows support yet.
@@ -4306,11 +4307,6 @@ env:
 
   #+BEGIN_SRC yaml
 matrix:
-  #+END_SRC
-
-  Exclude some unusual combos.
-
-  #+BEGIN_SRC yaml
   exclude:
     - os: linux
       env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
@@ -4318,11 +4314,6 @@ matrix:
       env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
     - os: osx
       env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
-  #+END_SRC
-
-  Allow unstable failures.
-
-  #+BEGIN_SRC yaml
   allow_failures:
     - env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
     - env: NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
@@ -4376,6 +4367,10 @@ out=$1
 
 if [ -z "$out" ]; then
   out=$(nix-build)
+fi
+
+if [ -L "$out" ]; then
+  out=$(readlink -f $out)
 fi
 
 echo Store size:
