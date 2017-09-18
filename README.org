@@ -2,7 +2,7 @@
 #+AUTHOR: Matthew Bauer
 #+EMAIL: mjbauer95@gmail.com
 #+LANGUAGE: en
-#+OPTIONS: c:nil d:t e:t f:t H:2 p:nil ':t *:t -:t ::t <:t \n:nil ^:t |:t
+#+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:t |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
 #+OPTIONS: creator:nil date:nil email:nil inline:nil num:3 pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:t
@@ -13,25 +13,25 @@
 #+LATEX_HEADER: \usepackage{alltt}
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
-#+INFOJS_OPT: view:showall toc:t ltoc:nil mouse:underline path:http://orgmode.org/org-info.js
+#+STARTUP: hideblocks
+#+INFOJS_OPT: view:info toc:nil path:http://orgmode.org/org-info.js
 
-* About
+*Bauer’s automated, unified Emacs realm*
 
-  This is @[[https://matthewbauer.us][matthewbauer]]’s Emacs config. This file generates an Emacs
-  configuration. It can be considered an ‘[[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]]’ IDE. That is, the Emacs
-  configuration is /integrated/ with hardcoded Nix store paths. This provides
-  a kind of functional Emacs configuration.
+This file generates an Emacs configuration. It can be considered an ‘[[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]]’
+IDE. That is, the Emacs configuration is /integrated/ with hardcoded Nix store
+paths. This provides a kind of functional Emacs configuration.
 
 * Usage
   :PROPERTIES:
   :header-args: :tangle no
   :END:
 
-** Install/upgrade
+** Installing/upgrading
 
    Run this from your shell:
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | sh
    #+END_SRC
 
@@ -40,12 +40,12 @@ curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | 
    install<RET>). This process will take a little bit as everything is
    downloaded. After you restart Emacs, everything should be working.
 
-** Develop
+** Developing
 
    To make changes to the IDE, it is recommended you setup your environment like
    so,
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 git clone https://github.com/matthewbauer/bauer ~/bauer
 cd ~/bauer
 nix-build
@@ -60,7 +60,7 @@ nix-build
    =Pr= then find your username in the list and press enter. Pull requests are
    welcome through GitHub!
 
-** w/o Nix
+** w/o Nix usage
    :PROPERTIES:
    :CUSTOM_ID: nonix
    :header-args: :tangle no
@@ -69,7 +69,7 @@ nix-build
    You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
    configuration. To get started, run the following.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+END_SRC
@@ -108,26 +108,12 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
     If Nix is unavailable and only Emacs 24 is install for you, then you can try
     the experimental v24 branch. From the Git root of this repository, just run:
 
-    src_shell[]{git checkout v24}
+    #+BEGIN_SRC sh
+git checkout v24
+    #+END_SRC
 
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
-** HACK Autoloads
-
-   These autoloads are needed for some reason. Can’t figure out why they aren’t
-   being setup later on.
-
-  For some reason, package developers have forgotten to autoload these function,
-  so we can just define them here.
-
-  #+BEGIN_SRC
-(autoload 'use-package-autoload-keymap "use-package")
-(autoload 'tramp-tramp-file-p "tramp")
-(autoload 'org-define-error "org")
-(autoload 'org-link-types "org")
-(autoload ’eshell-rebind-keys-alist "eshell")
-  #+END_SRC
-
 ** Custom config
 
    [[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
@@ -141,6 +127,8 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
    #+END_SRC
+
+*** Better defaults
 
    These are some *better* defaults for Emacs. They shouldn’t require any
    packages to be installed to work (those go in use-package).
@@ -381,12 +369,14 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
  '(ns-function-modifier 'hyper)
  '(ns-pop-up-frames nil)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
- '(org-src-tab-acts-natively t)
+ '(org-export-in-background t)
+ '(org-log-done 'time)
  '(org-return-follows-link t)
  '(org-special-ctrl-a/e t)
- ;; '(org-src-preserve-indentation t)
+ '(org-src-fontify-natively t)
+ '(org-src-preserve-indentation t)
+ '(org-src-tab-acts-natively t)
  '(org-support-shift-select t)
- ;; '(org-src-fontify-natively t)
  '(parens-require-spaces t)
  '(package-archives '(("melpa-stable" . "http://stable.melpa.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
@@ -478,6 +468,8 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
                       lines-style))
  )
     #+END_SRC
+
+*** Site paths
 
    Now, pull in generated paths from =site-paths.el=. Nix will generate this
    file automatically for us and different Emacs variables will be set to their
@@ -636,13 +628,13 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 ** Helpers
    These utils are needed at init stage and should always appear before other
    use-package declarations.
-*** add-hooks
+
    #+BEGIN_SRC emacs-lisp
 (use-package add-hooks
   :commands (add-hooks add-hooks-pair))
    #+END_SRC
-*** hook-helpers
-    #+BEGIN_SRC emacs-lisp
+
+   #+BEGIN_SRC emacs-lisp
 (use-package hook-helpers
   :commands (create-hook-helper
              define-hook-helper)
@@ -1263,7 +1255,6 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
      #+END_SRC
 
 **** jka-compr                                                     :noexport:
-
      :PROPERTIES:
      :header-args: :tangle no
      :END:
@@ -1401,22 +1392,34 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
           ("C-c l" . org-store-link)
           ("C-c b" . org-iswitchb))
   :init
+  (setq org-export-async-debug t)
   (add-hook 'org-mode-hook 'auto-fill-mode)
   (add-hook 'org-mode-hook
             (lambda ()
               (add-hook 'completion-at-point-functions
                         'pcomplete-completions-at-point nil t)))
   :config
+  ;; (org-babel-do-load-languages 'org-babel-load-languages
+  ;;    '((emacs-lisp . t) (sh . t)))
   (use-package ox-latex
     :ensure nil
     :demand)
   (use-package ox-beamer
     :ensure nil
     :demand)
+  (use-package ox-md
+    :ensure nil
+    :demand)
+  (use-package ox-odt
+    :ensure nil
+    :demand)
   )
      #+END_SRC
 
-***** toc-org
+***** toc-org                                                      :noexport:
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
 
       #+BEGIN_SRC emacs-lisp
 (use-package toc-org
@@ -1552,7 +1555,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   (add-hook 'text-mode-hook 'smart-hungry-delete-default-text-mode-hook))
      #+END_SRC
 
-**** smartparens
+**** Smartparens
 
      #+BEGIN_SRC emacs-lisp
 (use-package smartparens
@@ -2252,7 +2255,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :ensure nil)
       #+END_SRC
 
-***** rtags
+***** rtags                                                        :noexport:
       :PROPERTIES:
       :header-args: :tangle no
       :END:
@@ -2835,6 +2838,14 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :commands elfeed)
      #+END_SRC
 
+***** elfeed-org
+
+     #+BEGIN_SRC emacs-lisp
+(use-package elfeed-org
+  :after elfeed
+  :config (elfeed-org))
+     #+END_SRC
+
 **** expand-region
 
      #+BEGIN_SRC emacs-lisp
@@ -2856,7 +2867,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
   :bind ("C-c m f" . focus-mode))
      #+END_SRC
 
-**** gist
+**** gist                                                          :noexport:
      :PROPERTIES:
      :header-args: :tangle no
      :END:
@@ -3326,35 +3337,35 @@ scripts as well.
 
    To use this, you must create a short ~/.profile file. Here is an example,
 
-   #+BEGIN_SRC shell :tangle no
+   #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-  #+BEGIN_SRC shell
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export INFOPATH=$PREFIX/share/info
-export MANPATH=$PREFIX/share/man
-export DICPATH=$PREFIX/share/hunspell
-export CLICOLOR=1
-export LSCOLORS=ExFxCxDxBxegedabagacad
-export GREP_OPTIONS='--color=auto'
-export GREP_COLOR='3;33'
-export LC_COLLATE=C
-export HISTFILE=$HOME/.history
-export HISTSIZE=16000
-export SAVEHIST=15000
-export SHELL_SESSION_HISTORY=1
+  #+BEGIN_SRC sh
+export LANG=en_US.UTF-8 \
+       LC_ALL=en_US.UTF-8 \
+       INFOPATH=$PREFIX/share/info \
+       MANPATH=$PREFIX/share/man
+       DICPATH=$PREFIX/share/hunspell \
+       CLICOLOR=1 \
+       LSCOLORS=ExFxCxDxBxegedabagacad \
+       GREP_OPTIONS='--color=auto' \
+       GREP_COLOR='3;33' \
+       LC_COLLATE=C \
+       HISTFILE=$HOME/.history \
+       HISTSIZE=16000 \
+       SAVEHIST=15000 \
+       SHELL_SESSION_HISTORY=1
 
-alias ls="TERM=ansi ls --color=always"
-alias l="ls -lF"
-alias ..="cd .."
-alias ...="cd ../.."
-alias ....="cd ../../.."
-alias .....="cd ../../../.."
-alias tree='tree -Csuh'
-alias grep="grep --color=auto"
+alias ls="TERM=ansi ls --color=always" \
+      l="ls -lF" \
+      ..="cd .." \
+      ...="cd ../.." \
+      ....="cd ../../.." \
+      .....="cd ../../../.." \
+      tree='tree -Csuh' \
+      grep="grep --color=auto"
 
 if [[ -z "$LC_CTYPE" && -z "$LC_ALL" ]]; then
     export LC_CTYPE=${LANG%%:*}
@@ -3376,7 +3387,7 @@ update_terminal_cwd() {
    :header-args: :tangle bashrc.sh
    :END:
 
-   To use this, you must create a short ~/.bash_profile file. Here is an
+   To use this, you must create a short =~/.bash_profile= file. Here is an
    example,
 
    #+BEGIN_SRC bash :tangle no
@@ -3420,8 +3431,6 @@ set -o notify \
     -o ignoreeof \
     -o emacs
 
-export SHELL_SESSION_HISTORY=0
-
 GREEN="\[$(tput setaf 2)\]"
 YELLOW="\[$(/usr/bin/tput setaf 3)\]"
 BLUE="\[$(/usr/bin/tput setaf 4)\]"
@@ -3451,12 +3460,12 @@ fi
 
    To use this, you must create a short ~/.zshrc file. Here is an example,
 
-   #+BEGIN_SRC shell :tangle no
+   #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 source @out@/etc/profile
 
 case "$TERM" in
@@ -3598,7 +3607,7 @@ fi
 
    This just sources everything in the =/etc/profile.d= dir.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 export PREFIX=@out@
 
 if [ -d @out@/etc/profile.d ]; then
@@ -3776,7 +3785,6 @@ fi
  '(context-command "@texlive@/bin/context")
  '(bibtex-command "@texlive@/bin/bibtex")
  '(dvipdfmx-command "@texlive@/bin/dvipdfmx")
- '(makeglossaries-command "@texlive@/bin/makeglossaries")
  '(makeindex-command "@texlive@/bin/makeindex")
  '(chktex-command "@texlive@/bin/chktex")
  '(lacheck-command "@texlive@/bin/lacheck")
@@ -3853,8 +3861,6 @@ fi
       TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
      ("Ps2pdf" ,(concat ps2pdf-command " %f")
       TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
-     ("Glossaries" ,(concat makeglossaries-command " %s")
-      TeX-run-command nil t :help "Run makeglossaries to create glossary file")
      ("Index" ,(concat makeindex-command " %s")
       TeX-run-index nil t :help "Run makeindex to create index file")
      ("upMendex" "upmendex %s"
@@ -3918,7 +3924,7 @@ fi
    :header-args: :tangle bootstrap.sh
    :END:
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 #!/bin/sh
 
 if ! command -v nix-env >/dev/null 2>&1; then
@@ -3945,7 +3951,7 @@ nix-env -if .
    :header-args: :tangle runemacs.sh
    :END:
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 #!/usr/bin/env sh
 
 case $(uname) in
@@ -4265,8 +4271,8 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   :header-args: :tangle .travis.yml
   :END:
 
-  #+BEGIN_EXPORT html :tangle no
-<a href="https://travis-ci.org/matthewbauer/bauer.svg">
+  #+BEGIN_EXPORT html
+<a href="https://travis-ci.org/matthewbauer/bauer">
   <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
 </a>
   #+END_EXPORT
@@ -4341,7 +4347,7 @@ notifications:
    :END:      
 
    This is a simple file I use to make sure I've updated the generated files.
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 #!/bin/sh
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
@@ -4354,7 +4360,7 @@ git clean -xf
 
    This file gives us some info on the built derivation.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 #!/bin/sh
 out=$1
 
@@ -4373,6 +4379,38 @@ if [ -e $out ]; then
   echo Dependencies:
   du -scl $(nix-store -qR $out) | sort -n
 fi
+   #+END_SRC
+** =.gitignore=
+   :PROPERTIES:
+   :header-args: :tangle .gitignore
+   :END:
+
+   #+BEGIN_SRC gitignore
+# emacs/org-mode
+flycheck_*.el
+*.elc
+*.pdf
+*.html
+*.tex
+*.log
+
+# nix stuff
+result
+result-*
+
+# these are all generated by README.org
+README.el
+bashrc.sh
+bauer.nix
+zshrc.sh
+etc-profile.sh
+runemacs.sh
+gitconfig
+gitignore
+default.el
+profile.sh
+site-paths.el.in
+init.el
    #+END_SRC
 * COMMENT Footer
 # Local Variables:
