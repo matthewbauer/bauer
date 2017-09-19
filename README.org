@@ -448,6 +448,7 @@ git checkout v24
  '(use-package-always-defer t)
  '(use-package-enable-imenu-support t)
  '(use-package-always-ensure nil)
+ '(use-package-ensure-function 'ignore)
  '(version-control t)
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
@@ -518,9 +519,9 @@ git checkout v24
    Now to get =use-package= we will require package.el and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
    site-paths should be available (unless you don’t have Nix), we can skip this
-   step.
+   step. This block is currently broken.
 
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :tangle no
 (unless (or (featurep 'site-paths)
             (and (boundp use-package-list--is-running)
                  use-package-list--is-running))
@@ -531,21 +532,13 @@ git checkout v24
     (package-install 'use-package)))
    #+END_SRC
 
-   =use-package-list= is needed to recognize the =:name= keyword in
-   =use-package= declarations. In addition, it’s used by [[./config.nix]] to
-   generate a list of packages to install. That means that every package below
-   is /ensured/ to be installed when Nix builds this Elisp file. Using Nix’s IFD
-   feature, this entire process is automatic and done at build-time. See
-   [[./lisp/use-package-list.el]] and [[./config.nix]] for more documentation.
-
-   #+BEGIN_SRC emacs-lisp
-(require 'use-package-list nil t)
-   #+END_SRC
-
    Actually require use-package,
 
    #+BEGIN_SRC emacs-lisp
-(require 'use-package)
+(eval-when-compile
+  (defvar use-package-ensure-function 'ignore)
+  (require 'use-package))
+(require 'bind-key)
    #+END_SRC
 ** Key bindings
 
@@ -646,10 +639,10 @@ git checkout v24
    #+BEGIN_SRC emacs-lisp
 (use-package hook-helpers
   :commands (create-hook-helper
-             define-hook-helper)
+             define-hook-helper
+             hkhlp-normalize-hook-spec)
   :functions (make-hook-helper
               add-hook-helper
-              hkhlp-normalize-hook-spec
               hkhlp-update-helper))
     #+END_SRC
 ** Packages
@@ -981,11 +974,12 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package dired
   :ensure nil
+  :init (require 'dired)
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)
-         ("e" . eshell)))
+         ("e" . em-dired-new)))
      #+END_SRC
 
 ***** dired-collapse                                               :noexport:
@@ -1004,13 +998,13 @@ git checkout v24
 
 ***** dired-column
 
-   #+BEGIN_SRC emacs-lisp
+      #+BEGIN_SRC emacs-lisp
 (use-package dired-column
   :ensure nil
   :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
-   #+END_SRC
+      #+END_SRC
 
 ***** dired-imenu
 
@@ -1130,8 +1124,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ess-site
-  :ensure nil
-  :name "ess"
+  :no-require
+  :ensure ess
   :commands R)
      #+END_SRC
 
@@ -1250,6 +1244,7 @@ git checkout v24
          ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
+  (require 'ivy nil t)
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
   (defvar dumb-jump-selector)
@@ -1517,8 +1512,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package proof-site
-  :ensure nil
-  :name "proofgeneral"
+  :no-require
+  :ensure proofgeneral
   :commands (proofgeneral proof-mode proof-shell-mode))
      #+END_SRC
 
@@ -1756,10 +1751,10 @@ git checkout v24
   :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
      #+END_SRC
 
-**** whitespace-mode
+**** whitespace
 
      #+BEGIN_SRC emacs-lisp
-(use-package whitespace-mode
+(use-package whitespace
   :ensure nil
   :commands whitespace-mode
   :init (add-hook 'prog-mode-hook 'whitespace-mode))
@@ -2162,10 +2157,16 @@ git checkout v24
   :init (add-hook 'java-mode-hook 'subword-mode))
      #+END_SRC
 
-**** text-mode
+**** text-mode                                                     :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is disabled for now
 
      #+BEGIN_SRC emacs-lisp
 (use-package text-mode
+  :no-require
   :ensure nil
   :init
   (add-hook 'text-mode-hook 'turn-on-auto-fill))
@@ -2252,13 +2253,6 @@ git checkout v24
 (use-package irony-eldoc
   :commands irony-eldoc
   :init (add-hook 'irony-mode-hook 'irony-eldoc))
-      #+END_SRC
-
-***** ggtags
-
-      #+BEGIN_SRC emacs-lisp
-(use-package ggtags
-  :ensure nil)
       #+END_SRC
 
 ***** rtags                                                        :noexport:
@@ -2382,12 +2376,6 @@ git checkout v24
       #+END_SRC
 
 **** Java
-
-     #+BEGIN_SRC emacs-lisp
-(use-package java-mode
-  :ensure nil)
-     #+END_SRC
-
 ***** jdee
 
       #+BEGIN_SRC emacs-lisp
@@ -2450,8 +2438,8 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package tex-site
-  :ensure nil
-  :name "auctex"
+  :no-require
+  :ensure auctex
   :commands (TeX-latex-mode
              TeX-mode
              tex-mode
@@ -2463,7 +2451,7 @@ git checkout v24
 **** Lisp
 
      #+BEGIN_SRC emacs-lisp
-(use-package emacs-lisp-mode
+(use-package elisp-mode
   :ensure nil
   :interpreter (("emacs" . emacs-lisp-mode)))
      #+END_SRC
@@ -2519,10 +2507,10 @@ git checkout v24
 ***** TODO use use-package’s :magic
 
 **** Makefile
-***** makefile-mode
+***** make-mode
 
       #+BEGIN_SRC emacs-lisp
-(use-package makefile-mode
+(use-package make-mode
   :ensure nil
   :init
   (add-hook 'makefile-mode-hook 'indent-tabs-mode))
@@ -2533,6 +2521,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package vmd-mode
+  :init (require 'markdown-mode nil t)
   :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
       #+END_SRC
 
@@ -2540,6 +2529,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
+  :init (require 'markdown-mode nil t)
   :mode
   (("\\.md\\'" . gfm-mode)
    ("\\.markdown\\'" . gfm-mode))
@@ -2594,7 +2584,7 @@ git checkout v24
 ***** python-mode
 
       #+BEGIN_SRC emacs-lisp
-(use-package python-mode
+(use-package python
   :ensure nil
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
@@ -3073,7 +3063,7 @@ git checkout v24
 (use-package make-it-so
   :commands mis-mode
   :init (add-hook 'dired-mode-hook 'mis-mode)
-  (bind-keys :map dired-mode-map
+  :bind (:map dired-mode-map
              :prefix ","
              :prefix-map dired-make-it-so-map
              :prefix-docstring "Make it so map."
@@ -3166,7 +3156,12 @@ git checkout v24
                        slime-repl-mode) . rainbow-mode))))
      #+END_SRC
 
-**** realgud
+**** realgud                                                       :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package realgud
@@ -3783,14 +3778,15 @@ fi
 
    #+BEGIN_SRC text
 (defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
-  "Path for SSL certificates.")
+  "Path for SSL certificates."
+  :group 'environment)
    #+END_SRC
 
    Set env vars provided by Nix,
 
    #+BEGIN_SRC text
 (set-envs
- `("NIX_SSL_CERT_FILE" ,cacert-file)
+ ;; `("NIX_SSL_CERT_FILE" ,cacert-file)
  `("NIX_PATH" ,(concat
                 "nixpkgs=/nix/var/nix/profiles/per-user/"
                 (getenv "USER")
@@ -4091,9 +4087,7 @@ esac
    :END:
 
    #+BEGIN_SRC nix
-{               # nixpkgs-17.09-darwin at 2017-09-10
-  nixpkgs-rev ? "b50193f0ca3e9a0d8db2bedfae628995653197d7"
-, nixpkgs-url ? "github.com/NixOS/nixpkgs/archive/${nixpkgs-rev}.tar.gz"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
@@ -4122,9 +4116,7 @@ cp bauer.nix default.nix
    will be =nixpkgs= instantiated.
 
   #+BEGIN_SRC nix
-{               # nixpkgs-17.09-darwin at 2017-09-10
-  nixpkgs-rev ? "b50193f0ca3e9a0d8db2bedfae628995653197d7"
-, nixpkgs-url ? "github.com/NixOS/nixpkgs/archive/${nixpkgs-rev}.tar.gz"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
@@ -4211,16 +4203,15 @@ substituteAllInPlace $out
   configuration. use-package-list generates this list automatically.
 
   #+BEGIN_SRC nix
-  myPackages = builtins.fromJSON (builtins.readFile (
-    with customEmacsPackages.melpaPackages;
-      runCommand "package-list" { buildInputs = [ emacs ]; } ''
+  package-list = with customEmacsPackages.melpaPackages;
+    runCommand "package-list" { buildInputs = [ emacs ]; } ''
 emacs --batch --quick \
                 -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
                 -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
                 -L ${./lisp} -l use-package-list \
                 --eval "(use-package-list \"${./README.el}\")" > $out
-      ''
-  ));
+  '';
+  myPackages = builtins.fromJSON (builtins.readFile package-list);
   #+END_SRC
 
   #+BEGIN_SRC nix
@@ -4301,7 +4292,8 @@ emacs --batch --quick \
 
   #+BEGIN_SRC nix
 requiredPackages = epkgs: map (x:
-  if builtins.hasAttr x epkgs.melpaPackages
+  if x == null then null
+    else if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
     else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
     else if builtins.hasAttr x emacsPackages
@@ -4315,7 +4307,7 @@ requiredPackages = epkgs: map (x:
 
   #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-    (requiredPackages emacsPackagesNg myPackages)
+    (requiredPackages epkgs myPackages)
     ++ [default epkgs.melpaPackages.use-package]
   );
   #+END_SRC
@@ -4323,8 +4315,7 @@ requiredPackages = epkgs: map (x:
   Finally, we can actually build the environment.
 
   #+BEGIN_SRC nix
-in
-buildEnv {
+myEnv = buildEnv {
   buildInputs = [ makeWrapper ];
   postBuild = ''
 if [ -w $out/share/info ]; then
@@ -4401,7 +4392,11 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
         gawk gnused gzip gnutar gnupg1compat xz cacert
   ] ++ [nox nix nix-index nix-repl nodePackages.tern
         isync stack ghc notmuch ];
-}
+};
+   #+END_SRC
+
+   #+BEGIN_SRC nix
+in myEnv
    #+END_SRC
 
 ** Actually building it
@@ -4409,6 +4404,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 
    #+BEGIN_SRC sh :results none
 nix-build
+./result/bin/run
    #+END_SRC
 
 * Continuous integration
