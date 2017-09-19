@@ -1,6 +1,7 @@
 language: nix
 
 script:
+  - echo '-Ss' > ~/.curlrc
   - nix-build --quiet --argstr nixpkgs-url $NIXPKGS
   - sh info.sh result
 
