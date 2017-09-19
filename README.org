@@ -4093,7 +4093,7 @@ esac
    :END:
 
    #+BEGIN_SRC nix
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
@@ -4122,7 +4122,7 @@ cp bauer.nix default.nix
    will be =nixpkgs= instantiated.
 
   #+BEGIN_SRC nix
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
@@ -4496,15 +4496,13 @@ notifications:
    :header-args: :tangle update.sh
    :END:      
 
-   This is a simple file I use to make sure I've updated the generated files.
+   This is a simple script that I use to make sure I've updated the generated
+   files.
 
    #+BEGIN_SRC sh
 #!/bin/sh
-
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
-
-git clean -xf
    #+END_SRC
 ** =info.sh=
    :PROPERTIES:

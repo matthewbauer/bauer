@@ -1,7 +1,5 @@
 
-{               # nixpkgs-17.09-darwin at 2017-09-10
-  nixpkgs-rev ? "b50193f0ca3e9a0d8db2bedfae628995653197d7"
-, nixpkgs-url ? "github.com/NixOS/nixpkgs/archive/${nixpkgs-rev}.tar.gz"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
