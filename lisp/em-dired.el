@@ -56,6 +56,7 @@
   "Dired features in eshell mode"
   :group 'eshell)
 
+;;;###autoload
 (defun em-dired-new (&rest args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."

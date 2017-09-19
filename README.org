@@ -117,7 +117,7 @@ git checkout v24
 ** Autoloads
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
-(eval-when-compile (autoload 'use-package-autoload-keymap "use-package"))
+(eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
    #+END_SRC
 ** Custom config
 
@@ -921,7 +921,7 @@ git checkout v24
           ([remap isearch-forward] . counsel-grep-or-swiper)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
-          ("C-c k" . counsel-ag)
+          ("C-c k" . counsel-rg)
           ("C-x l" . counsel-locate)
           ("C-M-i" . counsel-imenu)
           ("M-y" . counsel-yank-pop)
@@ -968,8 +968,7 @@ git checkout v24
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
-         ("r" . browse-url-of-dired-file)
-         ("e" . em-dired-new)))
+         ("r" . browse-url-of-dired-file)))
      #+END_SRC
 
 ***** dired-collapse                                               :noexport:
@@ -1118,6 +1117,7 @@ git checkout v24
 (use-package em-dired
   :ensure nil
   :commands (em-dired-mode em-dired-new)
+  :bind (:map dired-mode-map ("e" . em-dired-new))
   :init
   (add-hook 'eshell-mode-hook 'em-dired-mode)
   (advice-add 'eshell :before 'em-dired-new))
@@ -1408,7 +1408,7 @@ git checkout v24
                         'pcomplete-completions-at-point nil t)))
   :config
   (org-babel-do-load-languages 'org-babel-load-languages
-     '((emacs-lisp . t) (sh . t)))
+     '((emacs-lisp . t) (sh . t) (latex . t)))
   (use-package ox-latex
     :ensure nil
     :demand)
@@ -2533,7 +2533,6 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
-  :init (require 'markdown-mode nil t)
   :mode
   (("\\.md\\'" . gfm-mode)
    ("\\.markdown\\'" . gfm-mode))
