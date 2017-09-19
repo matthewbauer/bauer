@@ -19,20 +19,20 @@
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
-  (lexical-let ((use-package-list-verbose nil)
-                (use-package-list-always-defer t)
-                (use-package-list-debug nil)
+  (lexical-let ((use-package-verbose t)
+                (use-package-debug t)
+                (use-package-always-ensure nil)
+                (use-package-always-defer t)
                 (use-package-list--packages nil)
                 (use-package-list--is-running t))
     (advice-add 'use-package
                 :before (lambda (name &rest args)
                           (unless (or (member :disabled args)
                                       (and (member :ensure args)
-                                           (not (alist-get :ensure args))))
+                                           (not (plist-get args :ensure))))
                             (when (and (member :ensure args)
                                        (symbolp (plist-get args :ensure)))
-                              (setq name (symbol-name
-                                          (plist-get args :ensure))))
+                              (setq name (plist-get args :ensure)))
                             (add-to-list 'use-package-list--packages name))))
 
     (defmacro define-hook-helper (&rest args))

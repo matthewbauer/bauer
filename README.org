@@ -1127,8 +1127,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ess-site
-  :no-require
   :ensure ess
+  :no-require
   :commands R)
      #+END_SRC
 
@@ -1516,8 +1516,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package proof-site
-  :no-require
   :ensure proofgeneral
+  :no-require
   :commands (proofgeneral proof-mode proof-shell-mode))
      #+END_SRC
 
@@ -2442,8 +2442,8 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package tex-site
-  :no-require
   :ensure auctex
+  :no-require
   :commands (TeX-latex-mode
              TeX-mode
              tex-mode
@@ -4295,8 +4295,7 @@ emacs --batch --quick \
 
   #+BEGIN_SRC nix
 requiredPackages = epkgs: map (x:
-  if x == null then null
-    else if builtins.hasAttr x epkgs.melpaPackages
+  if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
     else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
     else if builtins.hasAttr x emacsPackages
