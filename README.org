@@ -4244,23 +4244,56 @@ cp ${./lisp/company-eshell-history.el} \
   $out/share/emacs/site-lisp/company-eshell-history.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
-#+END_SRC
+  #+END_SRC
 
   Ideally, we could compile the .el file into a .elc, but it doesn’t work so
   well. The below block should do it, but it gives lots of errors.
 
-  #+BEGIN_SRC nix :tangle no
+  #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
+export HOME=$PWD
 emacs --batch --quick \
---eval "(let ((default-directory \"${
-  emacsWrapper (
-    (requiredPackages customEmacsPackages myPackages) ++
-    [customEmacsPackages.melpaPackages.use-package]
-  )}/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
-  -L . -f batch-byte-compile *.el
+      --eval "(let ((default-directory \"${emacsWrapper
+                ((requiredPackages customEmacsPackages myPackages) ++
+                  [customEmacsPackages.melpaPackages.use-package])
+}/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
+      -L . -f batch-byte-compile *.el
   #+END_SRC
 
   #+BEGIN_SRC nix
+  '';
+  #+END_SRC
+
+  #+BEGIN_SRC nix
+  emacsWrapper = explicitRequires: runCommand "emacs-packages-deps"
+   { inherit emacs explicitRequires; inherit (xorg) lndir; }
+   ''
+     mkdir -p $out/bin
+     mkdir -p $out/share/emacs/site-lisp
+     local requires
+     for pkg in $explicitRequires; do
+       findInputs $pkg requires propagated-user-env-packages
+     done
+     # requires now holds all requested packages and their transitive dependencies
+     linkPath() {
+       local pkg=$1
+       local origin_path=$2
+       local dest_path=$3
+       # Add the path to the search path list, but only if it exists
+       if [[ -d "$pkg/$origin_path" ]]; then
+         $lndir/bin/lndir -silent "$pkg/$origin_path" "$out/$dest_path"
+       fi
+     }
+     linkEmacsPackage() {
+       linkPath "$1" "bin" "bin"
+       linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
+     }
+     # Iterate over the array of inputs (avoiding nix's own interpolation)
+     for pkg in "''${requires[@]}"; do
+       linkEmacsPackage $pkg
+     done
+     # Byte-compiling improves start-up time only slightly, but costs nothing.
+     $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
   '';
   #+END_SRC
 
