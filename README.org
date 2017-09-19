@@ -117,6 +117,7 @@ git checkout v24
 ** Autoloads
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
+(eval-when-compile (autoload 'use-package-autoload-keymap "use-package"))
    #+END_SRC
 ** Custom config
 
@@ -244,15 +245,6 @@ git checkout v24
                                     eshell-truncate-buffer))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
- '(eshell-rebind-keys-alist
-   '(([(control 97)] . eshell-bol)
-     ([home] . eshell-bol)
-     ([(control 100)] . eshell-delchar-or-maybe-eof)
-     ([backspace] . eshell-delete-backward-char)
-     ([delete] . eshell-delete-backward-char)
-     ([(control 119)] . backward-kill-word)
-     ([(control 117)] . eshell-kill-input)
-     ([tab] . completion-at-point)))
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat
@@ -1070,13 +1062,26 @@ git checkout v24
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command eshell-bol)
-  :preface
-  (defun eshell-eol ()
-    "Goes to the end of line."
-    (interactive)
-    (end-of-line))
   :init
-  (add-to-list 'eshell-rebind-keys-alist '([(control 101)] . eshell-eol))
+  (use-package em-rebind
+    :preface
+    (defun eshell-eol ()
+      "Goes to the end of line."
+      (interactive)
+      (end-of-line))
+    :ensure nil
+    :demand
+    :config
+    (setq eshell-rebind-keys-alist
+          '(([(control 97)] . eshell-bol)
+            ([home] . eshell-bol)
+            ([(control 100)] . eshell-delchar-or-maybe-eof)
+            ([backspace] . eshell-delete-backward-char)
+            ([delete] . eshell-delete-backward-char)
+            ([(control 119)] . backward-kill-word)
+            ([(control 117)] . eshell-kill-input)
+            ([tab] . completion-at-point)
+            ([(control 101)] . eshell-eol))))
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1395,8 +1400,9 @@ git checkout v24
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
           ("C-c b" . org-iswitchb))
+  :preface
+  (defvar org-export-async-debug nil)
   :init
-  (setq org-export-async-debug t)
   (add-hook 'org-mode-hook 'auto-fill-mode)
   (add-hook 'org-mode-hook
             (lambda ()

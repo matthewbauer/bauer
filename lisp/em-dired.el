@@ -111,15 +111,15 @@ EVENT refers to the mouse event that triggers the click.
     (define-key map (kbd "<mouse-2>") 'em-dired-ls-find-file-at-mouse-click)
     map))
 
-(defun em-dired-ls-decorated-name--clickable (file)
+(defun em-dired-ls-decorated-name--clickable (filename)
   "Modify Eshell's `ls' to let you click or RET on file names to open them.
-FILE is the file text that we will add properties to."
-  (add-text-properties 0 (length (car file))
+FILENAME is the file text that we will add properties to."
+  (add-text-properties 0 (length (car filename))
                        (list 'help-echo "RET, mouse-2: visit this file"
                              'mouse-face 'highlight
                              'keymap em-dired-ls-keymap--clickable)
-                       (car file))
-  file)
+                       (car filename))
+  filename)
 
 ;;;###autoload
 (define-minor-mode em-dired-mode
