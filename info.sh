@@ -1,3 +1,4 @@
+
 #!/bin/sh
 out=$1
 
@@ -10,9 +11,6 @@ if [ -L "$out" ]; then
 fi
 
 if [ -e $out ]; then
-  echo Store size:
-  du -scl $out
-
   echo Dependencies:
   du -scl $(nix-store -qR $out) | sort -n
 fi

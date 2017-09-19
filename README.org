@@ -114,6 +114,10 @@ git checkout v24
 
     and make sure you have setup the Nix-less version in your
     [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
+** Autoloads
+   #+BEGIN_SRC emacs-lisp
+(autoload 'tramp-tramp-file-p "tramp")
+   #+END_SRC
 ** Custom config
 
    [[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
@@ -450,7 +454,9 @@ git checkout v24
  '(vc-git-diff-switches '("-w" "-U3"))
  '(vc-follow-symlinks nil)
  '(vc-ignore-dir-regexp
-   "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
+   (concat "\\(\\(\\`"
+           "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
+            "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell nil)
@@ -615,8 +621,11 @@ git checkout v24
 (bind-key "<S-up>" "↑" iso-transl-ctl-x-8-map)
 (bind-key "," "…" iso-transl-ctl-x-8-map)
    #+END_SRC
-** Setup installer
-
+** Setup installer                                                 :noexport:
+   :PROPERTIES:
+   :header-args: :tangle no
+   :END:
+   
    Provides installation and upgrading functionality. You can upgrade the IDE at
    any time by typing =M-x upgrade= from within Emacs. You may have to restart
    Emacs for the upgrade to take place. See [[./lisp/installer.el]] for
@@ -647,10 +656,10 @@ git checkout v24
 
    Alphabetical listing of all Emacs packages needed by the IDE.
 
-   Rules: No packages on the top level should have the :demand keyword. Each package
-   should be setup as either commands, hooks, modes, or key bindings. Defer
-   timers are allowed but should be used sparingly. Currently, these packages
-   need defer timers:
+   Rules: No packages on the top level should have the :demand keyword. Each
+   package should be setup as either commands, hooks, modes, or key bindings.
+   Defer timers are allowed but should be used sparingly. Currently, these
+   packages need defer timers:
 
  - autorevert (1)
  - company (2)
@@ -1399,8 +1408,8 @@ git checkout v24
               (add-hook 'completion-at-point-functions
                         'pcomplete-completions-at-point nil t)))
   :config
-  ;; (org-babel-do-load-languages 'org-babel-load-languages
-  ;;    '((emacs-lisp . t) (sh . t)))
+  (org-babel-do-load-languages 'org-babel-load-languages
+     '((emacs-lisp . t) (sh . t)))
   (use-package ox-latex
     :ensure nil
     :demand)
@@ -1408,9 +1417,6 @@ git checkout v24
     :ensure nil
     :demand)
   (use-package ox-md
-    :ensure nil
-    :demand)
-  (use-package ox-odt
     :ensure nil
     :demand)
   )
@@ -2838,7 +2844,12 @@ git checkout v24
   :commands elfeed)
      #+END_SRC
 
-***** elfeed-org
+***** elfeed-org                                                   :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package elfeed-org
@@ -3114,7 +3125,6 @@ git checkout v24
 (use-package page-break-lines
   :commands page-break-lines-mode
   :init (add-hooks '(((doc-mode
-                       help-mode
                        emacs-lisp-mode) . page-break-lines-mode))))
      #+END_SRC
 
@@ -3320,15 +3330,17 @@ git checkout v24
      #+END_SRC
 ** COMMENT Footer
 
-     #+BEGIN_SRC emacs-lisp
+   Provide =default.el= file.
+
+   #+BEGIN_SRC emacs-lisp
 (provide 'default)
-     #+END_SRC
+   #+END_SRC
 
 * Profiles
 
-All of these files live outside of Emacs but are necessary for a usable
-developer environment. They are basic shell profile and some git configuration
-scripts as well.
+  All of these files live outside of Emacs but are necessary for a usable
+  developer environment. They are basic shell profile and some git configuration
+  scripts as well.
 
 ** =.profile=
    :PROPERTIES:
@@ -3342,11 +3354,13 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-  #+BEGIN_SRC sh
+   Here we setup =.profile=. First, setup exports.
+
+   #+BEGIN_SRC sh
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
        INFOPATH=$PREFIX/share/info \
-       MANPATH=$PREFIX/share/man
+       MANPATH=$PREFIX/share/man \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
        LSCOLORS=ExFxCxDxBxegedabagacad \
@@ -3357,7 +3371,11 @@ export LANG=en_US.UTF-8 \
        HISTSIZE=16000 \
        SAVEHIST=15000 \
        SHELL_SESSION_HISTORY=1
+   #+END_SRC
 
+   Then setup aliases.
+
+   #+BEGIN_SRC sh
 alias ls="TERM=ansi ls --color=always" \
       l="ls -lF" \
       ..="cd .." \
@@ -3366,22 +3384,27 @@ alias ls="TERM=ansi ls --color=always" \
       .....="cd ../../../.." \
       tree='tree -Csuh' \
       grep="grep --color=auto"
+   #+END_SRC
 
-if [[ -z "$LC_CTYPE" && -z "$LC_ALL" ]]; then
-    export LC_CTYPE=${LANG%%:*}
+   Configure INSIDE_EMACS.
+
+   #+BEGIN_SRC sh
+if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
+    export TERM=dumb-emacs-ansi \
+           COLORTERM=1
 fi
+   #+END_SRC
 
-if [ "$TERM" = dumb ] && [ "$INSIDE_EMACS" ]; then
-    export TERM=dumb-emacs-ansi COLORTERM=1
-fi
+   Define =update_terminal_cwd= function.
 
-update_terminal_cwd() {
+   #+BEGIN_SRC sh
+update_terminal_cwd () {
     local SEARCH=' '
     local REPLACE='%20'
     local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
     printf '\e]7;%s\a' "$PWD_URL"
 }
-  #+END_SRC
+   #+END_SRC
 ** =.bashrc=
    :PROPERTIES:
    :header-args: :tangle bashrc.sh
@@ -3395,42 +3418,53 @@ bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-   #+BEGIN_SRC bash
-source @out@/etc/profile
+   Source profile found above.
 
+   #+BEGIN_SRC sh
+source @out@/etc/profile
+   #+END_SRC
+
+   When TERM=dumb, just do a simple prompt.
+
+   #+BEGIN_SRC sh
 case "$TERM" in
     dumb)
         PS1="\W > "
         return
         ;;
 esac
+   #+END_SRC
 
-shopt -s \
-      cdspell \
-      checkwinsize \
-      cmdhist \
-      dotglob \
-      extglob \
-      histappend \
-      nocaseglob \
-      cdspell \
-      cdable_vars \
-      checkhash \
-      checkwinsize \
-      sourcepath \
-      no_empty_cmd_completion \
-      cmdhist \
-      histappend \
-      histreedit \
-      histverify
+   Setup some bash-specific features.
 
-shopt -u mailwarn
+   #+BEGIN_SRC sh
+shopt -s cdspell \
+         cdable_vars \
+         checkhash \
+         checkwinsize \
+         cmdhist \
+         dotglob \
+         extglob \
+         histappend \
+         histreedit \
+         histverify \
+         nocaseglob \
+         no_empty_cmd_completion \
+         sourcepath
+   #+END_SRC
 
+   Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
+
+   #+BEGIN_SRC sh
 set -o notify \
     -o noclobber \
     -o ignoreeof \
     -o emacs
+   #+END_SRC
 
+   Setup prompt.
+
+   #+BEGIN_SRC sh
 GREEN="\[$(tput setaf 2)\]"
 YELLOW="\[$(/usr/bin/tput setaf 3)\]"
 BLUE="\[$(/usr/bin/tput setaf 4)\]"
@@ -3441,18 +3475,26 @@ case "$TERM" in
         PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
         ;;
 esac
+   #+END_SRC
 
+   Bind keys when we’re interactive.
+
+   #+BEGIN_SRC sh
 if [[ $- == *i* ]]; then
     bind '"\e/": dabbrev-expand'
     bind '"\ee": edit-and-execute-command'
 fi
-
-if [ "$TERM_PROGRAM" = "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ]; then
-      PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
-      update_terminal_cwd
-fi
    #+END_SRC
 
+   Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
+   give us the working directory in the title window.
+
+   #+BEGIN_SRC sh
+if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
+    PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
+    update_terminal_cwd
+fi
+   #+END_SRC
 ** =.zshrc=
    :PROPERTIES:
    :header-args: :tangle zshrc.sh
@@ -3465,15 +3507,20 @@ bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
+   Setup ZSH profile. First, we just source the global profile.
+
    #+BEGIN_SRC sh
 source @out@/etc/profile
+   #+END_SRC
 
+   Handle dumb options.
+
+   #+BEGIN_SRC sh
 case "$TERM" in
     dumb)
-        unsetopt \
-            zle \
-            prompt_cr \
-            prompt_subst
+        unsetopt zle \
+                 prompt_cr \
+                 prompt_subst
         if whence -w precmd >/dev/null; then
             unfunction precmd
         fi
@@ -3483,53 +3530,71 @@ case "$TERM" in
         PS1='$ '
         return
         ;;
-
 esac
+   #+END_SRC
 
+   Load up site-functions in ZSH.
+
+   #+BEGIN_SRC sh
 fpath+=(@out@/share/zsh/site-functions)
+   #+END_SRC
 
+   Setup ZSH auto suggestions.
+
+   #+BEGIN_SRC sh
 . @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+   #+END_SRC
 
+   Turn on colors.
+
+   #+BEGIN_SRC sh
 autoload -U colors && colors
+   #+END_SRC
 
-unsetopt \
-    menu_complete \
-    flowcontrol
+   Turn on ZSH-specific options.
 
-setopt \
-    always_to_end \
-    append_history \
-    auto_cd \
-    auto_menu \
-    auto_name_dirs \
-    auto_pushd \
-    cdablevarS \
-    correct \
-    correctall \
-    complete_in_word \
-    extended_glob \
-    extended_history \
-    hist_expire_dups_first \
-    hist_ignore_dups \
-    hist_ignore_space \
-    hist_find_no_dups \
-    hist_reduce_blanks \
-    hist_verify \
-    inc_append_history \
-    interactive_comments \
-    long_list_jobs \
-    multios \
-    no_beep \
-    prompt_subst \
-    pushd_ignore_dups \
-    pushdminus \
-    share_history \
-    transient_rprompt
+   #+BEGIN_SRC sh
+setopt always_to_end \
+       append_history \
+       auto_cd \
+       auto_menu \
+       auto_name_dirs \
+       auto_pushd \
+       cdablevarS \
+       complete_in_word \
+       correct \
+       correctall \
+       extended_glob \
+       extended_history \
+       hist_expire_dups_first \
+       hist_find_no_dups \
+       hist_ignore_dups \
+       hist_ignore_space \
+       hist_reduce_blanks \
+       hist_verify \
+       inc_append_history \
+       interactive_comments \
+       long_list_jobs \
+       multios \
+       no_beep \
+       prompt_subst \
+       pushd_ignore_dups \
+       pushdminus \
+       share_history \
+       transient_rprompt
+   #+END_SRC
 
+   Setup completions.
+
+   #+BEGIN_SRC sh
 ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
 autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
+   #+END_SRC
 
+   Zstyle completions.
+
+   #+BEGIN_SRC sh
 zstyle ':vcs_info:*' actionformats \
        '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
 zstyle ':vcs_info:*' formats '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
@@ -3567,17 +3632,19 @@ zstyle ':completion:*:ssh:*' tag-order users \
 zstyle ':completion:*:ssh:*' group-order hosts-domain hosts-host users \
        hosts-ipaddr
 zstyle '*' single-ignored show
+   #+END_SRC
 
+   Turn on prompt with colors.
+
+   #+BEGIN_SRC sh
 typeset -AHg FX FG BG
 
-FX=(
-    reset     "%{[00m%}"
+FX=(reset     "%{[00m%}"
     bold      "%{[01m%}" no-bold      "%{[22m%}"
     italic    "%{[03m%}" no-italic    "%{[23m%}"
     underline "%{[04m%}" no-underline "%{[24m%}"
     blink     "%{[05m%}" no-blink     "%{[25m%}"
-    reverse   "%{[07m%}" no-reverse   "%{[27m%}"
-)
+    reverse   "%{[07m%}" no-reverse   "%{[27m%}")
 
 for color in {000..255}; do
     FG[$color]="%{[38;5;${color}m%}"
@@ -3585,16 +3652,23 @@ for color in {000..255}; do
 done
 
 RPROMPT=
-
 PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$fg[yellow]%} $%{$reset_color%} '
+   #+END_SRC
 
-if [[ $TERM == "xterm-256color" ]]; then
+   ZSH key bindings.
+
+   #+BEGIN_SRC sh
+if [ "$TERM" == xterm-256color ]; then
     bindkey "^[[H" beginning-of-line
     bindkey "^[[F" end-of-line
     bindkey "^[[3~" delete-char
 fi
+   #+END_SRC
 
-if [ "$TERM_PROGRAM" = "Apple_Terminal" ] && [ -z "$INSIDE_EMACS" ]; then
+   Setup Apple Terminal so that CWD is shown.
+
+   #+BEGIN_SRC sh
+if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     autoload add-zsh-hook
     add-zsh-hook chpwd update_terminal_cwd
     update_terminal_cwd
@@ -3605,11 +3679,16 @@ fi
    :header-args: :tangle etc-profile.sh
    :END:
 
-   This just sources everything in the =/etc/profile.d= dir.
+   This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
+   used to reference the Nix output dir.
 
    #+BEGIN_SRC sh
 export PREFIX=@out@
+   #+END_SRC
 
+   This will source everything in =/etc/profile.d=.
+
+   #+BEGIN_SRC sh
 if [ -d @out@/etc/profile.d ]; then
   for i in @out@/etc/profile.d/*.sh; do
     if [ -r $i ]; then
@@ -3623,19 +3702,13 @@ fi
    :header-args: :tangle gitignore
    :END:
 
+   Some basic gitignore paths.
+
    #+BEGIN_SRC gitignore
 *~
 \#*\#
 *.DS_Store
-
-# Compiled class file
-*.class
-
-# Package Files
-*.jar
-*.war
    #+END_SRC
-
 ** =.gitconfig=
    :PROPERTIES:
    :header-args: :tangle gitconfig
@@ -3680,24 +3753,42 @@ fi
    #+BEGIN_SRC text
 (require 'set-defaults)
 (require 'subr-x)
+   #+END_SRC
 
+   =output-directory= points to the nix-profile directory created by Nix.
+   Ideally, this could point to a Nix store path, but the order of building
+   means that we don’t know this until too late.
+
+   #+BEGIN_SRC text
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
+   #+END_SRC
 
-(setq
- exec-path (append `(,(expand-file-name "bin" output-directory)
-                     "/usr/sbin" "/usr/bin"
-                     "/sbin" "/bin"
-                     )
-                   exec-path)
- )
+  Setup =exec-path=.
 
+   #+BEGIN_SRC text
+(setq exec-path (append `(,(expand-file-name "bin" output-directory)
+                           "/usr/sbin" "/usr/bin" "/sbin" "/bin")
+                        exec-path))
+   #+END_SRC
+
+   Setup =man-path=.
+
+   #+BEGIN_SRC text
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
                    ,(expand-file-name "share/man" output-directory)))
+   #+END_SRC
 
+   This will setup cacert-file var,
+
+   #+BEGIN_SRC text
 (defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
   "Path for SSL certificates.")
+   #+END_SRC
 
+   Set env vars provided by Nix,
+
+   #+BEGIN_SRC text
 (set-envs
  `("NIX_SSL_CERT_FILE" ,cacert-file)
  `("NIX_PATH" ,(concat
@@ -3707,7 +3798,11 @@ fi
  `("PATH" ,(string-join exec-path ":"))
  `("MANPATH" ,(string-join man-path ":"))
  )
+   #+END_SRC
 
+   Set paths provided by Nix,
+
+   #+BEGIN_SRC text
 (set-paths
  '(company-cmake-executable "@cmake@/bin/cmake")
  '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
@@ -3797,7 +3892,11 @@ fi
  '(intero-stack-executable "@intero@/bin/intero-nix-shim")
  '(notmuch-command "@notmuch@/bin/notmuch")
  )
+   #+END_SRC
 
+   Set some defaults that depend on the path variables below,
+
+   #+BEGIN_SRC text
 (set-defaults
  '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
  '(tls-program (concat gnutls " --tofu -p %p %h"))
@@ -3915,7 +4014,11 @@ fi
                        ))
  '(woman-manpath man-path)
  )
+   #+END_SRC
 
+   Provide site-paths,
+
+   #+BEGIN_SRC text
 (provide 'site-paths)
    #+END_SRC
 
@@ -3926,23 +4029,39 @@ fi
 
    #+BEGIN_SRC sh
 #!/bin/sh
+   #+END_SRC
 
+   Install Nix.
+
+   #+BEGIN_SRC shell
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install > $nix_installer
     sh $nix_installer
 fi
+   #+END_SRC
 
+   Pull into Git repo.
+
+   #+BEGIN_SRC shell
 if [ -d .git ]; then
     git pull origin master
 fi
+   #+END_SRC
 
+   Clone if default.nix doesn’t exist.
+
+   #+BEGIN_SRC shell
 if ! [ -f default.nix ]; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
 fi
+   #+END_SRC
 
+   Install current directory
+
+   #+BEGIN_SRC shell
 nix-env -if .
    #+END_SRC
 
@@ -3950,6 +4069,8 @@ nix-env -if .
    :PROPERTIES:
    :header-args: :tangle runemacs.sh
    :END:
+
+   Cross-platform script to execute app.
 
    #+BEGIN_SRC sh
 #!/usr/bin/env sh
@@ -3976,19 +4097,19 @@ esac
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
-  #+END_SRC
+   #+END_SRC
 
-  Now let's tangle README.org...
+   Now let's tangle README.org...
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
 import (runCommand "README" { buildInputs = [ emacs ]; } ''
 mkdir -p $out
 cd $out
 cp -r ${./lisp} $out/lisp
 cp ${./README.org} README.org
 emacs --batch --quick \
-                -l ob-tangle \
-                --eval "(org-babel-tangle-file \"README.org\")"
+      -l ob-tangle \
+      --eval "(org-babel-tangle-file \"README.org\")"
 cp bauer.nix default.nix
 '') {inherit nixpkgs';}
    #+END_SRC
@@ -4049,7 +4170,8 @@ cp bauer.nix default.nix
   myTex = texlive.combine {
     inherit (texlive) scheme-medium xetex setspace
       fontspec chktex enumitem xifthen
-      ifmtarg filehook;
+      ifmtarg filehook wrapfig inconsolata
+      upquote minted;
   };
   #+END_SRC
 
@@ -4124,29 +4246,29 @@ cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
 #+END_SRC
 
-Ideally, we could compile the .el file into a .elc, but it doesn’t work so well.
-The below block should do it, but it gives lots of errors.
+  Ideally, we could compile the .el file into a .elc, but it doesn’t work so
+  well. The below block should do it, but it gives lots of errors.
 
-#+BEGIN_SRC nix :tangle no
+  #+BEGIN_SRC nix :tangle no
 cd $out/share/emacs/site-lisp
 emacs --batch --quick \
-      --eval "(let ((default-directory \"${
-emacsWrapper (
-  (requiredPackages customEmacsPackages myPackages) ++
-  [customEmacsPackages.melpaPackages.use-package]
-)}/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
-      -L . -f batch-byte-compile *.el
-#+END_SRC
+--eval "(let ((default-directory \"${
+  emacsWrapper (
+    (requiredPackages customEmacsPackages myPackages) ++
+    [customEmacsPackages.melpaPackages.use-package]
+  )}/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
+  -L . -f batch-byte-compile *.el
+  #+END_SRC
 
-#+BEGIN_SRC nix
+  #+BEGIN_SRC nix
   '';
-#+END_SRC
+  #+END_SRC
 
   requiredPackages is a function that takes two arguments. 
 
-#+BEGIN_SRC nix
-  requiredPackages = epkgs: map (x:
-    if builtins.hasAttr x epkgs.melpaPackages
+  #+BEGIN_SRC nix
+requiredPackages = epkgs: map (x:
+  if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
     else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
     else if builtins.hasAttr x emacsPackages
@@ -4249,23 +4371,13 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 }
    #+END_SRC
 
-** =config.nix=
-   :PROPERTIES:
-   :header-args: :tangle config.nix
-   :END:
+** Actually building it
+   We can build it with =nix-build=.
 
-   This file is just for convenience if you wanted to build with the Nixpkgs in
-   your channel. Having this file available means you can place this repo in
-   \tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
+   #+BEGIN_SRC sh :results none
+nix-build
+   #+END_SRC
 
-#+BEGIN_SRC nix
-{
-  packageOverrides = pkgs: with pkgs; rec {
-    bauer = import ./default.nix { nixpkgs' = pkgs; };
-    userPackages = bauer;
-  };
-}
-#+END_SRC
 * Continuous integration
   :PROPERTIES: 
   :header-args: :tangle .travis.yml
@@ -4277,7 +4389,9 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 </a>
   #+END_EXPORT
 
-  We'll set up Travis support here. We start by defining the language.
+  We'll set up Travis support here. We start by configuring =.travis.yml=.
+
+** =.travis.yml=
 
   #+BEGIN_SRC yaml
 language: nix
@@ -4287,7 +4401,6 @@ language: nix
 
   #+BEGIN_SRC yaml
 script:
-  - echo '-Ss' > ~/.curlrc
   - nix-build -Q --argstr nixpkgs-url $NIXPKGS
   - sh info.sh result
   #+END_SRC
@@ -4349,10 +4462,13 @@ notifications:
    :END:      
 
    This is a simple file I use to make sure I've updated the generated files.
+
    #+BEGIN_SRC sh
 #!/bin/sh
+
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
+
 git clean -xf
    #+END_SRC
 ** =info.sh=
@@ -4360,7 +4476,8 @@ git clean -xf
    :header-args: :tangle info.sh
    :END:
 
-   This file gives us some info on the built derivation.
+   This file gives us some info on the built derivation. Only arg is optional
+   and should be a path to a Nix store derivation.
 
    #+BEGIN_SRC sh
 #!/bin/sh
@@ -4375,9 +4492,6 @@ if [ -L "$out" ]; then
 fi
 
 if [ -e $out ]; then
-  echo Store size:
-  du -scl $out
-
   echo Dependencies:
   du -scl $(nix-store -qR $out) | sort -n
 fi
@@ -4387,20 +4501,32 @@ fi
    :header-args: :tangle .gitignore
    :END:
 
+   These set up some paths for =.gitignore= that we don’t want getting put in
+   the repo. Start with Emacs/org-mode/LaTeX stuff.
+
    #+BEGIN_SRC gitignore
-# emacs/org-mode
 flycheck_*.el
 *.elc
 *.pdf
 *.html
 *.tex
 *.log
+*.aux
+*.out
+*.toc
+   #+END_SRC
 
+   Nix-related stuff.
+
+   #+BEGIN_SRC gitignore
 # nix stuff
 result
 result-*
+   #+END_SRC
 
-# these are all generated by README.org
+   These are all tangled by [[./README.org]].
+
+   #+BEGIN_SRC gitignore
 README.el
 bashrc.sh
 bauer.nix
@@ -4413,6 +4539,23 @@ default.el
 profile.sh
 site-paths.el.in
 init.el
+   #+END_SRC
+** =config.nix=
+   :PROPERTIES:
+   :header-args: :tangle config.nix
+   :END:
+
+   This file is just for convenience if you wanted to build with the Nixpkgs in
+   your channel. Having this file available means you can place this repo in
+   \tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
+
+   #+BEGIN_SRC nix
+{
+  packageOverrides = pkgs: with pkgs; rec {
+    bauer = import ./default.nix { nixpkgs' = pkgs; };
+    userPackages = bauer;
+  };
+}
    #+END_SRC
 * COMMENT Footer
 # Local Variables:
