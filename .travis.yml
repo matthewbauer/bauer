@@ -2,9 +2,10 @@ language: nix
 
 script:
   - echo '-Ss' > ~/.curlrc
-  - nix-build --quiet --argstr nixpkgs-url $NIXPKGS
+  - nix-build -Q --argstr nixpkgs-url $NIXPKGS
   - sh info.sh result
 
+sudo: false
 os:
   - linux
   - osx
