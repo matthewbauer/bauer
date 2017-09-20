@@ -1117,7 +1117,8 @@ git checkout v24
 (use-package em-dired
   :ensure nil
   :commands (em-dired-mode em-dired-new)
-  :bind (:map dired-mode-map ("e" . em-dired-new))
+  :bind (:map dired-mode-map
+              ("e" . em-dired))
   :init
   (add-hook 'eshell-mode-hook 'em-dired-mode)
   (advice-add 'eshell :before 'em-dired-new))

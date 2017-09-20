@@ -57,6 +57,13 @@
   :group 'eshell)
 
 ;;;###autoload
+(defun em-dired (&rest args)
+  "Load a new eshell for the current directory.
+ARGS anything else Eshell needs."
+  (interactive "P")
+  (em-dired-new)
+  (eshell))
+
 (defun em-dired-new (&rest args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
