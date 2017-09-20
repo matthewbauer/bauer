@@ -1398,8 +1398,6 @@ git checkout v24
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
           ("C-c b" . org-iswitchb))
-  :preface
-  (defvar org-export-async-debug nil)
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
   (add-hook 'org-mode-hook
@@ -1407,8 +1405,6 @@ git checkout v24
               (add-hook 'completion-at-point-functions
                         'pcomplete-completions-at-point nil t)))
   :config
-  (org-babel-do-load-languages 'org-babel-load-languages
-     '((emacs-lisp . t) (sh . t) (latex . t)))
   (use-package ox-latex
     :ensure nil
     :demand)
@@ -3761,7 +3757,7 @@ fi
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
    #+END_SRC
 
-  Setup =exec-path=.
+   Setup =exec-path=.
 
    #+BEGIN_SRC text
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
@@ -3890,6 +3886,7 @@ fi
  '(ag-executable "@ag@/bin/ag")
  '(intero-stack-executable "@intero@/bin/intero-nix-shim")
  '(notmuch-command "@notmuch@/bin/notmuch")
+ '(org-export-async-init-file "@orginit@")
  )
    #+END_SRC
 
@@ -4196,6 +4193,7 @@ cp bauer.nix default.nix
       gpg = gnupg1compat;
       # jdeeserver = jdee-server;
       aspell = myAspell;
+      orginit = ./org-init.el;
   } ''
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
@@ -4397,10 +4395,10 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 };
    #+END_SRC
 
-   #+BEGIN_SRC nix
+  #+BEGIN_SRC nix
 in myEnv
-   #+END_SRC
-
+  #+END_SRC
+  
 ** Actually building it
    We can build it with =nix-build=.
 
@@ -4585,6 +4583,28 @@ init.el
     userPackages = bauer;
   };
 }
+   #+END_SRC
+** =org-init.el=
+   :PROPERTIES:
+   :header-args: :tangle org-init.el
+   :END:
+
+   #+BEGIN_SRC emacs-lisp
+(require 'site-paths)
+(require 'use-package)
+(use-package org
+  :demand
+  :config
+  (use-package ox-latex
+    :ensure nil
+    :demand)
+  (use-package ox-beamer
+    :ensure nil
+    :demand)
+  (use-package ox-md
+    :ensure nil
+    :demand)
+  )
    #+END_SRC
 * COMMENT Footer
 # Local Variables:
