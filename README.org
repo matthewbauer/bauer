@@ -76,7 +76,7 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 
    Then, add the following to your Emacs init file [[~/.emacs.d/init.el]]:
 
-   #+BEGIN_SRC text :tangle init.el
+   #+BEGIN_SRC emacs-lisp :tangle init.el
 (defvar bauer-dir (expand-file-name "bauer" user-emacs-directory))
 (unless (featurep "site-paths")
   (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
@@ -3744,7 +3744,7 @@ fi
    Nix before we can actually run it in Emacs. To prevent Emacs from trying to
    run this, I’ve set the syntax to =text=.
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
 (require 'subr-x)
    #+END_SRC
@@ -3753,13 +3753,13 @@ fi
    Ideally, this could point to a Nix store path, but the order of building
    means that we don’t know this until too late.
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
    #+END_SRC
 
    Setup =exec-path=.
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
                            "/usr/sbin" "/usr/bin" "/sbin" "/bin")
                         exec-path))
@@ -3767,7 +3767,7 @@ fi
 
    Setup =man-path=.
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
                    ,(expand-file-name "share/man" output-directory)))
@@ -3775,7 +3775,7 @@ fi
 
    This will setup cacert-file var,
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
   "Path for SSL certificates."
   :group 'environment)
@@ -3783,7 +3783,7 @@ fi
 
    Set env vars provided by Nix,
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (set-envs
  ;; `("NIX_SSL_CERT_FILE" ,cacert-file)
  `("NIX_PATH" ,(concat
@@ -3797,7 +3797,7 @@ fi
 
    Set paths provided by Nix,
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (set-paths
  '(company-cmake-executable "@cmake@/bin/cmake")
  '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
@@ -3892,7 +3892,7 @@ fi
 
    Set some defaults that depend on the path variables below,
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (set-defaults
  '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
  '(tls-program (concat gnutls " --tofu -p %p %h"))
@@ -4014,7 +4014,7 @@ fi
 
    Provide site-paths,
 
-   #+BEGIN_SRC text
+   #+BEGIN_SRC emacs-lisp
 (provide 'site-paths)
    #+END_SRC
 
