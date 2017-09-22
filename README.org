@@ -4161,10 +4161,16 @@ cp bauer.nix default.nix
 
   #+BEGIN_SRC nix
   myTex = texlive.combine {
-    inherit (texlive) scheme-full xetex setspace
+    inherit (texlive) xetex setspace
       fontspec chktex enumitem xifthen
       ifmtarg filehook wrapfig inconsolata
-      upquote minted lastpage;
+      upquote minted lastpage collection-basic
+      collection-binextra collection-context
+      collection-fontsrecommended collection-fontutils
+      collection-genericrecommended collection-langenglish
+      collection-latex collection-latexrecommended collection-luatex
+      collection-mathextra collection-metapost collection-plainextra
+      collection-texworks collection-xetex;
   };
   #+END_SRC
 
