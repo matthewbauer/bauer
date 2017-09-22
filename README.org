@@ -2,7 +2,7 @@
 #+AUTHOR: Matthew Bauer
 #+EMAIL: mjbauer95@gmail.com
 #+LANGUAGE: en
-#+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:t |:t
+#+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
 #+OPTIONS: creator:nil date:nil email:nil inline:nil num:3 pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:t
@@ -14,7 +14,7 @@
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
 #+STARTUP: hideblocks
-#+INFOJS_OPT: view:info toc:nil path:http://orgmode.org/org-info.js
+#+HTML_HEAD: <link rel="stylesheet" href="../Projects/matthewbauer.github.io/style.css"/>
 
 *Bauer’s automated, unified Emacs realm*
 
@@ -1415,6 +1415,10 @@ git checkout v24
   (use-package ox-md
     :ensure nil
     :demand)
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((sh . t)
+                                 (emacs-lisp . t)
+                                 ))
   )
      #+END_SRC
 
@@ -3408,7 +3412,7 @@ update_terminal_cwd () {
    To use this, you must create a short =~/.bash_profile= file. Here is an
    example,
 
-   #+BEGIN_SRC bash :tangle no
+   #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
@@ -4030,7 +4034,7 @@ fi
 
    Install Nix.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install > $nix_installer
@@ -4040,7 +4044,7 @@ fi
 
    Pull into Git repo.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 if [ -d .git ]; then
     git pull origin master
 fi
@@ -4048,7 +4052,7 @@ fi
 
    Clone if default.nix doesn’t exist.
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 if ! [ -f default.nix ]; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
@@ -4058,7 +4062,7 @@ fi
 
    Install current directory
 
-   #+BEGIN_SRC shell
+   #+BEGIN_SRC sh
 nix-env -if .
    #+END_SRC
 
@@ -4419,11 +4423,11 @@ nix-build
   :header-args: :tangle .travis.yml
   :END:
 
-  #+BEGIN_EXPORT html
+  #+BEGIN_HTML
 <a href="https://travis-ci.org/matthewbauer/bauer">
   <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
 </a>
-  #+END_EXPORT
+  #+END_HTML
 
   We'll set up Travis support here. We start by configuring =.travis.yml=.
 
@@ -4602,18 +4606,21 @@ org-init.el
    #+BEGIN_SRC emacs-lisp
 (require 'site-paths)
 (require 'use-package)
+(setq use-package-always-demand t
+      use-package-always-ensure nil)
+(use-package tex-site)
+(use-package emacs-lisp)
+(use-package sh-script)
 (use-package org
-  :demand
   :config
-  (use-package ox-latex
-    :ensure nil
-    :demand)
-  (use-package ox-beamer
-    :ensure nil
-    :demand)
-  (use-package ox-md
-    :ensure nil
-    :demand)
+  (setq org-export-in-background t
+        org-src-fontify-natively t
+        org-src-preserve-indentation t
+        ;; org-html-htmlize-output-type (quote css)
+        org-latex-listings (quote minted))
+  (use-package ox-latex)
+  (use-package ox-beamer)
+  (use-package ox-md)
   )
    #+END_SRC
 * COMMENT Footer
