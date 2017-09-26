@@ -912,13 +912,12 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package counsel
-  :commands (counsel-descbinds)
+  :commands (counsel-descbinds counsel-grep-or-swiper)
   :bind* (([remap execute-extended-command] . counsel-M-x)
           ([remap find-file] . counsel-find-file)
           ([remap describe-function] . counsel-describe-function)
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-          ([remap isearch-forward] . counsel-grep-or-swiper)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-rg)
@@ -927,6 +926,9 @@ git checkout v24
           ("M-y" . counsel-yank-pop)
           ("C-c i 8" . counsel-unicode-char)
           )
+  :init
+  (bind-key* [remap isearch-forward] 'counsel-grep-or-swiper
+             (executable-find "grep"))
   )
      #+END_SRC
 
@@ -1162,6 +1164,8 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :ensure nil
+  :preface (require 'ispell)
+  :when (executable-find ispell-program-name)
   :commands (flyspell-mode flyspell-prog-mode)
   :config
   (setq flyspell-use-meta-tab nil)
@@ -1739,6 +1743,14 @@ git checkout v24
   :commands try)
      #+END_SRC
 
+**** which-func
+
+     #+BEGIN_SRC emacs-lisp
+(use-package which-func
+  :commands which-func-mode
+  :demand
+  :config (which-func-mode))
+     #+END_SRC
 **** which-key
 
      #+BEGIN_SRC emacs-lisp
