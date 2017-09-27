@@ -145,14 +145,11 @@ git checkout v24
  '(ad-redefinition-action 'accept)
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
- '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
  '(auth-source-save-behavior t)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(backward-delete-char-untabify-method 'hungry)
- '(backup-by-copying t)
- '(backup-directory-alist `((".*" . ,temporary-file-directory)))
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(comint-process-echoes t)
@@ -346,7 +343,6 @@ git checkout v24
  '(magit-save-repository-buffers 'dontask)
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
- '(make-backup-files nil)
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
  '(minibuffer-prompt-properties '(read-only t
@@ -377,7 +373,6 @@ git checkout v24
                       ("org" . "http://orgmode.org/elpa/")
                       ("gnu" . "https://elpa.gnu.org/packages/")
                       ))
- '(package-enable-at-startup nil)
  '(proof-splash-enable nil)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-enable-caching t)
@@ -437,8 +432,6 @@ git checkout v24
  '(use-file-dialog nil)
  '(use-package-always-defer t)
  '(use-package-enable-imenu-support t)
- '(use-package-always-ensure nil)
- '(use-package-ensure-function 'ignore)
  '(version-control t)
  '(vc-allow-async-revert t)
  '(vc-command-messages nil)
@@ -509,22 +502,30 @@ git checkout v24
    Now to get =use-package= we will require package.el and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
    site-paths should be available (unless you don’t have Nix), we can skip this
-   step. This block is currently broken.
+   step.
 
-   #+BEGIN_SRC emacs-lisp :tangle no
-(unless (or (featurep 'site-paths)
-            (and (boundp use-package-list--is-running)
-                 use-package-list--is-running))
-  (require 'package)
-  (package-initialize)
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package)))
+   #+BEGIN_SRC emacs-lisp
+(defvar needs-package-init (or (not (featurep 'site-paths))
+                               (not (and (boundp 'use-package-list--is-running)
+                                         use-package-list--is-running))))
+(defvar use-package-always-ensure nil)
+(setq use-package-always-ensure (not needs-package-init))
+(if needs-package-init
+  (progn
+    (setq package-enable-at-startup nil
+          use-package-ensure-function 'ignore))
+  (progn
+    (require 'package)
+    (package-initialize)
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))))
    #+END_SRC
 
    Actually require use-package,
 
    #+BEGIN_SRC emacs-lisp
+(setq package-enable-at-startup nil)
 (eval-when-compile
   (defvar use-package-ensure-function 'ignore)
   (require 'use-package))
