@@ -1398,7 +1398,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package org
-  :ensure nil
+  :ensure org-plus-contrib
   :commands org-capture
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
@@ -1411,6 +1411,12 @@ git checkout v24
               (add-hook 'completion-at-point-functions
                         'pcomplete-completions-at-point nil t)))
   :config
+  (use-package ob-dot
+    :ensure nil
+    :demand)
+  (use-package ox-rss
+    :ensure nil
+    :demand)
   (use-package ox-latex
     :ensure nil
     :demand)
@@ -1420,9 +1426,38 @@ git checkout v24
   (use-package ox-md
     :ensure nil
     :demand)
+  (use-package ox-reveal
+    :disabled
+    :demand)
+  (use-package ox-pandoc
+    :disabled
+    :demand)
+  (use-package ob-http
+    :disabled
+    :demand)
+  (use-package org-brain
+    :disabled
+    :demand)
+  (use-package org-projectile
+    :disabled
+    :demand)
+  (use-package org-present
+    :disabled
+    :demand)
+  (use-package org-ref
+    :disabled
+    :demand)
+  (use-package org-autolist
+    :disabled
+    :demand)
+  (use-package ox-tufte
+    :disabled
+    :demand)
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((sh . t)
                                  (emacs-lisp . t)
+                                 (dot . t)
+                                 (latex . t)
                                  ))
   )
      #+END_SRC
@@ -2748,6 +2783,12 @@ git checkout v24
     more helpful than others but none are /essential/.
 
     Most of these are available in MELPA.
+
+**** gnuplot
+
+     #+BEGIN_SRC emacs-lisp
+(use-package gnuplot)
+     #+END_SRC
 
 **** anything
 
