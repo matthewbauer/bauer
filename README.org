@@ -14,7 +14,7 @@
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
 #+STARTUP: hideblocks
-#+HTML_HEAD: <link rel="stylesheet" href="../Projects/matthewbauer.github.io/style.css"/>
+#+HTML_HEAD: <link rel="stylesheet" href="https://matthewbauer.us/style.css"/>
 
 *Bauer’s automated, unified Emacs realm*
 
@@ -3226,7 +3226,7 @@ git checkout v24
   :commands (realgud:jdb))
      #+END_SRC
 
-**** repl-toggle                                                   :noexport:
+**** repl-toggle                           ‘                       :noexport:
      :PROPERTIES:
      :header-args: :tangle no
      :END:
@@ -3337,11 +3337,6 @@ git checkout v24
      #+END_SRC
 
 **** yasnippet                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
@@ -4174,12 +4169,12 @@ cp bauer.nix default.nix
    =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
    will be =nixpkgs= instantiated.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
-  #+END_SRC
+   #+END_SRC
 
   We start out by defining the Nix version to use. nixStable corresponds to the
   last released version, 1.11.
@@ -4456,7 +4451,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   ] ++ [bashInteractive zsh coreutils git
         gawk gnused gzip gnutar gnupg1compat xz cacert
   ] ++ [nox nix nix-index nix-repl nodePackages.tern
-        isync stack ghc notmuch ];
+        isync stack ghc notmuch graphviz];
 };
    #+END_SRC
 
@@ -4658,7 +4653,7 @@ org-init.el
    :END:
 
    #+BEGIN_SRC emacs-lisp
-(require 'site-paths)
+(require 'site-paths nil t)
 (require 'use-package)
 (setq use-package-always-demand t
       use-package-always-ensure nil)
