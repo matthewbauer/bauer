@@ -509,27 +509,24 @@ git checkout v24
 (defvar needs-package-init (or (not (featurep 'site-paths))
                                (not (and (boundp 'use-package-list--is-running)
                                          use-package-list--is-running))))
-(defvar use-package-always-ensure nil)
-(setq use-package-always-ensure (not needs-package-init))
 (if needs-package-init
-  (progn
-    (setq package-enable-at-startup nil
-          use-package-ensure-function 'ignore))
   (progn
     (require 'package)
     (package-initialize)
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
-      (package-install 'use-package))))
+      (package-install 'use-package)))
+  (progn
+    (setq package-enable-at-startup nil
+          use-package-ensure-function 'ignore)))
    #+END_SRC
 
    Actually require use-package,
 
    #+BEGIN_SRC emacs-lisp
-(setq package-enable-at-startup nil)
 (eval-when-compile
-  (defvar use-package-ensure-function 'ignore)
   (require 'use-package))
+(setq use-package-always-ensure needs-package-init)
 (require 'bind-key)
    #+END_SRC
 ** Key bindings
