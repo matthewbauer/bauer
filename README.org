@@ -118,6 +118,7 @@ git checkout v24
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
+(autoload 'package-installed-p "package")
    #+END_SRC
 ** Custom config
 
@@ -1452,6 +1453,8 @@ git checkout v24
     :demand)
   (use-package ox-tufte
     :disabled
+    :demand)
+  (use-package org-static-blog
     :demand)
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((sh . t)
@@ -3341,7 +3344,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
-  :commands yas-minor-mode
+  :commands (yas-minor-mode yas-reload-all)
   :init (add-hook 'prog-mode-hook 'yas-minor-mode)
   :config (yas-reload-all))
      #+END_SRC
@@ -4671,6 +4674,7 @@ org-init.el
   (use-package ox-latex)
   (use-package ox-beamer)
   (use-package ox-md)
+  (use-package ox-rss)
   )
    #+END_SRC
 * COMMENT Footer

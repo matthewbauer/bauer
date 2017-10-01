@@ -19,6 +19,7 @@
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
+  (setq use-package-list--is-running t)
   (lexical-let ((use-package-verbose t)
                 (use-package-debug t)
                 (use-package-always-ensure nil)
