@@ -77,10 +77,16 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    Then, add the following to your Emacs init file [[~/.emacs.d/init.el]]:
 
    #+BEGIN_SRC emacs-lisp :tangle init.el
-(defvar bauer-dir (expand-file-name "bauer" user-emacs-directory))
-(unless (featurep "site-paths")
-  (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
-  (org-babel-load-file (expand-file-name "README.org" bauer-dir)))
+(defvar bauer-dir (expand-file-name ".nixpkgs" (getenv "HOME")))
+(defvar bauer-org (expand-file-name "README.org" bauer-dir))
+(setq package-enable-at-startup nil)
+(autoload 'org-babel-tangle-file "ob-tangle")
+(if (locate-library "default")
+    (unless (featurep 'default) (load "default" t))
+  (let ((default-directory bauer-dir))
+    (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
+    (org-babel-tangle-file bauer-org "README.el" "emacs-lisp")
+    (load-file (expand-file-name "README.el" bauer-dir))))
    #+END_SRC
 
 * Emacs Init file
