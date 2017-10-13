@@ -38,8 +38,8 @@ curl https://raw.githubusercontent.com/matthewbauer/bauer/master/bootstrap.sh | 
    #+END_SRC
 
    Alternatively, you can accomplish the same thing from Emacs by downloading
-   [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (M-x load-file<RET>) and running ‘install’ (M-x
-   install<RET>). This process will take a little bit as everything is
+   [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
+   (=M‑x install<RET>=). This process will take a little bit as everything is
    downloaded. After you restart Emacs, everything should be working.
 
 ** Developing
@@ -55,11 +55,11 @@ nix-build
    #+END_SRC
 
    The last line will spawn an Emacs frame in the Git repo. Make any changes you
-   want to this document ([[./README.org]]) or any of the files in [[./lisp]]. Make sure
-   you commit your changes afterward by typing =C-c p v=, then =c-ac= (using
-   Magit, of course). If you have forked this repo on GitHub, you can add it by
-   typing =Mg= then your GitHub username within Magit. To push to it, just type
-   =Pr= then find your username in the list and press enter. Pull requests are
+   want to [[./README.org][this document]] or any of the files in [[./lisp][the list folder]]. Make sure you
+   commit your changes afterward by typing =C-c p v=, then =c-ac= (using Magit,
+   of course). If you have forked this repo on GitHub, you can add it by typing
+   =Mg= then your GitHub username within Magit. To push to it, just type =Pr=
+   then find your username in the list and press enter. Pull requests are
    welcome through GitHub!
 
 ** w/o Nix usage
@@ -76,7 +76,7 @@ mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+END_SRC
 
-   Then, add the following to your Emacs init file [[~/.emacs.d/init.el]]:
+   Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 
    #+BEGIN_SRC emacs-lisp :tangle init.el
 (defvar bauer-dir (expand-file-name ".nixpkgs" (getenv "HOME")))
@@ -120,14 +120,13 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 git checkout v24
     #+END_SRC
 
-    and make sure you have setup the Nix-less version in your
-    [[~/.emacs.d/init.el]] file (see [[#nonix][w/o Nix usage directions]]).
+    and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
+    [[#nonix][w/o Nix usage directions]]).
 ** Autoloads
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
 (autoload 'package-installed-p "package")
-(defun org-define-error (&rest _))
    #+END_SRC
 ** Custom config
 
@@ -639,7 +638,7 @@ git checkout v24
    
    Provides installation and upgrading functionality. You can upgrade the IDE at
    any time by typing =M-x upgrade= from within Emacs. You may have to restart
-   Emacs for the upgrade to take place. See [[./lisp/installer.el]] for
+   Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
    documentation.
 
    #+BEGIN_SRC emacs-lisp
@@ -4214,7 +4213,7 @@ case $(uname) in
 esac
    #+END_SRC
 * Building
-** =default.nix=
+** =default.nix=: the build script
    :PROPERTIES:
    :header-args: :tangle default.nix
    :END:
@@ -4240,58 +4239,58 @@ emacs --batch --quick \
 cp bauer.nix default.nix
 '') {inherit nixpkgs';}
    #+END_SRC
-** =bauer.nix=
-   :PROPERTIES:
-   :header-args: :tangle bauer.nix
-   :END:
+*** =bauer.nix=
+    :PROPERTIES:
+    :header-args: :tangle bauer.nix
+    :END:
 
-   =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
-   will be =nixpkgs= instantiated.
+    =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
+    will be =nixpkgs= instantiated.
 
-   #+BEGIN_SRC nix
+    #+BEGIN_SRC nix
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
-   #+END_SRC
+    #+END_SRC
 
-  We start out by defining the Nix version to use. nixStable corresponds to the
-  last released version, 1.11.
+    We start out by defining the Nix version to use. nixStable corresponds to the
+    last released version, 1.11.
 
-  #+BEGIN_SRC nix
-  nix = nixStable;
-  #+END_SRC
+    #+BEGIN_SRC nix
+nix = nixStable;
+    #+END_SRC
 
-  Next we start defining some packages. R is one of the simpler ones right now,
-  so let's start with that.
+   Next we start defining some packages. R is one of the simpler ones right now,
+   so let's start with that.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   rEnv = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [
       RCurl
     ];
   };
-  #+END_SRC
+   #+END_SRC
 
-  Here we define our package set. This will just give us access to all of the
-  Emacs packages defined in Nixpkgs.
+   Here we define our package set. This will just give us access to all of the
+   Emacs packages defined in Nixpkgs.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     inherit emacs;
   });
-  #+END_SRC
+   #+END_SRC
 
-  Next, we define aspell with the English language. This is used by Emacs
-  ispell.
+   Next, we define aspell with the English language. This is used by Emacs
+   ispell.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
-  #+END_SRC
+   #+END_SRC
 
-  Tex live provides some LaTeX commads for us.
+   Tex live provides some LaTeX commads for us.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   myTex = texlive.combine {
     inherit (texlive) xetex setspace
       fontspec chktex enumitem xifthen
@@ -4304,12 +4303,14 @@ cp bauer.nix default.nix
       collection-mathextra collection-metapost collection-plainextra
       collection-texworks collection-xetex;
   };
-  #+END_SRC
+   #+END_SRC
 
-  Here, we start building up the site-paths.el file. This does a simple
-  substitution of all the attributes set.
+*** Emacs configuration
 
-  #+BEGIN_SRC nix
+   Here, we start building up the site-paths.el file. This does a simple
+   substitution of all the attributes set.
+
+   #+BEGIN_SRC nix
   site-paths = runCommand "site-paths.el" {
     inherit rtags ripgrep ag emacs ant nethack fortune gnutls
       coreutils findutils openssh git bash
@@ -4337,12 +4338,17 @@ cp bauer.nix default.nix
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
   '';
-  #+END_SRC
+   #+END_SRC
 
-  myPackages gets a listing of all of the packages that are needed by the Emacs
-  configuration. use-package-list generates this list automatically.
+   Emacs building can be divided into phases. Each phase will run through the
+   Elisp once.
 
-  #+BEGIN_SRC nix
+**** Phase 1: picking up dependencies
+
+   myPackages gets a listing of all of the packages that are needed by the Emacs
+   configuration. use-package-list generates this list automatically.
+
+   #+BEGIN_SRC nix
   package-list = with customEmacsPackages.melpaPackages;
     runCommand "package-list" { buildInputs = [ emacs ]; } ''
 emacs --batch --quick \
@@ -4352,9 +4358,11 @@ emacs --batch --quick \
                 --eval "(use-package-list \"${./README.el}\")" > $out
   '';
   myPackages = builtins.fromJSON (builtins.readFile package-list);
-  #+END_SRC
+   #+END_SRC
 
-  #+BEGIN_SRC nix
+**** Phase 2: byte compiling
+
+   #+BEGIN_SRC nix
   default = runCommand "default.el" { buildInputs = [emacs]; } ''
 mkdir -p $out/share/emacs/site-lisp
 
@@ -4375,12 +4383,12 @@ cp ${./lisp/company-eshell-history.el} \
   $out/share/emacs/site-lisp/company-eshell-history.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
-  #+END_SRC
+   #+END_SRC
 
-  Ideally, we could compile the .el file into a .elc, but it doesn’t work so
-  well. The below block should do it, but it gives lots of errors.
+   Ideally, we could compile the .el file into a .elc, but it doesn’t work so
+   well. The below block should do it, but it gives lots of errors.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
@@ -4389,13 +4397,15 @@ emacs --batch --quick \
                   [customEmacsPackages.melpaPackages.use-package])
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
-  #+END_SRC
+   #+END_SRC
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   '';
-  #+END_SRC
+   #+END_SRC
 
-  #+BEGIN_SRC nix
+**** Phase 3: wrapping into Emacs
+
+   #+BEGIN_SRC nix
   emacsWrapper = explicitRequires: runCommand "emacs-packages-deps"
    { inherit emacs explicitRequires; inherit (xorg) lndir; }
    ''
@@ -4426,11 +4436,11 @@ emacs --batch --quick \
      # Byte-compiling improves start-up time only slightly, but costs nothing.
      $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
   '';
-  #+END_SRC
+   #+END_SRC
 
-  requiredPackages is a function that takes two arguments. 
+   requiredPackages is a function that takes two arguments. 
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
 requiredPackages = epkgs: map (x:
   if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
@@ -4440,16 +4450,18 @@ requiredPackages = epkgs: map (x:
     else if builtins.hasAttr x epkgs.elpaPackages
     then builtins.getAttr x epkgs.elpaPackages
     else builtins.getAttr x pkgs);
-  #+END_SRC
+   #+END_SRC
 
-  Now we build our Emacs distribution.
+   Now we build our Emacs distribution.
 
-  #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myPackages)
     ++ [default epkgs.melpaPackages.use-package]
   );
-  #+END_SRC
+   #+END_SRC
+
+*** The environment
 
   Finally, we can actually build the environment.
 
@@ -4538,7 +4550,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 in myEnv
   #+END_SRC
   
-** Actually building it
+** Invoking it
    We can build it with =nix-build=.
 
    #+BEGIN_SRC sh :results none
@@ -4692,7 +4704,7 @@ result
 result-*
    #+END_SRC
 
-   These are all tangled by [[./README.org]].
+   These are all tangled by [[./README.org][README.org]].
 
    #+BEGIN_SRC gitignore
 README.el
@@ -4749,8 +4761,7 @@ org-init.el
   (use-package ox-latex)
   (use-package ox-beamer)
   (use-package ox-md)
-  (use-package ox-rss)
-  )
+  (use-package ox-rss))
    #+END_SRC
 * COMMENT Footer
 # Local Variables:
