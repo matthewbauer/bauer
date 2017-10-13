@@ -1436,12 +1436,42 @@ git checkout v24
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
           ("C-c b" . org-iswitchb))
+  :preface
+  (defun org-completion-symbols ()
+    (when (looking-back "=[a-zA-Z]+")
+      (let (cands)
+        (save-match-data
+          (save-excursion
+            (goto-char (point-min))
+            (while (re-search-forward "=\\([a-zA-Z]+\\)=" nil t)
+              (cl-pushnew
+               (match-string-no-properties 0) cands :test 'equal))
+            cands))
+        (when cands
+          (list (match-beginning 0) (match-end 0) cands)))))
+(defun org-completion-refs ()
+  (when (looking-back "\\\\\\(?:ref\\|label\\){\\([^\n{}]\\)*")
+    (let (cands beg end)
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward "\\label{\\([^}]+\\)}" nil t)
+          (push (match-string-no-properties 1) cands)))
+      (save-excursion
+        (up-list)
+        (setq end (1- (point)))
+        (backward-list)
+        (setq beg (1+ (point))))
+      (list beg end
+            (delete (buffer-substring-no-properties beg end)
+                    (nreverse cands))))))
   :init
   (add-hook 'org-mode-hook 'auto-fill-mode)
   (add-hook 'org-mode-hook
             (lambda ()
-              (add-hook 'completion-at-point-functions
-                        'pcomplete-completions-at-point nil t)))
+              (setq-local completion-at-point-functions
+                          '(org-completion-symbols
+                            org-completion-refs
+                            pcomplete-completions-at-point))))
   :config
   (use-package ob-dot
     :ensure nil
