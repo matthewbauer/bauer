@@ -4172,15 +4172,16 @@ fi
    Pull into Git repo.
 
    #+BEGIN_SRC sh
-if [ -d .git ]; then
-    git pull origin master
+if [ -d .git ] && command -v git >/dev/null 2>&1
+then
+    git pull origin master || true
 fi
    #+END_SRC
 
    Clone if default.nix doesn’t exist.
 
    #+BEGIN_SRC sh
-if ! [ -f default.nix ]; then
+if ! [ -f default.nix ] &&  && command -v git >/dev/null 2>&1; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
