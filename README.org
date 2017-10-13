@@ -4541,8 +4541,9 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     '')
   ] ++ [bashInteractive zsh coreutils git
         gawk gnused gzip gnutar gnupg1compat xz cacert
-  ] ++ [nox nix nix-index nix-repl nodePackages.tern
-        isync stack ghc notmuch graphviz];
+  ] ++ [nox nix nix-index nix-repl nix-bundle]
+       [nodePackages.tern isync notmuch graphviz]
+    ++ [stack ghc];
 };
    #+END_SRC
 
