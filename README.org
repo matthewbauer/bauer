@@ -510,32 +510,52 @@ git checkout v24
    Now to get =use-package= we will require package.el and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
    site-paths should be available (unless you don’t have Nix), we can skip this
-   step.
+   step. All of this is marked ‘eval-and-compile’ to make sure the compiler
+   picks it up on build phase.
+
+   So, there are basically two modes for using this configuration. One when
+   packages are installed externally (through Nix) and another where they are
+   installed internally. This is captured in the variable ‘needs-package-init’
+   which will be t when we want to use the builtin package.el and will be nli
+   when we want to just assume everything is available.
 
    #+BEGIN_SRC emacs-lisp
-(defvar needs-package-init (and (not (featurep 'site-paths))
+(eval-and-compile
+  (setq needs-package-init (and (not (locate-library "site-paths"))
                                 (not (and (boundp 'use-package-list--is-running)
-                                         use-package-list--is-running))))
-(message "needs-package-init:%s" needs-package-init)
+                                          use-package-list--is-running)))))
+   #+END_SRC
+
+   First handle using package.el.
+
+   #+BEGIN_SRC emacs-lisp
 (when needs-package-init
   (require 'package)
   (package-initialize)
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package)))
-   #+END_SRC
+#+END_SRC
 
    Actually require use-package,
 
    #+BEGIN_SRC emacs-lisp
-(eval-when-compile
-  (require 'use-package))
-(setq use-package-always-ensure needs-package-init)
-(when needs-package-init
-  (setq use-package-ensure-function 'ignore
-        package-enable-at-startup nil))
-(require 'bind-key)
+(eval-and-compile
+  (require 'use-package)
+  (require 'bind-key))
    #+END_SRC
+
+   Now let’s handle the case where all of the packages are already provided.
+   Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
+
+   #+BEGIN_SRC emacs-lisp
+(eval-and-compile
+  (setq use-package-always-ensure needs-package-init)
+  (when (not needs-package-init)
+    (setq use-package-ensure-function 'ignore
+          package-enable-at-startup nil)))
+   #+END_SRC
+
 ** Key bindings
 
    Using bind-key, setup some simple key bindings. None of these should
