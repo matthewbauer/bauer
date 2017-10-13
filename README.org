@@ -4213,7 +4213,7 @@ case $(uname) in
 esac
    #+END_SRC
 * Building
-** =default.nix=: the build script
+** =default.nix=: the tangler
    :PROPERTIES:
    :header-args: :tangle default.nix
    :END:
@@ -4239,58 +4239,58 @@ emacs --batch --quick \
 cp bauer.nix default.nix
 '') {inherit nixpkgs';}
    #+END_SRC
-*** =bauer.nix=
-    :PROPERTIES:
-    :header-args: :tangle bauer.nix
-    :END:
+** =bauer.nix=: the build script
+   :PROPERTIES:
+   :header-args: :tangle bauer.nix
+   :END:
 
-    =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
-    will be =nixpkgs= instantiated.
+   =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
+   will be =nixpkgs= instantiated.
 
-    #+BEGIN_SRC nix
+   #+BEGIN_SRC nix
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
-    #+END_SRC
+   #+END_SRC
 
-    We start out by defining the Nix version to use. nixStable corresponds to the
-    last released version, 1.11.
-
-    #+BEGIN_SRC nix
-nix = nixStable;
-    #+END_SRC
-
-   Next we start defining some packages. R is one of the simpler ones right now,
-   so let's start with that.
+   We start out by defining the Nix version to use. nixStable corresponds to the
+   last released version, 1.11.
 
    #+BEGIN_SRC nix
+nix = nixStable;
+   #+END_SRC
+
+  Next we start defining some packages. R is one of the simpler ones right now,
+  so let's start with that.
+
+  #+BEGIN_SRC nix
   rEnv = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [
       RCurl
     ];
   };
-   #+END_SRC
+  #+END_SRC
 
-   Here we define our package set. This will just give us access to all of the
-   Emacs packages defined in Nixpkgs.
+  Here we define our package set. This will just give us access to all of the
+  Emacs packages defined in Nixpkgs.
 
-   #+BEGIN_SRC nix
+  #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     inherit emacs;
   });
-   #+END_SRC
+  #+END_SRC
 
-   Next, we define aspell with the English language. This is used by Emacs
-   ispell.
+  Next, we define aspell with the English language. This is used by Emacs
+  ispell.
 
-   #+BEGIN_SRC nix
+  #+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
-   #+END_SRC
+  #+END_SRC
 
-   Tex live provides some LaTeX commads for us.
+  Tex live provides some LaTeX commads for us.
 
-   #+BEGIN_SRC nix
+  #+BEGIN_SRC nix
   myTex = texlive.combine {
     inherit (texlive) xetex setspace
       fontspec chktex enumitem xifthen
@@ -4303,7 +4303,7 @@ nix = nixStable;
       collection-mathextra collection-metapost collection-plainextra
       collection-texworks collection-xetex;
   };
-   #+END_SRC
+  #+END_SRC
 
 *** Emacs configuration
 
