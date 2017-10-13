@@ -1164,7 +1164,11 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package esup
-  :commands esup)
+  :commands (esup profile)
+  :preface
+  (defun profile ()
+    (interactive)
+    (esup (locate-library "default"))))
      #+END_SRC
 
 **** flycheck
