@@ -29,6 +29,17 @@ paths. This provides a kind of functional Emacs configuration.
   :header-args: :tangle no
   :END:
 
+** Demo
+
+   If you already have Nix installed, you can demo this out really easily. Just
+   run the following,
+
+   #+BEGIN_SRC sh
+url="github.com/matthewbauer/bauer/archive/master.tar.gz" \
+expr='import (builtins.fetchTarball "$url")' \
+   nix-shell -p nix-bundle --run 'nix-run "$expr"'
+   #+END_SRC
+
 ** Installing/upgrading
 
    Run this from your shell:
