@@ -1,5 +1,4 @@
-
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz"
+{ nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
