@@ -4534,7 +4534,9 @@ substituteInPlace $out/bin/run \
   --replace @out@ $out
 chmod +x $out/bin/run
   '';
-  meta.priority = 10;
+  meta = {
+    priority = -10;
+  };
   pathsToLink = [
     "/bin"
     "/etc/profile.d"
