@@ -133,6 +133,16 @@ git checkout v24
 
     and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
     [[#nonix][w/o Nix usage directions]]).
+** Increase GC
+
+   #+BEGIN_SRC emacs-lisp
+(setq gc-cons-threshold most-positive-fixnum)
+(add-hook 'after-init-hook
+          (lambda ()
+            (garbage-collect)
+            (setq gc-cons-threshold (default-value 'gc-cons-threshold))))
+   #+END_SRC
+
 ** Autoloads
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
