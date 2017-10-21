@@ -140,7 +140,8 @@ git checkout v24
 (add-hook 'after-init-hook
           (lambda ()
             (garbage-collect)
-            (setq gc-cons-threshold (default-value 'gc-cons-threshold))))
+            (setq gc-cons-threshold
+                  (car (get 'gc-cons-threshold 'standard-value)))))
    #+END_SRC
 
 ** Autoloads
