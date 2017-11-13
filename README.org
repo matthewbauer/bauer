@@ -67,7 +67,7 @@ nix-build
 
    The last line will spawn an Emacs frame in the Git repo. Make any changes you
    want to [[./README.org][this document]] or any of the files in [[./lisp][the list folder]]. Make sure you
-   commit your changes afterward by typing =C-c p v=, then =c-ac= (using Magit,
+   commit your changes afterward by typing =C-c p v=, then =c-ac= (using Magit,
    of course). If you have forked this repo on GitHub, you can add it by typing
    =Mg= then your GitHub username within Magit. To push to it, just type =Pr=
    then find your username in the list and press enter. Pull requests are
@@ -114,10 +114,10 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
    available.
 
-    #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
-    #+END_SRC
+   #+END_SRC
 
 *** EXPERIMENTAL Emacs 24 support
    :PROPERTIES:
@@ -181,6 +181,9 @@ git checkout v24
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
  '(backward-delete-char-untabify-method 'hungry)
+ '(backup-directory-alist `(("." .
+                             ,(expand-file-name "backup"
+                                                user-emacs-directory))))
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(comint-process-echoes t)
@@ -1583,6 +1586,13 @@ git checkout v24
 (use-package projectile
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
+  :bind (:map projectile-command-map
+         ("s r" . projectile-rg))
+  :preface
+  (defun projectile-rg ()
+    "Run ripgrep in projectile."
+    (interactive)
+    (counsel-rg "" (projectile-project-root)))
   :commands (projectile-mode)
   :defer 1
   :config
@@ -1762,12 +1772,10 @@ git checkout v24
                  lisp-mode
                  inferior-lisp-mode
                  lisp-interaction-mode
-                 slime-repl-mode
-                 org-mode) . show-smartparens-mode)))
+                 slime-repl-mode) . show-smartparens-mode)))
   (add-hooks '(((web-mode
                  nxml-mode
-                 html-mode
-                 org-mode) . smartparens-mode)))
+                 html-mode) . smartparens-mode)))
   :config
   (use-package smartparens-html
     :ensure nil
@@ -3519,12 +3527,13 @@ export LANG=en_US.UTF-8 \
        MANPATH=$PREFIX/share/man \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
-       LSCOLORS=ExFxCxDxBxegedabagacad \
        GREP_OPTIONS='--color=auto' \
        GREP_COLOR='3;33' \
        LC_COLLATE=C \
        HISTFILE=$HOME/.history \
        HISTSIZE=16000 \
+       HISTFILESIZE=16000 \
+       HISTCONTROL=ignoreboth \
        SAVEHIST=15000 \
        SHELL_SESSION_HISTORY=1
    #+END_SRC
@@ -3621,16 +3630,7 @@ set -o notify \
    Setup prompt.
 
    #+BEGIN_SRC sh
-GREEN="\[$(tput setaf 2)\]"
-YELLOW="\[$(/usr/bin/tput setaf 3)\]"
-BLUE="\[$(/usr/bin/tput setaf 4)\]"
-RESET="\[$(/usr/bin/tput sgr0)\]"
-
-case "$TERM" in
-    *)
-        PS1="${BLUE}\u@\h${RESET}:${GREEN}\w${RESET} ${YELLOW}$ ${RESET}"
-        ;;
-esac
+PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
    #+END_SRC
 
    Bind keys when we’re interactive.
@@ -3793,22 +3793,7 @@ zstyle '*' single-ignored show
    Turn on prompt with colors.
 
    #+BEGIN_SRC sh
-typeset -AHg FX FG BG
-
-FX=(reset     "%{[00m%}"
-    bold      "%{[01m%}" no-bold      "%{[22m%}"
-    italic    "%{[03m%}" no-italic    "%{[23m%}"
-    underline "%{[04m%}" no-underline "%{[24m%}"
-    blink     "%{[05m%}" no-blink     "%{[25m%}"
-    reverse   "%{[07m%}" no-reverse   "%{[27m%}")
-
-for color in {000..255}; do
-    FG[$color]="%{[38;5;${color}m%}"
-    BG[$color]="%{[48;5;${color}m%}"
-done
-
-RPROMPT=
-PROMPT='%{$fg[blue]%}%n@%m:%{$fg[cyan]%}%c%{$fg[yellow]%} $%{$reset_color%} '
+PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
    #+END_SRC
 
    ZSH key bindings.
@@ -3923,7 +3908,7 @@ fi
 
    #+BEGIN_SRC emacs-lisp
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
-                           "/usr/sbin" "/usr/bin" "/sbin" "/bin")
+                          "/usr/sbin" "/usr/bin" "/sbin" "/bin")
                         exec-path))
    #+END_SRC
 
@@ -3948,10 +3933,7 @@ fi
    #+BEGIN_SRC emacs-lisp
 (set-envs
  ;; `("NIX_SSL_CERT_FILE" ,cacert-file)
- `("NIX_PATH" ,(concat
-                "nixpkgs=/nix/var/nix/profiles/per-user/"
-                (getenv "USER")
-                "/channels/nixpkgs"))
+ `("NIX_PATH" "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs")
  `("PATH" ,(string-join exec-path ":"))
  `("MANPATH" ,(string-join man-path ":"))
  )
@@ -4289,7 +4271,7 @@ cp bauer.nix default.nix
    last released version, 1.11.
 
    #+BEGIN_SRC nix
-nix = nixStable;
+nix = nixUnstable;
    #+END_SRC
 
   Next we start defining some packages. R is one of the simpler ones right now,
@@ -4332,7 +4314,7 @@ nix = nixStable;
       collection-genericrecommended collection-langenglish
       collection-latex collection-latexrecommended collection-luatex
       collection-mathextra collection-metapost collection-plainextra
-      collection-texworks collection-xetex;
+      collection-texworks collection-xetex capt-of;
   };
   #+END_SRC
 
@@ -4555,7 +4537,9 @@ chmod +x $out/bin/run
     "/share/info"
     "/share/zsh"
     "/share/bash-completion"
+    "/share/mime"
   ];
+
   extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
   name = "bauer";
 
