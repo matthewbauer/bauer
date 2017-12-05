@@ -243,6 +243,7 @@ git checkout v24
  '(erc-fill-prefix "          ")
  '(erc-insert-timestamp-function 'erc-insert-timestamp-left)
  '(erc-interpret-mirc-color t)
+ '(erc-join-buffer 'bury)
  '(erc-kill-buffer-on-part t)
  '(erc-kill-queries-on-quit t)
  '(erc-kill-server-buffer-on-quit t)
@@ -751,7 +752,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package company
-  :demand
+  :defer 2
   :bind (:map company-active-map
               ("TAB" .
                company-select-next-if-tooltip-visible-or-complete-selection)
@@ -783,7 +784,8 @@ git checkout v24
   (add-hook 'minibuffer-setup-hook
             (lambda () (setq-local company-frontends
                                    '(company-preview-frontend))))
-  (advice-add 'completion-at-point :override 'company-complete-common-or-cycle))
+;; (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
+ )
      #+END_SRC
 
 ***** company-anaconda                                             :noexport:
@@ -996,6 +998,18 @@ git checkout v24
   :init (add-hook 'projectile-mode-hook 'counsel-projectile-on))
       #+END_SRC
 
+**** desktop
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package desktop
+  )
+      #+END_SRC
+
 **** diff-hl
 
      #+BEGIN_SRC emacs-lisp
@@ -1047,6 +1061,22 @@ git checkout v24
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
       #+END_SRC
+
+***** dired-du
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-du
+  :after dired
+  :commands dired-du-mode
+  ;; :init (add-hook 'dired-mode-hook #'dired-du-mode)
+  )
+      #+END_SRC
+
 
 ***** dired-imenu
 
@@ -1112,7 +1142,7 @@ git checkout v24
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
   :commands (eshell eshell-command eshell-bol)
-  :init
+  :config
   (use-package em-rebind
     :preface
     (defun eshell-eol ()
@@ -1201,7 +1231,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package flycheck
-  :demand
+  :defer 4
   :commands global-flycheck-mode
   :config (global-flycheck-mode))
      #+END_SRC
@@ -1312,7 +1342,6 @@ git checkout v24
          ("<escape>" . abort-recursive-edit))
   :commands ivy-mode
   :init
-  (require 'ivy nil t)
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
   (defvar dumb-jump-selector)
@@ -1954,7 +1983,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :ensure nil
-  :demand
+  :defer 4
   :commands auto-revert-mode
   :init
   (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -3527,7 +3556,6 @@ export LANG=en_US.UTF-8 \
        MANPATH=$PREFIX/share/man \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
-       GREP_OPTIONS='--color=auto' \
        GREP_COLOR='3;33' \
        LC_COLLATE=C \
        HISTFILE=$HOME/.history \
@@ -3934,6 +3962,7 @@ fi
 (set-envs
  ;; `("NIX_SSL_CERT_FILE" ,cacert-file)
  `("NIX_PATH" "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs")
+ `("NIX_REMOTE" "daemon")
  `("PATH" ,(string-join exec-path ":"))
  `("MANPATH" ,(string-join man-path ":"))
  )
@@ -4398,9 +4427,6 @@ cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
    #+END_SRC
 
-   Ideally, we could compile the .el file into a .elc, but it doesn’t work so
-   well. The below block should do it, but it gives lots of errors.
-
    #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
@@ -4555,9 +4581,9 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   --replace @fortune@ ${fortune} \
   --replace @cacert@ ${cacert}
     '')
-  ] ++ [bashInteractive zsh coreutils git
+  ] ++ [bashInteractive zsh coreutils git wget
         gawk gnused gzip gnutar gnupg1compat xz cacert
-  ] ++ [nox nix nix-index nix-repl]
+  ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc];
 };
