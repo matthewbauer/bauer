@@ -326,6 +326,8 @@ git checkout v24
                             (abbreviate-file-name (buffer-file-name))
                           "%b")))
  '(global-auto-revert-non-file-buffers t)
+ '(gnuplot-eldoc-mode t)
+ '(gnuplot-inline-image-mode (quote dedicated))
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
@@ -3975,6 +3977,8 @@ fi
  '(company-cmake-executable "@cmake@/bin/cmake")
  '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
  '(cacert-file "@cacert@/etc/ssl/certs/ca-bundle.crt")
+ '(calc-gnuplot-name "@gnuplot@/bin/gnuplot")
+ '(gnuplot-program "@gnuplot@/bin/gnuplot")
  '(doc-view-ps2pdf-program "@ghostscript@/bin/ps2pdf")
  '(dired-touch-program "@coreutils@/bin/touch")
  '(dired-chmod-program "@coreutils@/bin/chmod")
@@ -4363,7 +4367,7 @@ nix = nixUnstable;
       gnugrep man gawk gnused
       sqliteInteractive freetds mariadb
       parallel unixODBC ncompress
-      texinfoInteractive cacert notmuch;
+      texinfoInteractive cacert notmuch gnuplot;
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
     intero = haskellPackages.intero-nix-shim;
@@ -4582,7 +4586,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   --replace @cacert@ ${cacert}
     '')
   ] ++ [bashInteractive zsh coreutils git wget
-        gawk gnused gzip gnutar gnupg1compat xz cacert
+        gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
   ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc];
