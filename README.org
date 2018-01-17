@@ -328,6 +328,11 @@ git checkout v24
  '(global-auto-revert-non-file-buffers t)
  '(gnuplot-eldoc-mode t)
  '(gnuplot-inline-image-mode (quote dedicated))
+ '(haskell-mode-hook
+   (quote
+    (capitalized-words-mode flyspell-prog-mode
+     haskell-indentation-mode imenu-add-menubar-index interactive-haskell-mode
+     turn-on-haskell-unicode-input-method)))
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
@@ -658,6 +663,9 @@ git checkout v24
 (bind-key "<up>"      "⇑" iso-transl-ctl-x-8-map)
 (bind-key "<S-up>"    "↑" iso-transl-ctl-x-8-map)
 (bind-key ","         "…" iso-transl-ctl-x-8-map)
+
+(bind-key "<S-s-up>"      'shrink-window)
+(bind-key "<S-s-down>"    'enlarge-window)
    #+END_SRC
 ** Setup installer                                                 :noexport:
    :PROPERTIES:
@@ -983,7 +991,7 @@ git checkout v24
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-rg)
           ("C-x l" . counsel-locate)
-          ("C-M-i" . counsel-imenu)
+          ;; ("C-M-i" . counsel-imenu)
           ("M-y" . counsel-yank-pop)
           ("C-c i 8" . counsel-unicode-char)
           )
@@ -1262,11 +1270,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :ensure nil
-  :preface (require 'ispell)
-  :when (executable-find ispell-program-name)
   :commands (flyspell-mode flyspell-prog-mode)
-  :config
-  (setq flyspell-use-meta-tab nil)
   :init
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode))
@@ -1346,8 +1350,9 @@ git checkout v24
 (use-package ivy
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
-         :map ivy-minibuffer-map
-         ("<escape>" . abort-recursive-edit))
+         ;; :map ivy-minibuffer-map
+         ;; ("<escape>" . abort-recursive-edit)
+         )
   :commands ivy-mode
   :init
   (defvar projectile-completion-system)
@@ -2021,12 +2026,12 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package comint
   :ensure nil
-  :bind
-  (:map comint-mode-map
-        ("C-r"       . comint-history-isearch-backward-regexp)
-        ("s-k"       . comint-clear-buffer)
-        ("M-TAB"     . comint-previous-matching-input-from-input)
-        ("<M-S-tab>" . comint-next-matching-input-from-input))
+  ;; :bind
+  ;; (:map comint-mode-map
+  ;;       ("C-r"       . comint-history-isearch-backward-regexp)
+  ;;       ("s-k"       . comint-clear-buffer)
+  ;;       ("M-TAB"     . comint-previous-matching-input-from-input)
+  ;;       ("<M-S-tab>" . comint-next-matching-input-from-input))
   :commands (comint-next-prompt
              comint-write-input-ring
              comint-after-pmark-p
@@ -2552,22 +2557,54 @@ git checkout v24
 ***** ghc
 
       #+BEGIN_SRC emacs-lisp
-(use-package ghc)
+(use-package ghc
+  :init
+  (autoload 'ghc-init "ghc" nil t)
+  (add-hook 'haskell-mode-hook 'ghc-init))
       #+END_SRC
+
+***** structured-haskell-mode
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package structured-haskell-mode
+  :commands (structured-haskell-mode)
+  :init
+  (add-hook 'haskell-mode-hook 'structured-haskell-mode))
+      #+END_SRC
+
+
+***** ghc-mod
+
+      #+BEGIN_SRC emacs-lisp
+(use-package ghc-mod)
+      #+END_SRC
+
+***** company-ghc
+
+      #+BEGIN_SRC emacs-lisp
+(use-package company-ghc
+  :config
+  (add-to-list 'company-backends 'company-ghci)
+  )
+      #+END_SRC
+
 
 ***** haskell-mode
 
       #+BEGIN_SRC emacs-lisp
+(use-package haskell-interactive-mode :demand)
+(use-package haskell-process :demand)
 (use-package haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
-  :commands haskell-indentation-moe
   :init
-  (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
-  :config
-  (use-package haskell-doc
-    :ensure nil
-    :demand))
+  (add-to-list 'completion-ignored-extensions ".hi")
+  )
       #+END_SRC
 
 **** Java
@@ -4315,7 +4352,7 @@ cp bauer.nix default.nix
    last released version, 1.11.
 
    #+BEGIN_SRC nix
-nix = nixUnstable;
+nix = nixStable;
    #+END_SRC
 
   Next we start defining some packages. R is one of the simpler ones right now,
@@ -4600,7 +4637,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
         gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
   ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [nodePackages.tern isync notmuch graphviz]
-    ++ [stack ghc];
+    ++ [stack ghc haskellPackages.ghc-mod];
 };
    #+END_SRC
 
