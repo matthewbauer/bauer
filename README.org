@@ -331,7 +331,7 @@ git checkout v24
  '(haskell-mode-hook
    (quote
     (capitalized-words-mode flyspell-prog-mode
-     haskell-indentation-mode imenu-add-menubar-index interactive-haskell-mode
+     haskell-indentation-mode imenu-add-menubar-index
      turn-on-haskell-unicode-input-method)))
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
@@ -1868,6 +1868,11 @@ git checkout v24
      #+END_SRC
 
 **** swiper
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package swiper)
@@ -2577,19 +2582,13 @@ git checkout v24
   (add-hook 'haskell-mode-hook 'structured-haskell-mode))
       #+END_SRC
 
-
-***** ghc-mod
-
-      #+BEGIN_SRC emacs-lisp
-(use-package ghc-mod)
-      #+END_SRC
-
 ***** company-ghc
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-ghc
+  :demand
   :config
-  (add-to-list 'company-backends 'company-ghci)
+  (add-to-list 'company-backends 'company-ghc)
   )
       #+END_SRC
 
@@ -2597,8 +2596,23 @@ git checkout v24
 ***** haskell-mode
 
       #+BEGIN_SRC emacs-lisp
-(use-package haskell-interactive-mode :demand)
-(use-package haskell-process :demand)
+(use-package haskell-interactive-mode
+  :demand
+  :ensure nil
+  :config
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+(use-package haskell-doc
+  :demand
+  :ensure nil)
+(use-package haskell-decl-scan
+  :demand
+  :ensure nil)
+(use-package haskell-completions
+  :demand
+  :ensure nil)
+(use-package haskell-process
+  :demand
+  :ensure nil)
 (use-package haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
