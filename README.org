@@ -1030,16 +1030,14 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package diff-hl
-  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh
-                              diff-hl-diff-goto-hunk)
+  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh)
   :bind (:map diff-hl-mode-map
               ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
   :init
   (add-hook 'prog-mode-hook 'diff-hl-mode)
   (add-hook 'vc-dir-mode-hook 'diff-hl-mode)
   (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-  )
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
      #+END_SRC
 
 **** dired
