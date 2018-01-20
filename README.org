@@ -35,9 +35,9 @@ paths. This provides a kind of functional Emacs configuration.
    run the following,
 
    #+BEGIN_SRC sh
-url="github.com/matthewbauer/bauer/archive/master.tar.gz" \
-expr='import (builtins.fetchTarball "$url")' \
-   nix-shell -p nix-bundle --run 'nix-run "$expr"'
+url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
+expr="import (builtins.fetchTarball $url)"; \
+   nix-shell -p nix-bundle --run "nix-run '$expr'"
    #+END_SRC
 
 ** Installing/upgrading
