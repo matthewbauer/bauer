@@ -2556,8 +2556,8 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package ghc
+  :commands (ghc-init)
   :init
-  (autoload 'ghc-init "ghc" nil t)
   (add-hook 'haskell-mode-hook 'ghc-init))
       #+END_SRC
 
@@ -2579,8 +2579,8 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-ghc
-  :demand
-  :config
+  :commands (company-ghc)
+  :init
   (add-to-list 'company-backends 'company-ghc)
   )
       #+END_SRC
@@ -2590,31 +2590,30 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
-  :demand
   :ensure nil
-  :config
+  :commands (interactive-haskell-mode)
+  :init
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
-(use-package haskell-doc
-  :demand
-  :ensure nil)
-(use-package haskell-decl-scan
-  :demand
-  :ensure nil)
-(use-package haskell-completions
-  :demand
-  :ensure nil)
-(use-package haskell-unicode-input-method
-  :demand
-  :ensure nil)
-(use-package haskell-process
-  :demand
-  :ensure nil)
+;; (use-package haskell-doc
+;;   :demand
+;;   :ensure nil)
+;; (use-package haskell-decl-scan
+;;   :demand
+;;   :ensure nil)
+;; (use-package haskell-completions
+;;   :demand
+;;   :ensure nil)
+;; (use-package haskell-unicode-input-method
+;;   :demand
+;;   :ensure nil)
+;; (use-package haskell-process
+;;   :disabled
+;;   :ensure nil)
 (use-package haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
   :init
-  (add-to-list 'completion-ignored-extensions ".hi")
-  )
+  (add-to-list 'completion-ignored-extensions ".hi"))
       #+END_SRC
 
 **** Java
@@ -2640,10 +2639,11 @@ git checkout v24
 ***** js2-mode
       #+BEGIN_SRC emacs-lisp
 (use-package js2-mode
-  :mode (("\\.js\\'" . js2-mode))
+  :mode (("\\.js\\'" . js2-mode)))
+(use-package js2-imenu-extras
+  :ensure nil
   :commands js2-imenu-extras-mode
-  :init
-  (add-hook 'js2-mode-hook 'js2-imenu-extras-mode))
+  :init (add-hook 'js2-mode-hook 'js2-imenu-extras-mode))
       #+END_SRC
 
 ***** js3-mode
@@ -2699,12 +2699,22 @@ git checkout v24
      #+END_SRC
 
 ***** cider
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package cider)
       #+END_SRC
 
 ***** slime
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package slime)
@@ -2990,6 +3000,11 @@ git checkout v24
      #+END_SRC
 
 **** logview
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package logview)
@@ -3339,6 +3354,11 @@ git checkout v24
      #+END_SRC
 
 **** mediawiki
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package mediawiki)
