@@ -11,8 +11,9 @@ then
     git pull origin master || true
 fi
 
-if ! [ -f default.nix ] &&  && command -v git >/dev/null 2>&1; then
-    repo_dir=$(mktemp -d)
+if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
+    mkdir -p $HOME/.local/share
+    repo_dir=$HOME/.local/share/bauer
     git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
 fi
