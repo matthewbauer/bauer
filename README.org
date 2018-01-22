@@ -2595,22 +2595,10 @@ git checkout v24
   :commands (interactive-haskell-mode)
   :init
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
-;; (use-package haskell-doc
-;;   :demand
-;;   :ensure nil)
-;; (use-package haskell-decl-scan
-;;   :demand
-;;   :ensure nil)
-;; (use-package haskell-completions
-;;   :demand
-;;   :ensure nil)
-;; (use-package haskell-unicode-input-method
-;;   :demand
-;;   :ensure nil)
-;; (use-package haskell-process
-;;   :disabled
-;;   :ensure nil)
-(use-package haskell-mode
+(use-package haskell-doc
+  :commands (haskell-doc-current-info))
+(use-package haskell
+  :ensure "haskell-mode"
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
   :init
