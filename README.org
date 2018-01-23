@@ -66,7 +66,7 @@ nix-build
    #+END_SRC
 
    The last line will spawn an Emacs frame in the Git repo. Make any changes you
-   want to [[./README.org][this document]] or any of the files in [[./lisp][the list folder]]. Make sure you
+   want to [[./README.org][this document]] or any of the files in [[./lisp][the lisp folder]]. Make sure you
    commit your changes afterward by typing =C-c p v=, then =c-ac= (using Magit,
    of course). If you have forked this repo on GitHub, you can add it by typing
    =Mg= then your GitHub username within Magit. To push to it, just type =Pr=
@@ -2598,14 +2598,21 @@ git checkout v24
 (use-package haskell-interactive-mode
   :ensure nil
   :commands (interactive-haskell-mode)
-  :init
-  (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+  :init (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+(use-package haskell-decl-scan
+  :commands (haskell-ds-create-imenu-index)
+  :ensure nil)
 (use-package haskell-doc
+  :ensure nil
   :commands (haskell-doc-current-info))
+(use-package haskell-completions
+  :ensure nil
+  :commands (haskell-completions-completion-at-point))
 (use-package haskell
-  :ensure "haskell-mode"
+  :ensure haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
+  :commands (haskell-mode-after-save-handler)
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
       #+END_SRC
@@ -4695,7 +4702,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
         gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
   ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [nodePackages.tern isync notmuch graphviz]
-    ++ [stack ghc haskellPackages.ghc-mod];
+    ++ [stack ghc]; # haskellPackages.ghc-mod
 };
    #+END_SRC
 
