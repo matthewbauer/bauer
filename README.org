@@ -686,11 +686,6 @@ git checkout v24
    use-package declarations.
 
    #+BEGIN_SRC emacs-lisp
-(use-package add-hooks
-  :commands (add-hooks add-hooks-pair))
-   #+END_SRC
-
-   #+BEGIN_SRC emacs-lisp
 (use-package hook-helpers
   :commands (create-hook-helper
              define-hook-helper
@@ -699,6 +694,7 @@ git checkout v24
               add-hook-helper
               hkhlp-update-helper))
     #+END_SRC
+
 ** Packages
 
    Alphabetical listing of all Emacs packages needed by the IDE.
@@ -739,14 +735,13 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
-  :commands aggressive-indent-mode
-  :init (add-hooks '(((emacs-lisp-mode
-                       inferior-emacs-lisp-mode
-                       ielm-mode
-                       lisp-mode
-                       inferior-lisp-mode
-                       lisp-interaction-mode
-                       slime-repl-mode) . aggressive-indent-mode))))
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          isp-interaction-mode
+          slime-repl-mode) . aggressive-indent-mode))
      #+END_SRC
 
 **** buffer-move
@@ -775,10 +770,7 @@ git checkout v24
   ;;             ("C-n" . company-select-next)
   ;;             ("C-p" . company-select-previous)
   ;;             )
-  :commands (company-mode
-             global-company-mode
-             company-auto-begin
-             company-complete-common-or-cycle)
+  :hook (minibuffer-setup-hook . company-mode)
   :config
   (setq company-backends
         '((company-css :with company-dabbrev)
@@ -792,7 +784,6 @@ git checkout v24
           (company-abbrev company-dabbrev company-keywords)
           ))
   (global-company-mode 1)
-  (add-hook 'minibuffer-setup-hook 'company-mode)
   (add-hook 'minibuffer-setup-hook
             (lambda () (setq-local company-frontends
                                    '(company-preview-frontend))))
@@ -809,7 +800,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-anaconda
-  :commands company-anaconda
+  :commands (company-anaconda)
   :after company
   :config
   (add-to-list 'company-backends 'company-anaconda))
@@ -844,7 +835,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package company-eshell-history
   :ensure nil
-  :commands company-eshell-history
+  :commands (company-eshell-history)
   )
       #+END_SRC
 
@@ -858,7 +849,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package company-irony
   :after company
-  :commands company-irony
+  :commands (company-irony)
   :config (add-to-list 'company-backends 'company-irony))
       #+END_SRC
 
@@ -871,9 +862,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-jedi
-  :after company
-  :commands company-statistics-mode
-  :init (add-hook 'company-mode-hook 'company-statistics-mode))
+  :after company)
       #+END_SRC
 
 ***** company-shell                                                :noexport:
@@ -886,7 +875,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package company-shell
   :after company
-  :commands company-shell
+  :commands (company-shell)
   :config (add-to-list 'company-backends 'company-shell))
       #+END_SRC
 
@@ -899,8 +888,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-statistics
-  :commands company-statistics-mode
-  :init (add-hook 'company-mode-hook 'company-statistics-mode))
+  :hook (company-mode . company-statistics-mode))
       #+END_SRC
 
 ***** company-tern                                                 :noexport:
@@ -913,7 +901,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package company-tern
   :after company
-  :commands company-tern
+  :commands (company-tern)
   :config (add-to-list 'company-backends 'company-tern))
       #+END_SRC
 
@@ -927,7 +915,9 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package company-web
   :after company
-  :commands (company-web-html company-web-slim company-web-jade)
+  :commands (company-web-html
+             company-web-slim
+             company-web-jade)
   :config
   (add-to-list 'company-backends 'company-web-html)
   (add-to-list 'company-backends 'company-web-slim)
@@ -1011,8 +1001,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package counsel-projectile
-  :commands counsel-projectile-on
-  :init (add-hook 'projectile-mode-hook 'counsel-projectile-on))
+  :hook (projectile-mode . counsel-projectile-on))
       #+END_SRC
 
 **** desktop
@@ -1031,14 +1020,12 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package diff-hl
-  :commands (diff-hl-dir-mode diff-hl-mode diff-hl-magit-post-refresh)
   :bind (:map diff-hl-mode-map
               ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
-  :init
-  (add-hook 'prog-mode-hook 'diff-hl-mode)
-  (add-hook 'vc-dir-mode-hook 'diff-hl-mode)
-  (add-hook 'dired-mode-hook 'diff-hl-dir-mode)
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+  :hook ((prog-mode . diff-hl-mode)
+         (vc-dir-mode . diff-hl-mode)
+         (dired-mode . diff-hl-dir-mode)
+         (magit-post-refresh . diff-hl-magit-post-refresh)))
      #+END_SRC
 
 **** dired
@@ -1063,8 +1050,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package dired-collapse
   :after dired
-  :commands dired-collapse-mode
-  :init (add-hook 'dired-mode-hook 'dired-collapse-mode))
+  :hook (dired-mode . dired-collapse-mode))
       #+END_SRC
 
 ***** dired-column
@@ -1087,9 +1073,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package dired-du
   :after dired
-  :commands dired-du-mode
-  ;; :init (add-hook 'dired-mode-hook #'dired-du-mode)
-  )
+  :commands (dired-du-mode))
       #+END_SRC
 
 
@@ -1116,10 +1100,8 @@ git checkout v24
 (use-package dired-x
   :ensure nil
   :after dired
-  :commands (dired-omit-mode dired-hide-details-mode)
-  :init
-  (add-hook 'dired-mode-hook 'dired-omit-mode)
-  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
+  :hook ((dired-mode . dired-omit-mode)
+         (dired-mode . dired-hide-details-mode))
   :bind (("s-\\" . dired-jump-other-window)
          :map dired-mode-map
          (")" . dired-omit-mode)))
@@ -1129,7 +1111,6 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
-  :commands dtrt-indent-mode
   :demand
   :config (dtrt-indent-mode 1))
      #+END_SRC
@@ -1141,12 +1122,10 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :ensure nil
-  :commands eldoc-mode
-  :init
-  (add-hooks '(((emacs-lisp-mode
-                 eval-expression-minibuffer-setup
-                 lisp-mode-interactive-mode
-                 typescript-mode) . eldoc-mode))))
+  :hook ((emacs-lisp-mode . eldoc-mode)
+         (eval-expression-minibuffer-setup . eldoc-mode)
+         (lisp-mode-interactive-mode . eldoc-mode)
+         (typescript-mode . eldoc-mode)))
      #+END_SRC
 
 **** Emacs shell
@@ -1156,7 +1135,7 @@ git checkout v24
   :ensure nil
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell))
-  :commands (eshell eshell-command eshell-bol)
+  :commands (eshell-command eshell-bol)
   :config
   (use-package em-rebind
     :preface
@@ -1201,7 +1180,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package esh-help
-  :commands esh-help-eldoc-command
+  :commands (esh-help-eldoc-command)
   :init (create-hook-helper esh-help-setup ()
           :hooks (eshell-mode-hook)
           (make-local-variable 'eldoc-documentation-function)
@@ -1214,12 +1193,11 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package em-dired
   :ensure nil
-  :commands (em-dired-mode em-dired-new)
+  :commands (em-dired-new)
   :bind (:map dired-mode-map
               ("e" . em-dired))
-  :init
-  (add-hook 'eshell-mode-hook 'em-dired-mode)
-  (advice-add 'eshell :before 'em-dired-new))
+  :hook (eshell-mode . em-dired-mode)
+  :init (advice-add 'eshell :before 'em-dired-new))
       #+END_SRC
 
 **** Emacs speaks statistics
@@ -1228,14 +1206,14 @@ git checkout v24
 (use-package ess-site
   :ensure ess
   :no-require
-  :commands R)
+  :commands (R))
      #+END_SRC
 
 **** esup
 
      #+BEGIN_SRC emacs-lisp
 (use-package esup
-  :commands esup
+  :commands (esup)
   :preface
   (defun init-profile ()
     (interactive)
@@ -1247,7 +1225,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :defer 4
-  :commands global-flycheck-mode
   :config (global-flycheck-mode))
      #+END_SRC
 
@@ -1260,8 +1237,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package flycheck-irony
-  :commands flycheck-irony-setup
-  :init (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
+  :hook (flycheck-mode . flycheck-irony-setup))
       #+END_SRC
 
 **** flyspell
@@ -1269,10 +1245,11 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :ensure nil
-  :commands (flyspell-mode flyspell-prog-mode)
-  :init
-  (add-hook 'text-mode-hook 'flyspell-mode)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode))
+  :if (locate-file
+       (if (boundp 'ispell-program-name) ispell-program-name "ispell")
+       exec-path)
+  :hook ((text-mode . flyspell-mode)
+         (prog-mode . flyspell-prog-mode)))
      #+END_SRC
 
 **** gnus
@@ -1280,10 +1257,9 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package gnus
   :ensure nil
-  :commands gnus
-  :init
-  (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
-  (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode))
+  :commands (gnus)
+  :hook ((gnus-group-mode . gnus-topic-mode)
+         (dired-mode . turn-on-gnus-dired-mode)))
      #+END_SRC
 
 **** god-mode
@@ -1298,8 +1274,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package gud
   :ensure nil
-  :commands gud-gdb
-  )
+  :commands (gud-gdb))
      #+END_SRC
 
 **** help
@@ -1352,7 +1327,6 @@ git checkout v24
          ;; :map ivy-minibuffer-map
          ;; ("<escape>" . abort-recursive-edit)
          )
-  :commands ivy-mode
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
@@ -1447,8 +1421,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  :commands magithub-feature-autoinject
-  :init (add-hook 'magit-mode-hook 'magithub-feature-autoinject))
+  :hook (magit-mode . magithub-feature-autoinject))
       #+END_SRC
 
 **** mb-depth
@@ -1456,15 +1429,14 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package mb-depth
   :ensure nil
-  :commands minibuffer-depth-indicate-mode
-  :init (add-hook 'minibuffer-setup-hook 'minibuffer-depth-indicate-mode))
+  :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
      #+END_SRC
 
 **** mmm-mode
 
      #+BEGIN_SRC emacs-lisp
 (use-package mmm-mode
-  :commands mmm-mode
+  :commands (mmm-mode)
   :config
   (use-package mmm-auto
     :ensure nil
@@ -1499,7 +1471,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package org
   :ensure org-plus-contrib
-  :commands org-capture
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1532,8 +1503,8 @@ git checkout v24
       (list beg end
             (delete (buffer-substring-no-properties beg end)
                     (nreverse cands))))))
+  :hook (org-mode . auto-file-mode)
   :init
-  (add-hook 'org-mode-hook 'auto-fill-mode)
   (add-hook 'org-mode-hook
             (lambda ()
               (setq-local completion-at-point-functions
@@ -1601,8 +1572,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package toc-org
-  :commands toc-org-enable
-  :init (add-hook 'org-mode-hook 'toc-org-enable))
+  :hook (org-mode . toc-org-enable))
       #+END_SRC
 
 ***** org-bullets                                                  :noexport:
@@ -1614,8 +1584,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package org-bullets
-  :commands org-bullets-mode
-  :init (add-hook 'org-mode-hook 'org-bullets-mode))
+  :hook (org-mode . org-bullets-mode))
       #+END_SRC
 
 **** Projectile
@@ -1634,7 +1603,6 @@ git checkout v24
     "Run ripgrep in projectile."
     (interactive)
     (counsel-rg "" (projectile-project-root)))
-  :commands (projectile-mode)
   :defer 1
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
@@ -1706,7 +1674,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package rg
-  :commands rg)
+  :commands (rg))
      #+END_SRC
 
 **** Shell
@@ -1714,11 +1682,10 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package shell
   :ensure nil
-  :commands (shell shell-mode)
   :bind ("C-c C-s" . shell)
+  :hook ((shell-mode . ansi-color-for-comint-mode-on)
+         (shell-mode . dirtrack-mode))
   :init
-  (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-  (add-hook 'shell-mode-hook 'dirtrack-mode)
   (create-hook-helper use-histfile ()
     :hooks (shell-mode-hook)
     (turn-on-comint-history (getenv "HISTFILE"))))
@@ -1728,28 +1695,19 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package smart-hungry-delete
-  :commands (smart-hungry-delete-default-c-mode-common-hook
-             smart-hungry-delete-default-prog-mode-hook
-             smart-hungry-delete-default-text-mode-hook)
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
               ("C-d" . smart-hungry-delete-forward-char))
-  :init
-  (add-hook 'prog-mode-hook 'smart-hungry-delete-default-prog-mode-hook)
-  (add-hook 'c-mode-common-hook 'smart-hungry-delete-default-c-mode-common-hook)
-  (add-hook 'python-mode-hook 'smart-hungry-delete-default-c-mode-common-hook)
-  (add-hook 'text-mode-hook 'smart-hungry-delete-default-text-mode-hook))
+  :hook ((prog-mode . smart-hungry-delete-default-prog-mode-hook)
+         (c-mode-common . smart-hungry-delete-default-c-mode-common-hook)
+         (python-mode . smart-hungry-delete-default-c-mode-common-hook)
+         (text-mode . smart-hungry-delete-default-text-mode-hook)))
      #+END_SRC
 
 **** Smartparens
 
      #+BEGIN_SRC emacs-lisp
 (use-package smartparens
-  :commands (smartparens-mode
-             show-smartparens-mode
-             smartparens-strict-mode
-             sp-local-tag
-             sp-local-pair)
   :bind (:map smartparens-mode-map
               ("C-M-k" . sp-kill-sexp)
               ("C-M-f" . sp-forward-sexp)
@@ -1798,25 +1756,24 @@ git checkout v24
               ([remap c-electric-backspace] . sp-backward-delete-char)
               :map emacs-lisp-mode-map
               (";" . sp-comment))
-  :init
-  (add-hooks '(((emacs-lisp-mode
-                 inferior-emacs-lisp-mode
-                 ielm-mode
-                 lisp-mode
-                 inferior-lisp-mode
-                 lisp-interaction-mode
-                 slime-repl-mode
-                 eval-expression-minibuffer-setup) . smartparens-strict-mode)))
-  (add-hooks '(((emacs-lisp-mode
-                 inferior-emacs-lisp-mode
-                 ielm-mode
-                 lisp-mode
-                 inferior-lisp-mode
-                 lisp-interaction-mode
-                 slime-repl-mode) . show-smartparens-mode)))
-  (add-hooks '(((web-mode
-                 nxml-mode
-                 html-mode) . smartparens-mode)))
+  :hook (((emacs-lisp-mode
+           inferior-emacs-lisp-mode
+           ielm-mode
+           lisp-mode
+           inferior-lisp-mode
+           lisp-interaction-mode
+           slime-repl-mode
+           eval-expression-minibuffer-setup) . smartparens-strict-mode)
+         ((emacs-lisp-mode
+           inferior-emacs-lisp-mode
+           ielm-mode
+           lisp-mode
+           inferior-lisp-mode
+           lisp-interaction-mode
+           slime-repl-mode) . show-smartparens-mode)
+         ((web-mode
+           nxml-mode
+           html-mode) . smartparens-mode))
   :config
   (use-package smartparens-html
     :ensure nil
@@ -1921,14 +1878,13 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package try
-  :commands try)
+  :commands (try))
      #+END_SRC
 
 **** which-func
 
      #+BEGIN_SRC emacs-lisp
 (use-package which-func
-  :commands which-function-mode
   :ensure nil
   :demand
   :config (which-function-mode))
@@ -1937,7 +1893,6 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package which-key
-  :commands which-key-mode
   :demand
   :config (which-key-mode))
      #+END_SRC
@@ -1946,8 +1901,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package whitespace-cleanup-mode
-  :commands whitespace-cleanup-mode
-  :init (add-hook 'prog-mode-hook 'whitespace-cleanup-mode))
+  :hook (prog-mode . whitespace-cleanup-mode))
      #+END_SRC
 
 **** whitespace
@@ -1955,16 +1909,14 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package whitespace
   :ensure nil
-  :commands whitespace-mode
-  :init (add-hook 'prog-mode-hook 'whitespace-mode))
+  :hook (prog-mode . whitespace-mode))
      #+END_SRC
 
 **** yafolding
 
      #+BEGIN_SRC emacs-lisp
 (use-package yafolding
-  :commands yafolding-mode
-  :init (add-hook 'prog-mode-hook 'yafolding-mode))
+  :hook (prog-mode . yafolding-mode))
      #+END_SRC
 
 *** Built-ins
@@ -1977,7 +1929,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package align
   :bind (("C-c [" . align-regexp))
-  :commands align
+  :commands (align)
   :ensure nil)
      #+END_SRC
 
@@ -1988,7 +1940,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package ansi-color
   :ensure nil
-  :commands ansi-color-apply-on-region
+  :commands (ansi-color-apply-on-region)
   :init (create-hook-helper colorize-compilation-buffer ()
           :hooks (compilation-filter-hook)
           (let ((inhibit-read-only t))
@@ -2001,9 +1953,7 @@ git checkout v24
 (use-package autorevert
   :ensure nil
   :defer 4
-  :commands auto-revert-mode
-  :init
-  (add-hook 'dired-mode-hook 'auto-revert-mode)
+  :hook (dired-mode . auto-revert-mode)
   :config
   (global-auto-revert-mode t))
      #+END_SRC
@@ -2013,16 +1963,14 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package bug-reference
   :ensure nil
-  :commands bug-reference-prog-mode
-  :init (add-hook 'prog-mode-hook 'bug-reference-prog-mode))
+  :hook (prog-mode . bug-reference-prog-mode))
      #+END_SRC
 
 ***** bug-reference-github
 
       #+BEGIN_SRC emacs-lisp
 (use-package bug-reference-github
-  :commands bug-reference-github-set-url-format
-  :init (add-hook 'prog-mode-hook 'bug-reference-github-set-url-format))
+  :hook (prog-mode . bug-reference-github-set-url-format))
       #+END_SRC
 
 **** comint
@@ -2037,16 +1985,15 @@ git checkout v24
   ;;       ("M-TAB"     . comint-previous-matching-input-from-input)
   ;;       ("<M-S-tab>" . comint-next-matching-input-from-input))
   :commands (comint-next-prompt
-             comint-write-input-ring
              comint-after-pmark-p
              comint-read-input-ring
              comint-send-input)
+  :hook (kill-buffer . comint-write-input-ring)
   :preface
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
     (comint-read-input-ring 'silent))
   :config
-  (add-hook 'kill-buffer-hook 'comint-write-input-ring)
   (create-hook-helper save-history ()
     :hooks (kill-emacs-hook)
     (dolist (buffer (buffer-list))
@@ -2080,11 +2027,9 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package electric
   :ensure nil
-  :commands (electric-quote-mode electric-indent-mode electric-layout-mode)
-  :init
-  (add-hook 'prog-mode-hook 'electric-quote-mode)
-  (add-hook 'prog-mode-hook 'electric-indent-mode)
-  (add-hook 'prog-mode-hook 'electric-layout-mode))
+  :hook ((prog-mode . electric-quote-mode)
+         (prog-mode . electric-indent-mode)
+         (prog-mode . electric-layout-mode)))
      #+END_SRC
 
 ***** elec-pair
@@ -2095,9 +2040,9 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package elec-pair
   :ensure nil
-  :commands electric-pair-mode
+  :hook (prog-mode . electric-pair-mode)
+  :commands (electric-pair-mode)
   :init
-  (add-hook 'prog-mode-hook 'electric-pair-mode)
   (add-hook 'smartparens-mode-hook (lambda () (electric-pair-mode -1))))
       #+END_SRC
 
@@ -2114,10 +2059,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package executable
   :ensure nil
-  :commands executable-make-buffer-file-executable-if-script-p
-  :init
-  (add-hook 'after-save-hook
-            'executable-make-buffer-file-executable-if-script-p))
+  :hook (after-save . executable-make-buffer-file-executable-if-script-p))
      #+END_SRC
 
 **** ffap
@@ -2135,10 +2077,8 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package goto-addr
   :ensure nil
-  :commands (goto-address-prog-mode goto-address-mode)
-  :init
-  (add-hook 'prog-mode-hook 'goto-address-prog-mode)
-  (add-hook 'git-commit-mode-hook 'goto-address-mode))
+  :hook ((prog-mode . goto-address-prog-mode)
+         (git-commit-mode . goto-address-mode)))
      #+END_SRC
 
 **** grep
@@ -2161,19 +2101,17 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package hideshow
   :ensure nil
-  :commands hs-minor-mode
-  :init (add-hooks '(((c-mode-common
-                       lisp-mode
-                       emacs-lisp-mode
-                       java-mode) . hs-minor-mode))))
+  :hook ((c-mode-common
+          lisp-mode
+          emacs-lisp-mode
+          java-mode) . hs-minor-mode))
      #+END_SRC
 
 ***** hideshowvis
 
       #+BEGIN_SRC emacs-lisp
 (use-package hideshowvis
-  :commands (hideshowvis-minor-mode hideshowvis-symbols)
-  :init (add-hook 'prog-mode-hook 'hideshowvis-minor-mode))
+  :hook (prog-mode . hideshowvis-minor-mode))
       #+END_SRC
 
 **** hippie-exp
@@ -2205,7 +2143,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package imenu-list
-  :commands imenu-list)
+  :commands (imenu-list))
       #+END_SRC
 
 **** newcomment
@@ -2220,7 +2158,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package notmuch
-  :commands notmuch)
+  :commands (notmuch))
      #+END_SRC
 
 **** pp
@@ -2228,7 +2166,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package pp
   :ensure nil
-  :commands pp-eval-last-sexp
+  :commands (pp-eval-last-sexp)
   :bind (([remap eval-expression] . pp-eval-expression))
   :init
   (global-unset-key (kbd "C-x C-e"))
@@ -2242,9 +2180,8 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package prog-mode
   :ensure nil
-  :commands (prettify-symbols-mode global-prettify-symbols-mode)
+  :hook (prog-mode . prettify-symbols-mode)
   :init
-  (add-hook 'prog-mode-hook 'prettify-symbols-mode)
   (create-hook-helper prettify-symbols-prog ()
     ""
     :hooks (prog-mode-hook)
@@ -2297,7 +2234,6 @@ git checkout v24
 (use-package savehist
   :ensure nil
   :demand
-  :commands savehist-mode
   :config (savehist-mode 1))
      #+END_SRC
 
@@ -2311,7 +2247,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package saveplace
   :ensure nil
-  :commands save-place-mode
   :demand
   :config (save-place-mode t))
      #+END_SRC
@@ -2328,9 +2263,8 @@ git checkout v24
   :ensure nil
   :demand
   :commands server-start
-  :config
-  (add-hook 'after-init-hook 'server-start t)
-  (add-hook 'server-switch-hook 'raise-frame))
+  :hook ((after-init . server-start)
+         (server-switch . raise-frame)))
      #+END_SRC
 
 **** simple
@@ -2345,9 +2279,7 @@ git checkout v24
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
    ("<M-S-tab>" . next-complete-history-element))
-  :commands visual-line-mode
-  :init
-  (add-hook 'text-mode-hook 'visual-line-mode)
+  :hook (text-mode . visual-line-mode)
   :config
   (column-number-mode))
      #+END_SRC
@@ -2357,8 +2289,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package subword
   :ensure nil
-  :commands subword-mode
-  :init (add-hook 'java-mode-hook 'subword-mode))
+  :hook (java-mode . subword-mode))
      #+END_SRC
 
 **** text-mode                                                     :noexport:
@@ -2372,8 +2303,7 @@ git checkout v24
 (use-package text-mode
   :no-require
   :ensure nil
-  :init
-  (add-hook 'text-mode-hook 'turn-on-auto-fill))
+  :hook (text-mode . turn-on-auto-fill))
      #+END_SRC
 
 **** time
@@ -2439,24 +2369,21 @@ git checkout v24
          ("\\.mm\\'" . c++-mode))
   :config
   (use-package c-eldoc
-    :commands c-turn-on-eldoc-mode
-    :init (add-hook 'c-mode-common-hook 'c-turn-on-eldoc-mode)))
+    :hook (c-mode-common . c-turn-on-eldoc-mode))
      #+END_SRC
 
 ***** irony
 
       #+BEGIN_SRC emacs-lisp
 (use-package irony
-  :commands irony-mode
-  :init (add-hooks '(((c++-mode c-mode objc-mode) . irony-mode))))
+  :hook ((c++-mode c-mode objc-mode) . irony-mode))
       #+END_SRC
 
 ***** irony-eldoc
 
       #+BEGIN_SRC emacs-lisp
 (use-package irony-eldoc
-  :commands irony-eldoc
-  :init (add-hook 'irony-mode-hook 'irony-eldoc))
+  :hook (irony-mode . irony-eldoc))
       #+END_SRC
 
 ***** rtags                                                        :noexport:
@@ -2493,11 +2420,10 @@ git checkout v24
 (use-package css-mode
   :ensure nil
   :mode "\\.css\\'"
-  :commands css-mode
+  :commands (css-mode)
   :config
   (use-package css-eldoc
-    :demand)
-  )
+    :demand))
      #+END_SRC
 
 **** CSV
@@ -2511,8 +2437,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package elf-mode
-  :commands elf-mode
-  :init (add-to-list 'magic-mode-alist (cons "ELF" 'elf-mode)))
+  :magic ("ELF" . elf-mode))
      #+END_SRC
 
 ***** TODO use use-package’s :magic keyword
@@ -2528,8 +2453,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package go-eldoc
-  :commands go-eldoc-setup
-  :init (add-hook 'go-mode-hook 'go-eldoc-setup))
+  :hook (go-mode . go-eldoc-setup))
       #+END_SRC
 
 **** HAML
@@ -2544,7 +2468,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package intero
-  :commands intero-mode
+  :commands (intero-mode)
   :preface
   (defun intero-mode-unless-global-project ()
     "Run intero-mode iff we're in a project with a stack.yaml"
@@ -2553,18 +2477,14 @@ git checkout v24
              (shell-command-to-string
               "stack path --project-root --verbosity silent"))
       (intero-mode)))
-  :init
-  (add-hook 'haskell-mode-hook 'intero-mode-unless-global-project)
-  )
+  :hook (haskell-mode . intero-mode-unless-global-project))
       #+END_SRC
 
 ***** ghc
 
       #+BEGIN_SRC emacs-lisp
 (use-package ghc
-  :commands (ghc-init)
-  :init
-  (add-hook 'haskell-mode-hook 'ghc-init))
+  :hook (haskell-mode . ghc-init))
       #+END_SRC
 
 ***** structured-haskell-mode
@@ -2576,9 +2496,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package structured-haskell-mode
-  :commands (structured-haskell-mode)
-  :init
-  (add-hook 'haskell-mode-hook 'structured-haskell-mode))
+  :hook (haskell-mode . structured-haskell-mode))
       #+END_SRC
 
 ***** company-ghc
@@ -2588,8 +2506,7 @@ git checkout v24
   :disabled
   :commands (company-ghc)
   :init
-  (add-to-list 'company-backends 'company-ghc)
-  )
+  (add-to-list 'company-backends 'company-ghc))
       #+END_SRC
 
 
@@ -2598,8 +2515,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
   :ensure nil
-  :commands (interactive-haskell-mode)
-  :init (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+  :hook (haskell-mode . interactive-haskell-mode))
 (use-package haskell-decl-scan
   :commands (haskell-ds-create-imenu-index)
   :ensure nil)
@@ -2624,7 +2540,6 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package jdee
   :mode ("\\.java\\'" . jdee-mode)
-  :commands jdee-mode
   :bind (:map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
       #+END_SRC
@@ -2635,7 +2550,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package indium
   :mode ("\\.js\\'" . indium-mode)
-  :commands (indium-mode indium-interaction-mode indium-scratch))
+  :commands (indium-interaction-mode indium-scratch))
       #+END_SRC
 
 ***** js2-mode
@@ -2644,23 +2559,21 @@ git checkout v24
   :mode (("\\.js\\'" . js2-mode)))
 (use-package js2-imenu-extras
   :ensure nil
-  :commands js2-imenu-extras-mode
-  :init (add-hook 'js2-mode-hook 'js2-imenu-extras-mode))
+  :hook (js2-mode . js2-imenu-extras-mode))
       #+END_SRC
 
 ***** js3-mode
 
       #+BEGIN_SRC emacs-lisp
 (use-package js3-mode
-  :commands js3-mode)
+  :commands (js3-mode))
       #+END_SRC
 
 ***** tern
 
       #+BEGIN_SRC emacs-lisp
 (use-package tern
-  :commands tern-mode
-  :init (add-hook 'js2-mode-hook 'tern-mode))
+  :hook (js2-mode . tern-mode))
       #+END_SRC
 
 **** JSON
@@ -2759,13 +2672,11 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package macho-mode
-  :commands macho-mode
   :ensure nil
-  :init
-  (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCE" . macho-mode))
-  (add-to-list 'magic-mode-alist '("\xFE\xED\xFA\xCF" . macho-mode))
-  (add-to-list 'magic-mode-alist '("\xCE\xFA\xED\xFE" . macho-mode))
-  (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode)))
+  :magic (("\xFE\xED\xFA\xCE" . macho-mode)
+          ("\xFE\xED\xFA\xCF" . macho-mode)
+          ("\xCE\xFA\xED\xFE" . macho-mode)
+          ("\xCF\xFA\xED\xFE" . macho-mode)))
      #+END_SRC
 
 ***** TODO use use-package’s :magic
@@ -2776,8 +2687,7 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package make-mode
   :ensure nil
-  :init
-  (add-hook 'makefile-mode-hook 'indent-tabs-mode))
+  :hook (makefile-mode . indent-tabs-mode))
       #+END_SRC
 
 **** Markdown
@@ -2819,7 +2729,7 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
-  :commands nix-buffer)
+  :commands (nix-buffer))
       #+END_SRC
 
 **** NROFF
@@ -2827,7 +2737,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package nroff-mode
   :ensure nil
-  :commands nroff-mode)
+  :commands (nroff-mode))
      #+END_SRC
 
 **** PHP
@@ -2843,10 +2753,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package anaconda-mode
-  :commands (anaconda-mode anaconda-eldoc-mode)
-  :init
-  (add-hook 'python-mode-hook 'anaconda-mode)
-  (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
+  :hook ((python-mode . anaconda-mode)
+         (python-mode . anaconda-eldoc-mode)))
      #+END_SRC
 
 ***** python-mode
@@ -2940,9 +2848,8 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package tide
   :commands (tide-setup tide-hl-identifier-mode)
-  :init
-  (add-hook 'typescript-mode-hook 'tide-setup)
-  (add-hook 'typescript-mode-hook 'tide-hl-identifier-mode))
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tipe-hl-identifier-mode)))
       #+END_SRC
 
 **** Web
@@ -2961,7 +2868,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package nxml-mode
   :ensure nil
-  :commands nxml-mode
+  :commands (nxml-mode)
   :init
   (defalias 'xml-mode 'nxml-mode))
      #+END_SRC
@@ -2986,7 +2893,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package nethack
-  :commands nethack
+  :commands (nethack)
   :ensure nil)
      #+END_SRC
 
@@ -3021,7 +2928,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package anything
-  :commands anything)
+  :commands (anything))
      #+END_SRC
 
 **** apropospriate-theme
@@ -3047,8 +2954,8 @@ git checkout v24
   :config
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode)
-  (add-hook 'auto-compile-inhibit-compile-hook
-            'auto-compile-inhibit-compile-detached-git-head))
+  :hook (auto-compile-inhibit-compile .
+         auto-compile-inhibit-compile-detached-git-head))
      #+END_SRC
 
 **** bm
@@ -3067,7 +2974,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package browse-at-remote
-  :commands browse-at-remote)
+  :commands (browse-at-remote))
      #+END_SRC
 
 **** checkbox                                                      :noexport:
@@ -3116,7 +3023,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package elfeed
-  :commands elfeed)
+  :commands (elfeed))
      #+END_SRC
 
 ***** elfeed-org                                                   :noexport:
@@ -3164,16 +3071,14 @@ git checkout v24
 (use-package gist
   :bind ("C-c C-g" . gist-region-or-buffer-private)
   :commands (gist-list gist-region gist-region-private gist-buffer
-                       gist-buffer-private gist-region-or-buffer
-                       gist-region-or-buffer-private))
+                       gist-buffer-private gist-region-or-buffer))
      #+END_SRC
 
 **** hl-todo
 
      #+BEGIN_SRC emacs-lisp
 (use-package hl-todo
-  :commands hl-todo-mode
-  :init (add-hook 'prog-mode-hook 'hl-todo-mode))
+  :hook (prog-mode . hl-todo-mode))
      #+END_SRC
 
 **** hookify
@@ -3290,10 +3195,9 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package idle-highlight-mode
-  :commands idle-highlight-mode
-  :init (add-hooks '(((java-mode
-                       emacs-lisp-mode
-                       clojure-lisp-mode) . idle-highlight-mode))))
+  :hook ((java-mode
+          emacs-lisp-mode
+          clojure-lisp-mode) . idle-highlight-mode))
      #+END_SRC
 
 **** keyfreq                                                       :noexport:
@@ -3305,8 +3209,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package keyfreq
-  :commands (keyfreq-mode keyfreq-autosave-mode)
-  :init
+  :demand
+  :config
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
      #+END_SRC
@@ -3320,11 +3224,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
-  :commands lsp-mode
-  :init (add-hook 'prog-major-mode #'lsp-mode)
-
+  :hook (prog-major-mode . lsp-mode)
   :config
-
   (use-package lsp-java
     :demand)
   (use-package lsp-haskell
@@ -3346,8 +3247,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package make-it-so
-  :commands mis-mode
-  :init (add-hook 'dired-mode-hook 'mis-mode)
+  :hook (dired-mode . mis-mode)
   :bind (:map dired-mode-map
              :prefix ","
              :prefix-map dired-make-it-so-map
@@ -3375,7 +3275,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package minimap
-  :commands minimap-mode)
+  :commands (minimap-mode))
      #+END_SRC
 
 **** multi-term
@@ -3395,55 +3295,49 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package pabbrev
-  :commands pabbrev-mode
-  :init (add-hook 'prog-mode-hook 'pabbrev-mode))
+  :hook (prog-mode . pabbrev-mode))
      #+END_SRC
 
 **** page-break-lines
 
      #+BEGIN_SRC emacs-lisp
 (use-package page-break-lines
-  :commands page-break-lines-mode
-  :init (add-hooks '(((doc-mode
-                       emacs-lisp-mode) . page-break-lines-mode))))
+  :hook ((doc-mode
+          emacs-lisp-mode) . page-break-lines-mode))
      #+END_SRC
 
 **** pandoc-mode
 
      #+BEGIN_SRC emacs-lisp
 (use-package pandoc-mode
-  :commands (pandoc-mode pandoc-load-default-settings)
-  :init
-  (add-hook 'markdown-mode-hook 'pandoc-mode)
-  (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings))
+  :hook ((markdown-mode . pandoc-mode)
+         (pandoc-mode . pandoc-load-default-settings)))
      #+END_SRC
 
 **** rainbow-delimiters
 
      #+BEGIN_SRC emacs-lisp
 (use-package rainbow-delimiters
-  :commands rainbow-delimiters-mode
-  :init (add-hooks '(((emacs-lisp-mode
-                       inferior-emacs-lisp-mode
-                       ielm-mode
-                       lisp-mode
-                       inferior-lisp-mode
-                       lisp-interaction-mode
-                       slime-repl-mode) . rainbow-delimiters-mode))))
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-delimiters-mode))
      #+END_SRC
 
 **** rainbow-mode
 
      #+BEGIN_SRC emacs-lisp
 (use-package rainbow-mode
-  :commands rainbow-mode
-  :init (add-hooks '(((emacs-lisp-mode
-                       inferior-emacs-lisp-mode
-                       ielm-mode
-                       lisp-mode
-                       inferior-lisp-mode
-                       lisp-interaction-mode
-                       slime-repl-mode) . rainbow-mode))))
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-mode))
      #+END_SRC
 
 **** realgud                                                       :noexport:
@@ -3545,23 +3439,21 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ws-butler
-  :commands (ws-butler-mode)
-  :init
-  (add-hook 'prog-mode-hook 'ws-butler-mode))
+  :hook (prog-mode . ws-butler-mode))
      #+END_SRC
 
 **** xah-math-input
 
      #+BEGIN_SRC emacs-lisp
 (use-package xah-math-input
-  :commands xah-math-input-mode)
+  :commands (xah-math-input-mode))
      #+END_SRC
 
 **** xterm-color
 
      #+BEGIN_SRC emacs-lisp
 (use-package xterm-color
-  :commands xterm-color-filter
+  :commands (xterm-color-filter)
   :init
   (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
   (setq comint-output-filter-functions
@@ -3572,8 +3464,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
-  :commands (yas-minor-mode yas-reload-all)
-  :init (add-hook 'prog-mode-hook 'yas-minor-mode)
+  :commands (yas-reload-all)
+  :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all))
      #+END_SRC
 
@@ -3586,16 +3478,12 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ycmd
-  :commands global-ycmd-mode
-  :init
-  (add-hook 'after-init-hook #'global-ycmd-mode)
+  :hook ((after-init . global-ycmd-mode)
+         (ycmd-file-parse-result . flycheck-ycmd--cache-parse-results))
   :config
-  (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
   (use-package ycmd-eldoc
     :ensure nil
-    :demand
-    :config
-    (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup))
+    :hook (ycmd-mode . ycmd-eldoc-setup))
   (use-package flycheck-ycmd
     :ensure nil
     :demand
