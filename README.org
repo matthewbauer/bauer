@@ -974,7 +974,7 @@ git checkout v24
 (use-package counsel
   :commands (counsel-descbinds counsel-grep-or-swiper)
   :bind* (([remap execute-extended-command] . counsel-M-x)
-          ([remap find-file] . counsel-find-file)
+          ;; ([remap find-file] . counsel-find-file)
           ([remap describe-function] . counsel-describe-function)
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
@@ -1338,7 +1338,8 @@ git checkout v24
         dumb-jump-selector 'ivy
         rtags-display-result-backend 'ivy
         projector-completion-system 'ivy)
-  :config (ivy-mode 1))
+  ;; :config (ivy-mode 1)
+  )
      #+END_SRC
 
 **** jka-compr                                                     :noexport:
@@ -1470,7 +1471,8 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package org
-  :ensure org-plus-contrib
+  ;; :ensure org-plus-contrib
+  :ensure nil
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1503,7 +1505,7 @@ git checkout v24
       (list beg end
             (delete (buffer-substring-no-properties beg end)
                     (nreverse cands))))))
-  :hook (org-mode . auto-file-mode)
+  ;; :hook (org-mode . auto-file-mode)
   :init
   (add-hook 'org-mode-hook
             (lambda ()
@@ -1516,6 +1518,7 @@ git checkout v24
     :ensure nil
     :demand)
   (use-package ox-rss
+    :disabled
     :ensure nil
     :demand)
   (use-package ox-latex
