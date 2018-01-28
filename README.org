@@ -2515,12 +2515,14 @@ git checkout v24
 
 ***** haskell-mode
 
+      Hacky ways to autoload things (please FIXME).
+
       #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
   :ensure nil
   :hook (haskell-mode . interactive-haskell-mode))
 (use-package haskell-decl-scan
-  :commands (haskell-ds-create-imenu-index)
+  :commands (haskell-ds-create-imenu-index haskell-decl-scan-mode)
   :ensure nil)
 (use-package haskell-doc
   :ensure nil
@@ -2528,6 +2530,9 @@ git checkout v24
 (use-package haskell-completions
   :ensure nil
   :commands (haskell-completions-completion-at-point))
+(use-package haskell-unicode-input-method
+  :ensure nil
+  :commands (turn-on-haskell-unicode-input-method))
 (use-package haskell
   :ensure haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
@@ -3219,26 +3224,36 @@ git checkout v24
      #+END_SRC
 
 **** lsp-mode                                                      :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :hook (prog-major-mode . lsp-mode)
-  :config
-  (use-package lsp-java
-    :demand)
-  (use-package lsp-haskell
-    :demand)
-  (use-package lsp-go
-    :demand)
-  (use-package lsp-python
-    :demand)
-  (use-package lsp-rust
-    :demand))
+  :disabled
+  :commands lsp-mode
+  :init
+  (with-eval-after-load 'lsp-mode
+    (require 'lsp-flycheck))
+  (use-package lsp-imenu
+    :commands lsp-enable-imenu
+    :init (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
+  (use-package company-lsp
+    :commands company-lsp
+    :init (push 'company-lsp company-backends))
+
+  (lsp-define-stdio-client
+   ;; This can be a symbol of your choosing. It will be used as a the
+   ;; prefix for a dynamically generated function "-enable"; in this
+   ;; case: lsp-prog-major-mode-enable
+   lsp-prog-major-mode
+   "language-id"
+   ;; This will be used to report a project's root directory to the LSP
+   ;; server.
+   (lambda () default-directory)
+   ;; This is the command to start the LSP server. It may either be a
+   ;; string containing the path of the command, or a list wherein the
+   ;; car is a string containing the path of the command, and the cdr
+   ;; are arguments to that command.
+   '("/my/lsp/server" "and" "args")))
      #+END_SRC
 
 **** make-it-so                                                    :noexport:
@@ -4594,7 +4609,8 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
         gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
   ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [nodePackages.tern isync notmuch graphviz]
-    ++ [stack ghc]; # haskellPackages.ghc-mod
+    ++ [stack ghc]
+    ++ (with haskellPackages; [ghc-mod cabal-install]);
 };
    #+END_SRC
 
