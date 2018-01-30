@@ -970,11 +970,20 @@ git checkout v24
 
 **** Counsel
 
+     Counsel is only enabled on non-Windows systems. This is due to an issue in
+     counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for
+     more info.
+
      #+BEGIN_SRC emacs-lisp
 (use-package counsel
   :commands (counsel-descbinds counsel-grep-or-swiper)
+
+  ;; counsel doesn’t work well with windows drives
+  ;; see https://github.com/abo-abo/swiper/issues/773
+  :if (not (string= system-type "windows-nt"))
+
   :bind* (([remap execute-extended-command] . counsel-M-x)
-          ;; ([remap find-file] . counsel-find-file)
+          ([remap find-file] . counsel-find-file)
           ([remap describe-function] . counsel-describe-function)
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
@@ -1338,7 +1347,7 @@ git checkout v24
         dumb-jump-selector 'ivy
         rtags-display-result-backend 'ivy
         projector-completion-system 'ivy)
-  ;; :config (ivy-mode 1)
+  :config (ivy-mode 1)
   )
      #+END_SRC
 
@@ -4312,9 +4321,15 @@ nix = nixStable;
   Here we define our package set. This will just give us access to all of the
   Emacs packages defined in Nixpkgs.
 
+  We also define our Emacs version to use. Mitsuharo’s Emacs package is much
+  better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
+  default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version
+  25.3 currently).
+
   #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
-    inherit emacs;
+    emacs = if stdenv.isDarwin then emacsMacport
+            else emacs;
   });
   #+END_SRC
 
