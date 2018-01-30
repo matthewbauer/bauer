@@ -2452,8 +2452,6 @@ git checkout v24
   :magic ("ELF" . elf-mode))
      #+END_SRC
 
-***** TODO use use-package’s :magic keyword
-
 **** Go
 
      #+BEGIN_SRC emacs-lisp
@@ -2695,8 +2693,6 @@ git checkout v24
           ("\xCE\xFA\xED\xFE" . macho-mode)
           ("\xCF\xFA\xED\xFE" . macho-mode)))
      #+END_SRC
-
-***** TODO use use-package’s :magic
 
 **** Makefile
 ***** make-mode
@@ -4462,10 +4458,6 @@ emacs --batch --quick \
          local pkg="$1"; shift
          local var="$1"; shift
          local propagatedBuildInputsFiles=("$@")
-         # TODO(@Ericson2314): Restore using associative array once Darwin
-         # nix-shell doesn't use impure bash. This should replace the O(n)
-         # case with an O(1) hash map lookup, assuming bash is implemented
-         # well :D.
          local varSlice="$var[*]"
          # ''${..-} to hack around old bash empty array problem
          case "''${!varSlice-}" in
