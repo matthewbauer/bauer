@@ -348,11 +348,15 @@ git checkout v24
  '(global-auto-revert-non-file-buffers t)
  '(gnuplot-eldoc-mode t)
  '(gnuplot-inline-image-mode (quote dedicated))
- '(haskell-mode-hook
-   (quote
-    (capitalized-words-mode flyspell-prog-mode
-     haskell-indentation-mode imenu-add-menubar-index
-     turn-on-haskell-unicode-input-method)))
+ '(haskell-hoogle-command nil)
+ '(haskell-indent-spaces 4)
+ '(haskell-indentation-ifte-offset 4)
+ '(haskell-indentation-layout-offset 4)
+ '(haskell-indentation-left-offset 4)
+ '(haskell-indentation-starter-offset 4)
+ '(haskell-indentation-where-post-offset 4)
+ '(haskell-indentation-where-pre-offset 4)
+ '(haskell-process-load-or-reload-prompt t)
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
@@ -2569,6 +2573,10 @@ git checkout v24
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
   :commands (haskell-mode-after-save-handler)
+  :hook ((haskell-mode . capitalized-words-mode)
+         (haskell-mode . flyspell-prog-mode) 
+         (haskell-mode . haskell-indentation-mode)
+         (haskell-mode . imenu-add-menubar-index))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
       #+END_SRC
