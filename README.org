@@ -1056,7 +1056,7 @@ git checkout v24
   :if (not (string= system-type "windows-nt"))
 
   :bind* (([remap execute-extended-command] . counsel-M-x)
-          ([remap find-file] . counsel-find-file)
+          ;; ([remap find-file] . counsel-find-file)
           ([remap describe-function] . counsel-describe-function)
           ([remap describe-variable] . counsel-describe-variable)
           ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
@@ -2425,6 +2425,16 @@ git checkout v24
   :demand
   :config
   (tooltip-mode -1))
+     #+END_SRC
+
+**** url-handlers
+
+     #+BEGIN_SRC emacs-lisp
+(use-package url-handlers
+  :ensure nil
+  :demand
+  :config
+  (url-handler-mode))
      #+END_SRC
 
 **** view
