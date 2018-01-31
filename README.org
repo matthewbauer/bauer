@@ -2137,10 +2137,8 @@ git checkout v24
       #+BEGIN_SRC emacs-lisp
 (use-package elec-pair
   :ensure nil
-  :hook (prog-mode . electric-pair-mode)
-  :commands (electric-pair-mode)
-  :init
-  (add-hook 'smartparens-mode-hook (lambda () (electric-pair-mode -1))))
+  :hook ((prog-mode . electric-pair-mode)
+         (smartparens-mode . (lambda () (electric-pair-mode -1)))))
       #+END_SRC
 
 **** etags
