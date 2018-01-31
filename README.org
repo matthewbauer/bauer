@@ -1464,6 +1464,10 @@ git checkout v24
 **** magit
 
      #+BEGIN_SRC emacs-lisp
+(use-package git-commit
+  :hook ((git-commit-mode . flyspell-mode)
+         (git-commit-mode . git-commit-save-message)
+         (git-commit-mode . turn-on-auto-fill)))
 (use-package magit
   :preface
   (defun magit-dired-other-window ()
