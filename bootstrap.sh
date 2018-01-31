@@ -12,8 +12,7 @@ then
 fi
 
 if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
-    mkdir -p $HOME/.local/share
-    repo_dir=$HOME/.local/share/bauer
+    repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
 fi
