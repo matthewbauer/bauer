@@ -20,9 +20,10 @@
 
 # *Bauer’s automated, unified Emacs realm*
 
-This file generates an Emacs configuration. It can be considered an ‘[[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]]’
-IDE. That is, the Emacs configuration is /integrated/ with hardcoded Nix store
-paths. This provides a kind of functional Emacs configuration.
+This ORG-mode file generates an Emacs configuration. I am calling it an
+‘[[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]]’ IDE. That is, the Emacs configuration is /integrated/ with hardcoded
+Nix store paths. This provides a kind of functional Emacs configuration. The
+integration between Emacs and Nix comes with lots of useful side effects.
 
 * Usage
   :PROPERTIES:
@@ -31,8 +32,8 @@ paths. This provides a kind of functional Emacs configuration.
 
 ** Demo
 
-   If you already have Nix installed, you can demo this out really easily. Just
-   run the following,
+   If you already have Nix installed, you can demo this out easily. Just run the
+   following,
 
    #+BEGIN_SRC sh
 url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
@@ -40,9 +41,16 @@ expr="import (builtins.fetchTarball $url)"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
    #+END_SRC
 
+   If you don’t have Nix installed, you’re going to need to skip this step and
+   just instasll directly.
+
 ** Installing/upgrading
 
-   Run this from your shell:
+   Once you’ve demo’d it, you can setup a permanent install. This is the script
+   that I use to setup all of my new machines but anyone can also use it
+   (provided you’re on a Unixy system).
+
+   Run this command from your shell,
 
    #+BEGIN_SRC sh
 curl https://matthewbauer.us/bootstrap.sh | sh
@@ -50,28 +58,37 @@ curl https://matthewbauer.us/bootstrap.sh | sh
 
    Alternatively, you can accomplish the same thing from Emacs by downloading
    [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
-   (=M‑x install<RET>=). This process will take a little bit as everything is
-   downloaded. After you restart Emacs, everything should be working.
+   (=M‑x install<RET>=). This process will take a little bit of time as
+   everything is downloaded. After you restart Emacs, you’re environment should
+   be successfully loaded.
+
+   Once it’s installed, you can open Emacs at any time with this shortcut
+   command,
+
+   #+BEGIN_SRC sh
+$HOME/.nix-profile/bin/run
+   #+END_SRC
 
 ** Developing
 
-   To make changes to the IDE, it is recommended you setup your environment like
-   so,
+   After you’ve installed it, it’s easy to make changes. By default, the
+   configuration lives in [[~/.local/share/bauer]]. To make changes just follow
+   this process,
 
    #+BEGIN_SRC sh
-git clone https://github.com/matthewbauer/bauer ~/bauer
-cd ~/bauer
+cd ~/.local/share/bauer
 nix-build
 ./result/run
    #+END_SRC
 
-   The last line will spawn an Emacs frame in the Git repo. Make any changes you
-   want to [[./README.org][this document]] or any of the files in [[./lisp][the lisp folder]]. Make sure you
-   commit your changes afterward by typing =C-c p v=, then =c-ac= (using Magit,
-   of course). If you have forked this repo on GitHub, you can add it by typing
-   =Mg= then your GitHub username within Magit. To push to it, just type =Pr=
-   then find your username in the list and press enter. Pull requests are
-   welcome through GitHub!
+   The last line will spawn an Emacs frame in the Git repo. Anything in there
+   can be hacked. To rebuild the IDE just run =nix-build= again and respawn
+   Emacs. Make any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the
+   lisp folder]]. Make sure you commit your changes afterward by typing =C-c p v=,
+   then =c-ac= (using Magit, of course). If you have forked this repo on GitHub,
+   you can add it by typing =Mg= then your GitHub username within Magit. To push
+   to it, just type =Pr= then find your username in the list and press enter.
+   Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
 
 ** w/o Nix usage
    :PROPERTIES:
@@ -107,7 +124,8 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    :header-args: :tangle yes
    :END:
 
-   This is the main file of the IDE. It will be loaded by Emacs on startup.
+   This is the main part of the IDE. It is written in Emacs lisp and will be
+   loaded every time Emacs is started.
 
 ** Verify Emacs version ≥ 25
 
@@ -133,7 +151,15 @@ git checkout v24
 
     and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
     [[#nonix][w/o Nix usage directions]]).
+
 ** Increase GC
+
+   Increasing GC is a common way to speed up Emacs. ‘gc-cons-threshold’ sets at
+   what point Emacs should invoke its garbage collector Some people set it to a
+   really larger number permanently. This works well until the garbage is
+   actually collected (then you have to wait a long time). I’ve decided to just
+   set it temporarily to a large number so we only garbage collect once on
+   startup. After that we reset it to the standard value.
 
    #+BEGIN_SRC emacs-lisp
 (setq gc-cons-threshold most-positive-fixnum)
@@ -144,13 +170,19 @@ git checkout v24
                   (car (get 'gc-cons-threshold 'standard-value)))))
    #+END_SRC
 
-** Autoloads
+** Autoloads & Misc.
+
+   These are some autoloads and other defines that aren’t getting setup
+   normally. Eventually this section should be removed but it leads to errors
+   currently.
+
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
 (autoload 'package-installed-p "package")
 (define-obsolete-function-alias 'org-define-error 'define-error)
    #+END_SRC
+
 ** Custom config
 
    [[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
@@ -168,7 +200,9 @@ git checkout v24
 *** Better defaults
 
    These are some *better* defaults for Emacs. They shouldn’t require any
-   packages to be installed to work (those go in use-package).
+   packages to be installed to work (those go in use-package). In addition, they
+   should take almost no time to run (meaning they probably shouldn’t have
+   custom init hooks).
 
     #+BEGIN_SRC emacs-lisp
 (set-defaults
@@ -610,14 +644,17 @@ git checkout v24
     #+END_SRC
 
 *** Load custom file
-    This file allows users to override above defaults.
+
+    This file allows users to override the above defaults. This will mean you
+    can use custom as you normally would in vanilla Emacs.
 
     #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
     #+END_SRC
 
 ** Setup use-package
-   Now to get =use-package= we will require package.el and initialize it if
+
+   Now to get =use-package= we will require =package.el= and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
    site-paths should be available (unless you don’t have Nix), we can skip this
    step. All of this is marked ‘eval-and-compile’ to make sure the compiler
@@ -671,7 +708,8 @@ git checkout v24
    Using bind-key, setup some simple key bindings. None of these should
    overwrite Emacs’ default keybindings. Also, they should only require vanilla
    Emacs to work (non-vanilla Emacs key bindings should be put in their
-   =use-package= declaration).
+   =use-package= declaration). These are meant to all be as close to vanilla
+   Emacs as possible. I try to avoid extremely specific key binds here.
 
    #+BEGIN_SRC emacs-lisp
 (bind-key "C-c C-u"         'rename-uniquely)
@@ -741,6 +779,7 @@ git checkout v24
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
    #+END_SRC
+
 ** Setup installer                                                 :noexport:
    :PROPERTIES:
    :header-args: :tangle no
@@ -751,12 +790,19 @@ git checkout v24
    Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
    documentation.
 
+   *Note this is disabled currently*
+
    #+BEGIN_SRC emacs-lisp
 (require 'installer nil t)
    #+END_SRC
+
 ** Helpers
+
    These utils are needed at init stage and should always appear before other
    use-package declarations.
+
+   Right now hook-helpers is all that’s needed. It provides some shortcuts to
+   defining functions and adding hooks.
 
    #+BEGIN_SRC emacs-lisp
 (use-package hook-helpers
