@@ -363,8 +363,7 @@ git checkout v24
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
- '(history-length 20000)
- '(hippie-expand-verbose nil)
+ '(history-length 200)
  '(ibuffer-default-display-maybe-show-predicates t)
  '(ibuffer-expert t)
  '(ibuffer-formats
@@ -386,7 +385,6 @@ git checkout v24
  '(iedit-toggle-key-default nil)
  '(imenu-auto-rescan t)
  '(indicate-empty-lines t)
- '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(inhibit-startup-echo-area-message t)
  '(initial-major-mode 'fundamental-mode)
@@ -445,8 +443,7 @@ git checkout v24
                                             face minibuffer-prompt))
  '(mwim-beginning-of-line-function 'beginning-of-line)
  '(mwim-end-of-line-function 'end-of-line)
- '(neo-theme 'arrow)
- '(neo-fixed-size nil)
+ '(next-line-add-newlines nil)
  '(next-error-recenter t)
  '(notmuch-show-logo nil)
  '(nrepl-log-messages t)
@@ -471,6 +468,7 @@ git checkout v24
                       ("org" . "http://orgmode.org/elpa/")
                       ("gnu" . "https://elpa.gnu.org/packages/")
                       ))
+ '(pcomplete-compare-entries-function (quote file-newer-than-file-p))
  '(proof-auto-action-when-deactivating-scripting (quote retract))
  '(proof-autosend-enable nil)
  '(proof-electric-terminator-enable t)
@@ -491,6 +489,7 @@ git checkout v24
  '(projectile-do-log nil)
  '(projectile-verbose nil)
  '(reb-re-syntax 'string)
+ '(read-buffer-function (quote ido-read-buffer))
  '(require-final-newline t)
  '(resize-mini-windows t)
  '(ring-bell-function 'ignore)
@@ -505,8 +504,14 @@ git checkout v24
  '(savehist-additional-variables '(search-ring
                                    regexp-search-ring
                                    kill-ring
-                                   comint-input-ring))
+                                   comint-input-ring
+                                   kmacro-ring
+                                   sr-history-registry
+                                   file-name-history
+                                   tablist-name-filter))
  '(savehist-autosave-interval 60)
+ '(savehist-ignored-variables (quote (load-history 
+                                      flyspell-auto-correct-ring kill-ring)))
  '(auto-window-vscroll nil)
  '(hscroll-margin 5)
  '(hscroll-step 5)
@@ -517,8 +522,12 @@ git checkout v24
  '(set-mark-command-repeat-pop t)
  '(shell-completion-execonly nil)
  '(shell-input-autoexpand nil)
+ '(show-paren-delay 0)
+ '(sp-highlight-pair-overlay nil)
  '(sp-autoskip-closing-pair 'always)
  '(sp-hybrid-kill-entire-symbol nil)
+ '(swiper-stay-on-quit t)
+ '(switch-to-buffer-preserve-window-point t)
  '(truncate-lines nil)
  '(tab-always-indent 'complete)
  '(tool-bar-mode nil)
@@ -543,18 +552,20 @@ git checkout v24
  '(use-package-expand-minimally nil)
  '(version-control t)
  '(vc-allow-async-revert t)
- '(vc-command-messages nil)
+ '(vc-command-messages t)
  '(vc-git-diff-switches '("-w" "-U3"))
  '(vc-follow-symlinks nil)
  '(vc-ignore-dir-regexp
    (concat "\\(\\(\\`"
            "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
             "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
+ '(vc-make-backup-files t)
  '(view-read-only t)
  '(view-inhibit-help-message t)
- '(visible-bell nil)
+ '(visible-bell t)
  '(visible-cursor nil)
  '(woman-imenu t)
+ '(x-stretch-cursor t)
  '(whitespace-line-column 80)
  '(whitespace-auto-cleanup t)
  '(whitespace-rescan-timer-time nil)
@@ -565,6 +576,10 @@ git checkout v24
                       space-before-tab
                       empty
                       lines-style))
+ '(window-divider-default-bottom-width 1)
+ '(window-divider-default-places (quote bottom-only))
+ '(yas-triggers-in-field t)
+ '(yas-wrap-around-region t)
  )
     #+END_SRC
 
