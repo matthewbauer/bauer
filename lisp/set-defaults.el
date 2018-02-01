@@ -14,6 +14,7 @@
                                    (default))
                              doc args)))
 
+;; This code is based off of custom-set-variables’ defun.
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
 ARGS are a list in the form of (SYMBOL VALUE)."

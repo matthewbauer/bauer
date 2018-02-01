@@ -72,7 +72,7 @@ $HOME/.nix-profile/bin/run
 ** Developing
 
    After you’ve installed it, it’s easy to make changes. By default, the
-   configuration lives in [[~/.local/share/bauer]]. To make changes just follow
+   configuration lives in =~/.local/share/bauer=. To make changes just follow
    this process,
 
    #+BEGIN_SRC sh
@@ -154,12 +154,13 @@ git checkout v24
 
 ** Increase GC
 
-   Increasing GC is a common way to speed up Emacs. ‘gc-cons-threshold’ sets at
+   Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
    what point Emacs should invoke its garbage collector Some people set it to a
    really larger number permanently. This works well until the garbage is
    actually collected (then you have to wait a long time). I’ve decided to just
    set it temporarily to a large number so we only garbage collect once on
-   startup. After that we reset it to the standard value.
+   startup. After that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for
+   more info on this.
 
    #+BEGIN_SRC emacs-lisp
 (setq gc-cons-threshold most-positive-fixnum)
@@ -174,7 +175,7 @@ git checkout v24
 
    These are some autoloads and other defines that aren’t getting setup
    normally. Eventually this section should be removed but it leads to errors
-   currently.
+   currently. FIXME!
 
    #+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
@@ -196,6 +197,9 @@ git checkout v24
    #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
    #+END_SRC
+
+   Occasionally this block will error in cases where =./lisp= hasn’t been added
+   correctly. Currently trying to find a way to handle this. FIXME
 
 *** Better defaults
 
@@ -424,7 +428,8 @@ git checkout v24
  '(ivy-dynamic-exhibit-delay-ms 200)
  '(ivy-ignore-buffers
    (quote
-    ("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$" "\\`\\.newsrc-dribble\\'" "\\`\\.newsrc.eld\\'")))
+    ("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$" 
+	 "\\`\\.newsrc-dribble\\'" "\\`\\.newsrc.eld\\'")))
  '(ivy-re-builders-alist (quote ((t . ivy--regex-ignore-order))) t)
  '(ivy-wrap t)
  '(ivy-display-style nil)
@@ -493,8 +498,7 @@ git checkout v24
  '(package-archives '(("melpa-stable" . "http://stable.melpa.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
                       ("org" . "http://orgmode.org/elpa/")
-                      ("gnu" . "https://elpa.gnu.org/packages/")
-                      ))
+                      ("gnu" . "https://elpa.gnu.org/packages/")))
  '(pcomplete-compare-entries-function (quote file-newer-than-file-p))
  '(proof-auto-action-when-deactivating-scripting (quote retract))
  '(proof-autosend-enable nil)
@@ -1700,28 +1704,6 @@ git checkout v24
   )
      #+END_SRC
 
-***** toc-org                                                      :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      #+BEGIN_SRC emacs-lisp
-(use-package toc-org
-  :hook (org-mode . toc-org-enable))
-      #+END_SRC
-
-***** org-bullets                                                  :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode))
-      #+END_SRC
-
 **** Projectile
 
      Setup projectile and link it with some other packages. This also adds an
@@ -2147,6 +2129,12 @@ git checkout v24
      #+END_SRC
 
 **** edebug
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+      This is currently disabled.
+
 
      #+BEGIN_SRC emacs-lisp
 (use-package edebug
@@ -2202,9 +2190,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ffap
-  :disabled
-  :ensure nil
-  )
+  :ensure nil)
      #+END_SRC
 
 ***** TODO handle line numbers like filename:line:col
@@ -2438,12 +2424,7 @@ git checkout v24
   :hook (java-mode . subword-mode))
      #+END_SRC
 
-**** text-mode                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is disabled for now
+**** text-mode
 
      #+BEGIN_SRC emacs-lisp
 (use-package text-mode
@@ -2619,6 +2600,11 @@ git checkout v24
 
 **** Haskell
 ***** intero
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package intero
@@ -2655,6 +2641,11 @@ git checkout v24
       #+END_SRC
 
 ***** company-ghc
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-ghc
@@ -3086,29 +3077,6 @@ git checkout v24
   :config (load-theme 'apropospriate-dark t))
      #+END_SRC
 
-**** auto-compile                                                  :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     Auto-compile is currrently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package auto-compile
-  :demand
-  :config
-  (auto-compile-on-load-mode)
-  (auto-compile-on-save-mode)
-  :hook (auto-compile-inhibit-compile .
-         auto-compile-inhibit-compile-detached-git-head))
-     #+END_SRC
-
-**** bm
-     #+BEGIN_SRC emacs-lisp
-(use-package bm
-  :disabled)
-     #+END_SRC
-
 **** bool-flip
 
      #+BEGIN_SRC emacs-lisp
@@ -3380,6 +3348,11 @@ git checkout v24
      #+END_SRC
 
 **** lsp-mode                                                      :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
@@ -3530,24 +3503,6 @@ git checkout v24
   :commands (realgud:jdb))
      #+END_SRC
 
-**** repl-toggle                           ‘                       :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package repl-toggle
-  :config
-  (repl-toggle-mode)
-  (setq rtog/mode-repl-alist
-        '((emacs-lisp-mode . ielm)
-          (ruby-mode . inf-ruby)
-          (js2-mode . nodejs-repl)
-          (rjsx-mode . nodejs-repl))))
-     #+END_SRC
-
 **** restclient
 
      #+BEGIN_SRC emacs-lisp
@@ -3645,34 +3600,6 @@ git checkout v24
   :commands (yas-reload-all)
   :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all))
-     #+END_SRC
-
-**** ycmd                                                          :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package ycmd
-  :hook ((after-init . global-ycmd-mode)
-         (ycmd-file-parse-result . flycheck-ycmd--cache-parse-results))
-  :config
-  (use-package ycmd-eldoc
-    :ensure nil
-    :hook (ycmd-mode . ycmd-eldoc-setup))
-  (use-package flycheck-ycmd
-    :ensure nil
-    :demand
-    :config
-    (flycheck-ycmd-setup))
-  (use-package company-ycmd
-    :ensure nil
-    :demand
-    :config
-    (company-ycmd-setup))
-  )
      #+END_SRC
 
 **** TODO iedit
