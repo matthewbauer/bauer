@@ -811,10 +811,7 @@ git checkout v24
 (use-package hook-helpers
   :commands (create-hook-helper
              define-hook-helper
-             hkhlp-normalize-hook-spec)
-  :functions (make-hook-helper
-              add-hook-helper
-              hkhlp-update-helper))
+             hkhlp-normalize-hook-spec))
     #+END_SRC
 
 ** Packages
@@ -882,6 +879,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package company
   :defer 2
+  :commands global-company-mode
   ;; :bind (:map company-active-map
   ;;             ("TAB" .
   ;;              company-select-next-if-tooltip-visible-or-complete-selection)
@@ -1244,6 +1242,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
   :demand
+  :commands dtrt-indent-mode
   :config (dtrt-indent-mode 1))
      #+END_SRC
 
@@ -1357,6 +1356,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :defer 4
+  :commands global-flycheck-mode
   :config (global-flycheck-mode))
      #+END_SRC
 
@@ -1613,42 +1613,6 @@ git checkout v24
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
           ("C-c b" . org-iswitchb))
-  :preface
-  (defun org-completion-symbols ()
-    (when (looking-back "=[a-zA-Z]+")
-      (let (cands)
-        (save-match-data
-          (save-excursion
-            (goto-char (point-min))
-            (while (re-search-forward "=\\([a-zA-Z]+\\)=" nil t)
-              (cl-pushnew
-               (match-string-no-properties 0) cands :test 'equal))
-            cands))
-        (when cands
-          (list (match-beginning 0) (match-end 0) cands)))))
-(defun org-completion-refs ()
-  (when (looking-back "\\\\\\(?:ref\\|label\\){\\([^\n{}]\\)*")
-    (let (cands beg end)
-      (save-excursion
-        (goto-char (point-min))
-        (while (re-search-forward "\\label{\\([^}]+\\)}" nil t)
-          (push (match-string-no-properties 1) cands)))
-      (save-excursion
-        (up-list)
-        (setq end (1- (point)))
-        (backward-list)
-        (setq beg (1+ (point))))
-      (list beg end
-            (delete (buffer-substring-no-properties beg end)
-                    (nreverse cands))))))
-  ;; :hook (org-mode . auto-file-mode)
-  :init
-  (add-hook 'org-mode-hook
-            (lambda ()
-              (setq-local completion-at-point-functions
-                          '(org-completion-symbols
-                            org-completion-refs
-                            pcomplete-completions-at-point))))
   :config
   (use-package ob-dot
     :ensure nil
@@ -1711,6 +1675,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package projectile
+  :commands projectile-mode
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
   :bind (:map projectile-command-map
@@ -2013,6 +1978,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package which-key
   :demand
+  :commands which-key-mode
   :config (which-key-mode))
      #+END_SRC
 
@@ -2071,6 +2037,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :ensure nil
+  :commands global-auto-revert-mode
   :defer 4
   :hook (dired-mode . auto-revert-mode)
   :config
@@ -2125,6 +2092,7 @@ git checkout v24
 (use-package delsel
   :ensure nil
   :demand
+  :commands delete-selection-mode
   :config (delete-selection-mode t))
      #+END_SRC
 
@@ -2405,6 +2373,7 @@ git checkout v24
 (use-package simple
   :ensure nil
   :demand
+  :commands column-number-mode
   :bind
   (("C-`" . list-processes)
    :map minibuffer-local-map
@@ -2449,6 +2418,7 @@ git checkout v24
 (use-package tooltip
   :ensure nil
   :demand
+  :commands tooltip-mode
   :config
   (tooltip-mode -1))
      #+END_SRC
@@ -2968,6 +2938,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package sh-script
   :ensure nil
+  :commands shell-command
   :preface
   (defun shell-command-at-point ()
     (interactive)
