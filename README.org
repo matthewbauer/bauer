@@ -7,7 +7,7 @@
 #+OPTIONS: arch:nil author:t broken-links:nil
 #+OPTIONS: creator:nil date:nil email:nil inline:nil num:nil pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
-#+BABEL: :cache yes
+#+PROPERTY: header-args :cache yes
 #+LATEX_HEADER: \usepackage{parskip}
 #+LATEX_HEADER: \usepackage{inconsolata}
 #+LATEX_HEADER: \usepackage[utf8]{inputenc}
@@ -3702,7 +3702,7 @@ git checkout v24
 
 ** =.profile=
    :PROPERTIES:
-   :header-args: :tangle profile.sh
+   :header-args: :tangle profile.sh :tangle-mode (identity #o755)
    :END:
 
    To use this, you must create a short ~/.profile file. Here is an example,
@@ -3714,7 +3714,7 @@ bootstrap=$HOME/.nix-profile/etc/profile
 
    Here we setup =.profile=. First, setup exports.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
        INFOPATH=$PREFIX/share/info \
@@ -3765,7 +3765,7 @@ update_terminal_cwd () {
    #+END_SRC
 ** =.bashrc=
    :PROPERTIES:
-   :header-args: :tangle bashrc.sh
+   :header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
    :END:
 
    To use this, you must create a short =~/.bash_profile= file. Here is an
@@ -3778,7 +3778,7 @@ bootstrap=$HOME/.nix-profile/etc/bashrc
 
    Source profile found above.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 source @out@/etc/profile
    #+END_SRC
 
@@ -3846,7 +3846,7 @@ fi
    #+END_SRC
 ** =.zshrc=
    :PROPERTIES:
-   :header-args: :tangle zshrc.sh
+   :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
    :END:
 
    To use this, you must create a short ~/.zshrc file. Here is an example,
@@ -3858,7 +3858,7 @@ bootstrap=$HOME/.nix-profile/etc/zshrc
 
    Setup ZSH profile. First, we just source the global profile.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 source @out@/etc/profile
    #+END_SRC
 
@@ -4010,13 +4010,13 @@ fi
    #+END_SRC
 ** =etc-profile.sh=
    :PROPERTIES:
-   :header-args: :tangle etc-profile.sh
+   :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
    :END:
 
    This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
    used to reference the Nix output dir.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 export PREFIX=@out@
    #+END_SRC
 
@@ -4038,7 +4038,7 @@ fi
 
    Some basic gitignore paths.
 
-   #+BEGIN_SRC gitignore
+   #+BEGIN_SRC gitignore :padline no
 *~
 \#*\#
 *.DS_Store
@@ -4048,7 +4048,7 @@ fi
    :header-args: :tangle gitconfig
    :END:
 
-   #+BEGIN_SRC gitconfig
+   #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
 	excludesfile = @gitignore@
@@ -4363,7 +4363,7 @@ fi
    :header-args: :tangle bootstrap.sh
    :END:
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 #!/bin/sh
    #+END_SRC
 
@@ -4404,12 +4404,12 @@ nix-env -if .
 
 ** =runemacs.sh=
    :PROPERTIES:
-   :header-args: :tangle runemacs.sh
+   :header-args: :tangle runemacs.sh :tangle-mode (identity #o755)
    :END:
 
    Cross-platform script to execute app.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 #!/usr/bin/env sh
 
 case $(uname) in
@@ -4427,7 +4427,7 @@ esac
    :header-args: :tangle default.nix
    :END:
 
-   #+BEGIN_SRC nix
+   #+BEGIN_SRC nix :padline no
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
@@ -4745,7 +4745,6 @@ wrapProgram $out/bin/zsh \
 cp ${./runemacs.sh} $out/bin/run
 substituteInPlace $out/bin/run \
   --replace @out@ $out
-chmod +x $out/bin/run
   '';
   meta = {
     priority = -10;
@@ -4815,7 +4814,7 @@ nix-build
 
 ** =.travis.yml=
 
-  #+BEGIN_SRC yaml
+  #+BEGIN_SRC yaml :padline no
 language: nix
   #+END_SRC
 
@@ -4877,26 +4876,26 @@ notifications:
 * Extra
 ** =update.sh=
    :PROPERTIES:
-   :header-args: :tangle update.sh
+   :header-args: :tangle update.sh :tangle-mode (identity #o755)
    :END:      
 
    This is a simple script that I use to make sure I've updated the generated
    files.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 #!/bin/sh
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
    #+END_SRC
 ** =info.sh=
    :PROPERTIES:
-   :header-args: :tangle info.sh
+   :header-args: :tangle info.sh :tangle-mode (identity #o755)
    :END:
 
    This file gives us some info on the built derivation. Only arg is optional
    and should be a path to a Nix store derivation.
 
-   #+BEGIN_SRC sh
+   #+BEGIN_SRC sh :padline no
 #!/bin/sh
 out=$1
 
@@ -4921,7 +4920,7 @@ fi
    These set up some paths for =.gitignore= that we don’t want getting put in
    the repo. Start with Emacs/org-mode/LaTeX stuff.
 
-   #+BEGIN_SRC gitignore
+   #+BEGIN_SRC gitignore :padline no
 flycheck_*.el
 *.elc
 *.pdf
@@ -4967,7 +4966,7 @@ org-init.el
    your channel. Having this file available means you can place this repo in
    \tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
 
-   #+BEGIN_SRC nix
+   #+BEGIN_SRC nix :padline no
 {
   packageOverrides = pkgs: with pkgs; rec {
     bauer = import ./default.nix { nixpkgs' = pkgs; };
@@ -4980,7 +4979,7 @@ org-init.el
    :header-args: :tangle org-init.el
    :END:
 
-   #+BEGIN_SRC emacs-lisp
+   #+BEGIN_SRC emacs-lisp :padline no
 (require 'site-paths nil t)
 (require 'use-package)
 (setq use-package-always-demand t
