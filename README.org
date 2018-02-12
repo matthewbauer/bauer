@@ -142,8 +142,9 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    :header-args: :tangle no
    :END:
 
-    If Nix is unavailable and only Emacs 24 is installed for you, then you can try
-    the experimental v24 branch. From the Git root of this repository, just run:
+    If Nix is unavailable and only Emacs 24 is installed for you, then you can
+    try the experimental v24 branch. From the Git root of this repository, just
+    run:
 
     #+BEGIN_SRC sh
 git checkout v24
@@ -313,7 +314,7 @@ git checkout v24
  '(eshell-destroy-buffer-when-process-dies t)
  '(eshell-highlight-prompt t)
  '(eshell-hist-ignoredups t)
- '(eshell-history-size 10000)
+ '(eshell-history-size nil)
  '(eshell-list-files-after-cd t)
  '(eshell-ln-interactive-query t)
  '(eshell-ls-initial-args "-h")
@@ -322,7 +323,8 @@ git checkout v24
  '(eshell-output-filter-functions '(eshell-handle-ansi-color
                                     eshell-handle-control-codes
                                     eshell-watch-for-password-prompt
-                                    eshell-truncate-buffer))
+                                    ;; eshell-truncate-buffer
+                                    ))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
@@ -352,14 +354,12 @@ git checkout v24
  '(expand-region-contract-fast-key "j")
  '(find-ls-option (quote ("-print0 | xargs -P4 -0 ls -ldN" . "-ldN")))
  '(find-ls-subdir-switches "-ldN")
- '(fill-column 80)
  '(flycheck-check-syntax-automatically '(save
                                          idle-change
                                          mode-enabled
                                          new-line))
  '(flycheck-display-errors-function
    'flycheck-display-error-messages-unless-error-list)
- '(flycheck-idle-change-delay 0.001)
  '(flycheck-standard-error-navigation nil)
  '(flycheck-global-modes '(not erc-mode
                                message-mode
@@ -383,7 +383,10 @@ git checkout v24
  '(grep-command "egrep -nH -e ")
  '(grep-find-command
    "find . -name '*.v' -type f -print0 | xargs -P4 -0 egrep -nH ")
- '(haskell-hoogle-command nil)
+ '(haskell-ask-also-kill-buffers nil)
+ '(haskell-interactive-mode-scroll-to-bottom t)
+ '(haskell-process-prompt-restart-on-cabal-change nil)
+ '(haskell-process-show-debug-tips nil)
  '(haskell-indent-spaces 4)
  '(haskell-indentation-ifte-offset 4)
  '(haskell-indentation-layout-offset 4)
@@ -392,6 +395,7 @@ git checkout v24
  '(haskell-indentation-where-post-offset 4)
  '(haskell-indentation-where-pre-offset 4)
  '(haskell-process-load-or-reload-prompt t)
+ '(haskell-process-use-presentation-mode nil)
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
