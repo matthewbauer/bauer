@@ -882,31 +882,40 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package company
-  :defer 2
+  :disabled
   :commands global-company-mode
-  ;; :bind (:map company-active-map
-  ;;             ("TAB" .
-  ;;              company-select-next-if-tooltip-visible-or-complete-selection)
-  ;;             ("<tab>" .
-  ;;              company-select-next-if-tooltip-visible-or-complete-selection)
-  ;;             ("S-TAB" . company-select-previous)
-  ;;             ("<backtab>" . company-select-previous)
-  ;;             ("C-n" . company-select-next)
-  ;;             ("C-p" . company-select-previous)
-  ;;             )
+  :preface
+  (defun company-complete-common-or-cycle-backward ()
+	"Complete common prefix or cycle backward."
+	(interactive)
+	(company-complete-common-or-cycle -1))
+  :bind (:map company-active-map
+          ("RET" . company-complete-selection)
+		  ([return] . company-complete-selection)
+          ("TAB" . company-complete-common-or-cycle)
+          ("<tab>" . company-complete-common-or-cycle)
+          ("S-TAB" . company-complete-common-or-cycle-backward)
+          ("<backtab>" . company-complete-common-or-cycle-backward)
+          ("C-n" . company-select-next)
+          ("C-p" . company-select-previous)
+
+          ("C-/" . company-search-candidates)
+          ("C-M-/" . company-filter-candidates)
+          ("C-d" . company-show-doc-buffer)
+        )
   :hook (minibuffer-setup-hook . company-mode)
   :config
-  (setq company-backends
-        '((company-css :with company-dabbrev)
-          (company-nxml :with company-dabbrev)
-          (company-elisp :with company-capf)
-          (company-eshell-history :with company-capf company-files)
-          (company-capf :with company-files company-keywords)
-          (company-etags company-gtags company-clang company-cmake
-                         :with company-dabbrev)
-          (company-semantic :with company-dabbrev company-capf)
-          (company-abbrev company-dabbrev company-keywords)
-          ))
+  ;; (setq company-backends
+  ;;      '((company-css :with company-dabbrev)
+  ;;        (company-nxml :with company-dabbrev)
+  ;;        (company-elisp :with company-capf)
+  ;;        (company-eshell-history :with company-capf company-files)
+  ;;        (company-capf :with company-files company-keywords)
+  ;;        (company-etags company-gtags company-clang company-cmake
+  ;;                       :with company-dabbrev)
+  ;;        (company-semantic :with company-dabbrev company-capf)
+  ;;        (company-abbrev company-dabbrev company-keywords)
+  ;;        ))
   (global-company-mode 1)
   (add-hook 'minibuffer-setup-hook
             (lambda () (setq-local company-frontends
@@ -1100,17 +1109,18 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package counsel
+  :delight
   :commands (counsel-descbinds counsel-grep-or-swiper)
 
   ;; counsel doesn’t work well with windows drives
   ;; see https://github.com/abo-abo/swiper/issues/773
   :if (not (string= system-type "windows-nt"))
 
-  :bind* (([remap execute-extended-command] . counsel-M-x)
+  :bind* (;; ([remap execute-extended-command] . counsel-M-x)
           ;; ([remap find-file] . counsel-find-file)
-          ([remap describe-function] . counsel-describe-function)
-          ([remap describe-variable] . counsel-describe-variable)
-          ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+          ;; ([remap describe-function] . counsel-describe-function)
+          ;; ([remap describe-variable] . counsel-describe-variable)
+          ;; ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
           ("<f1> l" . counsel-find-library)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-rg)
@@ -1122,6 +1132,8 @@ git checkout v24
   ;; :init
   ;; (bind-key* [remap isearch-forward] 'counsel-grep-or-swiper
   ;;            (executable-find "grep"))
+  :demand
+  :config (counsel-mode)
   )
      #+END_SRC
 
@@ -1474,7 +1486,9 @@ git checkout v24
         dumb-jump-selector 'ivy
         rtags-display-result-backend 'ivy
         projector-completion-system 'ivy)
-  ;; :config (ivy-mode 1)
+  :demand
+  :delight
+  :config (ivy-mode 1)
   )
      #+END_SRC
 
@@ -1553,16 +1567,14 @@ git checkout v24
       ?g "Add remote from github user name" #'magit-remote-github)))
      #+END_SRC
 
-***** magithub                                                     :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-     This is currently disabled.
+***** magithub
 
       #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  :hook (magit-mode . magithub-feature-autoinject))
+  :disabled
+  ;;:hook (magit-mode . magithub-feature-autoinject)
+  :after magit
+  :config (magithub-feature-autoinject t))
       #+END_SRC
 
 **** mb-depth
@@ -2162,6 +2174,9 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package ffap
+  :disabled
+  :demand
+  :config (ffap-bindings)
   :ensure nil)
      #+END_SRC
 
@@ -2623,7 +2638,6 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package company-ghc
-  :disabled
   :commands (company-ghc)
   :init
   (add-to-list 'company-backends 'company-ghc))
@@ -2856,7 +2870,14 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
-  :commands (nix-buffer))
+  :commands (nix-buffer)
+  :preface
+  (defun turn-on-nix-buffer ()
+	(when (and (not noninteractive)
+			   (not (eq (aref (buffer-name) 0) ?\s))
+			   (not (file-remote-p default-directory)))
+	  (nix-buffer)))
+  :hook (after-change-major-mode . turn-on-nix-buffer))
       #+END_SRC
 
 **** NROFF
@@ -3424,6 +3445,7 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package page-break-lines
+  :delight
   :hook ((doc-mode
           emacs-lisp-mode
           compilation-mode
@@ -3572,19 +3594,61 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
+  :disabled
   :commands (yas-reload-all)
   :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all))
      #+END_SRC
 
+**** twittering-mode
+
+     #+BEGIN_SRC emacs-lisp
+(use-package twittering-mode
+  :disabled)
+     #+END_SRC
+
+**** hackernews
+
+     #+BEGIN_SRC emacs-lisp
+(use-package hackernews
+  :disabled)
+     #+END_SRC
+
+**** popwin
+
+     #+BEGIN_SRC emacs-lisp
+(use-package popwin
+  :disabled
+  :demand
+  :config
+  (popwin-mode 1)
+  (push '("*Help*"                 :dedicated t :position bottom :stick t :noselect t   :height 0.4) popwin:special-display-config)
+  (push '("*compilation*"          :dedicated t :position bottom :stick t :noselect t   :height 0.4) popwin:special-display-config)
+  (push '("*Shell Command Output*" :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
+  (push '("*Async Shell Command*"  :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
+  (push '(" *undo-tree*"           :dedicated t :position bottom :stick t :noselect nil :height 0.4) popwin:special-display-config)
+  (push '("*ert*"                  :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
+  (push '("*grep*"                 :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
+  (push '("*nosetests*"            :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
+  (push '("^\*WoMan.+\*$" :regexp t             :position bottom                                   ) popwin:special-display-config)
+  (push '("^\\*Flycheck.+\\*$"
+          :regexp t
+          :dedicated t
+          :position bottom
+          :stick t
+          :noselect t)
+        popwin:special-display-config))
+     #+END_SRC
+
 **** TODO iedit
 **** TODO undo-tree
-**** TODO popwin
 
 **** TODO fill-column-indicator
 
 **** TODO eyebrowse
 **** TODO dumb-jump
+
+**** TODO Agda
 
 
 ** COMMENT Footer
@@ -4715,13 +4779,14 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   --replace @emacs@ ${myEmacs} \
   --replace @fortune@ ${fortune} \
   --replace @cacert@ ${cacert}
-    '')
-  ] ++ [bashInteractive zsh coreutils git wget
-        gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
-  ] ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
+    '')]
+   ++ [bashInteractive zsh coreutils git wget
+        gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
+    ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
+    ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
-    ++ (with haskellPackages; [cabal-install]); #ghc-mod
+    ++ (with haskellPackages; [cabal-install]); # hindent hoogle ghc-mod
 };
    #+END_SRC
 
