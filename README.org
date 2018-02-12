@@ -3745,6 +3745,18 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     update_terminal_cwd
 fi
    #+END_SRC
+
+   #+BEGIN_SRC sh
+function set-eterm-dir {
+    echo -e "\033AnSiTc" "$(pwd)"
+    echo -e "\033AnSiTh" "$(hostname -f)"
+    echo -e "\033AnSiTu" "$LOGNAME"
+}
+if [ "$TERM" = "eterm-color" ]; then
+    PROMPT_COMMAND=set-eterm-dir
+fi
+   #+END_src
+
 ** =.zshrc=
    :PROPERTIES:
    :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
@@ -3907,6 +3919,20 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     autoload add-zsh-hook
     add-zsh-hook chpwd update_terminal_cwd
     update_terminal_cwd
+fi
+   #+END_SRC
+
+   #+BEGIN_SRC sh
+if [ -n "$INSIDE_EMACS" ]; then
+    # function to set the dired and host for ansiterm
+    set_eterm_dir() {
+        print -P "\033AnSiTu %n"
+        print -P "\033AnSiTh" "$(hostname -f)"
+        print -P "\033AnSiTc %d"
+    }
+
+    # call prmptcmd whenever prompt is redrawn
+    precmd_functions=($precmd_functions set_eterm_dir)
 fi
    #+END_SRC
 ** =etc-profile.sh=
