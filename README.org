@@ -4058,10 +4058,10 @@ fi
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
  '(flycheck-go-golint-executable "@golint@/bin/golint")
+ '(flycheck-haskell-hlint-executable "@hlint@/bin/hlint")
  '(flycheck-python-flake8-executable "@flake8@/bin/flake8")
  '(flycheck-asciidoc-executable "@asciidoc@/bin/asciidoc")
  '(flycheck-less-executable "@lessc@/bin/lessc")
- '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
  '(flycheck-c/c++-gcc-executable "@gcc@/bin/gcc")
  '(flycheck-javascript-eslint-executable "@eslint@/bin/eslint")
  '(flycheck-javascript-jshint-executable "@jshint@/bin/jshint")
@@ -4074,7 +4074,14 @@ fi
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
  '(grep-program "@gnugrep@/bin/grep")
+ ;; '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
+ ;; '(haskell-process-cabal "@ghc@/bin/cabal")
+ ;; '(haskell-process-ghci "@ghc@/bin/ghci")
+ ;; '(haskell-process-stack "@stack@/bin/stack")
+ '(haskell-check-command "@hlint@/bin/hlint")
+ '(haskell-hoogle-command "@hoogle@/bin/hoogle")
  '(ispell-program-name "@aspell@/bin/aspell")
+ '(ispell-grep-command "@gnugrep@/bin/grep")
  '(irony-cmake-executable "@cmake@/bin/cmake")
  '(jka-compr-info-compress-program "@ncompress@/bin/compress")
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
@@ -4108,6 +4115,8 @@ fi
  '(preview-gs-command "@texlive@/bin/rungs")
  '(TeX-command "@texlive@/bin/tex")
  '(LaTeX-command "@texlive@/bin/latex")
+ '(latex-run-command "@texlive@/bin/latex")
+ '(tex-run-command "@texlive@/bin/tex")
  '(luatex-command "@texlive@/bin/luatex")
  '(xetex-command "@texlive@/bin/xetex")
  '(xelatex-command "@texlive@/bin/xelatex")
@@ -4440,6 +4449,7 @@ nix = nixStable;
       texinfoInteractive cacert notmuch gnuplot;
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
+    inherit (haskellPackages) hoogle hlint;
     # intero = haskellPackages.intero-nix-shim;
     texlive = myTex;
     markdown2 = pythonPackages.markdown2;
