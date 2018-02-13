@@ -183,6 +183,8 @@ git checkout v24
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
 (autoload 'package-installed-p "package")
 (define-obsolete-function-alias 'org-define-error 'define-error)
+(when (require 'mac-win nil t)
+  (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
    #+END_SRC
 
 ** Custom config
@@ -661,6 +663,10 @@ git checkout v24
 
 ** Setup use-package
 
+   [[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other
+   Emacs packages. It’s quite useful and it will be used extensively in this
+   project.
+
    Now to get =use-package= we will require =package.el= and initialize it if
    site-paths is not setup (meaning we’re outside the Nix expression). Because
    site-paths should be available (unless you don’t have Nix), we can skip this
@@ -680,7 +686,7 @@ git checkout v24
                                           use-package-list--is-running)))))
    #+END_SRC
 
-   First handle using package.el.
+   First handle using =package.el=.
 
    #+BEGIN_SRC emacs-lisp
 (when needs-package-init
@@ -691,10 +697,11 @@ git checkout v24
     (package-install 'use-package)))
 #+END_SRC
 
-   Actually require use-package,
+   Actually require =use-package=,
 
    #+BEGIN_SRC emacs-lisp
 (eval-and-compile
+  (require 'delight)
   (require 'use-package)
   (require 'bind-key))
    #+END_SRC
@@ -822,21 +829,6 @@ git checkout v24
 
    Alphabetical listing of all Emacs packages needed by the IDE.
 
-   Rules: No packages on the top level should have the :demand keyword. Each
-   package should be setup as either commands, hooks, modes, or key bindings.
-   Defer timers are allowed but should be used sparingly. Currently, these
-   packages need defer timers:
-
- - autorevert (1)
- - company (2)
- - delsel (2)
- - dtrt-indent (3)
- - flycheck (3)
- - savehist (4)
- - save-place (5)
- - which-key (3)
- - apropostriate (2)
-
    To resort, go to one of the package group headings and type C-c ^ (the
    shortcut for org-sort).
 
@@ -846,6 +838,8 @@ git checkout v24
     necessary for using Emacs as a full featured IDE.
 
 **** ace window
+	 [[https://github.com/abo-abo/ace-window][GitHub]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package ace-window
   :bind (("M-o" . other-window)
@@ -853,6 +847,7 @@ git checkout v24
      #+END_SRC
 
 **** aggressive-indent
+	 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
 
      Automatically indent code as you type. Only enabled for Lisp currently.
 
@@ -868,6 +863,7 @@ git checkout v24
      #+END_SRC
 
 **** buffer-move
+	 [[https://github.com/lukhas/buffer-move][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
@@ -879,6 +875,10 @@ git checkout v24
      #+END_SRC
 
 **** Company
+
+	 [[https://github.com/company-mode/company-mode][GitHub]]
+
+	 [[http://company-mode.github.io][Website]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package company
@@ -1103,6 +1103,8 @@ git checkout v24
 
 **** Counsel
 
+	 [[https://github.com/abo-abo/swiper][GitHub]]
+
      Counsel is only enabled on non-Windows systems. This is due to an issue in
      counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for
      more info.
@@ -1149,6 +1151,43 @@ git checkout v24
   :hook (projectile-mode . counsel-projectile-on))
       #+END_SRC
 
+***** ivy
+
+     #+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :bind (("<f6>" . ivy-resume)
+         ([remap list-buffers] . ivy-switch-buffer)
+         ;; :map ivy-minibuffer-map
+         ;; ("<escape>" . abort-recursive-edit)
+         )
+  :init
+  (defvar projectile-completion-system)
+  (defvar magit-completing-read-function)
+  (defvar dumb-jump-selector)
+  (defvar rtags-display-result-backend)
+  (defvar projector-completion-system)
+  (setq projectile-completion-system 'ivy
+        magit-completing-read-function 'ivy-completing-read
+        dumb-jump-selector 'ivy
+        rtags-display-result-backend 'ivy
+        projector-completion-system 'ivy)
+  :demand
+  :delight
+  :config (ivy-mode 1)
+  )
+     #+END_SRC
+
+***** swiper
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package swiper)
+     #+END_SRC
+
 **** desktop
       :PROPERTIES:
       :header-args: :tangle no
@@ -1162,6 +1201,8 @@ git checkout v24
       #+END_SRC
 
 **** diff-hl
+
+	 [[https://github.com/dgutov/diff-hl][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package diff-hl
@@ -1254,6 +1295,8 @@ git checkout v24
       #+END_SRC
 
 **** dtrt-indent
+
+	 [[https://github.com/jscheid/dtrt-indent][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
@@ -1349,6 +1392,8 @@ git checkout v24
 
 **** Emacs speaks statistics
 
+	 [[https://ess.r-project.org][Website]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package ess-site
   :ensure ess
@@ -1357,6 +1402,8 @@ git checkout v24
      #+END_SRC
 
 **** esup
+
+	 [[https://github.com/jschaf/esup][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package esup
@@ -1368,6 +1415,10 @@ git checkout v24
      #+END_SRC
 
 **** flycheck
+
+	 [[https://github.com/flycheck/flycheck][Github]]
+
+	 [[http://www.flycheck.org/][Website]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package flycheck
@@ -1402,6 +1453,8 @@ git checkout v24
 
 **** gnus
 
+	 [[http://www.gnus.org][Website]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package gnus
   :ensure nil
@@ -1411,6 +1464,8 @@ git checkout v24
      #+END_SRC
 
 **** god-mode
+
+	 [[https://github.com/chrisdone/god-mode][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package god-mode
@@ -1452,77 +1507,11 @@ git checkout v24
          ("C-h v" . helpful-variable)))
      #+END_SRC
 
-**** info                                                          :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package info
-  :ensure nil
-  :bind ("C-h C-i" . info-lookup-symbol)
-  )
-     #+END_SRC
-
-**** ivy
-
-     #+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :bind (("<f6>" . ivy-resume)
-         ([remap list-buffers] . ivy-switch-buffer)
-         ;; :map ivy-minibuffer-map
-         ;; ("<escape>" . abort-recursive-edit)
-         )
-  :init
-  (defvar projectile-completion-system)
-  (defvar magit-completing-read-function)
-  (defvar dumb-jump-selector)
-  (defvar rtags-display-result-backend)
-  (defvar projector-completion-system)
-  (setq projectile-completion-system 'ivy
-        magit-completing-read-function 'ivy-completing-read
-        dumb-jump-selector 'ivy
-        rtags-display-result-backend 'ivy
-        projector-completion-system 'ivy)
-  :demand
-  :delight
-  :config (ivy-mode 1)
-  )
-     #+END_SRC
-
-**** jka-compr                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     Add some binary plist decompression. This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package jka-compr
-  :ensure nil
-  :demand
-  :config
-  (add-to-list 'jka-compr-compression-info-list
-               ["\\.plist$"
-                "converting text XML to binary plist"
-                "plutil"
-                ("-convert" "binary1" "-o" "-" "-")
-                "converting binary plist to text XML"
-                "plutil"
-                ("-convert" "xml1" "-o" "-" "-")
-                nil nil "bplist"])
-  (jka-compr-update))
-     #+END_SRC
-**** kill-or-bury-alive
-
-     #+BEGIN_SRC emacs-lisp
-(use-package kill-or-bury-alive
-  :bind (([remap kill-buffer] . kill-or-bury-alive)))
-     #+END_SRC
-
 **** magit
+
+	 [[https://github.com/magit/magit][GitHub]]
+
+	 [[https://magit.vc][Website]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package git-commit
@@ -1587,6 +1576,8 @@ git checkout v24
 
 **** mmm-mode
 
+	 [[https://github.com/purcell/mmm-mode][GitHub]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package mmm-mode
   :commands (mmm-mode)
@@ -1597,6 +1588,7 @@ git checkout v24
      #+END_SRC
 
 **** multiple-cursors
+	 [[https://github.com/magnars/multiple-cursors.el][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
@@ -1613,13 +1605,17 @@ git checkout v24
 
 **** mwim
 
+	 [[https://github.com/alezost/mwim.el][GitHub]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
      #+END_SRC
 
-**** org-mode
+**** Org
+
+	 [[https://orgmode.org][Website]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -1685,6 +1681,7 @@ git checkout v24
      #+END_SRC
 
 **** Projectile
+	 [[https://github.com/bbatsov/projectile][GitHub]]
 
      Setup projectile and link it with some other packages. This also adds an
      easymenu to make the "Projectile" modeline clickable.
@@ -1760,6 +1757,8 @@ git checkout v24
 
 **** Proof General
 
+	 [[https://proofgeneral.github.io][Website]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package proof-site
   :ensure proofgeneral
@@ -1791,6 +1790,8 @@ git checkout v24
 
 **** smart-hungry-delete
 
+	 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package smart-hungry-delete
   :bind (:map prog-mode-map
@@ -1803,6 +1804,8 @@ git checkout v24
      #+END_SRC
 
 **** Smartparens
+
+	 [[https://github.com/Fuco1/smartparens][Website]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package smartparens
@@ -1918,20 +1921,11 @@ git checkout v24
 
 **** sudo-edit
 
+	 [[https://github.com/nflath/sudo-edit][GitHub]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
-     #+END_SRC
-
-**** swiper
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package swiper)
      #+END_SRC
 
 **** term
@@ -1958,6 +1952,8 @@ git checkout v24
 
 **** tramp
 
+	 [[https://www.gnu.org/software/tramp/][Website]]
+
      #+BEGIN_SRC emacs-lisp
 (use-package tramp
   :ensure nil
@@ -1975,6 +1971,7 @@ git checkout v24
      #+END_SRC
 
 **** try
+	 [[https://github.com/larstvei/Try][GitHub]]
 
      #+BEGIN_SRC emacs-lisp
 (use-package try
@@ -2255,6 +2252,55 @@ git checkout v24
 (use-package imenu-list
   :commands (imenu-list))
       #+END_SRC
+
+**** info                                                          :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package info
+  :ensure nil
+  :bind ("C-h C-i" . info-lookup-symbol)
+  )
+     #+END_SRC
+
+**** jka-compr                                                     :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     Add some binary plist decompression. This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package jka-compr
+  :ensure nil
+  :demand
+  :config
+  (add-to-list 'jka-compr-compression-info-list
+               ["\\.plist$"
+                "converting text XML to binary plist"
+                "plutil"
+                ("-convert" "binary1" "-o" "-" "-")
+                "converting binary plist to text XML"
+                "plutil"
+                ("-convert" "xml1" "-o" "-" "-")
+                nil nil "bplist"])
+  (jka-compr-update))
+     #+END_SRC
+**** kill-or-bury-alive 										   :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package kill-or-bury-alive
+  :bind (([remap kill-buffer] . kill-or-bury-alive)))
+     #+END_SRC
 
 **** newcomment
 
@@ -3734,8 +3780,8 @@ update_terminal_cwd () {
    :header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
    :END:
 
-   To use this, you must create a short =~/.bash_profile= file. Here is an
-   example,
+   This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
+   =~/.bash_profile= file. Here is an example,
 
    #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
@@ -3827,7 +3873,8 @@ fi
    :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
    :END:
 
-   To use this, you must create a short ~/.zshrc file. Here is an example,
+   This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
+   use this, you must create a short ~/.zshrc file. Here is an example,
 
    #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
@@ -4608,7 +4655,8 @@ export HOME=$PWD
 emacs --batch --quick \
       --eval "(let ((default-directory \"${emacsWrapper
                 ((requiredPackages customEmacsPackages myPackages) ++
-                  [customEmacsPackages.melpaPackages.use-package])
+                  (with customEmacsPackages.melpaPackages;
+                        [use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
    #+END_SRC
@@ -4747,6 +4795,7 @@ wrapProgram $out/bin/zsh \
 cp ${./runemacs.sh} $out/bin/run
 substituteInPlace $out/bin/run \
   --replace @out@ $out
+ln -s $out/bin/run $out/bin/bauer
   '';
   meta = {
     priority = -10;
