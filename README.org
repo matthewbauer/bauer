@@ -461,7 +461,6 @@ git checkout v24
  '(magit-log-auto-more t)
  '(magit-clone-set-remote\.pushDefault t)
  '(magit-diff-options nil)
- '(magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1)
  '(magit-ediff-dwim-show-on-hunks t)
  '(magit-fetch-arguments nil)
  '(magit-highlight-trailing-whitespace nil)
@@ -829,13 +828,23 @@ git checkout v24
 
    Alphabetical listing of all Emacs packages needed by the IDE.
 
-   To resort, go to one of the package group headings and type C-c ^ (the
-   shortcut for org-sort).
+   To resort, go to one of the package group headings and type =C-c ^ a=.
 
 *** Essentials
 
     Some of these are included in Emacs, others aren’t. All of them are
     necessary for using Emacs as a full featured IDE.
+
+**** re-builder
+     #+BEGIN_SRC emacs-lisp
+(use-package re-builder
+  :ensure nil
+  :config
+  (let ((name '("Regexp[" (:eval (symbol-name reb-re-syntax)) "]")))
+    (delight `((reb-mode ,name :major)
+			   (reb-lisp-mode ,name :major))))
+  )
+     #+END_SRC
 
 **** ace window
 	 [[https://github.com/abo-abo/ace-window][GitHub]]
@@ -1574,6 +1583,14 @@ git checkout v24
   :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
      #+END_SRC
 
+**** minibuffer
+
+     #+BEGIN_SRC emacs-lisp
+(use-package minibuffer
+  :ensure nil
+  :bind* ("C-M-i" . completion-at-point))
+     #+END_SRC
+
 **** mmm-mode
 
 	 [[https://github.com/purcell/mmm-mode][GitHub]]
@@ -1678,6 +1695,16 @@ git checkout v24
                                  (latex . t)
                                  ))
   )
+     #+END_SRC
+
+**** pcomplete
+
+     #+BEGIN_SRC emacs-lisp
+(use-package pcomplete
+  :ensure nil
+  :commands (pcomplete-completions-at-point)
+  :init
+  (add-to-list 'completion-at-point-functions 'pcomplete-completions-at-point))
      #+END_SRC
 
 **** Projectile
@@ -3686,6 +3713,19 @@ git checkout v24
         popwin:special-display-config))
      #+END_SRC
 
+**** delight
+
+     #+BEGIN_SRC emacs-lisp
+(use-package delight)
+     #+END_SRC
+**** lentic
+
+     #+BEGIN_SRC emacs-lisp
+(use-package lentic
+  :commands (global-lentic-mode))
+     #+END_SRC
+
+
 **** TODO iedit
 **** TODO undo-tree
 
@@ -4512,10 +4552,11 @@ cp bauer.nix default.nix
    #+END_SRC
 
    We start out by defining the Nix version to use. nixStable corresponds to the
-   last released version, 1.11.
+   last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
+   soon be released.
 
    #+BEGIN_SRC nix
-nix = nixStable;
+nix = nixUnstable;
    #+END_SRC
 
   Next we start defining some packages. R is one of the simpler ones right now,
@@ -4614,10 +4655,12 @@ substituteAllInPlace $out
 
    #+BEGIN_SRC nix
   package-list = with customEmacsPackages.melpaPackages;
+                 with customEmacsPackages.elpaPackages;
     runCommand "package-list" { buildInputs = [ emacs ]; } ''
 emacs --batch --quick \
                 -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
                 -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
+                -L ${delight}/share/emacs/site-lisp/elpa/delight-* \
                 -L ${./lisp} -l use-package-list \
                 --eval "(use-package-list \"${./README.el}\")" > $out
   '';
@@ -4656,6 +4699,7 @@ emacs --batch --quick \
       --eval "(let ((default-directory \"${emacsWrapper
                 ((requiredPackages customEmacsPackages myPackages) ++
                   (with customEmacsPackages.melpaPackages;
+                   with customEmacsPackages.elpaPackages;
                         [use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
