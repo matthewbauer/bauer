@@ -213,6 +213,7 @@ git checkout v24
 
     #+BEGIN_SRC emacs-lisp
 (set-defaults
+ '(explicit-shell-file-name "/bin/bash")
  '(TeX-auto-save t)
  '(TeX-engine 'xetex)
  '(TeX-auto-untabify t)
@@ -599,7 +600,6 @@ git checkout v24
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell t)
- '(visible-cursor nil)
  '(woman-imenu t)
  '(x-stretch-cursor t)
  '(whitespace-line-column 80)
@@ -835,17 +835,6 @@ git checkout v24
     Some of these are included in Emacs, others aren’t. All of them are
     necessary for using Emacs as a full featured IDE.
 
-**** re-builder
-     #+BEGIN_SRC emacs-lisp
-(use-package re-builder
-  :ensure nil
-  :config
-  (let ((name '("Regexp[" (:eval (symbol-name reb-re-syntax)) "]")))
-    (delight `((reb-mode ,name :major)
-			   (reb-lisp-mode ,name :major))))
-  )
-     #+END_SRC
-
 **** ace window
 	 [[https://github.com/abo-abo/ace-window][GitHub]]
 
@@ -883,7 +872,12 @@ git checkout v24
    ("<M-S-right>" . buf-move-right)))
      #+END_SRC
 
-**** Company
+**** Company :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
 	 [[https://github.com/company-mode/company-mode][GitHub]]
 
@@ -891,7 +885,6 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package company
-  :disabled
   :commands global-company-mode
   :preface
   (defun company-complete-common-or-cycle-backward ()
@@ -1033,6 +1026,24 @@ git checkout v24
   :hook (company-mode . company-statistics-mode))
       #+END_SRC
 
+***** company-rtags 											   :noexport:
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package company-rtags
+  :after company
+  :commands (company-rtags)
+  :config
+  (setq rtags-autostart-diagnostics t)
+  (rtags-diagnostics)
+  (setq rtags-completions-enabled t)
+  (add-to-list ’company-backends 'company-rtags))
+      #+END_SRC
+
 ***** company-tern                                                 :noexport:
       :PROPERTIES:
       :header-args: :tangle no
@@ -1166,6 +1177,8 @@ git checkout v24
 (use-package ivy
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
+         ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
+         ("C-q C-o" . ivy-occur)
          ;; :map ivy-minibuffer-map
          ;; ("<escape>" . abort-recursive-edit)
          )
@@ -1197,18 +1210,6 @@ git checkout v24
 (use-package swiper)
      #+END_SRC
 
-**** desktop
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package desktop
-  )
-      #+END_SRC
-
 **** diff-hl
 
 	 [[https://github.com/dgutov/diff-hl][GitHub]]
@@ -1223,86 +1224,6 @@ git checkout v24
          (magit-post-refresh . diff-hl-magit-post-refresh)))
      #+END_SRC
 
-**** dired
-
-     #+BEGIN_SRC emacs-lisp
-(use-package dired
-  :ensure nil
-  :init (require 'dired)
-  :bind (("C-c J" . dired-double-jump)
-         :map dired-mode-map
-         ("C-c C-c" . compile)
-         ("r" . browse-url-of-dired-file)))
-     #+END_SRC
-
-***** dired-collapse                                               :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-collapse
-  :after dired
-  :hook (dired-mode . dired-collapse-mode))
-      #+END_SRC
-
-***** dired-column
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-column
-  :ensure nil
-  :after dired
-  :bind (:map dired-mode-map
-              ("o" . dired-column-find-file)))
-      #+END_SRC
-
-***** dired-du
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-du
-  :after dired
-  :commands (dired-du-mode))
-      #+END_SRC
-
-
-***** dired-imenu
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-imenu
-  :after dired
-  :disabled)
-      #+END_SRC
-
-***** dired-subtree
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-subtree
-  :after dired
-  :bind (:map dired-mode-map
-              ("<tab>" . dired-subtree-toggle)
-              ("<backtab>" . dired-subtree-cycle)))
-      #+END_SRC
-
-***** dired-x
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-x
-  :ensure nil
-  :after dired
-  :hook ((dired-mode . dired-omit-mode)
-         (dired-mode . dired-hide-details-mode))
-  :bind (("s-\\" . dired-jump-other-window)
-         :map dired-mode-map
-         (")" . dired-omit-mode)))
-      #+END_SRC
-
 **** dtrt-indent
 
 	 [[https://github.com/jscheid/dtrt-indent][GitHub]]
@@ -1313,91 +1234,6 @@ git checkout v24
   :commands dtrt-indent-mode
   :config (dtrt-indent-mode 1))
      #+END_SRC
-
-**** eldoc
-
-     Provides some info for the thing at the point.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package eldoc
-  :ensure nil
-  :hook ((emacs-lisp-mode . eldoc-mode)
-         (eval-expression-minibuffer-setup . eldoc-mode)
-         (lisp-mode-interactive-mode . eldoc-mode)
-         (typescript-mode . eldoc-mode)))
-     #+END_SRC
-
-**** Emacs shell
-
-     #+BEGIN_SRC emacs-lisp
-(use-package eshell
-  :ensure nil
-  :bind (("C-c M-t" . eshell)
-         ("C-c x" . eshell))
-  :commands (eshell-command eshell-bol)
-  :config
-  (use-package em-rebind
-    :preface
-    (defun eshell-eol ()
-      "Goes to the end of line."
-      (interactive)
-      (end-of-line))
-    :ensure nil
-    :demand
-    :config
-    (setq eshell-rebind-keys-alist
-          '(([(control 97)] . eshell-bol)
-            ([home] . eshell-bol)
-            ([(control 100)] . eshell-delchar-or-maybe-eof)
-            ([backspace] . eshell-delete-backward-char)
-            ([delete] . eshell-delete-backward-char)
-            ([(control 119)] . backward-kill-word)
-            ([(control 117)] . eshell-kill-input)
-            ([tab] . completion-at-point)
-            ([(control 101)] . eshell-eol))))
-  (setq eshell-modules-list
-        '(eshell-alias
-          eshell-banner
-          eshell-basic
-          eshell-cmpl
-          eshell-dirs
-          eshell-glob
-          eshell-hist
-          eshell-ls
-          eshell-pred
-          eshell-prompt
-          eshell-rebind
-          eshell-script
-          eshell-smart
-          eshell-term
-          eshell-tramp
-          eshell-unix
-          eshell-xtra)))
-     #+END_SRC
-
-***** esh-help
-
-      #+BEGIN_SRC emacs-lisp
-(use-package esh-help
-  :commands (esh-help-eldoc-command)
-  :init (create-hook-helper esh-help-setup ()
-          :hooks (eshell-mode-hook)
-          (make-local-variable 'eldoc-documentation-function)
-          (setq eldoc-documentation-function 'esh-help-eldoc-command)
-          (eldoc-mode)))
-      #+END_SRC
-
-***** em-dired
-
-      #+BEGIN_SRC emacs-lisp
-(use-package em-dired
-  :ensure nil
-  :commands (em-dired-new)
-  :bind (:map dired-mode-map
-              ("e" . em-dired))
-  :hook (eshell-mode . em-dired-mode)
-  :init (advice-add 'eshell :before 'em-dired-new))
-      #+END_SRC
 
 **** Emacs speaks statistics
 
@@ -1448,19 +1284,26 @@ git checkout v24
   :hook (flycheck-mode . flycheck-irony-setup))
       #+END_SRC
 
-**** flyspell
+***** flycheck-rtags
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
 
-     #+BEGIN_SRC emacs-lisp
-(use-package flyspell
-  :ensure nil
-  :if (locate-file
-       (if (boundp 'ispell-program-name) ispell-program-name "ispell")
-       exec-path)
-  :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)))
-     #+END_SRC
+     This is currently disabled.
 
-**** gnus
+      #+BEGIN_SRC emacs-lisp
+(use-package flycheck-rtags
+  :preface
+  (defun setup-flycheck-rtags ()
+    (flycheck-select-checker 'rtags)
+    (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
+    (setq-local flycheck-check-syntax-automatically nil)
+    (rtags-set-periodic-reparse-timeout 2.0)  ;; Run flycheck 2 seconds after being idle.
+    )
+  :hook ((c-mode c++-mode) . setup-flycheck-rtags))
+      #+END_SRC
+
+**** Gnus
 
 	 [[http://www.gnus.org][Website]]
 
@@ -1479,33 +1322,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
-     #+END_SRC
-
-**** gud
-
-     #+BEGIN_SRC emacs-lisp
-(use-package gud
-  :ensure nil
-  :commands (gud-gdb))
-     #+END_SRC
-
-**** help
-
-     #+BEGIN_SRC emacs-lisp
-(use-package help
-  :ensure nil
-  :bind (:map help-map
-              ("C-v" . find-variable)
-              ("C-k" . find-function-on-key)
-              ("C-f" . find-function)
-              ("C-l" . find-library)
-              :map help-mode-map
-              ("g" . revert-buffer-no-confirm))
-  :preface
-  (defun revert-buffer-no-confirm (&optional ignore-auto)
-    "Revert current buffer without asking."
-    (interactive (list (not current-prefix-arg)))
-    (revert-buffer ignore-auto t nil)))
      #+END_SRC
 
 **** helpful
@@ -1565,31 +1381,19 @@ git checkout v24
       ?g "Add remote from github user name" #'magit-remote-github)))
      #+END_SRC
 
-***** magithub
+***** magithub :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
       #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  :disabled
   ;;:hook (magit-mode . magithub-feature-autoinject)
   :after magit
   :config (magithub-feature-autoinject t))
       #+END_SRC
-
-**** mb-depth
-
-     #+BEGIN_SRC emacs-lisp
-(use-package mb-depth
-  :ensure nil
-  :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
-     #+END_SRC
-
-**** minibuffer
-
-     #+BEGIN_SRC emacs-lisp
-(use-package minibuffer
-  :ensure nil
-  :bind* ("C-M-i" . completion-at-point))
-     #+END_SRC
 
 **** mmm-mode
 
@@ -1646,10 +1450,6 @@ git checkout v24
   (use-package ob-dot
     :ensure nil
     :demand)
-  (use-package ox-rss
-    :disabled
-    :ensure nil
-    :demand)
   (use-package ox-latex
     :ensure nil
     :demand)
@@ -1658,33 +1458,6 @@ git checkout v24
     :demand)
   (use-package ox-md
     :ensure nil
-    :demand)
-  (use-package ox-reveal
-    :disabled
-    :demand)
-  (use-package ox-pandoc
-    :disabled
-    :demand)
-  (use-package ob-http
-    :disabled
-    :demand)
-  (use-package org-brain
-    :disabled
-    :demand)
-  (use-package org-projectile
-    :disabled
-    :demand)
-  (use-package org-present
-    :disabled
-    :demand)
-  (use-package org-ref
-    :disabled
-    :demand)
-  (use-package org-autolist
-    :disabled
-    :demand)
-  (use-package ox-tufte
-    :disabled
     :demand)
   (use-package org-static-blog
     :demand)
@@ -1697,14 +1470,13 @@ git checkout v24
   )
      #+END_SRC
 
-**** pcomplete
+**** origami
 
      #+BEGIN_SRC emacs-lisp
-(use-package pcomplete
-  :ensure nil
-  :commands (pcomplete-completions-at-point)
-  :init
-  (add-to-list 'completion-at-point-functions 'pcomplete-completions-at-point))
+(use-package origami
+  :demand
+  :commands (global-origami-mode)
+  :config (global-origami-mode))
      #+END_SRC
 
 **** Projectile
@@ -1799,20 +1571,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package rg
   :commands (rg))
-     #+END_SRC
-
-**** Shell
-
-     #+BEGIN_SRC emacs-lisp
-(use-package shell
-  :ensure nil
-  :bind ("C-c C-s" . shell)
-  :hook ((shell-mode . ansi-color-for-comint-mode-on)
-         (shell-mode . dirtrack-mode))
-  :init
-  (create-hook-helper use-histfile ()
-    :hooks (shell-mode-hook)
-    (turn-on-comint-history (getenv "HISTFILE"))))
      #+END_SRC
 
 **** smart-hungry-delete
@@ -1955,41 +1713,6 @@ git checkout v24
   :bind (("C-c C-r" . sudo-edit)))
      #+END_SRC
 
-**** term
-
-     #+BEGIN_SRC emacs-lisp
-(use-package term
-  :ensure nil
-  :commands (term-mode term-char-mode term-set-escape-char)
-  :init
-  (add-hook 'term-mode-hook (lambda ()
-                              (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-                              (setq-local transient-mark-mode nil)
-                              (auto-fill-mode -1)))
-  :preface
-  (defun my-term ()
-    (interactive)
-    (set-buffer (make-term "my-term" "zsh"))
-    (term-mode)
-    (term-char-mode)
-    (term-set-escape-char ?\C-x)
-    (switch-to-buffer "*my-term*"))
-  :bind ("C-c t" . my-term))
-     #+END_SRC
-
-**** tramp
-
-	 [[https://www.gnu.org/software/tramp/][Website]]
-
-     #+BEGIN_SRC emacs-lisp
-(use-package tramp
-  :ensure nil
-  :commands (tramp-tramp-file-p
-             tramp-file-name-user
-             tramp-file-name-real-host
-             tramp-dissect-file-name))
-     #+END_SRC
-
 **** transpose-frame
 
      #+BEGIN_SRC emacs-lisp
@@ -2005,14 +1728,6 @@ git checkout v24
   :commands (try))
      #+END_SRC
 
-**** which-func
-
-     #+BEGIN_SRC emacs-lisp
-(use-package which-func
-  :ensure nil
-  :demand
-  :config (which-function-mode))
-     #+END_SRC
 **** which-key
 
      #+BEGIN_SRC emacs-lisp
@@ -2022,26 +1737,11 @@ git checkout v24
   :config (which-key-mode))
      #+END_SRC
 
-**** whitespace
-
-     #+BEGIN_SRC emacs-lisp
-(use-package whitespace
-  :ensure nil
-  :hook (prog-mode . whitespace-mode))
-     #+END_SRC
-
 **** whitespace-cleanup-mode
 
      #+BEGIN_SRC emacs-lisp
 (use-package whitespace-cleanup-mode
   :hook (prog-mode . whitespace-cleanup-mode))
-     #+END_SRC
-
-**** yafolding
-
-     #+BEGIN_SRC emacs-lisp
-(use-package yafolding
-  :hook (prog-mode . yafolding-mode))
      #+END_SRC
 
 *** Built-ins
@@ -2136,7 +1836,103 @@ git checkout v24
   :config (delete-selection-mode t))
      #+END_SRC
 
-**** edebug
+**** desktop
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package desktop
+  )
+      #+END_SRC
+
+**** dired
+
+     #+BEGIN_SRC emacs-lisp
+(use-package dired
+  :ensure nil
+  :init (require 'dired)
+  :bind (("C-c J" . dired-double-jump)
+         :map dired-mode-map
+         ("C-c C-c" . compile)
+         ("r" . browse-url-of-dired-file)))
+     #+END_SRC
+
+***** dired-collapse                                               :noexport:
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-collapse
+  :after dired
+  :hook (dired-mode . dired-collapse-mode))
+      #+END_SRC
+
+***** dired-column
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-column
+  :ensure nil
+  :after dired
+  :bind (:map dired-mode-map
+              ("o" . dired-column-find-file)))
+      #+END_SRC
+
+***** dired-du
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-du
+  :after dired
+  :commands (dired-du-mode))
+      #+END_SRC
+
+
+***** dired-imenu :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-imenu
+  :after dired)
+      #+END_SRC
+
+***** dired-subtree
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-subtree
+  :after dired
+  :bind (:map dired-mode-map
+              ("<tab>" . dired-subtree-toggle)
+              ("<backtab>" . dired-subtree-cycle)))
+      #+END_SRC
+
+***** dired-x
+
+      #+BEGIN_SRC emacs-lisp
+(use-package dired-x
+  :ensure nil
+  :after dired
+  :hook ((dired-mode . dired-omit-mode)
+         (dired-mode . dired-hide-details-mode))
+  :bind (("s-\\" . dired-jump-other-window)
+         :map dired-mode-map
+         (")" . dired-omit-mode)))
+      #+END_SRC
+
+**** edebug :noexport:
      :PROPERTIES:
      :header-args: :tangle no
      :END:
@@ -2146,8 +1942,20 @@ git checkout v24
 
      #+BEGIN_SRC emacs-lisp
 (use-package edebug
+  :ensure nil)
+     #+END_SRC
+
+**** eldoc
+
+     Provides some info for the thing at the point.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package eldoc
   :ensure nil
-  :disabled)
+  :hook ((emacs-lisp-mode . eldoc-mode)
+         (eval-expression-minibuffer-setup . eldoc-mode)
+         (lisp-mode-interactive-mode . eldoc-mode)
+         (typescript-mode . eldoc-mode)))
      #+END_SRC
 
 **** electric
@@ -2178,6 +1986,78 @@ git checkout v24
          (smartparens-mode . (lambda () (electric-pair-mode -1)))))
       #+END_SRC
 
+**** Emacs shell
+
+     #+BEGIN_SRC emacs-lisp
+(use-package eshell
+  :ensure nil
+  :bind (("C-c M-t" . eshell)
+         ("C-c x" . eshell))
+  :commands (eshell-command eshell-bol)
+  :config
+  (use-package em-rebind
+    :preface
+    (defun eshell-eol ()
+      "Goes to the end of line."
+      (interactive)
+      (end-of-line))
+    :ensure nil
+    :demand
+    :config
+    (setq eshell-rebind-keys-alist
+          '(([(control 97)] . eshell-bol)
+            ([home] . eshell-bol)
+            ([(control 100)] . eshell-delchar-or-maybe-eof)
+            ([backspace] . eshell-delete-backward-char)
+            ([delete] . eshell-delete-backward-char)
+            ([(control 119)] . backward-kill-word)
+            ([(control 117)] . eshell-kill-input)
+            ([tab] . completion-at-point)
+            ([(control 101)] . eshell-eol))))
+  (setq eshell-modules-list
+        '(eshell-alias
+          eshell-banner
+          eshell-basic
+          eshell-cmpl
+          eshell-dirs
+          eshell-glob
+          eshell-hist
+          eshell-ls
+          eshell-pred
+          eshell-prompt
+          eshell-rebind
+          eshell-script
+          eshell-smart
+          eshell-term
+          eshell-tramp
+          eshell-unix
+          eshell-xtra)))
+     #+END_SRC
+
+***** esh-help
+
+      #+BEGIN_SRC emacs-lisp
+(use-package esh-help
+  :commands (esh-help-eldoc-command)
+  :init (create-hook-helper esh-help-setup ()
+          :hooks (eshell-mode-hook)
+          (make-local-variable 'eldoc-documentation-function)
+          (setq eldoc-documentation-function 'esh-help-eldoc-command)
+          (eldoc-mode)))
+      #+END_SRC
+
+***** em-dired
+
+      #+BEGIN_SRC emacs-lisp
+(use-package em-dired
+  :ensure nil
+  :commands (em-dired-new)
+  :bind (:map dired-mode-map
+              ("e" . em-dired))
+  :hook (eshell-mode . em-dired-mode)
+  :init (advice-add 'eshell :before 'em-dired-new))
+      #+END_SRC
+
 **** etags
 
      #+BEGIN_SRC emacs-lisp
@@ -2194,17 +2074,33 @@ git checkout v24
   :hook (after-save . executable-make-buffer-file-executable-if-script-p))
      #+END_SRC
 
-**** ffap
+**** ffap :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package ffap
-  :disabled
   :demand
   :config (ffap-bindings)
   :ensure nil)
      #+END_SRC
 
 ***** TODO handle line numbers like filename:line:col
+
+**** flyspell
+
+     #+BEGIN_SRC emacs-lisp
+(use-package flyspell
+  :ensure nil
+  :if (locate-file
+       (if (boundp 'ispell-program-name) ispell-program-name "ispell")
+       exec-path)
+  :hook ((text-mode . flyspell-mode)
+         (prog-mode . flyspell-prog-mode)))
+     #+END_SRC
 
 **** goto-addr
 
@@ -2223,6 +2119,33 @@ git checkout v24
   :bind (("M-s d" . find-grep-dired)
          ("M-s F" . find-grep)
          ("M-s G" . grep)))
+     #+END_SRC
+
+**** gud
+
+     #+BEGIN_SRC emacs-lisp
+(use-package gud
+  :ensure nil
+  :commands (gud-gdb))
+     #+END_SRC
+
+**** help
+
+     #+BEGIN_SRC emacs-lisp
+(use-package help
+  :ensure nil
+  :bind (:map help-map
+              ("C-v" . find-variable)
+              ("C-k" . find-function-on-key)
+              ("C-f" . find-function)
+              ("C-l" . find-library)
+              :map help-mode-map
+              ("g" . revert-buffer-no-confirm))
+  :preface
+  (defun revert-buffer-no-confirm (&optional ignore-auto)
+    "Revert current buffer without asking."
+    (interactive (list (not current-prefix-arg)))
+    (revert-buffer ignore-auto t nil)))
      #+END_SRC
 
 **** hideshow                                                      :noexport:
@@ -2329,6 +2252,22 @@ git checkout v24
   :bind (([remap kill-buffer] . kill-or-bury-alive)))
      #+END_SRC
 
+**** minibuffer
+
+     #+BEGIN_SRC emacs-lisp
+(use-package minibuffer
+  :ensure nil
+  :bind* ("C-M-i" . completion-at-point))
+     #+END_SRC
+
+***** mb-depth
+
+     #+BEGIN_SRC emacs-lisp
+(use-package mb-depth
+  :ensure nil
+  :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
+     #+END_SRC
+
 **** newcomment
 
      #+BEGIN_SRC emacs-lisp
@@ -2351,6 +2290,21 @@ git checkout v24
   :ensure nil
   :hook ((prog-mode . show-paren-mode)
          (prog-mode . (lambda () (show-paren-mode -1)))))
+     #+END_SRC
+
+**** pcomplete
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
+
+     #+BEGIN_SRC emacs-lisp
+(use-package pcomplete
+  :ensure nil
+  :commands (pcomplete-completions-at-point)
+  :init
+  (add-to-list 'completion-at-point-functions 'pcomplete-completions-at-point))
      #+END_SRC
 
 **** pp
@@ -2415,6 +2369,17 @@ git checkout v24
     (push '("=>" . ?⇒) prettify-symbols-alist)))
      #+END_SRC
 
+**** re-builder
+     #+BEGIN_SRC emacs-lisp
+(use-package re-builder
+  :ensure nil
+  :config
+  (let ((name '("Regexp[" (:eval (symbol-name reb-re-syntax)) "]")))
+    (delight `((reb-mode ,name :major)
+			   (reb-lisp-mode ,name :major))))
+  )
+     #+END_SRC
+
 **** savehist
      :PROPERTIES:
      :header-args: :tangle no
@@ -2459,6 +2424,20 @@ git checkout v24
          (server-switch . raise-frame)))
      #+END_SRC
 
+**** Shell
+
+     #+BEGIN_SRC emacs-lisp
+(use-package shell
+  :ensure nil
+  :bind ("C-c C-s" . shell)
+  :hook ((shell-mode . ansi-color-for-comint-mode-on)
+         (shell-mode . dirtrack-mode))
+  :init
+  (create-hook-helper use-histfile ()
+    :hooks (shell-mode-hook)
+    (turn-on-comint-history (getenv "HISTFILE"))))
+     #+END_SRC
+
 **** simple
 
      #+BEGIN_SRC emacs-lisp
@@ -2483,6 +2462,28 @@ git checkout v24
 (use-package subword
   :ensure nil
   :hook (java-mode . subword-mode))
+     #+END_SRC
+
+**** term
+
+     #+BEGIN_SRC emacs-lisp
+(use-package term
+  :ensure nil
+  :commands (term-mode term-char-mode term-set-escape-char)
+  :init
+  (add-hook 'term-mode-hook (lambda ()
+                              (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+                              (setq-local transient-mark-mode nil)
+                              (auto-fill-mode -1)))
+  :preface
+  (defun my-term ()
+    (interactive)
+    (set-buffer (make-term "my-term" "zsh"))
+    (term-mode)
+    (term-char-mode)
+    (term-set-escape-char ?\C-x)
+    (switch-to-buffer "*my-term*"))
+  :bind ("C-c t" . my-term))
      #+END_SRC
 
 **** text-mode
@@ -2515,6 +2516,19 @@ git checkout v24
   (tooltip-mode -1))
      #+END_SRC
 
+**** tramp
+
+	 [[https://www.gnu.org/software/tramp/][Website]]
+
+     #+BEGIN_SRC emacs-lisp
+(use-package tramp
+  :ensure nil
+  :commands (tramp-tramp-file-p
+             tramp-file-name-user
+             tramp-file-name-real-host
+             tramp-dissect-file-name))
+     #+END_SRC
+
 **** url-handlers
 
      #+BEGIN_SRC emacs-lisp
@@ -2538,6 +2552,22 @@ git checkout v24
               ("l" . forward-char)
               ("f" . forward-char)
               ("b" . backward-char)))
+     #+END_SRC
+
+**** which-func
+
+     #+BEGIN_SRC emacs-lisp
+(use-package which-func
+  :ensure nil
+  :demand
+  :config (which-function-mode))
+     #+END_SRC
+**** whitespace
+
+     #+BEGIN_SRC emacs-lisp
+(use-package whitespace
+  :ensure nil
+  :hook (prog-mode . whitespace-mode))
      #+END_SRC
 
 **** windmove
@@ -2575,7 +2605,8 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package irony
-  :hook ((c++-mode c-mode objc-mode) . irony-mode))
+  :hook (((c++-mode c-mode objc-mode) . irony-mode)
+		 (irony-mode . irony-cdb-autosetup-compile-options)))
       #+END_SRC
 
 ***** irony-eldoc
@@ -2601,7 +2632,7 @@ git checkout v24
     :hooks (c-mode-common-hook c++-mode-common-hook)
     (when (not (tramp-tramp-file-p (buffer-file-name (current-buffer))))
       (rtags-start-process-unless-running)))
-
+  :hook (kill-emacs-hook . rtags-quit-rdm)
   :config
   (rtags-enable-standard-keybindings c-mode-base-map "\C-cr"))
       #+END_SRC
@@ -2661,7 +2692,7 @@ git checkout v24
      #+END_SRC
 
 **** Haskell
-***** intero
+***** intero :noexport:
      :PROPERTIES:
      :header-args: :tangle no
      :END:
@@ -2670,7 +2701,6 @@ git checkout v24
 
       #+BEGIN_SRC emacs-lisp
 (use-package intero
-  :disabled
   :commands (intero-mode)
   :preface
   (defun intero-mode-unless-global-project ()
@@ -3129,6 +3159,18 @@ git checkout v24
 
     Most of these are available in MELPA.
 
+**** yafolding :noexport:
+      :PROPERTIES:
+      :header-args: :tangle no
+      :END:
+
+      This is currently disabled
+
+     #+BEGIN_SRC emacs-lisp
+(use-package yafolding
+  :hook (prog-mode . yafolding-mode))
+     #+END_SRC
+
 **** anything
 
      #+BEGIN_SRC emacs-lisp
@@ -3257,11 +3299,15 @@ git checkout v24
                        gist-buffer-private gist-region-or-buffer))
      #+END_SRC
 
-**** gnuplot
+**** gnuplot :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
-(use-package gnuplot
-  :disabled)
+(use-package gnuplot)
      #+END_SRC
 
 **** hl-todo
@@ -3426,7 +3472,6 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :hook (prog-major-mode . lsp-mode)
-  :disabled
   :commands lsp-mode
   :init
   (with-eval-after-load 'lsp-mode
@@ -3664,34 +3709,50 @@ git checkout v24
      #+END_SRC
 
 **** yasnippet                                                     :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
-  :disabled
   :commands (yas-reload-all)
   :hook (prog-mode . yas-minor-mode)
   :config (yas-reload-all))
      #+END_SRC
 
 **** twittering-mode
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
-(use-package twittering-mode
-  :disabled)
+(use-package twittering-mode)
      #+END_SRC
 
 **** hackernews
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
-(use-package hackernews
-  :disabled)
+(use-package hackernews)
      #+END_SRC
 
-**** popwin
+**** popwin :noexport:
+     :PROPERTIES:
+     :header-args: :tangle no
+     :END:
+
+     This is currently disabled.
 
      #+BEGIN_SRC emacs-lisp
 (use-package popwin
-  :disabled
   :demand
   :config
   (popwin-mode 1)
@@ -4231,7 +4292,7 @@ fi
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
- '(explicit-shell-file-name "@bash@/bin/bash")
+;; '(explicit-shell-file-name "@bash@/bin/bash")
  '(flycheck-sh-bash-executable "@bash@/bin/bash")
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
