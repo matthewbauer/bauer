@@ -150,14 +150,14 @@ PARAMETERS and SAVING."
                                   (cdr (assoc 'restart-emacs-file filtered)))))
   (frameset-filter-tty-to-GUI tty filtered parameters saving))
 
-(defun restart-emacs--restore-frames-using-desktop (file)
-  "Restore the frames using the desktop FILE."
+(defun restart-emacs--restore-frames-using-desktop (filename)
+  "Restore the frames using the desktop FILENAME."
   ;; We let-bind a bunch of variables from desktop mode to make sure
   ;; the changes done while restoring from the desktop file are not
   ;; leaked into normal functioning of the desktop-mode
   (let* (desktop-file-modtime
-         (desktop-dirname (file-name-directory file))
-         (desktop-base-file-name (file-name-base file))
+         (desktop-dirname (file-name-directory filename))
+         (desktop-base-file-name (file-name-base filename))
          (desktop-base-lock-name (concat desktop-base-file-name ".lock"))
          (desktop-restore-reuses-frames nil)
          ;; Add filter for tty frames, the filter simply logs a message on
