@@ -1119,7 +1119,7 @@ git checkout v24
      #+BEGIN_SRC emacs-lisp
 (use-package counsel
   :delight
-  :commands (counsel-descbinds counsel-grep-or-swiper)
+  :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
   ;; counsel doesn’t work well with windows drives
   ;; see https://github.com/abo-abo/swiper/issues/773
@@ -1169,6 +1169,7 @@ git checkout v24
          ;; :map ivy-minibuffer-map
          ;; ("<escape>" . abort-recursive-edit)
          )
+  :commands (ivy-mode)
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
