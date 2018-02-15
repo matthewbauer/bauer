@@ -521,7 +521,7 @@ git checkout v24
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-enable-caching t)
  '(projectile-mode-line
-   '(:eval (if (and (projectile-project-p)
+   '(:eval (if (and (ignore-errors (projectile-project-p))
                     (not (file-remote-p default-directory)))
                (format " Projectile[%s]" (projectile-project-name)) "")))
  '(projectile-ignored-project-function 'file-remote-p)
