@@ -183,7 +183,8 @@ git checkout v24
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
 (autoload 'package-installed-p "package")
 (define-obsolete-function-alias 'org-define-error 'define-error)
-(when (require 'mac-win nil t)
+(when (and (string= window-system "mac")
+		   (require 'mac-win nil t))
   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
    #+END_SRC
 
@@ -4647,7 +4648,7 @@ nix = nixUnstable;
 
    #+BEGIN_SRC nix
   site-paths = runCommand "site-paths.el" {
-    inherit rtags ripgrep ag emacs ant nethack fortune gnutls
+    inherit rtags ripgrep ag ant nethack fortune gnutls
       coreutils findutils openssh git bash
       zsh perl golint perlcritic
       go asciidoc lessc stack
@@ -4657,6 +4658,7 @@ nix = nixUnstable;
       sqliteInteractive freetds mariadb
       parallel unixODBC ncompress
       texinfoInteractive cacert notmuch gnuplot;
+    inherit (customEmacsPackages) emacs;
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
     inherit (haskellPackages) hoogle hlint;
@@ -4687,7 +4689,9 @@ substituteAllInPlace $out
    #+BEGIN_SRC nix
   package-list = with customEmacsPackages.melpaPackages;
                  with customEmacsPackages.elpaPackages;
-    runCommand "package-list" { buildInputs = [ emacs ]; } ''
+    runCommand "package-list" {
+      buildInputs = [ customEmacsPackages.emacs ];
+    } ''
 emacs --batch --quick \
                 -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
                 -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
@@ -4701,7 +4705,9 @@ emacs --batch --quick \
 **** Phase 2: byte compiling
 
    #+BEGIN_SRC nix
-  default = runCommand "default.el" { buildInputs = [emacs]; } ''
+  default = runCommand "default.el" {
+    buildInputs = [customEmacsPackages.emacs];
+  } ''
 mkdir -p $out/share/emacs/site-lisp
 
 cp ${./README.el} $out/share/emacs/site-lisp/default.el
@@ -4722,6 +4728,12 @@ cp ${./lisp/company-eshell-history.el} \
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
    #+END_SRC
+
+	 This is fairly complicated. What happens is we batch compile all of the .el
+	 files. The problem is the .el files all are going to depend on dependencies
+	 that we have just found in package-list. The solution is that complex eval
+	 below where we add all of the paths (and their requisites) to the load
+	 path. This works but is hacky and I am interested in fixing it.
 
    #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
@@ -4744,7 +4756,9 @@ emacs --batch --quick \
 
    #+BEGIN_SRC nix
   emacsWrapper = explicitRequires: runCommand "emacs-packages-deps"
-   { inherit emacs explicitRequires; inherit (xorg) lndir; }
+   { inherit explicitRequires; 
+     inherit (xorg) lndir; 
+     inherit (customEmacsPackages) emacs;}
    ''
      findInputsOld() {
          local pkg="$1"; shift
