@@ -50,7 +50,6 @@
 
 (require 'eshell)
 (require 'em-dirs)
-(require 'hook-helpers)
 
 (defgroup em-dired nil
   "Dired features in eshell mode"
