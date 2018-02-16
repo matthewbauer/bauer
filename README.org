@@ -1236,15 +1236,25 @@ git checkout v24
   :commands (R))
      #+END_SRC
 
-**** esup
+**** ESUP
 
 	 [[https://github.com/jschaf/esup][GitHub]]
+
+	 emacs-init-time gives good readings for Emacs startup time. Currently my
+	 emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
+	 but I aim to never let it go above 5. This is good but it includes some
+	 things we don’t have control over (window system and Emacs C internals).
+
+	 ESUP provides good info on what is taking a long time during startup. ESUP
+	 is a startup profiler for Emacs. I’ve provided "profile" so that you can
+	 just profile what is in "default.el" (this script) and not any other
+	 miscellaneous scripts you have around.
 
      #+BEGIN_SRC emacs-lisp
 (use-package esup
   :commands (esup)
   :preface
-  (defun init-profile ()
+  (defun profile ()
     (interactive)
     (esup (locate-library "default"))))
      #+END_SRC
