@@ -392,7 +392,10 @@ custom init hooks).
  '(haskell-interactive-mode-scroll-to-bottom t)
  '(haskell-process-args-stack-ghci
    (quote
-    ("--ghci-options=-ferror-spans" "--ghci-options=-fno-diagnostics-show-caret" "--no-build" "--no-load")))
+    ("--ghci-options=-ferror-spans"
+     "--ghci-options=-fno-diagnostics-show-caret"
+     "--no-build"
+     "--no-load")))
  '(haskell-process-prompt-restart-on-cabal-change nil)
  '(haskell-process-show-debug-tips nil)
  '(haskell-indent-spaces 4)
@@ -1434,11 +1437,6 @@ This is currently disabled.
                                  (latex . t)
                                  ))
   )
-(use-package org-rich-yank
-  :ensure t
-  :after org
-  :bind (:map org-mode-map
-              ("C-M-y" . org-rich-yank)))
 #+END_SRC
 
 **** origami
@@ -1458,7 +1456,7 @@ easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
-  :commands projectile-mode
+  :commands (projectile-mode projectile-project-root)
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
   :bind (:map projectile-command-map
@@ -1479,6 +1477,7 @@ easymenu to make the "Projectile" modeline clickable.
 
   (use-package easymenu
     :ensure nil
+    :commands (easy-menu-do-define)
     :config
 
     (easy-menu-define projectile-menu projectile-mode-map "Projectile"
@@ -2200,7 +2199,7 @@ setup.
 (use-package simple
   :ensure nil
   :demand
-  :commands column-number-mode
+  :commands (column-number-mode auto-fill-mode)
   :bind
   (("C-`" . list-processes)
    :map minibuffer-local-map
@@ -3596,7 +3595,7 @@ Set paths provided by Nix,
  '(ag-executable "@ag@/bin/ag")
  ;; '(intero-stack-executable "@intero@/bin/intero-nix-shim")
  '(notmuch-command "@notmuch@/bin/notmuch")
- '(org-export-async-init-file "@orginit@")
+ ;; '(org-export-async-init-file "@orginit@")
  )
    #+END_SRC
 
@@ -3887,7 +3886,7 @@ Tex live provides some LaTeX commads for us.
       collection-langenglish collection-latex
       collection-latexrecommended collection-luatex
       collection-metapost collection-texworks
-      collection-xetex capt-of;
+      collection-xetex capt-of ulem;
   };
   #+END_SRC
 
@@ -3922,7 +3921,7 @@ substitution of all the attributes set.
     gpg = gnupg1compat;
     # jdeeserver = jdee-server;
     aspell = myAspell;
-    orginit = ./org-init.el;
+    # orginit = ./org-init.el;
   } ''
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
@@ -4176,7 +4175,6 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
     # ++ (with haskell.packages.ghc802; [ghc-mod])
-    ++ (with haskellPackages; [ hoogle hlint ])
     ;
 };
    #+END_SRC
@@ -4367,31 +4365,6 @@ your channel. Having this file available means you can place this repo in
     userPackages = bauer;
   };
 }
-   #+END_SRC
-** =org-init.el=
-:PROPERTIES:
-:header-args: :tangle org-init.el
-:END:
-
-#+BEGIN_SRC emacs-lisp :padline no
-(require 'site-paths nil t)
-(require 'use-package)
-(setq use-package-always-demand t
-      use-package-always-ensure nil)
-(use-package tex-site)
-(use-package emacs-lisp)
-(use-package sh-script)
-(use-package org
-  :config
-  (setq org-export-in-background t
-        org-src-fontify-natively t
-        org-src-preserve-indentation t
-        ;; org-html-htmlize-output-type (quote css)
-        org-latex-listings (quote minted))
-  (use-package ox-latex)
-  (use-package ox-beamer)
-  (use-package ox-md)
-  (use-package ox-rss))
    #+END_SRC
 * COMMENT Footer
 # Local Variables:
