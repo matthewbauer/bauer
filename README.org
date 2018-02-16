@@ -4290,6 +4290,8 @@ fi
  ;; '(haskell-process-stack "@stack@/bin/stack")
  '(haskell-check-command "@hlint@/bin/hlint")
  '(haskell-hoogle-command "@hoogle@/bin/hoogle")
+ '(haskell-hasktags-path "@hasktags@/bin/hasktags")
+ '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
  '(ispell-program-name "@aspell@/bin/aspell")
  '(ispell-grep-command "@gnugrep@/bin/grep")
  '(irony-cmake-executable "@cmake@/bin/cmake")
@@ -4661,7 +4663,8 @@ nix = nixUnstable;
     inherit (customEmacsPackages) emacs;
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
-    inherit (haskellPackages) hoogle hlint;
+    inherit (haskellPackages) hoogle hlint hasktags;
+    stylish = haskellPackages.stylish-haskell;
     # intero = haskellPackages.intero-nix-shim;
     texlive = myTex;
     markdown2 = pythonPackages.markdown2;
@@ -4924,7 +4927,8 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
-    ++ (with haskellPackages; [cabal-install]); # hindent hoogle ghc-mod
+#    ++ (with haskellPackages; [cabal-install hindent ghc-mod])
+    ;
 };
    #+END_SRC
 
