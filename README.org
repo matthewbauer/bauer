@@ -8,13 +8,14 @@
 #+OPTIONS: creator:nil date:nil email:nil inline:nil num:nil pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+PROPERTY: header-args :cache yes
+#+PROPERTY: header-args:emacs-lisp :results output silent
 #+LATEX_HEADER: \usepackage{parskip}
 #+LATEX_HEADER: \usepackage{inconsolata}
 #+LATEX_HEADER: \usepackage[utf8]{inputenc}
 #+LATEX_HEADER: \usepackage{alltt}
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
-#+STARTUP: showall hideblocks
+#+STARTUP: showall hideblocks indent align entitiespretty
 #+HTML_HEAD: <link rel=stylesheet href="https://matthewbauer.us/style.css" />
 #+EXPORT_FILE_NAME: index
 
@@ -26,87 +27,87 @@ Nix store paths. This provides a kind of functional Emacs configuration. The
 integration between Emacs and Nix comes with lots of useful side effects. The raw Org file can always be viewed [[https://matthewbauer.us/bauer/README.org][here]] and additional information is available on [[https://github.com/matthewbauer/bauer][GitHub]].
 
 * Usage
-  :PROPERTIES:
-  :header-args: :tangle no
-  :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 ** Demo
 
-   If you already have Nix installed, you can demo this out easily. Just run the
-   following,
+If you already have Nix installed, you can demo this out easily. Just run the
+following,
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
 expr="import (builtins.fetchTarball $url)"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
    #+END_SRC
 
-   If you don’t have Nix installed, you’re going to need to skip this step and
-   just instasll directly.
+If you don’t have Nix installed, you’re going to need to skip this step and
+just instasll directly.
 
 ** Installing/upgrading
 
-   Once you’ve demo’d it, you can setup a permanent install. This is the script
-   that I use to setup all of my new machines but anyone can also use it
-   (provided you’re on a Unixy system).
+Once you’ve demo’d it, you can setup a permanent install. This is the script
+that I use to setup all of my new machines but anyone can also use it
+(provided you’re on a Unixy system).
 
-   Run this command from your shell,
+Run this command from your shell,
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 curl https://matthewbauer.us/bootstrap.sh | sh
    #+END_SRC
 
-   Alternatively, you can accomplish the same thing from Emacs by downloading
-   [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
-   (=M‑x install<RET>=). This process will take a little bit of time as
-   everything is downloaded. After you restart Emacs, you’re environment should
-   be successfully loaded.
+Alternatively, you can accomplish the same thing from Emacs by downloading
+[[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
+(=M‑x install<RET>=). This process will take a little bit of time as
+everything is downloaded. After you restart Emacs, you’re environment should
+be successfully loaded.
 
-   Once it’s installed, you can open Emacs at any time with this shortcut
-   command,
+Once it’s installed, you can open Emacs at any time with this shortcut
+command,
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 $HOME/.nix-profile/bin/run
-   #+END_SRC
+#+END_SRC
 
 ** Developing
 
-   After you’ve installed it, it’s easy to make changes. By default, the
-   configuration lives in =~/.local/share/bauer=. To make changes just follow
-   this process,
+After you’ve installed it, it’s easy to make changes. By default, the
+configuration lives in =~/.local/share/bauer=. To make changes just follow
+this process,
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 cd ~/.local/share/bauer
 nix-build
 ./result/run
-   #+END_SRC
+#+END_SRC
 
-   The last line will spawn an Emacs frame in the Git repo. Anything in there
-   can be hacked. To rebuild the IDE just run =nix-build= again and respawn
-   Emacs. Make any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the
-   lisp folder]]. Make sure you commit your changes afterward by typing =C-c p v=,
-   then =c-ac= (using Magit, of course). If you have forked this repo on GitHub,
-   you can add it by typing =Mg= then your GitHub username within Magit. To push
-   to it, just type =Pr= then find your username in the list and press enter.
-   Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
+The last line will spawn an Emacs frame in the Git repo. Anything in there
+can be hacked. To rebuild the IDE just run =nix-build= again and respawn
+Emacs. Make any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the
+lisp folder]]. Make sure you commit your changes afterward by typing =C-c p v=,
+then =c-ac= (using Magit, of course). If you have forked this repo on GitHub,
+you can add it by typing =Mg= then your GitHub username within Magit. To push
+to it, just type =Pr= then find your username in the list and press enter.
+Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
 
 ** w/o Nix usage
-   :PROPERTIES:
-   :CUSTOM_ID: nonix
-   :header-args: :tangle no
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: nonix
+:header-args: :tangle no
+:END:
 
-   You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
-   configuration. To get started, run the following.
+You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
+configuration. To get started, run the following.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+END_SRC
 
-   Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
+Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 
-   #+BEGIN_SRC emacs-lisp :tangle init.el
+#+BEGIN_SRC emacs-lisp :tangle init.el
 (defvar bauer-dir (expand-file-name ".emacs.d/bauer" (getenv "HOME")))
 (defvar bauer-org (expand-file-name "README.org" bauer-dir))
 (setq package-enable-at-startup nil)
@@ -120,50 +121,50 @@ git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
    #+END_SRC
 
 * Emacs Init file
-   :PROPERTIES:
-   :header-args: :tangle yes
-   :END:
+:PROPERTIES:
+:header-args: :tangle yes
+:END:
 
-   This is the main part of the IDE. It is written in Emacs lisp and will be
-   loaded every time Emacs is started.
+This is the main part of the IDE. It is written in Emacs lisp and will be
+loaded every time Emacs is started.
 
 ** Verify Emacs version ≥ 25
 
-   Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
-   available.
+Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
+available.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
    #+END_SRC
 
 *** EXPERIMENTAL Emacs 24 support
-   :PROPERTIES:
-   :header-args: :tangle no
-   :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-    If Nix is unavailable and only Emacs 24 is installed for you, then you can
-    try the experimental v24 branch. From the Git root of this repository, just
-    run:
+If Nix is unavailable and only Emacs 24 is installed for you, then you can
+try the experimental v24 branch. From the Git root of this repository, just
+run:
 
-    #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 git checkout v24
     #+END_SRC
 
-    and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
-    [[#nonix][w/o Nix usage directions]]).
+and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
+[[#nonix][w/o Nix usage directions]]).
 
 ** Increase GC
 
-   Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
-   what point Emacs should invoke its garbage collector Some people set it to a
-   really larger number permanently. This works well until the garbage is
-   actually collected (then you have to wait a long time). I’ve decided to just
-   set it temporarily to a large number so we only garbage collect once on
-   startup. After that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for
-   more info on this.
+Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
+what point Emacs should invoke its garbage collector Some people set it to a
+really larger number permanently. This works well until the garbage is
+actually collected (then you have to wait a long time). I’ve decided to just
+set it temporarily to a large number so we only garbage collect once on
+startup. After that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for
+more info on this.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq gc-cons-threshold most-positive-fixnum)
 (add-hook 'after-init-hook
           (lambda ()
@@ -174,11 +175,11 @@ git checkout v24
 
 ** Autoloads & Misc.
 
-   These are some autoloads and other defines that aren’t getting setup
-   normally. Eventually this section should be removed but it leads to errors
-   currently. FIXME!
+These are some autoloads and other defines that aren’t getting setup
+normally. Eventually this section should be removed but it leads to errors
+currently. FIXME!
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (autoload 'tramp-tramp-file-p "tramp")
 (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
 (autoload 'package-installed-p "package")
@@ -190,29 +191,29 @@ git checkout v24
 
 ** Custom config
 
-   [[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
-   means that when you customize a variable it will appear as ‘standard’ even
-   though it’s not what the package originally defined as the default. This is
-   useful for an Emacs distribution to provide /better defaults/ while still
-   letting the user override them. Look through the lispdoc of the package for
-   documentation on how this works. Eventually, this will be added to MELPA for
-   use in other Emacs distributions.
+[[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
+means that when you customize a variable it will appear as ‘standard’ even
+though it’s not what the package originally defined as the default. This is
+useful for an Emacs distribution to provide /better defaults/ while still
+letting the user override them. Look through the lispdoc of the package for
+documentation on how this works. Eventually, this will be added to MELPA for
+use in other Emacs distributions.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
    #+END_SRC
 
-   Occasionally this block will error in cases where =./lisp= hasn’t been added
-   correctly. Currently trying to find a way to handle this. FIXME
+Occasionally this block will error in cases where =./lisp= hasn’t been added
+correctly. Currently trying to find a way to handle this. FIXME
 
 *** Better defaults
 
-   These are some *better* defaults for Emacs. They shouldn’t require any
-   packages to be installed to work (those go in use-package). In addition, they
-   should take almost no time to run (meaning they probably shouldn’t have
-   custom init hooks).
+These are some *better* defaults for Emacs. They shouldn’t require any
+packages to be installed to work (those go in use-package). In addition, they
+should take almost no time to run (meaning they probably shouldn’t have
+custom init hooks).
 
-    #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (set-defaults
  '(explicit-shell-file-name "/bin/bash")
  '(TeX-auto-save t)
@@ -439,7 +440,7 @@ git checkout v24
  '(ivy-dynamic-exhibit-delay-ms 200)
  '(ivy-ignore-buffers
    (quote
-    ("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$" 
+    ("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$"
 	 "\\`\\.newsrc-dribble\\'" "\\`\\.newsrc.eld\\'")))
  '(ivy-re-builders-alist (quote ((t . ivy--regex-ignore-order))) t)
  '(ivy-wrap t)
@@ -551,7 +552,7 @@ git checkout v24
                                    file-name-history
                                    tablist-name-filter))
  '(savehist-autosave-interval 60)
- '(savehist-ignored-variables (quote (load-history 
+ '(savehist-ignored-variables (quote (load-history
                                       flyspell-auto-correct-ring kill-ring)))
  '(auto-window-vscroll nil)
  '(hscroll-margin 5)
@@ -625,27 +626,27 @@ git checkout v24
 
 *** Site paths
 
-   Now, pull in generated paths from =site-paths.el=. Nix will generate this
-   file automatically for us and different Emacs variables will be set to their
-   Nix store derivations. Everything should work fine if you don’t have this
-   available, though. If you are in Emacs and already have the IDE install you
-   can inspect this file by typing =M-: (find-file (locate-library
-   "site-paths"))=. It will look similar to a =settings.el= file where each line
-   corresponds to a customizable variable. Unlike =settings.el=, each entry is
-   path in the Nix store and we verify it exists before setting it.
+Now, pull in generated paths from =site-paths.el=. Nix will generate this
+file automatically for us and different Emacs variables will be set to their
+Nix store derivations. Everything should work fine if you don’t have this
+available, though. If you are in Emacs and already have the IDE install you
+can inspect this file by typing =M-: (find-file (locate-library
+"site-paths"))=. It will look similar to a =settings.el= file where each line
+corresponds to a customizable variable. Unlike =settings.el=, each entry is
+path in the Nix store and we verify it exists before setting it.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (load "site-paths" :noerror)
    #+END_SRC
 
 *** Set environment
 
-    =set-envs= is provided by [[./lisp/set-defaults.el][set-defaults]]. We can use it like
-    =custom-set-variables=, just it calls =setenv= instead of =setq=. All of
-    these entries correspond to environment variables that we want to always be
-    set in the Emacs process.
+=set-envs= is provided by [[./lisp/set-defaults.el][set-defaults]]. We can use it like
+=custom-set-variables=, just it calls =setenv= instead of =setq=. All of
+these entries correspond to environment variables that we want to always be
+set in the Emacs process.
 
-    #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (set-envs
  '("EDITOR" "emacsclient -nw")
  '("LANG" "en_US.UTF-8")
@@ -657,41 +658,41 @@ git checkout v24
 
 *** Load custom file
 
-    This file allows users to override the above defaults. This will mean you
-    can use custom as you normally would in vanilla Emacs.
+This file allows users to override the above defaults. This will mean you
+can use custom as you normally would in vanilla Emacs.
 
-    #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
     #+END_SRC
 
 ** Setup use-package
 
-   [[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other
-   Emacs packages. It’s quite useful and it will be used extensively in this
-   project.
+[[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other
+Emacs packages. It’s quite useful and it will be used extensively in this
+project.
 
-   Now to get =use-package= we will require =package.el= and initialize it if
-   site-paths is not setup (meaning we’re outside the Nix expression). Because
-   site-paths should be available (unless you don’t have Nix), we can skip this
-   step. All of this is marked ‘eval-and-compile’ to make sure the compiler
-   picks it up on build phase.
+Now to get =use-package= we will require =package.el= and initialize it if
+site-paths is not setup (meaning we’re outside the Nix expression). Because
+site-paths should be available (unless you don’t have Nix), we can skip this
+step. All of this is marked ‘eval-and-compile’ to make sure the compiler
+picks it up on build phase.
 
-   So, there are basically two modes for using this configuration. One when
-   packages are installed externally (through Nix) and another where they are
-   installed internally. This is captured in the variable ‘needs-package-init’
-   which will be t when we want to use the builtin package.el and will be nli
-   when we want to just assume everything is available.
+So, there are basically two modes for using this configuration. One when
+packages are installed externally (through Nix) and another where they are
+installed internally. This is captured in the variable ‘needs-package-init’
+which will be t when we want to use the builtin package.el and will be nli
+when we want to just assume everything is available.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (eval-and-compile
   (setq needs-package-init (and (not (locate-library "site-paths"))
                                 (not (and (boundp 'use-package-list--is-running)
                                           use-package-list--is-running)))))
    #+END_SRC
 
-   First handle using =package.el=.
+First handle using =package.el=.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (when needs-package-init
   (require 'package)
   (package-initialize)
@@ -700,19 +701,19 @@ git checkout v24
     (package-install 'use-package)))
 #+END_SRC
 
-   Actually require =use-package=,
+Actually require =use-package=,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (eval-and-compile
   (require 'delight)
   (require 'use-package)
   (require 'bind-key))
    #+END_SRC
 
-   Now let’s handle the case where all of the packages are already provided.
-   Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
+Now let’s handle the case where all of the packages are already provided.
+Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (eval-and-compile
   (setq use-package-always-ensure needs-package-init)
   (when (not needs-package-init)
@@ -722,13 +723,13 @@ git checkout v24
 
 ** Key bindings
 
-   Using bind-key, setup some simple key bindings. None of these should
-   overwrite Emacs’ default keybindings. Also, they should only require vanilla
-   Emacs to work (non-vanilla Emacs key bindings should be put in their
-   =use-package= declaration). These are meant to all be as close to vanilla
-   Emacs as possible. I try to avoid extremely specific key binds here.
+Using bind-key, setup some simple key bindings. None of these should
+overwrite Emacs’ default keybindings. Also, they should only require vanilla
+Emacs to work (non-vanilla Emacs key bindings should be put in their
+=use-package= declaration). These are meant to all be as close to vanilla
+Emacs as possible. I try to avoid extremely specific key binds here.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (bind-key "C-c C-u"         'rename-uniquely)
 (bind-key "C-x ~"           (lambda () (interactive) (find-file "~")))
 (bind-key "C-x /"           (lambda () (interactive) (find-file "/")))
@@ -798,47 +799,47 @@ git checkout v24
    #+END_SRC
 
 ** Setup installer                                                 :noexport:
-   :PROPERTIES:
-   :header-args: :tangle no
-   :END:
-   
-   Provides installation and upgrading functionality. You can upgrade the IDE at
-   any time by typing =M-x upgrade= from within Emacs. You may have to restart
-   Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
-   documentation.
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-   *Note this is disabled currently*
+Provides installation and upgrading functionality. You can upgrade the IDE at
+any time by typing =M-x upgrade= from within Emacs. You may have to restart
+Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
+documentation.
 
-   #+BEGIN_SRC emacs-lisp
+*Note this is disabled currently*
+
+#+BEGIN_SRC emacs-lisp
 (require 'installer nil t)
    #+END_SRC
 
 ** Packages
 
-   Alphabetical listing of all Emacs packages needed by the IDE.
+Alphabetical listing of all Emacs packages needed by the IDE.
 
-   To resort, go to one of the package group headings and type =C-c ^ a=.
+To resort, go to one of the package group headings and type =C-c ^ a=.
 
 *** Essentials
 
-    Some of these are included in Emacs, others aren’t. All of them are
-    necessary for using Emacs as a full featured IDE.
+Some of these are included in Emacs, others aren’t. All of them are
+necessary for using Emacs as a full featured IDE.
 
 **** ace window
-	 [[https://github.com/abo-abo/ace-window][GitHub]]
+[[https://github.com/abo-abo/ace-window][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ace-window
   :bind (("M-o" . other-window)
          ([remap next-multiframe-window] . ace-window)))
      #+END_SRC
 
 **** aggressive-indent
-	 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
+[[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
 
-     Automatically indent code as you type. Only enabled for Lisp currently.
+Automatically indent code as you type. Only enabled for Lisp currently.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
   :hook ((emacs-lisp-mode
           inferior-emacs-lisp-mode
@@ -850,9 +851,9 @@ git checkout v24
      #+END_SRC
 
 **** buffer-move
-	 [[https://github.com/lukhas/buffer-move][GitHub]]
+[[https://github.com/lukhas/buffer-move][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package buffer-move
   :bind
   (("<M-S-up>" . buf-move-up)
@@ -861,18 +862,18 @@ git checkout v24
    ("<M-S-right>" . buf-move-right)))
      #+END_SRC
 
-**** Company :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
+**** Company   :noexport:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-     This is currently disabled.
+This is currently disabled.
 
-	 [[https://github.com/company-mode/company-mode][GitHub]]
+[[https://github.com/company-mode/company-mode][GitHub]]
 
-	 [[http://company-mode.github.io][Website]]
+[[http://company-mode.github.io][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company
   :commands global-company-mode
   :preface
@@ -916,13 +917,13 @@ git checkout v24
      #+END_SRC
 
 ***** company-anaconda                                             :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled
+This is currently disabled
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-anaconda
   :commands (company-anaconda)
   :after company
@@ -931,13 +932,13 @@ git checkout v24
       #+END_SRC
 
 ***** company-auctex                                               :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-auctex
   :commands (company-auctex-labels
              company-auctex-bibs
@@ -956,21 +957,20 @@ git checkout v24
 
 ***** company-eshell-history
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-eshell-history
   :ensure nil
-  :commands (company-eshell-history)
-  )
+  :commands (company-eshell-history))
       #+END_SRC
 
 ***** company-irony                                                :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-irony
   :after company
   :commands (company-irony)
@@ -978,25 +978,25 @@ git checkout v24
       #+END_SRC
 
 ***** company-jedi                                                 :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-jedi
   :after company)
       #+END_SRC
 
 ***** company-shell                                                :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-shell
   :after company
   :commands (company-shell)
@@ -1004,25 +1004,25 @@ git checkout v24
       #+END_SRC
 
 ***** company-statistics
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
       #+END_SRC
 
-***** company-rtags 											   :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+***** company-rtags                                                :noexport:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-rtags
   :after company
   :commands (company-rtags)
@@ -1034,13 +1034,13 @@ git checkout v24
       #+END_SRC
 
 ***** company-tern                                                 :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-tern
   :after company
   :commands (company-tern)
@@ -1048,13 +1048,13 @@ git checkout v24
       #+END_SRC
 
 ***** company-web                                                  :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package company-web
   :after company
   :commands (company-web-html
@@ -1067,13 +1067,13 @@ git checkout v24
       #+END_SRC
 
 ***** readline-complete                                            :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package readline-complete
   :after company
   :config
@@ -1083,7 +1083,7 @@ git checkout v24
 
 **** compile
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package compile
   :ensure nil
   :bind (("C-c C-c" . compile)
@@ -1111,13 +1111,13 @@ git checkout v24
 
 **** Counsel
 
-	 [[https://github.com/abo-abo/swiper][GitHub]]
+[[https://github.com/abo-abo/swiper][GitHub]]
 
-     Counsel is only enabled on non-Windows systems. This is due to an issue in
-     counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for
-     more info.
+Counsel is only enabled on non-Windows systems. This is due to an issue in
+counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for
+more info.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package counsel
   :delight
   :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
@@ -1148,20 +1148,20 @@ git checkout v24
      #+END_SRC
 
 ***** counsel-projectile                                           :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-      This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package counsel-projectile
   :hook (projectile-mode . counsel-projectile-on))
       #+END_SRC
 
 ***** ivy
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ivy
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
@@ -1188,22 +1188,22 @@ git checkout v24
   )
      #+END_SRC
 
-***** swiper
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
+***** swiper :noexport:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-     This is currently disabled.
+This is currently disabled.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package swiper)
      #+END_SRC
 
 **** diff-hl
 
-	 [[https://github.com/dgutov/diff-hl][GitHub]]
+[[https://github.com/dgutov/diff-hl][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package diff-hl
   :bind (:map diff-hl-mode-map
               ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
@@ -1215,9 +1215,9 @@ git checkout v24
 
 **** dtrt-indent
 
-	 [[https://github.com/jscheid/dtrt-indent][GitHub]]
+[[https://github.com/jscheid/dtrt-indent][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
   :demand
   :delight
@@ -1227,9 +1227,9 @@ git checkout v24
 
 **** Emacs speaks statistics
 
-	 [[https://ess.r-project.org][Website]]
+[[https://ess.r-project.org][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ess-site
   :ensure ess
   :no-require
@@ -1238,19 +1238,19 @@ git checkout v24
 
 **** ESUP
 
-	 [[https://github.com/jschaf/esup][GitHub]]
+[[https://github.com/jschaf/esup][GitHub]]
 
-	 emacs-init-time gives good readings for Emacs startup time. Currently my
-	 emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
-	 but I aim to never let it go above 5. This is good but it includes some
-	 things we don’t have control over (window system and Emacs C internals).
+emacs-init-time gives good readings for Emacs startup time. Currently my
+emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
+but I aim to never let it go above 5. This is good but it includes some
+things we don’t have control over (window system and Emacs C internals).
 
-	 ESUP provides good info on what is taking a long time during startup. ESUP
-	 is a startup profiler for Emacs. I’ve provided "profile" so that you can
-	 just profile what is in "default.el" (this script) and not any other
-	 miscellaneous scripts you have around.
+ESUP provides good info on what is taking a long time during startup. ESUP
+is a startup profiler for Emacs. I’ve provided "profile" so that you can
+just profile what is in "default.el" (this script) and not any other
+miscellaneous scripts you have around.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package esup
   :commands (esup)
   :preface
@@ -1261,41 +1261,22 @@ git checkout v24
 
 **** Flycheck
 
-	 [[https://github.com/flycheck/flycheck][Github]]
+[[https://github.com/flycheck/flycheck][Github]]
 
-	 [[http://www.flycheck.org/][Website]]
+[[http://www.flycheck.org/][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :defer 4
   :commands global-flycheck-mode
   :config (global-flycheck-mode))
      #+END_SRC
 
-***** flycheck-rtags
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package flycheck-rtags
-  :preface
-  (defun setup-flycheck-rtags ()
-    (flycheck-select-checker 'rtags)
-    (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
-    (setq-local flycheck-check-syntax-automatically nil)
-    (rtags-set-periodic-reparse-timeout 2.0)  ;; Run flycheck 2 seconds after being idle.
-    )
-  :hook ((c-mode c++-mode) . setup-flycheck-rtags))
-      #+END_SRC
-
 **** Gnus
 
-	 [[http://www.gnus.org][Website]]
+[[http://www.gnus.org][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package gnus
   :ensure nil
   :commands (gnus)
@@ -1305,16 +1286,16 @@ git checkout v24
 
 **** god-mode
 
-	 [[https://github.com/chrisdone/god-mode][GitHub]]
+[[https://github.com/chrisdone/god-mode][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
      #+END_SRC
 
 **** helpful
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package helpful
   :bind (("C-h f" . helpful-callable)
          ("C-h v" . helpful-variable)))
@@ -1322,11 +1303,11 @@ git checkout v24
 
 **** magit
 
-	 [[https://github.com/magit/magit][GitHub]]
+[[https://github.com/magit/magit][GitHub]]
 
-	 [[https://magit.vc][Website]]
+[[https://magit.vc][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package git-commit
   :hook ((git-commit-mode . flyspell-mode)
          (git-commit-mode . git-commit-save-message)
@@ -1367,13 +1348,13 @@ git checkout v24
      #+END_SRC
 
 ***** magithub :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
-     This is currently disabled.
+This is currently disabled.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package magithub
   ;;:hook (magit-mode . magithub-feature-autoinject)
   :after magit
@@ -1382,9 +1363,9 @@ git checkout v24
 
 **** mmm-mode
 
-	 [[https://github.com/purcell/mmm-mode][GitHub]]
+[[https://github.com/purcell/mmm-mode][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package mmm-mode
   :commands (mmm-mode)
   :config
@@ -1394,9 +1375,9 @@ git checkout v24
      #+END_SRC
 
 **** multiple-cursors
-	 [[https://github.com/magnars/multiple-cursors.el][GitHub]]
+[[https://github.com/magnars/multiple-cursors.el][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
   :bind
   (("<C-S-down>" . mc/mark-next-like-this)
@@ -1411,9 +1392,9 @@ git checkout v24
 
 **** mwim
 
-	 [[https://github.com/alezost/mwim.el][GitHub]]
+[[https://github.com/alezost/mwim.el][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
@@ -1421,9 +1402,9 @@ git checkout v24
 
 **** Org
 
-	 [[https://orgmode.org][Website]]
+[[https://orgmode.org][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package org
   ;; :ensure org-plus-contrib
   :ensure nil
@@ -1453,11 +1434,16 @@ git checkout v24
                                  (latex . t)
                                  ))
   )
-     #+END_SRC
+(use-package org-rich-yank
+  :ensure t
+  :after org
+  :bind (:map org-mode-map
+              ("C-M-y" . org-rich-yank)))
+#+END_SRC
 
 **** origami
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package origami
   :demand
   :commands (global-origami-mode)
@@ -1465,12 +1451,12 @@ git checkout v24
      #+END_SRC
 
 **** Projectile
-	 [[https://github.com/bbatsov/projectile][GitHub]]
+[[https://github.com/bbatsov/projectile][GitHub]]
 
-     Setup projectile and link it with some other packages. This also adds an
-     easymenu to make the "Projectile" modeline clickable.
+Setup projectile and link it with some other packages. This also adds an
+easymenu to make the "Projectile" modeline clickable.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package projectile
   :commands projectile-mode
   :bind-keymap* (("C-c p" . projectile-command-map)
@@ -1541,9 +1527,9 @@ git checkout v24
 
 **** Proof General
 
-	 [[https://proofgeneral.github.io][Website]]
+[[https://proofgeneral.github.io][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package proof-site
   :ensure proofgeneral
   :no-require
@@ -1553,16 +1539,16 @@ git checkout v24
 
 **** Ripgrep
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package rg
   :commands (rg))
      #+END_SRC
 
 **** smart-hungry-delete
 
-	 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
+[[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package smart-hungry-delete
   :bind (:map prog-mode-map
               ("<backspace>" . smart-hungry-delete-backward-char)
@@ -1575,9 +1561,9 @@ git checkout v24
 
 **** Smartparens
 
-	 [[https://github.com/Fuco1/smartparens][Website]]
+[[https://github.com/Fuco1/smartparens][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package smartparens
   :bind (:map smartparens-mode-map
               ("C-M-k" . sp-kill-sexp)
@@ -1691,31 +1677,31 @@ git checkout v24
 
 **** sudo-edit
 
-	 [[https://github.com/nflath/sudo-edit][GitHub]]
+[[https://github.com/nflath/sudo-edit][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
      #+END_SRC
 
 **** transpose-frame
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package transpose-frame
   :bind ("H-t" . transpose-frame))
      #+END_SRC
 
 **** try
-	 [[https://github.com/larstvei/Try][GitHub]]
+[[https://github.com/larstvei/Try][GitHub]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package try
   :commands (try))
      #+END_SRC
 
 **** which-key
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package which-key
   :demand
   :commands which-key-mode
@@ -1724,19 +1710,19 @@ git checkout v24
 
 **** whitespace-cleanup-mode
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package whitespace-cleanup-mode
   :hook (prog-mode . whitespace-cleanup-mode))
      #+END_SRC
 
 *** Built-ins
 
-    These are available automatically, so these =use-package= blocks just
-    configure them.
+These are available automatically, so these =use-package= blocks just
+configure them.
 
 **** align
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package align
   :bind (("C-c [" . align-regexp))
   :commands (align)
@@ -1745,9 +1731,9 @@ git checkout v24
 
 **** ansi-color
 
-     Get color/ansi codes in compilation mode.
+Get color/ansi codes in compilation mode.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ansi-color
   :ensure nil
   :commands (ansi-color-apply-on-region)
@@ -1759,7 +1745,7 @@ git checkout v24
 
 **** autorevert
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :ensure nil
   :commands global-auto-revert-mode
@@ -1771,7 +1757,7 @@ git checkout v24
 
 **** bug-reference
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package bug-reference
   :ensure nil
   :hook (prog-mode . bug-reference-prog-mode))
@@ -1779,14 +1765,14 @@ git checkout v24
 
 ***** bug-reference-github
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package bug-reference-github
   :hook (prog-mode . bug-reference-github-set-url-format))
       #+END_SRC
 
 **** comint
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package comint
   :ensure nil
   ;; :bind
@@ -1812,7 +1798,7 @@ git checkout v24
 
 **** delsel
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package delsel
   :ensure nil
   :demand
@@ -1820,21 +1806,9 @@ git checkout v24
   :config (delete-selection-mode t))
      #+END_SRC
 
-**** desktop
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package desktop
-  )
-      #+END_SRC
-
 **** dired
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dired
   :ensure nil
   :init (require 'dired)
@@ -1844,22 +1818,9 @@ git checkout v24
          ("r" . browse-url-of-dired-file)))
      #+END_SRC
 
-***** dired-collapse                                               :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-collapse
-  :after dired
-  :hook (dired-mode . dired-collapse-mode))
-      #+END_SRC
-
 ***** dired-column
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dired-column
   :ensure nil
   :after dired
@@ -1867,35 +1828,9 @@ git checkout v24
               ("o" . dired-column-find-file)))
       #+END_SRC
 
-***** dired-du
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-du
-  :after dired
-  :commands (dired-du-mode))
-      #+END_SRC
-
-
-***** dired-imenu :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package dired-imenu
-  :after dired)
-      #+END_SRC
-
 ***** dired-subtree
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
@@ -1905,7 +1840,7 @@ git checkout v24
 
 ***** dired-x
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package dired-x
   :ensure nil
   :after dired
@@ -1916,24 +1851,11 @@ git checkout v24
          (")" . dired-omit-mode)))
       #+END_SRC
 
-**** edebug :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-
-     #+BEGIN_SRC emacs-lisp
-(use-package edebug
-  :ensure nil)
-     #+END_SRC
-
 **** eldoc
 
-     Provides some info for the thing at the point.
+Provides some info for the thing at the point.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :ensure nil
   :hook ((emacs-lisp-mode . eldoc-mode)
@@ -1947,7 +1869,7 @@ git checkout v24
 
 **** electric
 
-     Setup these modes:
+Setup these modes:
 
      - electric-quote
      - electric-indent
@@ -1963,10 +1885,10 @@ git checkout v24
 
 ***** elec-pair
 
-      Setup electric-pair-mode for prog-modes. Also disable it when smartparens is
-      setup.
+Setup electric-pair-mode for prog-modes. Also disable it when smartparens is
+setup.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package elec-pair
   :ensure nil
   :hook ((prog-mode . electric-pair-mode)
@@ -1975,7 +1897,7 @@ git checkout v24
 
 **** Emacs shell
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package eshell
   :ensure nil
   :bind (("C-c M-t" . eshell)
@@ -2023,7 +1945,7 @@ git checkout v24
 
 ***** esh-help
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package esh-help
   :commands (esh-help-eldoc-command)
   :preface
@@ -2034,7 +1956,7 @@ git checkout v24
 
 ***** em-dired
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package em-dired
   :ensure nil
   :commands (em-dired-new)
@@ -2046,7 +1968,7 @@ git checkout v24
 
 **** etags
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package etags
   :ensure nil
   :commands (tags-completion-table))
@@ -2054,31 +1976,15 @@ git checkout v24
 
 **** executable
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package executable
   :ensure nil
   :hook (after-save . executable-make-buffer-file-executable-if-script-p))
      #+END_SRC
 
-**** ffap :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package ffap
-  :demand
-  :config (ffap-bindings)
-  :ensure nil)
-     #+END_SRC
-
-***** TODO handle line numbers like filename:line:col
-
 **** flyspell
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :ensure nil
   :if (locate-file
@@ -2090,7 +1996,7 @@ git checkout v24
 
 **** goto-addr
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package goto-addr
   :ensure nil
   :hook ((prog-mode . goto-address-prog-mode)
@@ -2099,7 +2005,7 @@ git checkout v24
 
 **** grep
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package grep
   :ensure nil
   :bind (("M-s d" . find-grep-dired)
@@ -2109,7 +2015,7 @@ git checkout v24
 
 **** gud
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package gud
   :ensure nil
   :commands (gud-gdb))
@@ -2117,7 +2023,7 @@ git checkout v24
 
 **** help
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package help
   :ensure nil
   :bind (:map help-map
@@ -2134,32 +2040,9 @@ git checkout v24
     (revert-buffer ignore-auto t nil)))
      #+END_SRC
 
-**** hideshow                                                      :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package hideshow
-  :ensure nil
-  :hook ((c-mode-common
-          lisp-mode
-          emacs-lisp-mode
-          java-mode) . hs-minor-mode))
-     #+END_SRC
-
-***** hideshowvis
-
-      #+BEGIN_SRC emacs-lisp
-(use-package hideshowvis
-  :hook (prog-mode . hideshowvis-minor-mode))
-      #+END_SRC
-
 **** hippie-exp
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package hippie-exp
   :ensure nil
   :bind* (("M-/". hippie-expand)))
@@ -2167,7 +2050,7 @@ git checkout v24
 
 **** ibuffer
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ibuffer
   :ensure nil
   :bind ([remap switch-to-buffer] . ibuffer))
@@ -2176,7 +2059,7 @@ git checkout v24
 **** imenu
 ***** imenu-anywhere
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package imenu-anywhere
   :bind (("C-c i" . imenu-anywhere)
          ("s-i" . imenu-anywhere)))
@@ -2184,63 +2067,14 @@ git checkout v24
 
 ***** imenu-list
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package imenu-list
   :commands (imenu-list))
       #+END_SRC
 
-**** info                                                          :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package info
-  :ensure nil
-  :bind ("C-h C-i" . info-lookup-symbol)
-  )
-     #+END_SRC
-
-**** jka-compr                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     Add some binary plist decompression. This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package jka-compr
-  :ensure nil
-  :demand
-  :config
-  (add-to-list 'jka-compr-compression-info-list
-               ["\\.plist$"
-                "converting text XML to binary plist"
-                "plutil"
-                ("-convert" "binary1" "-o" "-" "-")
-                "converting binary plist to text XML"
-                "plutil"
-                ("-convert" "xml1" "-o" "-" "-")
-                nil nil "bplist"])
-  (jka-compr-update))
-     #+END_SRC
-**** kill-or-bury-alive 										   :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package kill-or-bury-alive
-  :bind (([remap kill-buffer] . kill-or-bury-alive)))
-     #+END_SRC
-
 **** minibuffer
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package minibuffer
   :ensure nil
   :bind* ("C-M-i" . completion-at-point))
@@ -2248,7 +2082,7 @@ git checkout v24
 
 ***** mb-depth
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package mb-depth
   :ensure nil
   :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
@@ -2256,7 +2090,7 @@ git checkout v24
 
 **** newcomment
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package newcomment
   :ensure nil
   :bind ("s-/" . comment-or-uncomment-region))
@@ -2264,38 +2098,23 @@ git checkout v24
 
 **** notmuch
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package notmuch
   :commands (notmuch))
      #+END_SRC
 
 **** paren
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package paren
   :ensure nil
   :hook ((prog-mode . show-paren-mode)
          (prog-mode . (lambda () (show-paren-mode -1)))))
      #+END_SRC
 
-**** pcomplete
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package pcomplete
-  :ensure nil
-  :commands (pcomplete-completions-at-point)
-  :init
-  (add-to-list 'completion-at-point-functions 'pcomplete-completions-at-point))
-     #+END_SRC
-
 **** pp
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package pp
   :ensure nil
   :commands (pp-eval-last-sexp)
@@ -2310,7 +2129,7 @@ git checkout v24
 
 **** prog-mode
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . prettify-symbols-mode)
@@ -2351,7 +2170,7 @@ git checkout v24
      #+END_SRC
 
 **** re-builder
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package re-builder
   :ensure nil
   :config
@@ -2361,53 +2180,9 @@ git checkout v24
   )
      #+END_SRC
 
-**** savehist
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package savehist
-  :ensure nil
-  :demand
-  :config (savehist-mode 1))
-     #+END_SRC
-
-**** saveplace                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package saveplace
-  :ensure nil
-  :demand
-  :config (save-place-mode t))
-     #+END_SRC
-
-**** server                                                        :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package server
-  :ensure nil
-  :demand
-  :commands server-start
-  :hook ((after-init . server-start)
-         (server-switch . raise-frame)))
-     #+END_SRC
-
 **** Shell
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package shell
   :ensure nil
   :bind ("C-c C-s" . shell)
@@ -2421,7 +2196,7 @@ git checkout v24
 
 **** simple
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package simple
   :ensure nil
   :demand
@@ -2439,7 +2214,7 @@ git checkout v24
 
 **** subword
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package subword
   :ensure nil
   :hook (java-mode . subword-mode))
@@ -2447,7 +2222,7 @@ git checkout v24
 
 **** term
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package term
   :ensure nil
   :commands (term-mode term-char-mode term-set-escape-char)
@@ -2469,7 +2244,7 @@ git checkout v24
 
 **** text-mode
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package text-mode
   :no-require
   :ensure nil
@@ -2478,7 +2253,7 @@ git checkout v24
 
 **** time
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package time
   :demand
   :config
@@ -2488,7 +2263,7 @@ git checkout v24
 
 **** tooltip
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package tooltip
   :ensure nil
   :demand
@@ -2499,9 +2274,9 @@ git checkout v24
 
 **** tramp
 
-	 [[https://www.gnu.org/software/tramp/][Website]]
+[[https://www.gnu.org/software/tramp/][Website]]
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package tramp
   :ensure nil
   :commands (tramp-tramp-file-p
@@ -2512,7 +2287,7 @@ git checkout v24
 
 **** url-handlers
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package url-handlers
   :ensure nil
   :demand
@@ -2522,7 +2297,7 @@ git checkout v24
 
 **** view
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package view
   :ensure nil
   :bind (:map view-mode-map
@@ -2537,7 +2312,7 @@ git checkout v24
 
 **** which-func
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package which-func
   :ensure nil
   :demand
@@ -2545,7 +2320,7 @@ git checkout v24
      #+END_SRC
 **** whitespace
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package whitespace
   :ensure nil
   :hook (prog-mode . whitespace-mode))
@@ -2553,7 +2328,7 @@ git checkout v24
 
 **** windmove
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package windmove
   :ensure nil
   :bind (("<s-down>" . windmove-down)
@@ -2562,13 +2337,13 @@ git checkout v24
      #+END_SRC
 
 *** Programming languages
-    Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
-    Each language will at least one of these major modes as well as associated
-    packages (for completion, syntax checking, etc.)
+Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
+Each language will at least one of these major modes as well as associated
+packages (for completion, syntax checking, etc.)
 
 **** C/C++
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package cc-mode
   :ensure nil
   :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
@@ -2581,7 +2356,7 @@ git checkout v24
 
 ***** irony
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package irony
   :hook ((c++-mode c-mode objc-mode) . irony-mode))
 (use-package irony-cdb
@@ -2591,49 +2366,28 @@ git checkout v24
 
 ****** flycheck-irony
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package flycheck-irony
   :hook (flycheck-mode . flycheck-irony-setup))
       #+END_SRC
 
 ****** irony-eldoc
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package irony-eldoc
   :hook (irony-mode . irony-eldoc))
       #+END_SRC
 
-***** rtags                                                        :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      Rtags is started with C and C++ projects. This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package rtags
-  :commands (rtags-start-process-unless-running
-             rtags-enable-standard-keybindings)
-  :preface
-  (defun rtags-start ()
-    (when (not (tramp-tramp-file-p (buffer-file-name (current-buffer))))
-      (rtags-start-process-unless-running)))
-  :hook ((kill-emacs-hook . rtags-quit-rdm)
-		 ((c-mode-common c++-mode-common) . rtags-start))
-  :config
-  (rtags-enable-standard-keybindings c-mode-base-map "\C-cr"))
-      #+END_SRC
-
 **** CoffeeScript
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package coffee-mode
   :mode (("\\.coffee\\'" . coffee-mode)))
      #+END_SRC
 
 **** CSS
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package css-mode
   :ensure nil
   :mode "\\.css\\'"
@@ -2642,93 +2396,45 @@ git checkout v24
 
 **** CSV
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package csv-mode
   :mode "\\.csv\\'")
      #+END_SRC
 
 **** ELF
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package elf-mode
   :magic ("ELF" . elf-mode))
      #+END_SRC
 
 **** Go
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package go-mode
   :mode "\\.go\\'")
      #+END_SRC
 
 **** HAML
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package haml-mode
   :mode "\\.haml\\'")
      #+END_SRC
 
 **** Haskell
-***** intero :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package intero
-  :commands (intero-mode)
-  :preface
-  (defun intero-mode-unless-global-project ()
-    "Run intero-mode iff we're in a project with a stack.yaml"
-    (unless (string-match-p
-             (regexp-quote ".stack/global-project")
-             (shell-command-to-string
-              "stack path --project-root --verbosity silent"))
-      (intero-mode)))
-  :hook (haskell-mode . intero-mode-unless-global-project))
-      #+END_SRC
-
 ***** ghc
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ghc
   :hook (haskell-mode . ghc-init))
       #+END_SRC
 
-***** structured-haskell-mode
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package structured-haskell-mode
-  :hook (haskell-mode . structured-haskell-mode))
-      #+END_SRC
-
-***** company-ghc
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package company-ghc
-  :commands (company-ghc)
-  :init
-  (add-to-list 'company-backends 'company-ghc))
-      #+END_SRC
-
-
 ***** haskell-mode
 
-      Hacky ways to autoload things (please FIXME).
+Hacky ways to autoload things (please FIXME).
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
   :ensure nil
   :hook (haskell-mode . interactive-haskell-mode))
@@ -2754,7 +2460,7 @@ git checkout v24
          ("\\.cabal\\'" . haskell-cabal-mode))
   :commands (haskell-mode-after-save-handler)
   :hook ((haskell-mode . subword-mode)
-         (haskell-mode . flyspell-prog-mode) 
+         (haskell-mode . flyspell-prog-mode)
          (haskell-mode . haskell-indentation-mode)
          (haskell-mode . imenu-add-menubar-index))
   :init
@@ -2764,7 +2470,7 @@ git checkout v24
 **** Java
 ***** jdee
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package jdee
   :mode ("\\.java\\'" . jdee-mode)
   :bind (:map jdee-mode-map
@@ -2774,14 +2480,14 @@ git checkout v24
 **** JavaScript
 ***** indium
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package indium
   :mode ("\\.js\\'" . indium-mode)
   :commands (indium-interaction-mode indium-scratch))
       #+END_SRC
 
 ***** js2-mode
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package js2-mode
   :mode (("\\.js\\'" . js2-mode)))
 (use-package js2-imenu-extras
@@ -2791,21 +2497,21 @@ git checkout v24
 
 ***** js3-mode
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package js3-mode
   :commands (js3-mode))
       #+END_SRC
 
 ***** tern
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package tern
   :hook (js2-mode . tern-mode))
       #+END_SRC
 
 **** JSON
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package json-mode
   :mode (("\\.bowerrc$"     . json-mode)
          ("\\.jshintrc$"    . json-mode)
@@ -2818,9 +2524,9 @@ git checkout v24
 **** LaTeX
 ***** auctex
 
-      Auctex provides some helpful tools for working with LaTeX.
+Auctex provides some helpful tools for working with LaTeX.
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package tex-site
   :ensure auctex
   :no-require
@@ -2834,70 +2540,23 @@ git checkout v24
 
 **** Lisp
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package elisp-mode
   :ensure nil
   :interpreter (("emacs" . emacs-lisp-mode)))
      #+END_SRC
 
-***** cider
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package cider)
-      #+END_SRC
-
-***** slime
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package slime)
-      #+END_SRC
-
 ***** ielm
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ielm
   :ensure nil
   :bind ("C-c :" . ielm))
       #+END_SRC
 
-**** LLVM IR
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package llvm-mode
-  :mode "\\.ll\\'")
-     #+END_SRC
-
-**** Lua
-***** lua-mode
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package lua-mode
-  :mode "\\.lua\\'")
-      #+END_SRC
-
 **** Mach-O
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package macho-mode
   :ensure nil
   :magic (("\xFE\xED\xFA\xCE" . macho-mode)
@@ -2909,29 +2568,16 @@ git checkout v24
 **** Makefile
 ***** make-mode
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package make-mode
   :ensure nil
   :hook (makefile-mode . indent-tabs-mode))
       #+END_SRC
 
 **** Markdown
-***** vmd-mode                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-      #+BEGIN_SRC emacs-lisp
-(use-package vmd-mode
-  :init (require 'markdown-mode nil t)
-  :bind (:map markdown-mode-map ("C-x p" . vmd-mode)))
-      #+END_SRC
-
 ***** markdown-mode
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
   :mode
   (("\\.md\\'" . gfm-mode)
@@ -2945,14 +2591,14 @@ git checkout v24
 
 **** Nix
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package nix-mode
   :mode "\\.nix\\'")
      #+END_SRC
 
 ***** nix-buffer
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
   :commands (nix-buffer)
   :preface
@@ -2966,7 +2612,7 @@ git checkout v24
 
 **** NROFF
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package nroff-mode
   :ensure nil
   :commands (nroff-mode))
@@ -2974,7 +2620,7 @@ git checkout v24
 
 **** PHP
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package php-mode
   :mode "\\.php\\'")
      #+END_SRC
@@ -2983,7 +2629,7 @@ git checkout v24
 
 ***** Anaconda
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package anaconda-mode
   :hook ((python-mode . anaconda-mode)
          (python-mode . anaconda-eldoc-mode)))
@@ -2991,7 +2637,7 @@ git checkout v24
 
 ***** python-mode
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package python
   :ensure nil
   :mode ("\\.py\\'" . python-mode)
@@ -3000,14 +2646,14 @@ git checkout v24
 
 ***** elpy
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package elpy
   :mode ("\\.py\\'" . elpy-mode))
       #+END_SRC
 
 **** Ruby
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package ruby-mode
   :ensure nil
   :mode ("\\.rb\\'" . ruby-mode)
@@ -3016,35 +2662,35 @@ git checkout v24
 
 **** Rust
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package rust-mode
   :mode "\\.rs\\'")
      #+END_SRC
 
 **** SASS
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package sass-mode
   :mode "\\.sass\\'")
      #+END_SRC
 
 **** Scala
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package scala-mode
   :interpreter ("scala" . scala-mode))
      #+END_SRC
 
 **** SCSS
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package scss-mode
   :mode "\\.scss\\'")
      #+END_SRC
 
 **** Shell
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package sh-script
   :ensure nil
   :commands shell-command
@@ -3064,21 +2710,21 @@ git checkout v24
 
 **** texinfo
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package texinfo
   :mode ("\\.texi\\'" . texinfo-mode))
      #+END_SRC
 
 **** TypeScript
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package typescript-mode
   :mode "\\.ts\\'")
      #+END_SRC
 
 ***** tide
 
-      #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package tide
   :commands (tide-setup tide-hl-identifier-mode)
   :hook ((typescript-mode . tide-setup)
@@ -3087,7 +2733,7 @@ git checkout v24
 
 **** Web
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package web-mode
   :mode (("\\.erb\\'" . web-mode)
          ("\\.mustache\\'" . web-mode)
@@ -3098,7 +2744,7 @@ git checkout v24
 
 **** XML
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package nxml-mode
   :ensure nil
   :commands (nxml-mode)
@@ -3108,15 +2754,15 @@ git checkout v24
 
 **** YAML
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
      #+END_SRC
 
-*** Personal
+*** Custom
 
-    These are all available in [[./lisp]]. Eventually they should go into separate
-    repositories.
+These are all available in [[./lisp]]. Eventually they should go into separate
+repositories.
 
 **** dired-column
 **** em-dired
@@ -3124,7 +2770,7 @@ git checkout v24
 **** macho-mode
 **** nethack
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package nethack
   :commands (nethack)
   :ensure nil)
@@ -3135,35 +2781,23 @@ git checkout v24
 **** use-package-list
 *** Other
 
-    These should correspond to minor modes or helper functions. Some of them are
-    more helpful than others but none are /essential/.
+These should correspond to minor modes or helper functions. Some of them are
+more helpful than others but none are /essential/.
 
-    Most of these are available in MELPA.
-
-**** yafolding :noexport:
-      :PROPERTIES:
-      :header-args: :tangle no
-      :END:
-
-      This is currently disabled
-
-     #+BEGIN_SRC emacs-lisp
-(use-package yafolding
-  :hook (prog-mode . yafolding-mode))
-     #+END_SRC
+Most of these are available in MELPA.
 
 **** anything
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package anything
   :commands (anything))
      #+END_SRC
 
 **** apropospriate-theme
 
-     This is the theme I use. This has to be defered for some reason.
+This is the theme I use. This has to be defered for some reason.
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package apropospriate-theme
   :demand
   :config (load-theme 'apropospriate-dark t))
@@ -3171,33 +2805,21 @@ git checkout v24
 
 **** bool-flip
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package bool-flip
   :bind ("C-c C-b" . bool-flip-do-flip))
      #+END_SRC
 
 **** browse-at-remote
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package browse-at-remote
   :commands (browse-at-remote))
      #+END_SRC
 
-**** checkbox                                                      :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     Checkbox is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package checkbox
-  :bind (("C-c C-t" . checkbox-toggle)))
-     #+END_SRC
-
 **** copy-as-format
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package copy-as-format
   :bind (("C-c w s" . copy-as-format-slack)
          ("C-c w g" . copy-as-format-github)))
@@ -3205,344 +2827,79 @@ git checkout v24
 
 **** crux
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package crux
   :bind (("C-c D" . crux-delete-file-and-buffer)
          ("C-c C-e" . crux-eval-and-replace)
          ([shift return] . crux-smart-open-line)))
      #+END_SRC
 
-**** easy-kill                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package easy-kill
-  :bind (([remap kill-ring-save] . easy-kill)
-         ([remap mark-sexp]      . easy-mark)))
-     #+END_SRC
-
 **** elfeed
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package elfeed
   :commands (elfeed))
      #+END_SRC
 
-***** elfeed-org                                                   :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package elfeed-org
-  :after elfeed
-  :config (elfeed-org))
-     #+END_SRC
-
 **** expand-region
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
      #+END_SRC
 
 **** firestarter
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package firestarter
   :bind ("C-c m s" . firestarter-mode))
      #+END_SRC
 
 **** focus
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package focus
   :bind ("C-c m f" . focus-mode))
      #+END_SRC
 
-**** gist                                                          :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package gist
-  :bind ("C-c C-g" . gist-region-or-buffer-private)
-  :commands (gist-list gist-region gist-region-private gist-buffer
-                       gist-buffer-private gist-region-or-buffer))
-     #+END_SRC
-
-**** gnuplot :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package gnuplot)
-     #+END_SRC
-
 **** hl-todo
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
      #+END_SRC
 
 **** hookify
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package hookify
   :commands hookify)
      #+END_SRC
 
 **** htmlize
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package htmlize)
-     #+END_SRC
-
-**** hydra                                                         :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package hydra
-  :bind (("C-x t" . hydra-toggle/body)
-         ("<f5>" . hydra-zoom/body)
-         ("C-M-g" . hydra-error/body)
-         ("C-c h c" . hydra-case/body)
-         ("C-c h z" . hydra-zoom/body)
-         ("C-c h e" . hydra-error/body)
-         ("C-c h p" . hydra-projectile/body)
-         ("C-c h w" . hydra-window/body))
-  :config (hydra-add-font-lock)
-  :preface
-  (eval-and-compile
-    (defhydra hydra-error (:color amaranth)
-      "goto-error"
-      ("h" flycheck-list-errors "first")
-      ("j" flycheck-next-error "next")
-      ("k" flycheck-previous-error "prev")
-      ("v" recenter-top-bottom "recenter")
-      ("q" nil "quit"))
-
-    (defhydra hydra-zoom (:color blue :hint nil)
-      "zoom"
-      ("g" text-scale-increase "in")
-      ("l" text-scale-decrease "out"))
-
-    (defhydra hydra-case ()
-      "case"
-      ("c" string-inflection-all-cycle nil)
-      ("c" string-inflection- nil)
-      )
-
-    (defhydra hydra-projectile (:color blue :columns 4)
-      "Projectile"
-      ("a" counsel-git-grep "ag")
-      ("b" projectile-switch-to-buffer "switch to buffer")
-      ("c" projectile-compile-project "compile project")
-      ("d" projectile-find-dir "dir")
-      ("f" projectile-find-file "file")
-      ("g" ggtags-update-tags "update gtags")
-      ("i" projectile-ibuffer "Ibuffer")
-      ("K" projectile-kill-buffers "Kill all buffers")
-      ("p" projectile-switch-project "switch")
-      ("r" projectile-run-async-shell-command-in-root "run shell command")
-      ("x" projectile-remove-known-project "remove known")
-      ("X" projectile-cleanup-known-projects "cleanup non-existing")
-      ("z" projectile-cache-current-file "cache current")
-      ("q" nil "cancel")
-      )
-
-    (defhydra hydra-window (:color amaranth)
-      "
-  Move Point^^^^   Move Splitter   ^Ace^                       ^Split^
-  --------------------------------------------------------------------------------
-  _w_, _<up>_      Shift + Move    _C-a_: ace-window           _2_: split-window-below
-  _a_, _<left>_                    _C-s_: ace-window-swap      _3_: split-window-right
-  _s_, _<down>_                    _C-d_: ace-window-delete    ^ ^
-  _d_, _<right>_                   ^   ^                       ^ ^
-  You can use arrow-keys or WASD.
-  "
-      ("2" split-window-below nil)
-      ("3" split-window-right nil)
-      ("a" windmove-left nil)
-      ("s" windmove-down nil)
-      ("w" windmove-up nil)
-      ("d" windmove-right nil)
-      ("A" hydra-move-splitter-left nil)
-      ("S" hydra-move-splitter-down nil)
-      ("W" hydra-move-splitter-up nil)
-      ("D" hydra-move-splitter-right nil)
-      ("<left>" windmove-left nil)
-      ("<down>" windmove-down nil)
-      ("<up>" windmove-up nil)
-      ("<right>" windmove-right nil)
-      ("<S-left>" hydra-move-splitter-left nil)
-      ("<S-down>" hydra-move-splitter-down nil)
-      ("<S-up>" hydra-move-splitter-up nil)
-      ("<S-right>" hydra-move-splitter-right nil)
-      ("C-a" ace-window nil)
-      ("u" hydra--universal-argument nil)
-      ("C-s" (lambda () (interactive) (ace-window 4)) nil)
-      ("C-d" (lambda () (interactive) (ace-window 16)) nil)
-      ("q" nil "quit"))))
-     #+END_SRC
-
-**** idle-highlight-mode                                           :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-      This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package idle-highlight-mode
-  :hook ((java-mode
-          emacs-lisp-mode
-          clojure-lisp-mode) . idle-highlight-mode))
-     #+END_SRC
-
-**** keyfreq                                                       :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package keyfreq
-  :demand
-  :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1))
-     #+END_SRC
-
-**** logview
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package logview)
-     #+END_SRC
-
-**** lsp-mode                                                      :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package lsp-mode
-  :hook (prog-major-mode . lsp-mode)
-  :commands lsp-mode
-  :init
-  (with-eval-after-load 'lsp-mode
-    (require 'lsp-flycheck))
-  (use-package lsp-imenu
-    :commands lsp-enable-imenu
-    :init (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
-  (use-package company-lsp
-    :commands company-lsp
-    :init (push 'company-lsp company-backends))
-
-  (lsp-define-stdio-client
-   ;; This can be a symbol of your choosing. It will be used as a the
-   ;; prefix for a dynamically generated function "-enable"; in this
-   ;; case: lsp-prog-major-mode-enable
-   lsp-prog-major-mode
-   "language-id"
-   ;; This will be used to report a project's root directory to the LSP
-   ;; server.
-   (lambda () default-directory)
-   ;; This is the command to start the LSP server. It may either be a
-   ;; string containing the path of the command, or a list wherein the
-   ;; car is a string containing the path of the command, and the cdr
-   ;; are arguments to that command.
-   '("/my/lsp/server" "and" "args")))
-     #+END_SRC
-
-**** make-it-so                                                    :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package make-it-so
-  :hook (dired-mode . mis-mode)
-  :bind (:map dired-mode-map
-             :prefix ","
-             :prefix-map dired-make-it-so-map
-             :prefix-docstring "Make it so map."
-             ("," . make-it-so)
-             ("f" . mis-finalize)
-             ("a" . mis-abort)
-             ("r" . mis-replace))
-  (use-package make-mode
-    :bind (:map makefile-mode-map ("<f5>" . mis-save-and-compile))))
-     #+END_SRC
-
-**** mediawiki
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package mediawiki)
      #+END_SRC
 
 **** minimap
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package minimap
   :commands (minimap-mode))
      #+END_SRC
 
 **** multi-term
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package multi-term
   :bind (("C-. t" . multi-term-next)
          ("C-. T" . multi-term)))
      #+END_SRC
 
-**** pabbrev                                                       :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package pabbrev
-  :hook (prog-mode . pabbrev-mode))
-     #+END_SRC
-
 **** page-break-lines
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package page-break-lines
   :delight
   :hook ((doc-mode
@@ -3555,7 +2912,7 @@ git checkout v24
 
 **** pandoc-mode
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package pandoc-mode
   :hook ((markdown-mode . pandoc-mode)
          (pandoc-mode . pandoc-load-default-settings)))
@@ -3563,7 +2920,7 @@ git checkout v24
 
 **** rainbow-delimiters
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode
           inferior-emacs-lisp-mode
@@ -3576,7 +2933,7 @@ git checkout v24
 
 **** rainbow-mode
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package rainbow-mode
   :hook ((emacs-lisp-mode
           inferior-emacs-lisp-mode
@@ -3587,21 +2944,9 @@ git checkout v24
           slime-repl-mode) . rainbow-mode))
      #+END_SRC
 
-**** realgud                                                       :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package realgud
-  :commands (realgud:jdb))
-     #+END_SRC
-
 **** restclient
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package restclient
   :mode (("\\.rest\\'" . restclient-mode)
          ("\\.restclient\\'" . restclient-mode)))
@@ -3609,14 +2954,14 @@ git checkout v24
 
 **** shrink-whitespace
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package shrink-whitespace
   :bind ("H-SPC" . shrink-whitespace))
      #+END_SRC
 
 **** smart-shift
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package smart-shift
   :bind (("C-c <left>" . smart-shift-left)
          ("C-c <right>" . smart-shift-right)
@@ -3626,7 +2971,7 @@ git checkout v24
 
 **** string-inflection
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package string-inflection
   :bind (("C-c r r" . string-inflection-all-cycle)
          ("C-c r c" . string-inflection-camelcase)
@@ -3636,51 +2981,23 @@ git checkout v24
          ("C-c r J" . string-inflection-java-style-cycle)))
      #+END_SRC
 
-**** undo-tree                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package undo-tree
-  :config (global-undo-tree-mode 1)
-  :bind (("C-c u" . undo-tree-visualize)
-         ("s-z" . undo-tree-undo)
-         ("s-Z" . undo-tree-redo))
-  )
-     #+END_SRC
-
 **** vkill
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package vkill
   :bind ("C-x L" . vkill))
      #+END_SRC
 
-**** ws-butler                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package ws-butler
-  :hook (prog-mode . ws-butler-mode))
-     #+END_SRC
-
 **** xah-math-input
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package xah-math-input
   :commands (xah-math-input-mode))
      #+END_SRC
 
 **** xterm-color
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package xterm-color
   :commands (xterm-color-filter)
   :init
@@ -3689,125 +3006,46 @@ git checkout v24
         (remove 'ansi-color-process-output comint-output-filter-functions)))
      #+END_SRC
 
-**** yasnippet                                                     :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package yasnippet
-  :commands (yas-reload-all)
-  :hook (prog-mode . yas-minor-mode)
-  :config (yas-reload-all))
-     #+END_SRC
-
-**** twittering-mode
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package twittering-mode)
-     #+END_SRC
-
-**** hackernews
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package hackernews)
-     #+END_SRC
-
-**** popwin :noexport:
-     :PROPERTIES:
-     :header-args: :tangle no
-     :END:
-
-     This is currently disabled.
-
-     #+BEGIN_SRC emacs-lisp
-(use-package popwin
-  :demand
-  :config
-  (popwin-mode 1)
-  (push '("*Help*"                 :dedicated t :position bottom :stick t :noselect t   :height 0.4) popwin:special-display-config)
-  (push '("*compilation*"          :dedicated t :position bottom :stick t :noselect t   :height 0.4) popwin:special-display-config)
-  (push '("*Shell Command Output*" :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
-  (push '("*Async Shell Command*"  :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
-  (push '(" *undo-tree*"           :dedicated t :position bottom :stick t :noselect nil :height 0.4) popwin:special-display-config)
-  (push '("*ert*"                  :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
-  (push '("*grep*"                 :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
-  (push '("*nosetests*"            :dedicated t :position bottom :stick t :noselect nil            ) popwin:special-display-config)
-  (push '("^\*WoMan.+\*$" :regexp t             :position bottom                                   ) popwin:special-display-config)
-  (push '("^\\*Flycheck.+\\*$"
-          :regexp t
-          :dedicated t
-          :position bottom
-          :stick t
-          :noselect t)
-        popwin:special-display-config))
-     #+END_SRC
-
 **** delight
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package delight)
      #+END_SRC
-**** lentic
-
-     #+BEGIN_SRC emacs-lisp
-(use-package lentic
-  :commands (global-lentic-mode))
-     #+END_SRC
-
-
 **** TODO iedit
 **** TODO undo-tree
-
 **** TODO fill-column-indicator
-
 **** TODO eyebrowse
 **** TODO dumb-jump
-
 **** TODO Agda
-
-
 ** COMMENT Footer
 
-   Provide =default.el= file.
+Provide =default.el= file.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (provide 'default)
    #+END_SRC
 
 * Profiles
 
-  All of these files live outside of Emacs but are necessary for a usable
-  developer environment. They are basic shell profile and some git configuration
-  scripts as well.
+All of these files live outside of Emacs but are necessary for a usable
+developer environment. They are basic shell profile and some git configuration
+scripts as well.
 
 ** =.profile=
-   :PROPERTIES:
-   :header-args: :tangle profile.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle profile.sh :tangle-mode (identity #o755)
+:END:
 
-   To use this, you must create a short ~/.profile file. Here is an example,
+To use this, you must create a short ~/.profile file. Here is an example,
 
-   #+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-   Here we setup =.profile=. First, setup exports.
+Here we setup =.profile=. First, setup exports.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
        INFOPATH=$PREFIX/share/info \
@@ -3825,9 +3063,9 @@ export LANG=en_US.UTF-8 \
        SHELL_SESSION_HISTORY=1
    #+END_SRC
 
-   Then setup aliases.
+Then setup aliases.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 alias ls="TERM=ansi ls --color=always" \
       l="ls -lF" \
       ..="cd .." \
@@ -3838,18 +3076,18 @@ alias ls="TERM=ansi ls --color=always" \
       grep="grep --color=auto"
    #+END_SRC
 
-   Configure INSIDE_EMACS.
+Configure INSIDE_EMACS.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
    #+END_SRC
 
-   Define =update_terminal_cwd= function.
+Define =update_terminal_cwd= function.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 update_terminal_cwd () {
     local SEARCH=' '
     local REPLACE='%20'
@@ -3858,27 +3096,27 @@ update_terminal_cwd () {
 }
    #+END_SRC
 ** =.bashrc=
-   :PROPERTIES:
-   :header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
+:END:
 
-   This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
-   =~/.bash_profile= file. Here is an example,
+This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
+=~/.bash_profile= file. Here is an example,
 
-   #+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-   Source profile found above.
+Source profile found above.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 source @out@/etc/profile
    #+END_SRC
 
-   When TERM=dumb, just do a simple prompt.
+When TERM=dumb, just do a simple prompt.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 case "$TERM" in
     dumb)
         PS1="\W > "
@@ -3887,9 +3125,9 @@ case "$TERM" in
 esac
    #+END_SRC
 
-   Setup some bash-specific features.
+Setup some bash-specific features.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 shopt -s cdspell \
          cdable_vars \
          checkhash \
@@ -3905,41 +3143,41 @@ shopt -s cdspell \
          sourcepath
    #+END_SRC
 
-   Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
+Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 set -o notify \
     -o noclobber \
     -o ignoreeof \
     -o emacs
    #+END_SRC
 
-   Setup prompt.
+Setup prompt.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
    #+END_SRC
 
-   Bind keys when we’re interactive.
+Bind keys when we’re interactive.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [[ $- == *i* ]]; then
     bind '"\e/": dabbrev-expand'
     bind '"\ee": edit-and-execute-command'
 fi
    #+END_SRC
 
-   Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
-   give us the working directory in the title window.
+Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
+give us the working directory in the title window.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
     update_terminal_cwd
 fi
    #+END_SRC
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 function set-eterm-dir {
     echo -e "\033AnSiTc" "$(pwd)"
     echo -e "\033AnSiTh" "$(hostname -f)"
@@ -3951,27 +3189,27 @@ fi
    #+END_src
 
 ** =.zshrc=
-   :PROPERTIES:
-   :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
+:END:
 
-   This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
-   use this, you must create a short ~/.zshrc file. Here is an example,
+This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
+use this, you must create a short ~/.zshrc file. Here is an example,
 
-   #+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
    #+END_SRC
 
-   Setup ZSH profile. First, we just source the global profile.
+Setup ZSH profile. First, we just source the global profile.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 source @out@/etc/profile
    #+END_SRC
 
-   Handle dumb options.
+Handle dumb options.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 case "$TERM" in
     dumb)
         unsetopt zle \
@@ -3989,27 +3227,27 @@ case "$TERM" in
 esac
    #+END_SRC
 
-   Load up site-functions in ZSH.
+Load up site-functions in ZSH.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 fpath+=(@out@/share/zsh/site-functions)
    #+END_SRC
 
-   Setup ZSH auto suggestions.
+Setup ZSH auto suggestions.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 . @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
    #+END_SRC
 
-   Turn on colors.
+Turn on colors.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 autoload -U colors && colors
    #+END_SRC
 
-   Turn on ZSH-specific options.
+Turn on ZSH-specific options.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 setopt always_to_end \
        append_history \
        auto_cd \
@@ -4040,17 +3278,17 @@ setopt always_to_end \
        transient_rprompt
    #+END_SRC
 
-   Setup completions.
+Setup completions.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
 autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
    #+END_SRC
 
-   Zstyle completions.
+Zstyle completions.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 zstyle ':vcs_info:*' actionformats \
        '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
 zstyle ':vcs_info:*' formats '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
@@ -4090,15 +3328,15 @@ zstyle ':completion:*:ssh:*' group-order hosts-domain hosts-host users \
 zstyle '*' single-ignored show
    #+END_SRC
 
-   Turn on prompt with colors.
+Turn on prompt with colors.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
    #+END_SRC
 
-   ZSH key bindings.
+ZSH key bindings.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ "$TERM" = xterm-256color ]; then
     bindkey "^[[H" beginning-of-line
     bindkey "^[[F" end-of-line
@@ -4106,9 +3344,9 @@ if [ "$TERM" = xterm-256color ]; then
 fi
    #+END_SRC
 
-   Setup Apple Terminal so that CWD is shown.
+Setup Apple Terminal so that CWD is shown.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     autoload add-zsh-hook
     add-zsh-hook chpwd update_terminal_cwd
@@ -4116,7 +3354,7 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
 fi
    #+END_SRC
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ -n "$INSIDE_EMACS" ]; then
     # function to set the dired and host for ansiterm
     set_eterm_dir() {
@@ -4130,20 +3368,20 @@ if [ -n "$INSIDE_EMACS" ]; then
 fi
    #+END_SRC
 ** =etc-profile.sh=
-   :PROPERTIES:
-   :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
+:END:
 
-   This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
-   used to reference the Nix output dir.
+This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
+used to reference the Nix output dir.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 export PREFIX=@out@
    #+END_SRC
 
-   This will source everything in =/etc/profile.d=.
+This will source everything in =/etc/profile.d=.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ -d @out@/etc/profile.d ]; then
   for i in @out@/etc/profile.d/*.sh; do
     if [ -r $i ]; then
@@ -4153,23 +3391,23 @@ if [ -d @out@/etc/profile.d ]; then
 fi
    #+END_SRC
 ** =.gitignore=
-   :PROPERTIES:
-   :header-args: :tangle gitignore
-   :END:
+:PROPERTIES:
+:header-args: :tangle gitignore
+:END:
 
-   Some basic gitignore paths.
+Some basic gitignore paths.
 
-   #+BEGIN_SRC gitignore :padline no
+#+BEGIN_SRC gitignore :padline no
 *~
 \#*\#
 *.DS_Store
    #+END_SRC
 ** =.gitconfig=
-   :PROPERTIES:
-   :header-args: :tangle gitconfig
-   :END:
+:PROPERTIES:
+:header-args: :tangle gitconfig
+:END:
 
-   #+BEGIN_SRC gitconfig :padline no
+#+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
 	excludesfile = @gitignore@
@@ -4197,54 +3435,54 @@ fi
    #+END_SRC
 * Bootstrapping
 ** =site-paths.el.in=
-   :PROPERTIES:
-   :header-args: :tangle site-paths.el.in
-   :END:
+:PROPERTIES:
+:header-args: :tangle site-paths.el.in
+:END:
 
-   This file provides site-specific paths. However, it must be substituted in
-   Nix before we can actually run it in Emacs. To prevent Emacs from trying to
-   run this, I’ve set the syntax to =text=.
+This file provides site-specific paths. However, it must be substituted in
+Nix before we can actually run it in Emacs. To prevent Emacs from trying to
+run this, I’ve set the syntax to =text=.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
 (require 'subr-x)
    #+END_SRC
 
-   =output-directory= points to the nix-profile directory created by Nix.
-   Ideally, this could point to a Nix store path, but the order of building
-   means that we don’t know this until too late.
+=output-directory= points to the nix-profile directory created by Nix.
+Ideally, this could point to a Nix store path, but the order of building
+means that we don’t know this until too late.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
    #+END_SRC
 
-   Setup =exec-path=.
+Setup =exec-path=.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
                           "/usr/sbin" "/usr/bin" "/sbin" "/bin")
                         exec-path))
    #+END_SRC
 
-   Setup =man-path=.
+Setup =man-path=.
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
                    ,(expand-file-name "share/man" output-directory)))
    #+END_SRC
 
-   This will setup cacert-file var,
+This will setup cacert-file var,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
   "Path for SSL certificates."
   :group 'environment)
    #+END_SRC
 
-   Set env vars provided by Nix,
+Set env vars provided by Nix,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (set-envs
  ;; `("NIX_SSL_CERT_FILE" ,cacert-file)
  `("NIX_PATH" "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs")
@@ -4254,9 +3492,9 @@ fi
  )
    #+END_SRC
 
-   Set paths provided by Nix,
+Set paths provided by Nix,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (set-paths
  '(company-cmake-executable "@cmake@/bin/cmake")
  '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
@@ -4362,9 +3600,9 @@ fi
  )
    #+END_SRC
 
-   Set some defaults that depend on the path variables below,
+Set some defaults that depend on the path variables below,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (set-defaults
  '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
  '(tls-program (concat gnutls " --tofu -p %p %h"))
@@ -4484,24 +3722,24 @@ fi
  )
    #+END_SRC
 
-   Provide site-paths,
+Provide site-paths,
 
-   #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (provide 'site-paths)
    #+END_SRC
 
 ** =bootstrap.sh=
-   :PROPERTIES:
-   :header-args: :tangle bootstrap.sh
-   :END:
+:PROPERTIES:
+:header-args: :tangle bootstrap.sh
+:END:
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 #!/bin/sh
    #+END_SRC
 
-   Install Nix.
+Install Nix.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install > $nix_installer
@@ -4509,18 +3747,18 @@ if ! command -v nix-env >/dev/null 2>&1; then
 fi
    #+END_SRC
 
-   Pull into Git repo.
+Pull into Git repo.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if [ -d .git ] && command -v git >/dev/null 2>&1
 then
     git pull origin master || true
 fi
    #+END_SRC
 
-   Clone if default.nix doesn’t exist.
+Clone if default.nix doesn’t exist.
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
@@ -4528,20 +3766,20 @@ if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
 fi
    #+END_SRC
 
-   Install current directory
+Install current directory
 
-   #+BEGIN_SRC sh
+#+BEGIN_SRC sh
 nix-env -if .
    #+END_SRC
 
 ** =runemacs.sh=
-   :PROPERTIES:
-   :header-args: :tangle runemacs.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle runemacs.sh :tangle-mode (identity #o755)
+:END:
 
-   Cross-platform script to execute app.
+Cross-platform script to execute app.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 #!/usr/bin/env sh
 
 case $(uname) in
@@ -4555,20 +3793,20 @@ esac
    #+END_SRC
 * Building
 ** =default.nix=: the tangler
-   :PROPERTIES:
-   :header-args: :tangle default.nix
-   :END:
+:PROPERTIES:
+:header-args: :tangle default.nix
+:END:
 
-   #+BEGIN_SRC nix :padline no
+#+BEGIN_SRC nix :padline no
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
    #+END_SRC
 
-   Now let's tangle README.org...
+Now let's tangle README.org...
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 import (runCommand "README" { buildInputs = [ emacs ]; } ''
 mkdir -p $out
 cd $out
@@ -4581,32 +3819,32 @@ cp bauer.nix default.nix
 '') {inherit nixpkgs';}
    #+END_SRC
 ** =bauer.nix=: the build script
-   :PROPERTIES:
-   :header-args: :tangle bauer.nix
-   :END:
+:PROPERTIES:
+:header-args: :tangle bauer.nix
+:END:
 
-   =nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
-   will be =nixpkgs= instantiated.
+=nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
+will be =nixpkgs= instantiated.
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
    #+END_SRC
 
-   We start out by defining the Nix version to use. nixStable corresponds to the
-   last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
-   soon be released.
+We start out by defining the Nix version to use. nixStable corresponds to the
+last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
+soon be released.
 
-   #+BEGIN_SRC nix
-nix = nixUnstable;
+#+BEGIN_SRC nix
+nix = nixStable;
    #+END_SRC
 
-  Next we start defining some packages. R is one of the simpler ones right now,
-  so let's start with that.
+Next we start defining some packages. R is one of the simpler ones right now,
+so let's start with that.
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   rEnv = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [
       RCurl
@@ -4614,31 +3852,31 @@ nix = nixUnstable;
   };
   #+END_SRC
 
-  Here we define our package set. This will just give us access to all of the
-  Emacs packages defined in Nixpkgs.
+Here we define our package set. This will just give us access to all of the
+Emacs packages defined in Nixpkgs.
 
-  We also define our Emacs version to use. Mitsuharo’s Emacs package is much
-  better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
-  default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version
-  25.3 currently).
+We also define our Emacs version to use. Mitsuharo’s Emacs package is much
+better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
+default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version
+25.3 currently).
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     emacs = if stdenv.isDarwin then emacsMacport
             else emacs;
   });
   #+END_SRC
 
-  Next, we define aspell with the English language. This is used by Emacs
-  ispell.
+Next, we define aspell with the English language. This is used by Emacs
+ispell.
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
   #+END_SRC
 
-  Tex live provides some LaTeX commads for us.
+Tex live provides some LaTeX commads for us.
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   myTex = texlive.combine {
     inherit (texlive) xetex setspace
       fontspec chktex enumitem xifthen
@@ -4655,10 +3893,10 @@ nix = nixUnstable;
 
 *** Emacs configuration
 
-   Here, we start building up the site-paths.el file. This does a simple
-   substitution of all the attributes set.
+Here, we start building up the site-paths.el file. This does a simple
+substitution of all the attributes set.
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   site-paths = runCommand "site-paths.el" {
     inherit rtags ripgrep ag ant nethack fortune gnutls
       coreutils findutils openssh git bash
@@ -4691,20 +3929,20 @@ substituteAllInPlace $out
   '';
    #+END_SRC
 
-   Emacs building can be divided into phases. Each phase will run through the
-   Elisp once.
+Emacs building can be divided into phases. Each phase will run through the
+Elisp once.
 
 **** Phase 1: picking up dependencies
 
-   myPackages gets a listing of all of the packages that are needed by the Emacs
-   configuration. use-package-list generates this list automatically.
+myPackages gets a listing of all of the packages that are needed by the Emacs
+configuration. use-package-list generates this list automatically.
 
-   #+BEGIN_SRC nix
-  package-list = with customEmacsPackages.melpaPackages;
-                 with customEmacsPackages.elpaPackages;
-    runCommand "package-list" {
+#+BEGIN_SRC nix
+package-list = with customEmacsPackages.melpaPackages;
+               with customEmacsPackages.elpaPackages;
+  runCommand "package-list" {
       buildInputs = [ customEmacsPackages.emacs ];
-    } ''
+  } ''
 emacs --batch --quick \
                 -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
                 -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
@@ -4712,12 +3950,12 @@ emacs --batch --quick \
                 -L ${./lisp} -l use-package-list \
                 --eval "(use-package-list \"${./README.el}\")" > $out
   '';
-  myPackages = builtins.fromJSON (builtins.readFile package-list);
+myPackages = builtins.fromJSON (builtins.readFile package-list);
    #+END_SRC
 
 **** Phase 2: byte compiling
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
   } ''
@@ -4742,13 +3980,13 @@ cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
    #+END_SRC
 
-	 This is fairly complicated. What happens is we batch compile all of the .el
-	 files. The problem is the .el files all are going to depend on dependencies
-	 that we have just found in package-list. The solution is that complex eval
-	 below where we add all of the paths (and their requisites) to the load
-	 path. This works but is hacky and I am interested in fixing it.
+This is fairly complicated. What happens is we batch compile all of the .el
+files. The problem is the .el files all are going to depend on dependencies
+that we have just found in package-list. The solution is that complex eval
+below where we add all of the paths (and their requisites) to the load
+path. This works but is hacky and I am interested in fixing it.
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
@@ -4761,16 +3999,16 @@ emacs --batch --quick \
       -L . -f batch-byte-compile *.el
    #+END_SRC
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   '';
    #+END_SRC
 
 **** Phase 3: wrapping into Emacs
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   emacsWrapper = explicitRequires: runCommand "emacs-packages-deps"
-   { inherit explicitRequires; 
-     inherit (xorg) lndir; 
+   { inherit explicitRequires;
+     inherit (xorg) lndir;
      inherit (customEmacsPackages) emacs;}
    ''
      findInputsOld() {
@@ -4826,9 +4064,9 @@ emacs --batch --quick \
   '';
    #+END_SRC
 
-   requiredPackages is a function that takes two arguments. 
+requiredPackages is a function that takes two arguments.
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 requiredPackages = epkgs: map (x:
   if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
@@ -4840,9 +4078,9 @@ requiredPackages = epkgs: map (x:
     else builtins.getAttr x pkgs);
    #+END_SRC
 
-   Now we build our Emacs distribution.
+Now we build our Emacs distribution.
 
-   #+BEGIN_SRC nix
+#+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myPackages)
     ++ [default epkgs.melpaPackages.use-package]
@@ -4851,9 +4089,9 @@ requiredPackages = epkgs: map (x:
 
 *** The environment
 
-  Finally, we can actually build the environment.
+Finally, we can actually build the environment.
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 myEnv = buildEnv {
   buildInputs = [ makeWrapper ];
   postBuild = ''
@@ -4937,53 +4175,54 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
-#    ++ (with haskellPackages; [cabal-install hindent ghc-mod])
+    # ++ (with haskell.packages.ghc802; [ghc-mod])
+    ++ (with haskellPackages; [ hoogle hlint ])
     ;
 };
    #+END_SRC
 
-  #+BEGIN_SRC nix
+#+BEGIN_SRC nix
 in myEnv
   #+END_SRC
-  
-** Invoking it
-   We can build it with =nix-build=.
 
-   #+BEGIN_SRC sh :results none
+** Invoking it
+We can build it with =nix-build=.
+
+#+BEGIN_SRC sh :results none
 nix-build
 ./result/bin/run
    #+END_SRC
 
 * Continuous integration
-  :PROPERTIES: 
-  :header-args: :tangle .travis.yml
-  :END:
+:PROPERTIES:
+:header-args: :tangle .travis.yml
+:END:
 
-  #+BEGIN_HTML
+#+BEGIN_HTML
 <a href="https://travis-ci.org/matthewbauer/bauer">
   <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
 </a>
   #+END_HTML
 
-  We'll set up Travis support here. We start by configuring =.travis.yml=.
+We'll set up Travis support here. We start by configuring =.travis.yml=.
 
 ** =.travis.yml=
 
-  #+BEGIN_SRC yaml :padline no
+#+BEGIN_SRC yaml :padline no
 language: nix
   #+END_SRC
 
-  Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
+Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 script:
   - nix-build -Q --argstr nixpkgs-url $NIXPKGS
   - sh info.sh result
   #+END_SRC
 
-  Setup the OSs. Sadly no Windows support yet.
+Setup the OSs. Sadly no Windows support yet.
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 git:
   depth: 1
 sudo: false
@@ -4992,17 +4231,17 @@ os:
   - osx
   #+END_SRC
 
-  Setup some values for =NIXPKGS= variables.
+Setup some values for =NIXPKGS= variables.
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 env:
   - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
   #+END_SRC
 
-  Configure the matrix...
+Configure the matrix...
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 matrix:
   exclude:
     - os: linux
@@ -5013,44 +4252,44 @@ matrix:
       env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   #+END_SRC
 
-  Setup the cache.
+Setup the cache.
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 cache:
   directories:
     - /nix/store
   #+END_SRC
 
-  Turn off those annoying Travis notifications.
+Turn off those annoying Travis notifications.
 
-  #+BEGIN_SRC yaml
+#+BEGIN_SRC yaml
 notifications:
   email: false
   #+END_SRC
 
 * Extra
 ** =update.sh=
-   :PROPERTIES:
-   :header-args: :tangle update.sh :tangle-mode (identity #o755)
-   :END:      
+:PROPERTIES:
+:header-args: :tangle update.sh :tangle-mode (identity #o755)
+:END:
 
-   This is a simple script that I use to make sure I've updated the generated
-   files.
+This is a simple script that I use to make sure I've updated the generated
+files.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 #!/bin/sh
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
    #+END_SRC
 ** =info.sh=
-   :PROPERTIES:
-   :header-args: :tangle info.sh :tangle-mode (identity #o755)
-   :END:
+:PROPERTIES:
+:header-args: :tangle info.sh :tangle-mode (identity #o755)
+:END:
 
-   This file gives us some info on the built derivation. Only arg is optional
-   and should be a path to a Nix store derivation.
+This file gives us some info on the built derivation. Only arg is optional
+and should be a path to a Nix store derivation.
 
-   #+BEGIN_SRC sh :padline no
+#+BEGIN_SRC sh :padline no
 #!/bin/sh
 out=$1
 
@@ -5068,14 +4307,14 @@ if [ -e $out ]; then
 fi
    #+END_SRC
 ** =.gitignore=
-   :PROPERTIES:
-   :header-args: :tangle .gitignore
-   :END:
+:PROPERTIES:
+:header-args: :tangle .gitignore
+:END:
 
-   These set up some paths for =.gitignore= that we don’t want getting put in
-   the repo. Start with Emacs/org-mode/LaTeX stuff.
+These set up some paths for =.gitignore= that we don’t want getting put in
+the repo. Start with Emacs/org-mode/LaTeX stuff.
 
-   #+BEGIN_SRC gitignore :padline no
+#+BEGIN_SRC gitignore :padline no
 flycheck_*.el
 *.elc
 *.pdf
@@ -5087,17 +4326,17 @@ flycheck_*.el
 *.toc
    #+END_SRC
 
-   Nix-related stuff.
+Nix-related stuff.
 
-   #+BEGIN_SRC gitignore
+#+BEGIN_SRC gitignore
 # nix stuff
 result
 result-*
    #+END_SRC
 
-   These are all tangled by [[./README.org][README.org]].
+These are all tangled by [[./README.org][README.org]].
 
-   #+BEGIN_SRC gitignore
+#+BEGIN_SRC gitignore
 README.el
 bashrc.sh
 bauer.nix
@@ -5113,15 +4352,15 @@ init.el
 org-init.el
    #+END_SRC
 ** =config.nix=
-   :PROPERTIES:
-   :header-args: :tangle config.nix
-   :END:
+:PROPERTIES:
+:header-args: :tangle config.nix
+:END:
 
-   This file is just for convenience if you wanted to build with the Nixpkgs in
-   your channel. Having this file available means you can place this repo in
-   \tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
+This file is just for convenience if you wanted to build with the Nixpkgs in
+your channel. Having this file available means you can place this repo in
+\tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
 
-   #+BEGIN_SRC nix :padline no
+#+BEGIN_SRC nix :padline no
 {
   packageOverrides = pkgs: with pkgs; rec {
     bauer = import ./default.nix { nixpkgs' = pkgs; };
@@ -5130,11 +4369,11 @@ org-init.el
 }
    #+END_SRC
 ** =org-init.el=
-   :PROPERTIES:
-   :header-args: :tangle org-init.el
-   :END:
+:PROPERTIES:
+:header-args: :tangle org-init.el
+:END:
 
-   #+BEGIN_SRC emacs-lisp :padline no
+#+BEGIN_SRC emacs-lisp :padline no
 (require 'site-paths nil t)
 (require 'use-package)
 (setq use-package-always-demand t
@@ -5158,4 +4397,6 @@ org-init.el
 # Local Variables:
 # mode: org
 # fill-column: 80
+# org-list-allow-alphabetical: t
+# org-use-tag-inheritance: t
 # End:
