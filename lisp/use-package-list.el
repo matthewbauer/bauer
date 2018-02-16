@@ -30,10 +30,12 @@
                 )
     (advice-add 'use-package
                 :before (lambda (name &rest args)
-                          (unless (or (member :disabled args)
+                          (unless (or (and (member :disabled args)
+                                           (plist-get args :disabled))
                                       (and (member :ensure args)
                                            (not (plist-get args :ensure))))
                             (when (and (member :ensure args)
+                                       (not (eq (plist-get args :ensure) t))
                                        (symbolp (plist-get args :ensure)))
                               (setq name (plist-get args :ensure)))
                             (add-to-list 'use-package-list--packages name))))
