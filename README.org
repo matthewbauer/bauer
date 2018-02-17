@@ -1,12 +1,13 @@
 #+TITLE: bauer: an Emacs+Nix IDE
 #+AUTHOR: Matthew Bauer
 #+EMAIL: mjbauer95@gmail.com
+#+SUBTITLE: Bauer’s automated Emacs realm
 #+DESCRIPTION: My Emacs configuration
 #+LANGUAGE: en
 #+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
 #+OPTIONS: creator:nil date:nil email:nil inline:nil num:nil pri:t
-#+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
+#+OPTIONS: prop:t stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+PROPERTY: header-args :cache yes
 #+PROPERTY: header-args:emacs-lisp :results output silent
 #+LATEX_HEADER: \usepackage{parskip}
@@ -19,14 +20,14 @@
 #+HTML_HEAD: <link rel=stylesheet href="https://matthewbauer.us/style.css" />
 #+EXPORT_FILE_NAME: index
 
-# *Bauer’s automated, unified Emacs realm*
-
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]×[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
 Nix store paths. This provides a kind of functional Emacs configuration. The
 integration between Emacs and Nix comes with lots of useful side effects. The
 raw Org file can always be viewed [[https://matthewbauer.us/bauer/README.org][here]] and additional information is available
 on [[https://github.com/matthewbauer/bauer][GitHub]].
+
+#+TOC: headlines 2
 
 * Usage
 :PROPERTIES:
@@ -803,7 +804,7 @@ Emacs as possible. I try to avoid extremely specific key binds here.
 (bind-key "<S-s-down>"    'enlarge-window)
    #+END_SRC
 
-** Setup installer                                                 :noexport:
+** Setup installer                                                :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -867,7 +868,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
    ("<M-S-right>" . buf-move-right)))
      #+END_SRC
 
-**** Company   :noexport:
+**** Company                                                    :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -921,7 +922,7 @@ This is currently disabled.
  )
      #+END_SRC
 
-***** company-anaconda                                             :noexport:
+***** company-anaconda                                         :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -936,7 +937,7 @@ This is currently disabled
   (add-to-list 'company-backends 'company-anaconda))
       #+END_SRC
 
-***** company-auctex                                               :noexport:
+***** company-auctex                                           :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -968,7 +969,7 @@ This is currently disabled.
   :commands (company-eshell-history))
       #+END_SRC
 
-***** company-irony                                                :noexport:
+***** company-irony                                            :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -982,7 +983,7 @@ This is currently disabled.
   :config (add-to-list 'company-backends 'company-irony))
       #+END_SRC
 
-***** company-jedi                                                 :noexport:
+***** company-jedi                                             :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -994,7 +995,7 @@ This is currently disabled.
   :after company)
       #+END_SRC
 
-***** company-shell                                                :noexport:
+***** company-shell                                            :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1020,7 +1021,7 @@ This is currently disabled.
   :hook (company-mode . company-statistics-mode))
       #+END_SRC
 
-***** company-rtags                                                :noexport:
+***** company-rtags                                            :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1038,7 +1039,7 @@ This is currently disabled.
   (add-to-list ’company-backends 'company-rtags))
       #+END_SRC
 
-***** company-tern                                                 :noexport:
+***** company-tern                                             :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1052,7 +1053,7 @@ This is currently disabled.
   :config (add-to-list 'company-backends 'company-tern))
       #+END_SRC
 
-***** company-web                                                  :noexport:
+***** company-web                                              :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1071,7 +1072,7 @@ This is currently disabled.
   (add-to-list 'company-backends 'company-web-jade))
       #+END_SRC
 
-***** readline-complete                                            :noexport:
+***** readline-complete                                        :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1152,7 +1153,7 @@ more info.
   )
      #+END_SRC
 
-***** counsel-projectile                                           :noexport:
+***** counsel-projectile                                       :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1193,7 +1194,7 @@ This is currently disabled.
   )
      #+END_SRC
 
-***** swiper :noexport:
+***** swiper                                                   :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1352,7 +1353,7 @@ miscellaneous scripts you have around.
          ("C-o" . magit-dired-other-window)))
      #+END_SRC
 
-***** magithub :noexport:
+***** magithub                                                 :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1750,7 +1751,7 @@ Get color/ansi codes in compilation mode.
 (use-package autorevert
   :ensure nil
   :commands global-auto-revert-mode
-  :defer 4
+  :demand
   :hook (dired-mode . auto-revert-mode)
   :config
   (global-auto-revert-mode t))
@@ -3050,7 +3051,7 @@ Here we setup =.profile=. First, setup exports.
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
        INFOPATH=$PREFIX/share/info \
-       MANPATH=$PREFIX/share/man \
+       MANPATH=$PREFIX/share/man: \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
        GREP_COLOR='3;33' \
@@ -3888,7 +3889,7 @@ Tex live provides some LaTeX commads for us.
       collection-langenglish collection-latex
       collection-latexrecommended collection-luatex
       collection-metapost collection-texworks
-      collection-xetex capt-of ulem;
+      collection-xetex capt-of ulem hyperref titlesec;
   };
   #+END_SRC
 
@@ -4375,4 +4376,8 @@ your channel. Having this file available means you can place this repo in
 # fill-column: 80
 # org-list-allow-alphabetical: t
 # org-use-tag-inheritance: t
+# org-html-postamble-format: ("en" .
+# "<p class=\"author\">Author: %a (%e)</p>
+# <p class=\"date\">Date: %d</p>
+# <p class=\"creator\">%c</p>")
 # End:
