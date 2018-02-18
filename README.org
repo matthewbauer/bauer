@@ -123,7 +123,6 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
     (org-babel-tangle-file bauer-org "README.el" "emacs-lisp")
     (load-file (expand-file-name "README.el" bauer-dir))))
    #+END_SRC
-
 * Emacs Init file
 :PROPERTIES:
 :header-args: :tangle yes
@@ -759,17 +758,12 @@ Emacs as possible. I try to avoid extremely specific key binds here.
 (bind-key "<S-s-down>"    'enlarge-window)
    #+END_SRC
 
-** Setup installer                                                :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
+** Setup installer
 
 Provides installation and upgrading functionality. You can upgrade the IDE at
 any time by typing =M-x upgrade= from within Emacs. You may have to restart
 Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
 documentation.
-
-*Note this is disabled currently*
 
 #+BEGIN_SRC emacs-lisp
 (require 'installer nil t)
@@ -3907,7 +3901,6 @@ We can build it with =nix-build=.
 nix-build
 ./result/bin/run
    #+END_SRC
-
 * Continuous integration
 :PROPERTIES:
 :header-args: :tangle .travis.yml
@@ -3981,7 +3974,6 @@ Turn off those annoying Travis notifications.
 notifications:
   email: false
   #+END_SRC
-
 * Extra
 ** =update.sh=
 :PROPERTIES:
