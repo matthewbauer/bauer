@@ -822,225 +822,6 @@ Automatically indent code as you type. Only enabled for Lisp currently.
    ("<M-S-right>" . buf-move-right)))
      #+END_SRC
 
-**** Company                                                    :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-[[https://github.com/company-mode/company-mode][GitHub]]
-
-[[http://company-mode.github.io][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :commands global-company-mode
-  :preface
-  (defun company-complete-common-or-cycle-backward ()
-	"Complete common prefix or cycle backward."
-	(interactive)
-	(company-complete-common-or-cycle -1))
-  :bind (:map company-active-map
-          ("RET" . company-complete-selection)
-		  ([return] . company-complete-selection)
-          ("TAB" . company-complete-common-or-cycle)
-          ("<tab>" . company-complete-common-or-cycle)
-          ("S-TAB" . company-complete-common-or-cycle-backward)
-          ("<backtab>" . company-complete-common-or-cycle-backward)
-          ("C-n" . company-select-next)
-          ("C-p" . company-select-previous)
-
-          ("C-/" . company-search-candidates)
-          ("C-M-/" . company-filter-candidates)
-          ("C-d" . company-show-doc-buffer)
-        )
-  :hook (minibuffer-setup-hook . company-mode)
-  :config
-  ;; (setq company-backends
-  ;;      '((company-css :with company-dabbrev)
-  ;;        (company-nxml :with company-dabbrev)
-  ;;        (company-elisp :with company-capf)
-  ;;        (company-eshell-history :with company-capf company-files)
-  ;;        (company-capf :with company-files company-keywords)
-  ;;        (company-etags company-gtags company-clang company-cmake
-  ;;                       :with company-dabbrev)
-  ;;        (company-semantic :with company-dabbrev company-capf)
-  ;;        (company-abbrev company-dabbrev company-keywords)
-  ;;        ))
-  (global-company-mode 1)
-  (add-hook 'minibuffer-setup-hook
-            (lambda () (setq-local company-frontends
-                                   '(company-preview-frontend))))
-;; (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
- )
-     #+END_SRC
-
-***** company-anaconda                                         :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-anaconda
-  :commands (company-anaconda)
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-anaconda))
-      #+END_SRC
-
-***** company-auctex                                           :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-auctex
-  :commands (company-auctex-labels
-             company-auctex-bibs
-             company-auctex-macros
-             company-auctex-symbols
-             company-auctex-environments)
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-auctex-labels)
-  (add-to-list 'company-backends 'company-auctex-bibs)
-  (add-to-list 'company-backends
-               '(company-auctex-macros
-                 company-auctex-symbols
-                 company-auctex-environments)))
-      #+END_SRC
-
-***** company-eshell-history
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-eshell-history
-  :ensure nil
-  :commands (company-eshell-history))
-      #+END_SRC
-
-***** company-irony                                            :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-irony
-  :after company
-  :commands (company-irony)
-  :config (add-to-list 'company-backends 'company-irony))
-      #+END_SRC
-
-***** company-jedi                                             :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-jedi
-  :after company)
-      #+END_SRC
-
-***** company-shell                                            :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-shell
-  :after company
-  :commands (company-shell)
-  :config (add-to-list 'company-backends 'company-shell))
-      #+END_SRC
-
-***** company-statistics
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-statistics
-  :hook (company-mode . company-statistics-mode))
-      #+END_SRC
-
-***** company-rtags                                            :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-rtags
-  :after company
-  :commands (company-rtags)
-  :config
-  (setq rtags-autostart-diagnostics t)
-  (rtags-diagnostics)
-  (setq rtags-completions-enabled t)
-  (add-to-list ’company-backends 'company-rtags))
-      #+END_SRC
-
-***** company-tern                                             :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-tern
-  :after company
-  :commands (company-tern)
-  :config (add-to-list 'company-backends 'company-tern))
-      #+END_SRC
-
-***** company-web                                              :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package company-web
-  :after company
-  :commands (company-web-html
-             company-web-slim
-             company-web-jade)
-  :config
-  (add-to-list 'company-backends 'company-web-html)
-  (add-to-list 'company-backends 'company-web-slim)
-  (add-to-list 'company-backends 'company-web-jade))
-      #+END_SRC
-
-***** readline-complete                                        :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
-
-#+BEGIN_SRC emacs-lisp
-(use-package readline-complete
-  :after company
-  :config
-  (add-to-list 'company-backends 'company-readline)
-  (add-hook 'rlc-no-readline-hook (lambda () (company-mode -1))))
-      #+END_SRC
-
 **** compile
 
 #+BEGIN_SRC emacs-lisp
@@ -1107,9 +888,6 @@ info.
           ("M-y" . counsel-yank-pop)
           ("C-c i 8" . counsel-unicode-char)
           )
-  ;; :init
-  ;; (bind-key* [remap isearch-forward] 'counsel-grep-or-swiper
-  ;;            (executable-find "grep"))
   )
      #+END_SRC
 
@@ -1123,9 +901,6 @@ info.
          ([remap switch-to-buffer-other-window] . 
                       ivy-switch-buffer-other-window)
          ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
-         ;; ("C-q C-o" . ivy-occur)
-         ;; :map ivy-minibuffer-map
-         ;; ("<escape>" . abort-recursive-edit)
          )
   :init
   (defvar projectile-completion-system)
@@ -1302,9 +1077,8 @@ This is currently disabled.
 
 #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  ;;:hook (magit-mode . magithub-feature-autoinject)
-  :after magit
-  :config (magithub-feature-autoinject t))
+  :hook (magit-mode . magithub-feature-autoinject)
+  :after magit)
       #+END_SRC
 
 **** mmm-mode
@@ -2136,8 +1910,8 @@ setup.
 		 ;; (shell-mode . use-histfile)
          )
   :preface
-  ;; (defun use-histfile ()
-  ;;   (turn-on-comint-history (getenv "HISTFILE")))
+  (defun use-histfile ()
+    (turn-on-comint-history (getenv "HISTFILE")))
   )
      #+END_SRC
 
@@ -3484,7 +3258,6 @@ Set paths provided by Nix,
  '(epg-gpg-program "@gpg@/bin/gpg")
  '(epg-gpgconf-program "@gpg@/bin/gpgconf")
  '(epg-gpgsm-program "@gpg@/bin/gpgsm")
-;; '(explicit-shell-file-name "@bash@/bin/bash")
  '(flycheck-sh-bash-executable "@bash@/bin/bash")
  '(flycheck-sh-zsh-executable "@zsh@/bin/zsh")
  '(flycheck-perl-executable "@perl@/bin/perl")
@@ -3505,10 +3278,6 @@ Set paths provided by Nix,
  '(fortune-dir "@fortune@/share/games/fortunes")
  '(fortune-file "@fortune@/share/games/fortunes/food")
  '(grep-program "@gnugrep@/bin/grep")
- ;; '(flycheck-haskell-stack-ghc-executable "@stack@/bin/stack")
- ;; '(haskell-process-cabal "@ghc@/bin/cabal")
- ;; '(haskell-process-ghci "@ghc@/bin/ghci")
- ;; '(haskell-process-stack "@stack@/bin/stack")
  '(haskell-check-command "@hlint@/bin/hlint")
  '(haskell-hoogle-command "@hoogle@/bin/hoogle")
  '(haskell-hasktags-path "@hasktags@/bin/hasktags")
@@ -3520,7 +3289,6 @@ Set paths provided by Nix,
  '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
  '(irony-server-install-prefix "@irony@")
  '(jka-compr-dd-program "@coreutils@/bin/dd")
-;; '(jdee-server-dir "@jdeeserver@")
  '(magit-git-executable "@git@/bin/git")
  '(markdown-command "@markdown2@/bin/markdown2")
  '(manual-program "@man@/bin/man")
@@ -3567,9 +3335,7 @@ Set paths provided by Nix,
  '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
  '(locate-executable "@findutils@/bin/locate")
  '(ag-executable "@ag@/bin/ag")
- ;; '(intero-stack-executable "@intero@/bin/intero-nix-shim")
  '(notmuch-command "@notmuch@/bin/notmuch")
- ;; '(org-export-async-init-file "@orginit@")
  )
    #+END_SRC
 
