@@ -1157,15 +1157,6 @@ This is currently disabled.
                                  (latex . t))))
 #+END_SRC
 
-**** origami
-
-#+BEGIN_SRC emacs-lisp
-(use-package origami
-  :demand
-  :commands (global-origami-mode)
-  :config (global-origami-mode))
-     #+END_SRC
-
 **** Projectile
 [[https://github.com/bbatsov/projectile][GitHub]]
 
@@ -2049,10 +2040,22 @@ setup.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ffap
-  :ensure nil
-  :demand
-  :commands (ffap-bindings)
-  :config (ffap-bindings))
+  :bind (("C-x C-f" . find-file-at-point)
+		 ("C-x C-r" . ffap-read-only)
+		 ("\C-x\C-v" . ffap-alternate-file)
+		 ("\C-x4f" . ffap-other-window)
+		 ("\C-x5f" . ffap-other-frame)
+		 ("\C-x4r" . ffap-read-only-other-window)
+		 ("\C-x5r" . ffap-read-only-other-frame)
+		 ("\C-xd"  . dired-at-point)
+		 ("\C-x4d" . ffap-dired-other-window)
+		 ("\C-x5d" . ffap-dired-other-frame)
+		 ("\C-x\C-d" . ffap-list-directory))
+  :hook ((gnus-summary-mode . ffap-gnus-hook)
+         (gnus-article-mode . ffap-gnus-hook)
+         (vm-mode . ffap-ro-mode-hook)
+         (rmail-mode . ffap-ro-mode-hook))
+  :ensure nil)
 (use-package files
   :ensure nil
   :demand
