@@ -983,7 +983,7 @@ miscellaneous scripts you have around.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
-  :defer 4
+  :demand
   :commands (global-flycheck-mode)
   :config (global-flycheck-mode))
      #+END_SRC
@@ -1175,7 +1175,7 @@ easymenu to make the "Projectile" modeline clickable.
     "Run ripgrep in projectile."
     (interactive)
     (counsel-rg "" (projectile-project-root)))
-  :defer 1
+  :demand
   :config
   (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable
