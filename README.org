@@ -162,11 +162,11 @@ and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][
 
 Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
 what point Emacs should invoke its garbage collector Some people set it to a
-really larger number permanently. This works well until the garbage is
-actually collected (then you have to wait a long time). I’ve decided to just
-set it temporarily to a large number so we only garbage collect once on
-startup. After that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for
-more info on this.
+really larger number permanently. This works well until the garbage is actually
+collected (then you have to wait a long time). I’ve decided to just set it
+temporarily to a large number so we only garbage collect once on startup. After
+that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for more info on
+this.
 
 #+BEGIN_SRC emacs-lisp
 (setq gc-cons-threshold most-positive-fixnum)
@@ -212,10 +212,9 @@ correctly. Currently trying to find a way to handle this. FIXME
 
 *** Better defaults
 
-These are some *better* defaults for Emacs. They shouldn’t require any
-packages to be installed to work (those go in use-package). In addition, they
-should take almost no time to run (meaning they probably shouldn’t have
-custom init hooks).
+These are some *better* defaults for Emacs. They shouldn’t require any packages
+to be installed to work (those go in use-package). In addition, they should take
+almost no time to run (meaning they probably shouldn’t have custom init hooks).
 
 #+BEGIN_SRC emacs-lisp
 (set-defaults
@@ -229,6 +228,7 @@ custom init hooks).
  '(apropos-do-all t)
  '(async-shell-command-buffer 'new-buffer)
  '(auth-source-save-behavior t)
+ '(auto-revert-interval 1)
  '(auto-revert-check-vc-info t)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
@@ -242,20 +242,6 @@ custom init hooks).
  '(comint-input-ignoredups t)
  '(comint-prompt-read-only t)
  '(comint-scroll-show-maximum-output nil)
- '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
-                                         (company-explicit-action-p))))
- '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                       company-preview-frontend
-                       company-echo-metadata-frontend))
- '(company-continue-commands
-   '(not save-buffer
-         save-some-buffers
-         save-buffers-kill-terminal
-         save-buffers-kill-emacs
-         comint-previous-matching-input-from-input
-         comint-next-matching-input-from-input))
- '(company-require-match nil)
- '(company-selection-wrap-around t)
  '(compilation-always-kill t)
  '(compilation-ask-about-save nil)
  '(compilation-auto-jump-to-first-error nil)
@@ -263,7 +249,6 @@ custom init hooks).
  '(compilation-scroll-output nil)
  '(compilation-skip-threshold 2)
  '(completions-format 'vertical)
- '(completion-cycle-threshold 5)
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
  '(create-lockfiles nil)
@@ -290,23 +275,20 @@ custom init hooks).
  '(display-buffer-reuse-frames t)
  '(echo-keystrokes 0)
  '(enable-recursive-minibuffers t)
- '(erc-autoaway-idle-seconds 600)
  '(erc-autojoin-timing 'ident)
  '(erc-rename-buffers t)
- '(erc-fill-static-center 12)
- '(erc-fill-prefix "          ")
  '(erc-insert-timestamp-function 'erc-insert-timestamp-left)
  '(erc-interpret-mirc-color t)
  '(erc-join-buffer 'bury)
  '(erc-kill-buffer-on-part t)
  '(erc-kill-queries-on-quit t)
  '(erc-log-write-after-send t)
- '(erc-lurker-hide-list (quote ("JOIN" "NICK" "PART" "QUIT" "MODE")))
+ '(erc-lurker-hide-list '("JOIN" "NICK" "PART" "QUIT" "MODE"))
  '(erc-kill-server-buffer-on-quit t)
  '(erc-prompt (lambda nil (concat "[" (buffer-name) "]")))
  '(erc-prompt-for-password nil)
  '(erc-query-display 'buffer)
- '(erc-user-full-name (quote user-full-name))
+ '(erc-user-full-name 'user-full-name)
  '(erc-server-coding-system '(utf-8 . utf-8))
  '(erc-timestamp-format "%H:%M ")
  '(erc-timestamp-only-if-changed-flag nil)
@@ -327,13 +309,11 @@ custom init hooks).
  '(eshell-list-files-after-cd t)
  '(eshell-ln-interactive-query t)
  '(eshell-ls-initial-args "-h")
- '(eshell-ls-dired-initial-args (quote ("-h")))
+ '(eshell-ls-dired-initial-args '("-h"))
  '(eshell-mv-interactive-query t)
  '(eshell-output-filter-functions '(eshell-handle-ansi-color
-                                    eshell-handle-control-codes
-                                    eshell-watch-for-password-prompt
-                                    ;; eshell-truncate-buffer
-                                    ))
+									  eshell-handle-control-codes
+									  eshell-watch-for-password-prompt))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
@@ -353,15 +333,10 @@ custom init hooks).
                      (if (string= dirname "") "/" dirname))))
                (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-stringify-t nil)
- '(eshell-visual-commands
-   '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"
-     "nano" "nethack" "telnet" "emacs" "emacsclient" "htop" "w3m" "links" "lynx"
-     "elinks" "irrsi" "mutt" "finch" "newsbeuter" "pianobar"))
- '(eval-expression-print-length 20)
  '(eval-expression-print-level nil)
  '(explicit-shell-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
  '(expand-region-contract-fast-key "j")
- '(find-ls-option (quote ("-print0 | xargs -P4 -0 ls -ldN" . "-ldN")))
+ '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
  '(find-ls-subdir-switches "-ldN")
  '(flycheck-check-syntax-automatically '(save
                                          idle-change
@@ -371,64 +346,58 @@ custom init hooks).
    'flycheck-display-error-messages-unless-error-list)
  '(flycheck-standard-error-navigation nil)
  '(flycheck-global-modes '(not erc-mode
-                               message-mode
-                               git-commit-mode
-                               view-mode
-                               outline-mode
-                               text-mode
-                               org-mode))
+							     message-mode
+								 git-commit-mode
+								 view-mode
+								 outline-mode
+								 text-mode
+								 org-mode))
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
  '(flyspell-highlight-properties nil)
  '(flyspell-incorrect-hook nil)
  '(flyspell-issue-welcome-flag nil)
- '(frame-title-format '(:eval
-                        (if (buffer-file-name)
-                            (abbreviate-file-name (buffer-file-name))
-                          "%b")))
+ '(frame-title-format '(:eval (if (buffer-file-name)
+								  (abbreviate-file-name (buffer-file-name))
+								"%b")))
  '(global-auto-revert-non-file-buffers t)
  '(gnuplot-eldoc-mode t)
- '(gnuplot-inline-image-mode (quote dedicated))
+ '(gnuplot-inline-image-mode 'dedicated)
  '(grep-command "egrep -nH -e ")
  '(grep-find-command
    "find . -name '*.v' -type f -print0 | xargs -P4 -0 egrep -nH ")
  '(haskell-ask-also-kill-buffers nil)
  '(haskell-interactive-mode-scroll-to-bottom t)
  '(haskell-process-args-stack-ghci
-   (quote
-    ("--ghci-options=-ferror-spans"
+   '("--ghci-options=-ferror-spans"
      "--ghci-options=-fno-diagnostics-show-caret"
      "--no-build"
-     "--no-load")))
+     "--no-load"))
  '(haskell-process-prompt-restart-on-cabal-change nil)
  '(haskell-process-show-debug-tips nil)
- '(haskell-indent-spaces 4)
- '(haskell-indentation-ifte-offset 4)
- '(haskell-indentation-layout-offset 4)
- '(haskell-indentation-left-offset 4)
- '(haskell-indentation-starter-offset 4)
- '(haskell-indentation-where-post-offset 4)
- '(haskell-indentation-where-pre-offset 4)
  '(haskell-process-load-or-reload-prompt t)
  '(haskell-process-use-presentation-mode nil)
+ '(haskell-process-suggest-haskell-docs-imports t)
+ '(haskell-process-suggest-hoogle-imports t)
+ '(haskell-process-suggest-remove-import-lines t)
+ '(haskell-process-suggest-restart nil)
+ '(haskell-process-use-presentation-mode nil)
+ '(help-window-select t)
  '(highlight-nonselected-windows nil)
  '(hideshowvis-ignore-same-line nil)
  '(history-delete-duplicates t)
- '(history-length 200)
  '(ibuffer-default-display-maybe-show-predicates t)
  '(ibuffer-expert t)
- '(ibuffer-formats
-   (quote
-    ((mark modified read-only " "
-           (name 16 -1)
-           " "
-           (size 6 -1 :right)
-           " "
-           (mode 16 16)
-           " " filename)
-     (mark " "
-           (name 16 -1)
-           " " filename))))
+ '(ibuffer-formats '((mark modified read-only " "
+						   (name 16 -1)
+						   " "
+						   (size 6 -1 :right)
+						   " "
+						   (mode 16 16)
+						   " " filename)
+					   (mark " "
+						   (name 16 -1)
+						   " " filename)))
  '(ibuffer-maybe-show-regexps nil)
  '(ibuffer-show-empty-filter-groups nil)
  '(ibuffer-shrink-to-minimum-size t t)
@@ -446,11 +415,9 @@ custom init hooks).
  '(ivy-count-format "\"\"")
  '(ivy-dynamic-exhibit-delay-ms 200)
  '(ivy-ignore-buffers
-   (quote
-    ("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$"
-	 "\\`\\.newsrc-dribble\\'" "\\`\\.newsrc.eld\\'")))
- '(ivy-re-builders-alist (quote ((t . ivy--regex-ignore-order))) t)
- '(ivy-wrap t)
+    '("\\` " "\\`\\*git-monitor:" "\\`\\*magit-process:" "\\.elc$"
+	    "\\`\\.newsrc-dribble\\'" "\\`\\.newsrc.eld\\'"))
+ '(ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
  '(ivy-display-style nil)
  '(ivy-minibuffer-faces nil)
  '(ivy-use-virtual-buffers t)
@@ -460,7 +427,6 @@ custom init hooks).
  '(js2-mode-show-strict-warnings nil)
  '(js2-strict-missing-semi-warning nil)
  '(kill-do-not-save-duplicates t)
- '(kill-ring-max 500)
  '(kill-whole-line t)
  '(load-prefer-newer t)
  '(mac-allow-anti-aliasing t)
@@ -502,9 +468,10 @@ custom init hooks).
  '(ns-pop-up-frames nil)
  '(nxml-sexp-element-flag t)
  '(nxml-slash-auto-complete-flag t)
- '(org-confirm-babel-evaluate nil)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
  '(org-export-in-background nil)
+ '(org-edit-src-turn-on-auto-save t)
+ '(org-list-allow-alphabetical t)
  '(org-log-done 'time)
  '(org-return-follows-link t)
  '(org-special-ctrl-a/e t)
@@ -517,8 +484,8 @@ custom init hooks).
                       ("melpa" . "https://melpa.org/packages/")
                       ("org" . "http://orgmode.org/elpa/")
                       ("gnu" . "https://elpa.gnu.org/packages/")))
- '(pcomplete-compare-entries-function (quote file-newer-than-file-p))
- '(proof-auto-action-when-deactivating-scripting (quote retract))
+ '(pcomplete-compare-entries-function 'file-newer-than-file-p)
+ '(proof-auto-action-when-deactivating-scripting 'retract)
  '(proof-autosend-enable nil)
  '(proof-electric-terminator-enable t)
  '(proof-fast-process-buffer nil)
@@ -538,12 +505,10 @@ custom init hooks).
  '(projectile-do-log nil)
  '(projectile-verbose nil)
  '(reb-re-syntax 'string)
- '(read-buffer-function (quote ido-read-buffer))
+ '(read-buffer-function 'ido-read-buffer)
  '(require-final-newline t)
  '(resize-mini-windows t)
  '(ring-bell-function 'ignore)
- '(rtags-completions-enabled t)
- '(rtags-imenu-syntax-highlighting 10)
  '(ruby-insert-encoding-magic-comment nil)
  '(sh-guess-basic-offset t)
  '(same-window-buffer-names
@@ -559,8 +524,8 @@ custom init hooks).
                                    file-name-history
                                    tablist-name-filter))
  '(savehist-autosave-interval 60)
- '(savehist-ignored-variables (quote (load-history
-                                      flyspell-auto-correct-ring kill-ring)))
+ '(savehist-ignored-variables '(load-history
+								  flyspell-auto-correct-ring kill-ring))
  '(auto-window-vscroll nil)
  '(hscroll-margin 5)
  '(hscroll-step 5)
@@ -608,16 +573,13 @@ custom init hooks).
    (concat "\\(\\(\\`"
            "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
             "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
- '(vc-make-backup-files t)
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell t)
  '(woman-imenu t)
  '(x-stretch-cursor t)
- '(whitespace-line-column 80)
- '(whitespace-auto-cleanup t)
- '(whitespace-rescan-timer-time nil)
- '(whitespace-silent t)
+ '(which-key-lighter "")
+ '(whitespace-action '(cleanup auto-cleanup))
  '(whitespace-style '(face
                       trailing
                       lines
@@ -625,7 +587,7 @@ custom init hooks).
                       empty
                       lines-style))
  '(window-divider-default-bottom-width 1)
- '(window-divider-default-places (quote bottom-only))
+ '(window-divider-default-places 'bottom-only)
  '(yas-triggers-in-field t)
  '(yas-wrap-around-region t)
  )
@@ -1133,24 +1095,30 @@ more info.
   ;; see https://github.com/abo-abo/swiper/issues/773
   :if (not (string= system-type "windows-nt"))
 
-  :bind* (;; ([remap execute-extended-command] . counsel-M-x)
+  :bind* (([remap execute-extended-command] . counsel-M-x)
           ;; ([remap find-file] . counsel-find-file)
-          ;; ([remap describe-function] . counsel-describe-function)
-          ;; ([remap describe-variable] . counsel-describe-variable)
-          ;; ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-          ("<f1> l" . counsel-find-library)
+          ([remap find-library] . counsel-find-library)
+          ([remap describe-function] . counsel-describe-function)
+          ([remap describe-variable] . counsel-describe-variable)
+          ([remap describe-bindings]  . counsel-descbinds)
+          ([remap describe-face]  . counsel-describe-faces)
+          ([remap list-faces-display] . counsel-faces)
+          ([remap imenu] . counsel-imenu)
+          ([remap load-library] . counsel-load-library)
+          ([remap load-theme] . counsel-load-theme)
+          ([remap yank-pop] . counsel-yank-pop)
+          ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+          ([remap pop-to-mark-command] . counsel-mark-ring)
+          ([remap bookmark-jump] . counsel-bookmark)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-rg)
           ("C-x l" . counsel-locate)
-          ;; ("C-M-i" . counsel-imenu)
           ("M-y" . counsel-yank-pop)
           ("C-c i 8" . counsel-unicode-char)
           )
   ;; :init
   ;; (bind-key* [remap isearch-forward] 'counsel-grep-or-swiper
   ;;            (executable-find "grep"))
-  :demand
-  :config (counsel-mode)
   )
      #+END_SRC
 
@@ -1172,12 +1140,14 @@ This is currently disabled.
 (use-package ivy
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
+         ([remap switch-to-buffer] . ivy-switch-buffer)
+         ([remap switch-to-buffer-other-window] . 
+                      ivy-switch-buffer-other-window)
          ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
          ;; ("C-q C-o" . ivy-occur)
          ;; :map ivy-minibuffer-map
          ;; ("<escape>" . abort-recursive-edit)
          )
-  :commands (ivy-mode)
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
@@ -1188,10 +1158,11 @@ This is currently disabled.
         magit-completing-read-function 'ivy-completing-read
         dumb-jump-selector 'ivy
         rtags-display-result-backend 'ivy
-        projector-completion-system 'ivy)
-  :demand
+        projector-completion-system 'ivy
+        ;; completing-read-function 'ivy-completing-read
+        ;; completion-in-region-function 'ivy-completion-in-region
+        )
   :delight
-  :config (ivy-mode 1)
   )
      #+END_SRC
 
@@ -1413,8 +1384,11 @@ This is currently disabled.
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
+  ;; just use builtin org-mode for now
+  ;; versions are mismatched so can cause a conflict
   ;; :ensure org-plus-contrib
   :ensure nil
+  :hook (message-mode . turn-on-orgstruct++-mode)
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1675,7 +1649,13 @@ easymenu to make the "Projectile" modeline clickable.
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
   (sp-local-pair 'org-mode "~" "~" :actions '(wrap))
   (sp-local-pair 'org-mode "/" "/" :actions '(wrap))
-  (sp-local-pair 'org-mode "*" "*" :actions '(wrap)))
+  (sp-local-pair 'org-mode "*" "*" :actions '(wrap))
+
+  (sp-with-modes 'nix-mode
+    (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p))
+    (sp-local-pair "\"" "\"")
+    (sp-local-pair "''" "''" :unless '(sp-in-comment-p sp-in-string-quotes-p)))
+  )
      #+END_SRC
 
 **** sudo-edit
@@ -1709,13 +1689,6 @@ easymenu to make the "Projectile" modeline clickable.
   :demand
   :commands which-key-mode
   :config (which-key-mode))
-     #+END_SRC
-
-**** whitespace-cleanup-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package whitespace-cleanup-mode
-  :hook (prog-mode . whitespace-cleanup-mode))
      #+END_SRC
 
 *** Built-ins
@@ -1788,8 +1761,9 @@ Get color/ansi codes in compilation mode.
              comint-after-pmark-p
              comint-read-input-ring
              comint-send-input)
-  :hook ((kill-buffer . comint-write-input-ring)
-		 (kill-buffer . save-history))
+  ;; :hook ((kill-buffer . comint-write-input-ring)
+  ;;  	 (kill-buffer . save-history)
+  ;;   	 )
   :preface
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
@@ -2191,10 +2165,12 @@ setup.
   :bind ("C-c C-s" . shell)
   :hook ((shell-mode . ansi-color-for-comint-mode-on)
          (shell-mode . dirtrack-mode)
-		 (shell-mode . use-histfile))
+		 ;; (shell-mode . use-histfile)
+         )
   :preface
-  (defun use-histfile ()
-    (turn-on-comint-history (getenv "HISTFILE"))))
+  ;; (defun use-histfile ()
+  ;;   (turn-on-comint-history (getenv "HISTFILE")))
+  )
      #+END_SRC
 
 **** simple
@@ -2339,7 +2315,38 @@ setup.
          ))
      #+END_SRC
 
+**** ffap
+
+#+BEGIN_SRC emacs-lisp
+(use-package ffap
+  :ensure nil
+  :demand
+  :commands (ffap-bindings)
+  :config (ffap-bindings))
+(use-package files
+  :ensure nil
+  :demand
+  :preface
+  (defun find-file--line-number (orig-fun filename &optional wildcards)
+	"Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
+	(save-match-data
+	  (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
+			 (line-number (and matched
+							   (match-string 2 filename)
+							   (string-to-number (match-string 2 filename))))
+			 (filename (if matched (match-string 1 filename) filename)))
+		(apply orig-fun (list filename wildcards))
+		(when line-number
+		  ;; goto-line is for interactive use
+		  (goto-char (point-min))
+		  (forward-line (1- line-number))))))
+  :config
+  (advice-add 'find-file :around #'find-file--line-number)
+  )
+#+END_SRC
+
 *** Programming languages
+
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
@@ -2597,6 +2604,9 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
 (use-package nix-mode
   :mode "\\.nix\\'")
+(use-package nix-shell
+  :ensure nil
+  :commands (nix-shell nix-unpack))
      #+END_SRC
 
 ***** nix-buffer
@@ -3020,14 +3030,6 @@ This is the theme I use. This has to be defered for some reason.
 **** TODO eyebrowse
 **** TODO dumb-jump
 **** TODO Agda
-** COMMENT Footer
-
-Provide =default.el= file.
-
-#+BEGIN_SRC emacs-lisp
-(provide 'default)
-   #+END_SRC
-
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
@@ -4179,7 +4181,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
-    # ++ (with haskell.packages.ghc802; [ghc-mod])
+#    ++ (with haskellPackages; [ghc-mod])
     ;
 };
    #+END_SRC
@@ -4284,35 +4286,14 @@ files.
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
    #+END_SRC
-** =info.sh=
-:PROPERTIES:
-:header-args: :tangle info.sh :tangle-mode (identity #o755)
-:END:
-
-This file gives us some info on the built derivation. Only arg is optional
-and should be a path to a Nix store derivation.
-
-#+BEGIN_SRC sh :padline no
-#!/bin/sh
-out=$1
-
-if [ -z "$out" ]; then
-  out=$(nix-build)
-fi
-
-if [ -L "$out" ]; then
-  out=$(readlink -f $out)
-fi
-
-if [ -e $out ]; then
-  echo Dependencies:
-  du -scl $(nix-store -qR $out) | sort -n
-fi
-   #+END_SRC
 ** =.gitignore=
 :PROPERTIES:
 :header-args: :tangle .gitignore
 :END:
+
+If you end up with generated files, they’re easy to remove with Git. Just run
+=git clean -xdf= and it will remove all of the files that match the .gitignore
+rules (which should never be added to the git tree).
 
 These set up some paths for =.gitignore= that we don’t want getting put in
 the repo. Start with Emacs/org-mode/LaTeX stuff.
@@ -4353,6 +4334,31 @@ profile.sh
 site-paths.el.in
 init.el
 org-init.el
+   #+END_SRC
+** =info.sh=
+:PROPERTIES:
+:header-args: :tangle info.sh :tangle-mode (identity #o755)
+:END:
+
+This file gives us some info on the built derivation. Only arg is optional
+and should be a path to a Nix store derivation.
+
+#+BEGIN_SRC sh :padline no
+#!/bin/sh
+out=$1
+
+if [ -z "$out" ]; then
+  out=$(nix-build)
+fi
+
+if [ -L "$out" ]; then
+  out=$(readlink -f $out)
+fi
+
+if [ -e $out ]; then
+  echo Dependencies:
+  du -scl $(nix-store -qR $out) | sort -n
+fi
    #+END_SRC
 ** =config.nix=
 :PROPERTIES:
