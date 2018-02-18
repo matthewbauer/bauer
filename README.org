@@ -42,7 +42,7 @@ following,
 
 #+BEGIN_SRC sh
 url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
-expr="import (builtins.fetchTarball $url)"; \
+expr="import (builtins.fetchTarball $url) {}"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
    #+END_SRC
 
@@ -1130,7 +1130,12 @@ This is currently disabled.
   ;; versions are mismatched so can cause a conflict
   ;; :ensure org-plus-contrib
   :ensure nil
-  :hook (message-mode . turn-on-orgstruct++-mode)
+  :hook ((message-mode . turn-on-orgstruct++-mode)
+		 (org-mode . setup-pcomplete))
+  :preface
+  (defun setup-pcomplete ()
+    (add-hook 'completion-at-point-functions
+			  'pcomplete-completions-at-point nil t))
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1907,6 +1912,7 @@ setup.
   :bind ("C-c C-s" . shell)
   :hook ((shell-mode . ansi-color-for-comint-mode-on)
          (shell-mode . dirtrack-mode)
+         (shell-mode . pcomplete-shell-setup)
 		 ;; (shell-mode . use-histfile)
          )
   :preface
