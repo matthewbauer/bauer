@@ -248,6 +248,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(compilation-environment '("TERM=xterm-256color"))
  '(compilation-scroll-output nil)
  '(compilation-skip-threshold 2)
+ '(completions-cycle-threshold t)
  '(completions-format 'vertical)
  '(counsel-find-file-at-point t)
  '(counsel-mode-override-describe-bindings t)
@@ -860,7 +861,6 @@ info.
 
 #+BEGIN_SRC emacs-lisp
 (use-package counsel
-  :delight
   :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
   ;; counsel doesn’t work well with windows drives
@@ -886,9 +886,7 @@ info.
           ("C-c k" . counsel-rg)
           ("C-x l" . counsel-locate)
           ("M-y" . counsel-yank-pop)
-          ("C-c i 8" . counsel-unicode-char)
-          )
-  )
+          ("C-c i 8" . counsel-unicode-char)))
      #+END_SRC
 
 ***** ivy
@@ -900,8 +898,7 @@ info.
          ([remap switch-to-buffer] . ivy-switch-buffer)
          ([remap switch-to-buffer-other-window] . 
                       ivy-switch-buffer-other-window)
-         ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
-         )
+         ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode))
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
@@ -916,8 +913,7 @@ info.
         ;; completing-read-function 'ivy-completing-read
         ;; completion-in-region-function 'ivy-completion-in-region
         )
-  :delight
-  )
+  :commands (ivy-completing-read ivy-completion-in-region))
      #+END_SRC
 
 **** diff-hl
@@ -940,10 +936,9 @@ info.
 
 #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
-  :demand
   :delight
-  :commands dtrt-indent-mode
-  :config (dtrt-indent-mode 1))
+  :hook (find-file . dtrt-indent-find-file-hook)
+  :init (setq dtrt-indent-mode t))
      #+END_SRC
 
 **** Emacs speaks statistics
@@ -989,7 +984,7 @@ miscellaneous scripts you have around.
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :defer 4
-  :commands global-flycheck-mode
+  :commands (global-flycheck-mode)
   :config (global-flycheck-mode))
      #+END_SRC
 
@@ -1130,7 +1125,7 @@ This is currently disabled.
   ;; versions are mismatched so can cause a conflict
   ;; :ensure org-plus-contrib
   :ensure nil
-  :hook ((message-mode . turn-on-orgstruct++-mode)
+  :hook ((message-mode . turn-on-orgstruct++)
 		 (org-mode . setup-pcomplete))
   :preface
   (defun setup-pcomplete ()
@@ -1159,9 +1154,7 @@ This is currently disabled.
                                '((sh . t)
                                  (emacs-lisp . t)
                                  (dot . t)
-                                 (latex . t)
-                                 ))
-  )
+                                 (latex . t))))
 #+END_SRC
 
 **** origami
@@ -1245,8 +1238,7 @@ easymenu to make the "Projectile" modeline clickable.
         ["Run project" projectile-run-project]
         "--"
         ["Project info" projectile-project-info]
-        ["About" projectile-version]
-        ))))
+        ["About" projectile-version]))))
      #+END_SRC
 
 **** Proof General
@@ -1401,8 +1393,7 @@ easymenu to make the "Projectile" modeline clickable.
   (sp-with-modes 'nix-mode
     (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p))
     (sp-local-pair "\"" "\"")
-    (sp-local-pair "''" "''" :unless '(sp-in-comment-p sp-in-string-quotes-p)))
-  )
+    (sp-local-pair "''" "''" :unless '(sp-in-comment-p sp-in-string-quotes-p))))
      #+END_SRC
 
 **** sudo-edit
@@ -1434,7 +1425,7 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
   :demand
-  :commands which-key-mode
+  :commands (which-key-mode)
   :config (which-key-mode))
      #+END_SRC
 
@@ -1471,7 +1462,7 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :ensure nil
-  :commands global-auto-revert-mode
+  :commands (global-auto-revert-mode)
   :demand
   :hook (dired-mode . auto-revert-mode)
   :config
@@ -1509,8 +1500,7 @@ Get color/ansi codes in compilation mode.
              comint-read-input-ring
              comint-send-input)
   ;; :hook ((kill-buffer . comint-write-input-ring)
-  ;;  	 (kill-buffer . save-history)
-  ;;   	 )
+  ;;  	 (kill-buffer . save-history))
   :preface
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
@@ -1526,7 +1516,7 @@ Get color/ansi codes in compilation mode.
 (use-package delsel
   :ensure nil
   :demand
-  :commands delete-selection-mode
+  :commands (delete-selection-mode)
   :config (delete-selection-mode t))
      #+END_SRC
 
@@ -1535,7 +1525,6 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired
   :ensure nil
-  :init (require 'dired)
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
@@ -1789,13 +1778,6 @@ setup.
          ("s-i" . imenu-anywhere)))
       #+END_SRC
 
-***** imenu-list
-
-#+BEGIN_SRC emacs-lisp
-(use-package imenu-list
-  :commands (imenu-list))
-      #+END_SRC
-
 **** minibuffer
 
 #+BEGIN_SRC emacs-lisp
@@ -1994,7 +1976,7 @@ setup.
 (use-package tooltip
   :ensure nil
   :demand
-  :commands tooltip-mode
+  :commands (tooltip-mode)
   :config
   (tooltip-mode -1))
      #+END_SRC
@@ -2089,8 +2071,7 @@ setup.
 		  (goto-char (point-min))
 		  (forward-line (1- line-number))))))
   :config
-  (advice-add 'find-file :around #'find-file--line-number)
-  )
+  (advice-add 'find-file :around #'find-file--line-number))
 #+END_SRC
 
 *** Programming languages
@@ -2454,7 +2435,7 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
 (use-package sh-script
   :ensure nil
-  :commands shell-command
+  :commands (shell-command)
   :preface
   (defun shell-command-at-point ()
     (interactive)
@@ -2630,13 +2611,6 @@ This is the theme I use. This has to be defered for some reason.
   :hook (prog-mode . hl-todo-mode))
      #+END_SRC
 
-**** hookify
-
-#+BEGIN_SRC emacs-lisp
-(use-package hookify
-  :commands hookify)
-     #+END_SRC
-
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
@@ -2747,13 +2721,6 @@ This is the theme I use. This has to be defered for some reason.
 #+BEGIN_SRC emacs-lisp
 (use-package vkill
   :bind ("C-x L" . vkill))
-     #+END_SRC
-
-**** xah-math-input
-
-#+BEGIN_SRC emacs-lisp
-(use-package xah-math-input
-  :commands (xah-math-input-mode))
      #+END_SRC
 
 **** xterm-color
