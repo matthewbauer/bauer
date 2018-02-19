@@ -52,8 +52,8 @@ just instasll directly.
 ** Installing/upgrading
 
 Once you’ve demo’d it, you can setup a permanent install. This is the script
-that I use to setup all of my new machines but anyone can also use it
-(provided you’re on a Unixy system).
+that I use to setup all of my new machines but anyone can also use it (provided
+you’re on a Unixy system).
 
 Run this command from your shell,
 
@@ -63,12 +63,11 @@ curl https://matthewbauer.us/bootstrap.sh | sh
 
 Alternatively, you can accomplish the same thing from Emacs by downloading
 [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
-(=M‑x install<RET>=). This process will take a little bit of time as
-everything is downloaded. After you restart Emacs, you’re environment should
-be successfully loaded.
+(=M‑x install<RET>=). This process will take a little bit of time as everything
+is downloaded. After you restart Emacs, you’re environment should be
+successfully loaded.
 
-Once it’s installed, you can open Emacs at any time with this shortcut
-command,
+Once it’s installed, you can open Emacs at any time with this shortcut command,
 
 #+BEGIN_SRC sh
 $HOME/.nix-profile/bin/run
@@ -77,8 +76,8 @@ $HOME/.nix-profile/bin/run
 ** Developing
 
 After you’ve installed it, it’s easy to make changes. By default, the
-configuration lives in =~/.local/share/bauer=. To make changes just follow
-this process,
+configuration lives in =~/.local/share/bauer=. To make changes just follow this
+process,
 
 #+BEGIN_SRC sh
 cd ~/.local/share/bauer
@@ -86,14 +85,14 @@ nix-build
 ./result/run
 #+END_SRC
 
-The last line will spawn an Emacs frame in the Git repo. Anything in there
-can be hacked. To rebuild the IDE just run =nix-build= again and respawn
-Emacs. Make any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the
-lisp folder]]. Make sure you commit your changes afterward by typing =C-c p v=,
-then =c-ac= (using Magit, of course). If you have forked this repo on GitHub,
-you can add it by typing =Mg= then your GitHub username within Magit. To push
-to it, just type =Pr= then find your username in the list and press enter.
-Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
+The last line will spawn an Emacs frame in the Git repo. Anything in there can
+be hacked. To rebuild the IDE just run =nix-build= again and respawn Emacs. Make
+any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the lisp folder]].
+Make sure you commit your changes afterward by typing =C-c p v=, then =c-ac=
+(using Magit, of course). If you have forked this repo on GitHub, you can add it
+by typing =Mg= then your GitHub username within Magit. To push to it, just type
+=Pr= then find your username in the list and press enter. Pull requests are
+welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
 
 ** w/o Nix usage
 :PROPERTIES:
@@ -128,8 +127,8 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 :header-args: :tangle yes
 :END:
 
-This is the main part of the IDE. It is written in Emacs lisp and will be
-loaded every time Emacs is started.
+This is the main part of the IDE. It is written in Emacs lisp and will be loaded
+every time Emacs is started.
 
 ** Verify Emacs version ≥ 25
 
@@ -139,7 +138,7 @@ available.
 #+BEGIN_SRC emacs-lisp
 (unless (>= emacs-major-version 25)
   (error "Need Emacs 25+ to work properly"))
-   #+END_SRC
+#+END_SRC
 
 *** EXPERIMENTAL Emacs 24 support
 :PROPERTIES:
@@ -3893,7 +3892,7 @@ nix-build
 :header-args: :tangle .travis.yml
 :END:
 
-#+BEGIN_HTML 
+#+BEGIN_HTML
 <a href="https://travis-ci.org/matthewbauer/bauer">
   <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
 </a>
