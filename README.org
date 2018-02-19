@@ -754,7 +754,7 @@ try to avoid extremely specific key binds here.
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
 
-(bind-key "C-M-i" 'completion-at-point)
+(bind-key* "C-M-i" 'completion-at-point)
 (bind-key "<s-down>" 'windmove-down)
 (bind-key "<s-up>" 'windmove-up)
 (bind-key [remap switch-to-buffer] 'ibuffer)
@@ -763,6 +763,19 @@ try to avoid extremely specific key binds here.
 (bind-key "M-s F" 'find-grep)
 (bind-key "M-s G" 'grep)
 (bind-key "s-/" 'comment-or-uncomment-region)
+
+(bind-key "C-v" 'find-variable help-map)
+(bind-key "C-k" 'find-function-on-key help-map)
+(bind-key "C-f" 'find-function help-map)
+(bind-key "C-l" 'find-library help-map)
+
+;; (bind-key "n" 'next-line view-mode-map)
+;; (bind-key "p" 'previous-line view-mode-map)
+;; (bind-key "j" 'next-line view-mode-map)
+;; (bind-key "k" 'previous-line view-mode-map)
+;; (bind-key "l" 'forward-char view-mode-map)
+;; (bind-key "f" 'forward-char view-mode-map)
+;; (bind-key "b" 'backward-char view-mode-map)
 #+END_SRC
 
 ** Setup installer
@@ -810,18 +823,6 @@ This is the theme I use. This has to be defered for some reason.
 (use-package apropospriate-theme
   :demand
   :config (load-theme 'apropospriate-dark t))
-#+END_SRC
-
-**** buffer-move
-[[https://github.com/lukhas/buffer-move][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package buffer-move
-  :bind
-  (("<M-S-up>" . buf-move-up)
-   ("<M-S-down>" . buf-move-down)
-   ("<M-S-left>" . buf-move-left)
-   ("<M-S-right>" . buf-move-right)))
 #+END_SRC
 
 **** Counsel
@@ -958,13 +959,6 @@ apropospriate, and flycheck are the biggest offenders.
     (esup (locate-library "default"))))
 #+END_SRC
 
-**** expand-region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind (("C-=" . er/expand-region)))
-#+END_SRC
-
 **** Flycheck
 
 [[https://github.com/flycheck/flycheck][Github]]
@@ -997,21 +991,6 @@ apropospriate, and flycheck are the biggest offenders.
 #+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
-#+END_SRC
-
-**** helpful
-
-#+BEGIN_SRC emacs-lisp
-(use-package helpful
-  :bind (("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)))
-#+END_SRC
-
-**** hl-todo
-
-#+BEGIN_SRC emacs-lisp
-(use-package hl-todo
-  :hook (prog-mode . hl-todo-mode))
 #+END_SRC
 
 **** Magit
@@ -1102,23 +1081,6 @@ This is currently disabled.
    ("C-S-c C-S-c" . mc/edit-lines)))
 #+END_SRC
 
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package mwim
-  :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
-         ([remap move-end-of-line] . mwim-end-of-code-or-line)))
-#+END_SRC
-
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-(use-package notmuch
-  :commands (notmuch))
-#+END_SRC
-
 **** Org
 
 [[https://orgmode.org][Website]]
@@ -1127,8 +1089,8 @@ This is currently disabled.
 (use-package org
   ;; just use builtin org-mode for now
   ;; versions are mismatched so can cause a conflict
-  ;; :ensure org-plus-contrib
-  :ensure nil
+  :ensure org-plus-contrib
+  ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
 		 (org-mode . setup-pcomplete))
   :preface
@@ -1160,18 +1122,16 @@ This is currently disabled.
                                  (dot . t)
                                  (latex . t))))
 #+END_SRC
-
-**** page-break-lines
+***** org-eldoc
 
 #+BEGIN_SRC emacs-lisp
-(use-package page-break-lines
-  :delight
-  :hook ((doc-mode
-          emacs-lisp-mode
-          compilation-mode
-          outline-mode
-          prog-mode
-          haskell-mode) . page-break-lines-mode))
+(use-package org-eldoc
+  :ensure nil
+  :commands (org-eldoc-documentation-function)
+  :preface
+  (defun turn-on-org-eldoc ()
+    (setq-local eldoc-documentation-function 'org-eldoc-documentation-function))
+  :hook (org-mode . turn-on-org-eldoc))
 #+END_SRC
 
 **** Projectile
@@ -1405,14 +1365,6 @@ easymenu to make the "Projectile" modeline clickable.
   :bind (("C-c C-r" . sudo-edit)))
 #+END_SRC
 
-**** try
-[[https://github.com/larstvei/Try][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package try
-  :commands (try))
-#+END_SRC
-
 **** which-key
 
 #+BEGIN_SRC emacs-lisp
@@ -1588,7 +1540,8 @@ Provides some info for the thing at the point.
          (typescript-mode . eldoc-mode)
 	 (haskell-mode . eldoc-mode)
 	 (python-mode . eldoc-mode)
-	 (eshell-mode . eldoc-mode)))
+	 (eshell-mode . eldoc-mode)
+         (org-mode . eldoc-mode)))
 #+END_SRC
 
 **** electric
@@ -2120,9 +2073,9 @@ Hacky ways to autoload things (please FIXME).
 (use-package haskell-doc
   :ensure nil
   :commands (haskell-doc-current-info)
-  :hook (haskell-mode . esh-help-setup)
+  :hook (haskell-mode . haskell-doc-setup)
   :preface
-  (defun esh-help-setup ()
+  (defun haskell-eldoc-setup ()
 	(setq-local eldoc-documentation-function 'haskell-doc-current-info)))
 (use-package haskell-completions
   :ensure nil
@@ -2472,6 +2425,18 @@ Most of these are available in MELPA.
   :commands (browse-at-remote))
 #+END_SRC
 
+**** buffer-move
+[[https://github.com/lukhas/buffer-move][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package buffer-move
+  :bind
+  (("<M-S-up>" . buf-move-up)
+   ("<M-S-down>" . buf-move-down)
+   ("<M-S-left>" . buf-move-left)
+   ("<M-S-right>" . buf-move-right)))
+#+END_SRC
+
 **** copy-as-format
 
 #+BEGIN_SRC emacs-lisp
@@ -2490,6 +2455,13 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO dumb-jump
+**** expand-region
+
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :bind (("C-=" . er/expand-region)))
+#+END_SRC
+
 **** TODO eyebrowse
 **** TODO fill-column-indicator
 **** firestarter
@@ -2504,6 +2476,21 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package focus
   :bind ("C-c m f" . focus-mode))
+#+END_SRC
+
+**** helpful
+
+#+BEGIN_SRC emacs-lisp
+(use-package helpful
+  :bind (("C-h f" . helpful-callable)
+         ("C-h v" . helpful-variable)))
+#+END_SRC
+
+**** hl-todo
+
+#+BEGIN_SRC emacs-lisp
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode))
 #+END_SRC
 
 **** htmlize
@@ -2526,6 +2513,36 @@ Most of these are available in MELPA.
 (use-package multi-term
   :bind (("C-. t" . multi-term-next)
          ("C-. T" . multi-term)))
+#+END_SRC
+
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package mwim
+  :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
+         ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+#+END_SRC
+
+**** notmuch
+
+#+BEGIN_SRC emacs-lisp
+(use-package notmuch
+  :commands (notmuch))
+#+END_SRC
+
+**** page-break-lines
+
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :delight
+  :hook ((doc-mode
+          emacs-lisp-mode
+          compilation-mode
+          outline-mode
+          prog-mode
+          haskell-mode) . page-break-lines-mode))
 #+END_SRC
 
 **** pandoc-mode
@@ -2571,6 +2588,14 @@ Most of these are available in MELPA.
          ("C-c r u" . string-inflection-underscore)
          ("C-c r k" . string-inflection-kebab-case)
          ("C-c r J" . string-inflection-java-style-cycle)))
+#+END_SRC
+
+**** try
+[[https://github.com/larstvei/Try][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package try
+  :commands (try))
 #+END_SRC
 
 **** TODO undo-tree
