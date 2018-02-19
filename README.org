@@ -1,7 +1,7 @@
 #+TITLE: bauer: an Emacs+Nix IDE
 #+AUTHOR: Matthew Bauer
 #+EMAIL: mjbauer95@gmail.com
-#+SUBTITLE: Bauer’s automated Emacs realm
+#+SUBTITLE: Bauer’s Automated Unified Emacs Realm
 #+DESCRIPTION: My Emacs configuration
 #+LANGUAGE: en
 #+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
@@ -753,6 +753,16 @@ try to avoid extremely specific key binds here.
 
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
+
+(bind-key "C-M-i" 'completion-at-point)
+(bind-key "<s-down>" 'windmove-down)
+(bind-key "<s-up>" 'windmove-up)
+(bind-key [remap switch-to-buffer] 'ibuffer)
+(bind-key "C-c [" 'align-regexp)
+(bind-key "M-s d" 'find-grep-dired)
+(bind-key "M-s F" 'find-grep)
+(bind-key "M-s G" 'grep)
+(bind-key "s-/" 'comment-or-uncomment-region)
 #+END_SRC
 
 ** Setup installer
@@ -776,15 +786,6 @@ To resort, go to one of the package group headings and type =C-c ^ a=.
 Some of these are included in Emacs, others aren’t. All of them are
 necessary for using Emacs as a full featured IDE.
 
-**** ace window
-[[https://github.com/abo-abo/ace-window][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package ace-window
-  :bind (("M-o" . other-window)
-         ([remap next-multiframe-window] . ace-window)))
-#+END_SRC
-
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
 
@@ -801,6 +802,16 @@ Automatically indent code as you type. Only enabled for Lisp currently.
           slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
+**** apropospriate-theme
+
+This is the theme I use. This has to be defered for some reason.
+
+#+BEGIN_SRC emacs-lisp
+(use-package apropospriate-theme
+  :demand
+  :config (load-theme 'apropospriate-dark t))
+#+END_SRC
+
 **** buffer-move
 [[https://github.com/lukhas/buffer-move][GitHub]]
 
@@ -811,34 +822,6 @@ Automatically indent code as you type. Only enabled for Lisp currently.
    ("<M-S-down>" . buf-move-down)
    ("<M-S-left>" . buf-move-left)
    ("<M-S-right>" . buf-move-right)))
-#+END_SRC
-
-**** compile
-
-#+BEGIN_SRC emacs-lisp
-(use-package compile
-  :ensure nil
-  :bind (("C-c C-c" . compile)
-         ("M-O" . show-compilation)
-         :map compilation-mode-map
-         ("o" . compile-goto-error))
-  :preface
-  (defun show-compilation ()
-    (interactive)
-    (let ((compile-buf
-           (catch 'found
-             (dolist (buf (buffer-list))
-               (if (string-match "\\*compilation\\*" (buffer-name buf))
-                   (throw 'found buf))))))
-      (if compile-buf
-          (switch-to-buffer-other-window compile-buf)
-        (call-interactively 'compile))))
-
-  (defun compilation-ansi-color-process-output ()
-    (ansi-color-process-output nil)
-    (set (make-local-variable 'comint-last-output-start)
-         (point-marker)))
-  :hook (compilation-filter . compilation-ansi-color-process-output))
 #+END_SRC
 
 **** Counsel
@@ -859,19 +842,19 @@ info.
 
   :bind* (([remap execute-extended-command] . counsel-M-x)
           ;; ([remap find-file] . counsel-find-file)
-          ([remap find-library] . counsel-find-library)
-          ([remap describe-function] . counsel-describe-function)
-          ([remap describe-variable] . counsel-describe-variable)
-          ([remap describe-bindings]  . counsel-descbinds)
-          ([remap describe-face]  . counsel-describe-faces)
-          ([remap list-faces-display] . counsel-faces)
-          ([remap imenu] . counsel-imenu)
-          ([remap load-library] . counsel-load-library)
-          ([remap load-theme] . counsel-load-theme)
-          ([remap yank-pop] . counsel-yank-pop)
-          ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-          ([remap pop-to-mark-command] . counsel-mark-ring)
-          ([remap bookmark-jump] . counsel-bookmark)
+          ;; ([remap find-library] . counsel-find-library)
+          ;; ([remap describe-function] . counsel-describe-function)
+          ;; ([remap describe-variable] . counsel-describe-variable)
+          ;; ([remap describe-bindings]  . counsel-descbinds)
+          ;; ([remap describe-face]  . counsel-describe-faces)
+          ;; ([remap list-faces-display] . counsel-faces)
+          ;; ([remap imenu] . counsel-imenu)
+          ;; ([remap load-library] . counsel-load-library)
+          ;; ([remap load-theme] . counsel-load-theme)
+          ;; ([remap yank-pop] . counsel-yank-pop)
+          ;; ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+          ;; ([remap pop-to-mark-command] . counsel-mark-ring)
+          ;; ([remap bookmark-jump] . counsel-bookmark)
           ("C-c j" . counsel-git-grep)
           ("C-c k" . counsel-rg)
           ("C-x l" . counsel-locate)
@@ -902,6 +885,11 @@ info.
   :commands (ivy-completing-read ivy-completion-in-region))
 #+END_SRC
 
+**** delight
+
+#+BEGIN_SRC emacs-lisp
+(use-package delight)
+#+END_SRC
 **** diff-hl
 
 [[https://github.com/dgutov/diff-hl][GitHub]]
@@ -925,6 +913,13 @@ info.
   :delight
   :hook (find-file . dtrt-indent-find-file-hook)
   :init (setq dtrt-indent-mode t))
+#+END_SRC
+
+**** elfeed
+
+#+BEGIN_SRC emacs-lisp
+(use-package elfeed
+  :commands (elfeed))
 #+END_SRC
 
 **** Emacs speaks statistics
@@ -963,6 +958,13 @@ apropospriate, and flycheck are the biggest offenders.
     (esup (locate-library "default"))))
 #+END_SRC
 
+**** expand-region
+
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :bind (("C-=" . er/expand-region)))
+#+END_SRC
+
 **** Flycheck
 
 [[https://github.com/flycheck/flycheck][Github]]
@@ -988,7 +990,7 @@ apropospriate, and flycheck are the biggest offenders.
          (dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
 
-**** god-mode
+**** God Mode
 
 [[https://github.com/chrisdone/god-mode][GitHub]]
 
@@ -1005,7 +1007,14 @@ apropospriate, and flycheck are the biggest offenders.
          ("C-h v" . helpful-variable)))
 #+END_SRC
 
-**** magit
+**** hl-todo
+
+#+BEGIN_SRC emacs-lisp
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode))
+#+END_SRC
+
+**** Magit
 
 [[https://github.com/magit/magit][GitHub]]
 
@@ -1064,7 +1073,7 @@ This is currently disabled.
   :after magit)
 #+END_SRC
 
-**** mmm-mode
+**** MMM Mode
 
 [[https://github.com/purcell/mmm-mode][GitHub]]
 
@@ -1101,6 +1110,13 @@ This is currently disabled.
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+#+END_SRC
+
+**** notmuch
+
+#+BEGIN_SRC emacs-lisp
+(use-package notmuch
+  :commands (notmuch))
 #+END_SRC
 
 **** Org
@@ -1143,6 +1159,19 @@ This is currently disabled.
                                  (emacs-lisp . t)
                                  (dot . t)
                                  (latex . t))))
+#+END_SRC
+
+**** page-break-lines
+
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :delight
+  :hook ((doc-mode
+          emacs-lisp-mode
+          compilation-mode
+          outline-mode
+          prog-mode
+          haskell-mode) . page-break-lines-mode))
 #+END_SRC
 
 **** Projectile
@@ -1232,13 +1261,6 @@ easymenu to make the "Projectile" modeline clickable.
   :commands (proofgeneral proof-mode proof-shell-mode))
 #+END_SRC
 
-**** Ripgrep
-
-#+BEGIN_SRC emacs-lisp
-(use-package rg
-  :commands (rg))
-#+END_SRC
-
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
@@ -1326,8 +1348,7 @@ easymenu to make the "Projectile" modeline clickable.
            org-mode) . show-smartparens-mode)
          ((web-mode
            nxml-mode
-           html-mode
-           org-mode) . smartparens-mode))
+           html-mode) . smartparens-mode))
   :config
   (use-package smartparens-html
     :ensure nil
@@ -1384,13 +1405,6 @@ easymenu to make the "Projectile" modeline clickable.
   :bind (("C-c C-r" . sudo-edit)))
 #+END_SRC
 
-**** transpose-frame
-
-#+BEGIN_SRC emacs-lisp
-(use-package transpose-frame
-  :bind ("H-t" . transpose-frame))
-#+END_SRC
-
 **** try
 [[https://github.com/larstvei/Try][GitHub]]
 
@@ -1413,15 +1427,6 @@ easymenu to make the "Projectile" modeline clickable.
 These are available automatically, so these =use-package= blocks just
 configure them.
 
-**** align
-
-#+BEGIN_SRC emacs-lisp
-(use-package align
-  :bind (("C-c [" . align-regexp))
-  :commands (align)
-  :ensure nil)
-#+END_SRC
-
 **** ansi-color
 
 Get color/ansi codes in compilation mode.
@@ -1431,9 +1436,10 @@ Get color/ansi codes in compilation mode.
   :ensure nil
   :commands (ansi-color-apply-on-region)
   :hook (compilation-filter . colorize-compilation-buffer)
-  :preface (defun colorize-compilation-buffer ()
-			 (let ((inhibit-read-only t))
-			   (ansi-color-apply-on-region (point-min) (point-max)))))
+  :preface
+  (defun colorize-compilation-buffer ()
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region (point-min) (point-max)))))
 #+END_SRC
 
 **** autorevert
@@ -1443,9 +1449,8 @@ Get color/ansi codes in compilation mode.
   :ensure nil
   :commands (global-auto-revert-mode)
   :demand
-  :hook (dired-mode . auto-revert-mode)
-  :config
-  (global-auto-revert-mode t))
+  :hook ((dired-mode . auto-revert-mode))
+  :config (global-auto-revert-mode t))
 #+END_SRC
 
 **** bug-reference
@@ -1487,6 +1492,33 @@ Get color/ansi codes in compilation mode.
   (defun save-history ()
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer (comint-write-input-ring)))))
+#+END_SRC
+
+**** compile
+
+#+BEGIN_SRC emacs-lisp
+(use-package compile
+  :ensure nil
+  :bind (("C-c C-c" . compile)
+         :map compilation-mode-map
+         ("o" . compile-goto-error))
+  :preface
+  (defun show-compilation ()
+    (interactive)
+    (let ((compile-buf
+           (catch 'found
+             (dolist (buf (buffer-list))
+               (if (string-match "\\*compilation\\*" (buffer-name buf))
+                   (throw 'found buf))))))
+      (if compile-buf
+          (switch-to-buffer-other-window compile-buf)
+        (call-interactively 'compile))))
+
+  (defun compilation-ansi-color-process-output ()
+    (ansi-color-process-output nil)
+    (set (make-local-variable 'comint-last-output-start)
+         (point-marker)))
+  :hook (compilation-filter . compilation-ansi-color-process-output))
 #+END_SRC
 
 **** delsel
@@ -1554,9 +1586,9 @@ Provides some info for the thing at the point.
          (eval-expression-minibuffer-setup . eldoc-mode)
          (lisp-mode-interactive-mode . eldoc-mode)
          (typescript-mode . eldoc-mode)
-		 (haskell-mode . eldoc-mode)
-		 (python-mode . eldoc-mode)
-		 (eshell-mode . eldoc-mode)))
+	 (haskell-mode . eldoc-mode)
+	 (python-mode . eldoc-mode)
+	 (eshell-mode . eldoc-mode)))
 #+END_SRC
 
 **** electric
@@ -1658,20 +1690,12 @@ setup.
   :init (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-**** etags
-
-#+BEGIN_SRC emacs-lisp
-(use-package etags
-  :ensure nil
-  :commands (tags-completion-table))
-#+END_SRC
-
 **** executable
 
 #+BEGIN_SRC emacs-lisp
 (use-package executable
   :ensure nil
-  :hook (after-save . executable-make-buffer-file-executable-if-script-p))
+  :hook ((after-save . executable-make-buffer-file-executable-if-script-p)))
 #+END_SRC
 
 **** ffap
@@ -1679,21 +1703,24 @@ setup.
 #+BEGIN_SRC emacs-lisp
 (use-package ffap
   :bind (("C-x C-f" . find-file-at-point)
-		 ("C-x C-r" . ffap-read-only)
-		 ("\C-x\C-v" . ffap-alternate-file)
-		 ("\C-x4f" . ffap-other-window)
-		 ("\C-x5f" . ffap-other-frame)
-		 ("\C-x4r" . ffap-read-only-other-window)
-		 ("\C-x5r" . ffap-read-only-other-frame)
-		 ("\C-xd"  . dired-at-point)
-		 ("\C-x4d" . ffap-dired-other-window)
-		 ("\C-x5d" . ffap-dired-other-frame)
-		 ("\C-x\C-d" . ffap-list-directory))
+	 ("C-x C-r" . ffap-read-only)
+	 ("\C-x\C-v" . ffap-alternate-file)
+	 ("C-x 4 f" . ffap-other-window)
+	 ("C-x 5 f" . ffap-other-frame)
+	 ("C-x 4 r" . ffap-read-only-other-window)
+	 ("C-x 5 r" . ffap-read-only-other-frame)
+	 ("C-x d"  . dired-at-point)
+	 ("C-x 4 d" . ffap-dired-other-window)
+	 ("C-x 5 d" . ffap-dired-other-frame)
+	 ("C-x C-d" . ffap-list-directory))
   :hook ((gnus-summary-mode . ffap-gnus-hook)
          (gnus-article-mode . ffap-gnus-hook)
          (vm-mode . ffap-ro-mode-hook)
          (rmail-mode . ffap-ro-mode-hook))
   :ensure nil)
+#+END_SRC
+**** files
+#+BEGIN_SRC emacs-lisp
 (use-package files
   :ensure nil
   :demand
@@ -1736,41 +1763,12 @@ setup.
          (git-commit-mode . goto-address-mode)))
 #+END_SRC
 
-**** grep
-
-#+BEGIN_SRC emacs-lisp
-(use-package grep
-  :ensure nil
-  :bind (("M-s d" . find-grep-dired)
-         ("M-s F" . find-grep)
-         ("M-s G" . grep)))
-#+END_SRC
-
 **** gud
 
 #+BEGIN_SRC emacs-lisp
 (use-package gud
   :ensure nil
   :commands (gud-gdb))
-#+END_SRC
-
-**** help
-
-#+BEGIN_SRC emacs-lisp
-(use-package help
-  :ensure nil
-  :bind (:map help-map
-              ("C-v" . find-variable)
-              ("C-k" . find-function-on-key)
-              ("C-f" . find-function)
-              ("C-l" . find-library)
-              :map help-mode-map
-              ("g" . revert-buffer-no-confirm))
-  :preface
-  (defun revert-buffer-no-confirm (&optional ignore-auto)
-    "Revert current buffer without asking."
-    (interactive (list (not current-prefix-arg)))
-    (revert-buffer ignore-auto t nil)))
 #+END_SRC
 
 **** hippie-exp
@@ -1781,14 +1779,6 @@ setup.
   :bind* (("M-/". hippie-expand)))
 #+END_SRC
 
-**** ibuffer
-
-#+BEGIN_SRC emacs-lisp
-(use-package ibuffer
-  :ensure nil
-  :bind ([remap switch-to-buffer] . ibuffer))
-#+END_SRC
-
 **** imenu
 ***** imenu-anywhere
 
@@ -1796,30 +1786,6 @@ setup.
 (use-package imenu-anywhere
   :bind (("C-c i" . imenu-anywhere)
          ("s-i" . imenu-anywhere)))
-#+END_SRC
-
-**** minibuffer
-
-#+BEGIN_SRC emacs-lisp
-(use-package minibuffer
-  :ensure nil
-  :bind* ("C-M-i" . completion-at-point))
-#+END_SRC
-
-***** mb-depth
-
-#+BEGIN_SRC emacs-lisp
-(use-package mb-depth
-  :ensure nil
-  :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
-#+END_SRC
-
-**** newcomment
-
-#+BEGIN_SRC emacs-lisp
-(use-package newcomment
-  :ensure nil
-  :bind ("s-/" . comment-or-uncomment-region))
 #+END_SRC
 
 **** paren
@@ -1838,8 +1804,8 @@ setup.
   :ensure nil
   :commands (pp-eval-last-sexp)
   :bind (([remap eval-expression] . pp-eval-expression))
-  :init
-  (global-unset-key (kbd "C-x C-e"))
+  ;; :init
+  ;;(global-unset-key (kbd "C-x C-e"))
   :hook ((lisp-mode emacs-lisp-mode) . always-eval-sexp)
   :preface
   (defun always-eval-sexp ()
@@ -1852,10 +1818,10 @@ setup.
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . prettify-symbols-mode)
-		 (lisp-mode . prettify-symbols-lisp)
-		 (c-mode . prettify-symbols-c)
-		 (c++-mode . prettify-symbols-c++)
-		 ((js-mode js2-mode) . prettify-symbols-js))
+	 (lisp-mode . prettify-symbols-lisp)
+	 (c-mode . prettify-symbols-c)
+	 (c++-mode . prettify-symbols-c++)
+	 ((js-mode js2-mode) . prettify-symbols-js))
   :preface
   (defun prettify-symbols-prog ()
     (push '("<=" . ?≤) prettify-symbols-alist)
@@ -1888,14 +1854,30 @@ setup.
     (push '("=>" . ?⇒) prettify-symbols-alist)))
 #+END_SRC
 
-**** re-builder
+**** rainbow-delimiters
+
 #+BEGIN_SRC emacs-lisp
-(use-package re-builder
-  :ensure nil
-  :config
-  (let ((name '("Regexp[" (:eval (symbol-name reb-re-syntax)) "]")))
-    (delight `((reb-mode ,name :major)
-			   (reb-lisp-mode ,name :major)))))
+(use-package rainbow-delimiters
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-delimiters-mode))
+#+END_SRC
+
+**** rainbow-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-mode))
 #+END_SRC
 
 **** Shell
@@ -1927,9 +1909,8 @@ setup.
    ("<escape>"  . abort-recursive-edit)
    ("M-TAB"     . previous-complete-history-element)
    ("<M-S-tab>" . next-complete-history-element))
-  :hook (text-mode . visual-line-mode)
-  :config
-  (column-number-mode))
+  :hook ((text-mode . visual-line-mode))
+  :config (column-number-mode))
 #+END_SRC
 
 **** subword
@@ -1937,7 +1918,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
 (use-package subword
   :ensure nil
-  :hook (java-mode . subword-mode))
+  :hook ((java-mode . subword-mode)))
 #+END_SRC
 
 **** term
@@ -1946,12 +1927,12 @@ setup.
 (use-package term
   :ensure nil
   :commands (term-mode term-char-mode term-set-escape-char)
-  :init
-  (add-hook 'term-mode-hook (lambda ()
-                              (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-                              (setq-local transient-mark-mode nil)
-                              (auto-fill-mode -1)))
+  :hook ((term-mode . term-hook))
   :preface
+  (defun term-hook ()
+    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+    (setq-local transient-mark-mode nil)
+    (auto-fill-mode -1))
   (defun my-term ()
     (interactive)
     (set-buffer (make-term "my-term" "zsh"))
@@ -2009,23 +1990,8 @@ setup.
 (use-package url-handlers
   :ensure nil
   :demand
-  :config
-  (url-handler-mode))
-#+END_SRC
-
-**** view
-
-#+BEGIN_SRC emacs-lisp
-(use-package view
-  :ensure nil
-  :bind (:map view-mode-map
-              ("n" . next-line)
-              ("p" . previous-line)
-              ("j" . next-line)
-              ("k" . previous-line)
-              ("l" . forward-char)
-              ("f" . forward-char)
-              ("b" . backward-char)))
+  :commands (url-handler-mode)
+  :config (url-handler-mode))
 #+END_SRC
 
 **** which-func
@@ -2042,16 +2008,6 @@ setup.
 (use-package whitespace
   :ensure nil
   :hook (prog-mode . whitespace-mode))
-#+END_SRC
-
-**** windmove
-
-#+BEGIN_SRC emacs-lisp
-(use-package windmove
-  :ensure nil
-  :bind (("<s-down>" . windmove-down)
-         ("<s-up>" . windmove-up)
-         ))
 #+END_SRC
 
 *** Programming languages
@@ -2509,23 +2465,6 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
-**** anything
-
-#+BEGIN_SRC emacs-lisp
-(use-package anything
-  :commands (anything))
-#+END_SRC
-
-**** apropospriate-theme
-
-This is the theme I use. This has to be defered for some reason.
-
-#+BEGIN_SRC emacs-lisp
-(use-package apropospriate-theme
-  :demand
-  :config (load-theme 'apropospriate-dark t))
-#+END_SRC
-
 **** browse-at-remote
 
 #+BEGIN_SRC emacs-lisp
@@ -2550,26 +2489,7 @@ This is the theme I use. This has to be defered for some reason.
          ([shift return] . crux-smart-open-line)))
 #+END_SRC
 
-**** delight
-
-#+BEGIN_SRC emacs-lisp
-(use-package delight)
-#+END_SRC
 **** TODO dumb-jump
-**** elfeed
-
-#+BEGIN_SRC emacs-lisp
-(use-package elfeed
-  :commands (elfeed))
-#+END_SRC
-
-**** expand-region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind (("C-=" . er/expand-region)))
-#+END_SRC
-
 **** TODO eyebrowse
 **** TODO fill-column-indicator
 **** firestarter
@@ -2584,13 +2504,6 @@ This is the theme I use. This has to be defered for some reason.
 #+BEGIN_SRC emacs-lisp
 (use-package focus
   :bind ("C-c m f" . focus-mode))
-#+END_SRC
-
-**** hl-todo
-
-#+BEGIN_SRC emacs-lisp
-(use-package hl-todo
-  :hook (prog-mode . hl-todo-mode))
 #+END_SRC
 
 **** htmlize
@@ -2615,58 +2528,12 @@ This is the theme I use. This has to be defered for some reason.
          ("C-. T" . multi-term)))
 #+END_SRC
 
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-(use-package notmuch
-  :commands (notmuch))
-#+END_SRC
-
-**** page-break-lines
-
-#+BEGIN_SRC emacs-lisp
-(use-package page-break-lines
-  :delight
-  :hook ((doc-mode
-          emacs-lisp-mode
-          compilation-mode
-          outline-mode
-          prog-mode
-          haskell-mode) . page-break-lines-mode))
-#+END_SRC
-
 **** pandoc-mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package pandoc-mode
   :hook ((markdown-mode . pandoc-mode)
          (pandoc-mode . pandoc-load-default-settings)))
-#+END_SRC
-
-**** rainbow-delimiters
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters
-  :hook ((emacs-lisp-mode
-          inferior-emacs-lisp-mode
-          ielm-mode
-          lisp-mode
-          inferior-lisp-mode
-          lisp-interaction-mode
-          slime-repl-mode) . rainbow-delimiters-mode))
-#+END_SRC
-
-**** rainbow-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
-  :hook ((emacs-lisp-mode
-          inferior-emacs-lisp-mode
-          ielm-mode
-          lisp-mode
-          inferior-lisp-mode
-          lisp-interaction-mode
-          slime-repl-mode) . rainbow-mode))
 #+END_SRC
 
 **** restclient
