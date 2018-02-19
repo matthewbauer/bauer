@@ -19,7 +19,7 @@
 (defun use-package-list (script)
   "Count use-package declarations listed in SCRIPT."
 
-  (setq use-package-list--is-running t)
+  (defvar use-package-list--is-running t)
   (lexical-let ((use-package-verbose t)
                 (use-package-debug t)
                 (use-package-always-ensure nil)
@@ -30,16 +30,15 @@
                 )
     (advice-add 'use-package
                 :before (lambda (name &rest args)
-                          (unless (or (member :disabled args)
+                          (unless (or (and (member :disabled args)
+                                           (plist-get args :disabled))
                                       (and (member :ensure args)
                                            (not (plist-get args :ensure))))
                             (when (and (member :ensure args)
+                                       (not (eq (plist-get args :ensure) t))
                                        (symbolp (plist-get args :ensure)))
                               (setq name (plist-get args :ensure)))
                             (add-to-list 'use-package-list--packages name))))
-
-    (defmacro define-hook-helper (&rest args))
-    (defmacro create-hook-helper (&rest args))
 
     (advice-add 'use-package-handler/:defer
                 :around (lambda (x name keyword arg rest state)
@@ -48,12 +47,7 @@
                                 (name-string (use-package-as-string name)))
                             (dolist (command
                                      (delete-dups (plist-get state :commands)))
-                              (unless (or
-                                       (string= (symbol-name command)
-                                                "create-hook-helper")
-                                       (string= (symbol-name command)
-                                                "define-hook-helper"))
-                                (fset command (lambda (&rest args)))))
+                              (fset command (lambda (&rest args))))
                             body)))
 
     (advice-add 'use-package-load-name :override #'ignore)
