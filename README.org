@@ -44,7 +44,7 @@ following,
 url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
 expr="import (builtins.fetchTarball $url) {}"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
-   #+END_SRC
+#+END_SRC
 
 If you don’t have Nix installed, you’re going to need to skip this step and
 just instasll directly.
@@ -59,7 +59,7 @@ Run this command from your shell,
 
 #+BEGIN_SRC sh
 curl https://matthewbauer.us/bootstrap.sh | sh
-   #+END_SRC
+#+END_SRC
 
 Alternatively, you can accomplish the same thing from Emacs by downloading
 [[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
@@ -106,7 +106,7 @@ configuration. To get started, run the following.
 #+BEGIN_SRC sh
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
-   #+END_SRC
+#+END_SRC
 
 Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 
@@ -121,7 +121,7 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
     (add-to-list 'load-path (expand-file-name "lisp" bauer-dir))
     (org-babel-tangle-file bauer-org "README.el" "emacs-lisp")
     (load-file (expand-file-name "README.el" bauer-dir))))
-   #+END_SRC
+#+END_SRC
 * Emacs Init file
 :PROPERTIES:
 :header-args: :tangle yes
@@ -145,16 +145,15 @@ available.
 :header-args: :tangle no
 :END:
 
-If Nix is unavailable and only Emacs 24 is installed for you, then you can
-try the experimental v24 branch. From the Git root of this repository, just
-run:
+If Nix is unavailable and only Emacs 24 is installed for you, then you can try
+the experimental v24 branch. From the Git root of this repository, just run:
 
 #+BEGIN_SRC sh
 git checkout v24
-    #+END_SRC
+#+END_SRC
 
-and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see
-[[#nonix][w/o Nix usage directions]]).
+and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see [[#nonix][w/o
+Nix usage directions]]).
 
 ** Increase GC
 
@@ -173,7 +172,7 @@ this.
             (garbage-collect)
             (setq gc-cons-threshold
                   (car (get 'gc-cons-threshold 'standard-value)))))
-   #+END_SRC
+#+END_SRC
 
 ** Autoloads & Misc.
 
@@ -189,7 +188,7 @@ currently. FIXME!
 (when (and (string= window-system "mac")
 		   (require 'mac-win nil t))
   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
-   #+END_SRC
+#+END_SRC
 
 ** Custom config
 
@@ -198,12 +197,12 @@ means that when you customize a variable it will appear as ‘standard’ even
 though it’s not what the package originally defined as the default. This is
 useful for an Emacs distribution to provide /better defaults/ while still
 letting the user override them. Look through the lispdoc of the package for
-documentation on how this works. Eventually, this will be added to MELPA for
-use in other Emacs distributions.
+documentation on how this works. Eventually, this will be added to MELPA for use
+in other Emacs distributions.
 
 #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
-   #+END_SRC
+#+END_SRC
 
 Occasionally this block will error in cases where =./lisp= hasn’t been added
 correctly. Currently trying to find a way to handle this. FIXME
@@ -580,7 +579,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(yas-triggers-in-field t)
  '(yas-wrap-around-region t)
  )
-    #+END_SRC
+#+END_SRC
 
 *** Site paths
 
@@ -595,7 +594,7 @@ path in the Nix store and we verify it exists before setting it.
 
 #+BEGIN_SRC emacs-lisp
 (load "site-paths" :noerror)
-   #+END_SRC
+#+END_SRC
 
 *** Set environment
 
@@ -612,7 +611,7 @@ set in the Emacs process.
  '("NODE_NO_READLINE" "1")
  '("PAGER" "cat")
  )
-    #+END_SRC
+#+END_SRC
 
 *** Load custom file
 
@@ -621,32 +620,31 @@ can use custom as you normally would in vanilla Emacs.
 
 #+BEGIN_SRC emacs-lisp
 (load custom-file 'noerror)
-    #+END_SRC
+#+END_SRC
 
 ** Setup use-package
 
-[[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other
-Emacs packages. It’s quite useful and it will be used extensively in this
-project.
+[[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other Emacs
+packages. It’s quite useful and it will be used extensively in this project.
 
 Now to get =use-package= we will require =package.el= and initialize it if
 site-paths is not setup (meaning we’re outside the Nix expression). Because
 site-paths should be available (unless you don’t have Nix), we can skip this
-step. All of this is marked ‘eval-and-compile’ to make sure the compiler
-picks it up on build phase.
+step. All of this is marked ‘eval-and-compile’ to make sure the compiler picks
+it up on build phase.
 
 So, there are basically two modes for using this configuration. One when
 packages are installed externally (through Nix) and another where they are
 installed internally. This is captured in the variable ‘needs-package-init’
-which will be t when we want to use the builtin package.el and will be nli
-when we want to just assume everything is available.
+which will be t when we want to use the builtin package.el and will be nli when
+we want to just assume everything is available.
 
 #+BEGIN_SRC emacs-lisp
 (eval-and-compile
   (setq needs-package-init (and (not (locate-library "site-paths"))
                                 (not (and (boundp 'use-package-list--is-running)
                                           use-package-list--is-running)))))
-   #+END_SRC
+#+END_SRC
 
 First handle using =package.el=.
 
@@ -666,7 +664,7 @@ Actually require =use-package=,
   (require 'delight)
   (require 'use-package)
   (require 'bind-key))
-   #+END_SRC
+#+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
 Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
@@ -678,15 +676,15 @@ Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
   (when (not needs-package-init)
     (setq use-package-ensure-function 'ignore
           package-enable-at-startup nil)))
-   #+END_SRC
+#+END_SRC
 
 ** Key bindings
 
-Using bind-key, setup some simple key bindings. None of these should
-overwrite Emacs’ default keybindings. Also, they should only require vanilla
-Emacs to work (non-vanilla Emacs key bindings should be put in their
-=use-package= declaration). These are meant to all be as close to vanilla
-Emacs as possible. I try to avoid extremely specific key binds here.
+Using bind-key, setup some simple key bindings. None of these should overwrite
+Emacs’ default keybindings. Also, they should only require vanilla Emacs to work
+(non-vanilla Emacs key bindings should be put in their =use-package=
+declaration). These are meant to all be as close to vanilla Emacs as possible. I
+try to avoid extremely specific key binds here.
 
 #+BEGIN_SRC emacs-lisp
 (bind-key "C-c C-u"         'rename-uniquely)
@@ -755,18 +753,17 @@ Emacs as possible. I try to avoid extremely specific key binds here.
 
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
-   #+END_SRC
+#+END_SRC
 
 ** Setup installer
 
 Provides installation and upgrading functionality. You can upgrade the IDE at
 any time by typing =M-x upgrade= from within Emacs. You may have to restart
-Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for
-documentation.
+Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
 
 #+BEGIN_SRC emacs-lisp
 (require 'installer nil t)
-   #+END_SRC
+#+END_SRC
 
 ** Packages
 
@@ -786,7 +783,7 @@ necessary for using Emacs as a full featured IDE.
 (use-package ace-window
   :bind (("M-o" . other-window)
          ([remap next-multiframe-window] . ace-window)))
-     #+END_SRC
+#+END_SRC
 
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
@@ -802,7 +799,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
           inferior-lisp-mode
           isp-interaction-mode
           slime-repl-mode) . aggressive-indent-mode))
-     #+END_SRC
+#+END_SRC
 
 **** buffer-move
 [[https://github.com/lukhas/buffer-move][GitHub]]
@@ -814,7 +811,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
    ("<M-S-down>" . buf-move-down)
    ("<M-S-left>" . buf-move-left)
    ("<M-S-right>" . buf-move-right)))
-     #+END_SRC
+#+END_SRC
 
 **** compile
 
@@ -842,7 +839,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
     (set (make-local-variable 'comint-last-output-start)
          (point-marker)))
   :hook (compilation-filter . compilation-ansi-color-process-output))
-     #+END_SRC
+#+END_SRC
 
 **** Counsel
 
@@ -880,7 +877,7 @@ info.
           ("C-x l" . counsel-locate)
           ("M-y" . counsel-yank-pop)
           ("C-c i 8" . counsel-unicode-char)))
-     #+END_SRC
+#+END_SRC
 
 ***** ivy
 
@@ -903,7 +900,7 @@ info.
         ;; completion-in-region-function 'ivy-completion-in-region
         )
   :commands (ivy-completing-read ivy-completion-in-region))
-     #+END_SRC
+#+END_SRC
 
 **** diff-hl
 
@@ -917,7 +914,7 @@ info.
          (vc-dir-mode . diff-hl-mode)
          (dired-mode . diff-hl-dir-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh)))
-     #+END_SRC
+#+END_SRC
 
 **** dtrt-indent
 
@@ -928,7 +925,7 @@ info.
   :delight
   :hook (find-file . dtrt-indent-find-file-hook)
   :init (setq dtrt-indent-mode t))
-     #+END_SRC
+#+END_SRC
 
 **** Emacs speaks statistics
 
@@ -939,7 +936,7 @@ info.
   :ensure ess
   :no-require
   :commands (R))
-     #+END_SRC
+#+END_SRC
 
 **** ESUP
 
@@ -964,7 +961,7 @@ apropospriate, and flycheck are the biggest offenders.
   (defun startup-profile ()
     (interactive)
     (esup (locate-library "default"))))
-     #+END_SRC
+#+END_SRC
 
 **** Flycheck
 
@@ -977,7 +974,7 @@ apropospriate, and flycheck are the biggest offenders.
   :demand
   :commands (global-flycheck-mode)
   :config (global-flycheck-mode))
-     #+END_SRC
+#+END_SRC
 
 **** Gnus
 
@@ -989,7 +986,7 @@ apropospriate, and flycheck are the biggest offenders.
   :commands (gnus)
   :hook ((gnus-group-mode . gnus-topic-mode)
          (dired-mode . turn-on-gnus-dired-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** god-mode
 
@@ -998,7 +995,7 @@ apropospriate, and flycheck are the biggest offenders.
 #+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** helpful
 
@@ -1006,7 +1003,7 @@ apropospriate, and flycheck are the biggest offenders.
 (use-package helpful
   :bind (("C-h f" . helpful-callable)
          ("C-h v" . helpful-variable)))
-     #+END_SRC
+#+END_SRC
 
 **** magit
 
@@ -1052,7 +1049,7 @@ apropospriate, and flycheck are the biggest offenders.
          ("C-x G" . magit-dispatch-popup)
          :map magit-mode-map
          ("C-o" . magit-dired-other-window)))
-     #+END_SRC
+#+END_SRC
 
 ***** magithub                                                 :noexport:
 :PROPERTIES:
@@ -1065,7 +1062,7 @@ This is currently disabled.
 (use-package magithub
   :hook (magit-mode . magithub-feature-autoinject)
   :after magit)
-      #+END_SRC
+#+END_SRC
 
 **** mmm-mode
 
@@ -1078,7 +1075,7 @@ This is currently disabled.
   (use-package mmm-auto
     :ensure nil
     :demand))
-     #+END_SRC
+#+END_SRC
 
 **** multiple-cursors
 [[https://github.com/magnars/multiple-cursors.el][GitHub]]
@@ -1094,7 +1091,7 @@ This is currently disabled.
    ("C-c C-<"     . mc/mark-all-like-this)
    ("C-!"         . mc/mark-next-symbol-like-this)
    ("C-S-c C-S-c" . mc/edit-lines)))
-     #+END_SRC
+#+END_SRC
 
 **** mwim
 
@@ -1104,7 +1101,7 @@ This is currently disabled.
 (use-package mwim
   :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
          ([remap move-end-of-line] . mwim-end-of-code-or-line)))
-     #+END_SRC
+#+END_SRC
 
 **** Org
 
@@ -1221,7 +1218,7 @@ easymenu to make the "Projectile" modeline clickable.
         "--"
         ["Project info" projectile-project-info]
         ["About" projectile-version]))))
-     #+END_SRC
+#+END_SRC
 
 **** Proof General
 
@@ -1233,14 +1230,14 @@ easymenu to make the "Projectile" modeline clickable.
   :no-require
   :disabled needs-package-init
   :commands (proofgeneral proof-mode proof-shell-mode))
-     #+END_SRC
+#+END_SRC
 
 **** Ripgrep
 
 #+BEGIN_SRC emacs-lisp
 (use-package rg
   :commands (rg))
-     #+END_SRC
+#+END_SRC
 
 **** smart-hungry-delete
 
@@ -1255,7 +1252,7 @@ easymenu to make the "Projectile" modeline clickable.
          (c-mode-common . smart-hungry-delete-default-c-mode-common-hook)
          (python-mode . smart-hungry-delete-default-c-mode-common-hook)
          (text-mode . smart-hungry-delete-default-text-mode-hook)))
-     #+END_SRC
+#+END_SRC
 
 **** Smartparens
 
@@ -1376,7 +1373,7 @@ easymenu to make the "Projectile" modeline clickable.
     (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p))
     (sp-local-pair "\"" "\"")
     (sp-local-pair "''" "''" :unless '(sp-in-comment-p sp-in-string-quotes-p))))
-     #+END_SRC
+#+END_SRC
 
 **** sudo-edit
 
@@ -1385,14 +1382,14 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
-     #+END_SRC
+#+END_SRC
 
 **** transpose-frame
 
 #+BEGIN_SRC emacs-lisp
 (use-package transpose-frame
   :bind ("H-t" . transpose-frame))
-     #+END_SRC
+#+END_SRC
 
 **** try
 [[https://github.com/larstvei/Try][GitHub]]
@@ -1400,7 +1397,7 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
 (use-package try
   :commands (try))
-     #+END_SRC
+#+END_SRC
 
 **** which-key
 
@@ -1409,7 +1406,7 @@ easymenu to make the "Projectile" modeline clickable.
   :demand
   :commands (which-key-mode)
   :config (which-key-mode))
-     #+END_SRC
+#+END_SRC
 
 *** Built-ins
 
@@ -1423,7 +1420,7 @@ configure them.
   :bind (("C-c [" . align-regexp))
   :commands (align)
   :ensure nil)
-     #+END_SRC
+#+END_SRC
 
 **** ansi-color
 
@@ -1437,7 +1434,7 @@ Get color/ansi codes in compilation mode.
   :preface (defun colorize-compilation-buffer ()
 			 (let ((inhibit-read-only t))
 			   (ansi-color-apply-on-region (point-min) (point-max)))))
-     #+END_SRC
+#+END_SRC
 
 **** autorevert
 
@@ -1449,7 +1446,7 @@ Get color/ansi codes in compilation mode.
   :hook (dired-mode . auto-revert-mode)
   :config
   (global-auto-revert-mode t))
-     #+END_SRC
+#+END_SRC
 
 **** bug-reference
 
@@ -1457,14 +1454,14 @@ Get color/ansi codes in compilation mode.
 (use-package bug-reference
   :ensure nil
   :hook (prog-mode . bug-reference-prog-mode))
-     #+END_SRC
+#+END_SRC
 
 ***** bug-reference-github
 
 #+BEGIN_SRC emacs-lisp
 (use-package bug-reference-github
   :hook (prog-mode . bug-reference-github-set-url-format))
-      #+END_SRC
+#+END_SRC
 
 **** comint
 
@@ -1490,7 +1487,7 @@ Get color/ansi codes in compilation mode.
   (defun save-history ()
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer (comint-write-input-ring)))))
-     #+END_SRC
+#+END_SRC
 
 **** delsel
 
@@ -1500,7 +1497,7 @@ Get color/ansi codes in compilation mode.
   :demand
   :commands (delete-selection-mode)
   :config (delete-selection-mode t))
-     #+END_SRC
+#+END_SRC
 
 **** dired
 
@@ -1511,7 +1508,7 @@ Get color/ansi codes in compilation mode.
          :map dired-mode-map
          ("C-c C-c" . compile)
          ("r" . browse-url-of-dired-file)))
-     #+END_SRC
+#+END_SRC
 
 ***** dired-column
 
@@ -1521,7 +1518,7 @@ Get color/ansi codes in compilation mode.
   :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
-      #+END_SRC
+#+END_SRC
 
 ***** dired-subtree
 
@@ -1531,7 +1528,7 @@ Get color/ansi codes in compilation mode.
   :bind (:map dired-mode-map
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)))
-      #+END_SRC
+#+END_SRC
 
 ***** dired-x
 
@@ -1544,7 +1541,7 @@ Get color/ansi codes in compilation mode.
   :bind (("s-\\" . dired-jump-other-window)
          :map dired-mode-map
          (")" . dired-omit-mode)))
-      #+END_SRC
+#+END_SRC
 
 **** eldoc
 
@@ -1560,7 +1557,7 @@ Provides some info for the thing at the point.
 		 (haskell-mode . eldoc-mode)
 		 (python-mode . eldoc-mode)
 		 (eshell-mode . eldoc-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** electric
 
@@ -1576,7 +1573,7 @@ Setup these modes:
   :hook ((prog-mode . electric-quote-mode)
          (prog-mode . electric-indent-mode)
          (prog-mode . electric-layout-mode)))
-     #+END_SRC
+#+END_SRC
 
 ***** elec-pair
 
@@ -1588,7 +1585,7 @@ setup.
   :ensure nil
   :hook ((prog-mode . electric-pair-mode)
          (smartparens-mode . (lambda () (electric-pair-mode -1)))))
-      #+END_SRC
+#+END_SRC
 
 **** Emacs shell
 
@@ -1636,7 +1633,7 @@ setup.
           eshell-tramp
           eshell-unix
           eshell-xtra)))
-     #+END_SRC
+#+END_SRC
 
 ***** esh-help
 
@@ -1647,7 +1644,7 @@ setup.
   (defun turn-on-esh-eldoc ()
     (setq-local eldoc-documentation-function 'esh-help-eldoc-command))
   :hook (eshell-mode . turn-on-esh-eldoc))
-      #+END_SRC
+#+END_SRC
 
 ***** em-dired
 
@@ -1659,7 +1656,7 @@ setup.
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
   :init (advice-add 'eshell :before 'em-dired-new))
-      #+END_SRC
+#+END_SRC
 
 **** etags
 
@@ -1667,7 +1664,7 @@ setup.
 (use-package etags
   :ensure nil
   :commands (tags-completion-table))
-     #+END_SRC
+#+END_SRC
 
 **** executable
 
@@ -1675,7 +1672,7 @@ setup.
 (use-package executable
   :ensure nil
   :hook (after-save . executable-make-buffer-file-executable-if-script-p))
-     #+END_SRC
+#+END_SRC
 
 **** ffap
 
@@ -1728,7 +1725,7 @@ setup.
        exec-path)
   :hook ((text-mode . flyspell-mode)
          (prog-mode . flyspell-prog-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** goto-addr
 
@@ -1737,7 +1734,7 @@ setup.
   :ensure nil
   :hook ((prog-mode . goto-address-prog-mode)
          (git-commit-mode . goto-address-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** grep
 
@@ -1747,7 +1744,7 @@ setup.
   :bind (("M-s d" . find-grep-dired)
          ("M-s F" . find-grep)
          ("M-s G" . grep)))
-     #+END_SRC
+#+END_SRC
 
 **** gud
 
@@ -1755,7 +1752,7 @@ setup.
 (use-package gud
   :ensure nil
   :commands (gud-gdb))
-     #+END_SRC
+#+END_SRC
 
 **** help
 
@@ -1774,7 +1771,7 @@ setup.
     "Revert current buffer without asking."
     (interactive (list (not current-prefix-arg)))
     (revert-buffer ignore-auto t nil)))
-     #+END_SRC
+#+END_SRC
 
 **** hippie-exp
 
@@ -1782,7 +1779,7 @@ setup.
 (use-package hippie-exp
   :ensure nil
   :bind* (("M-/". hippie-expand)))
-     #+END_SRC
+#+END_SRC
 
 **** ibuffer
 
@@ -1790,7 +1787,7 @@ setup.
 (use-package ibuffer
   :ensure nil
   :bind ([remap switch-to-buffer] . ibuffer))
-     #+END_SRC
+#+END_SRC
 
 **** imenu
 ***** imenu-anywhere
@@ -1799,7 +1796,7 @@ setup.
 (use-package imenu-anywhere
   :bind (("C-c i" . imenu-anywhere)
          ("s-i" . imenu-anywhere)))
-      #+END_SRC
+#+END_SRC
 
 **** minibuffer
 
@@ -1807,7 +1804,7 @@ setup.
 (use-package minibuffer
   :ensure nil
   :bind* ("C-M-i" . completion-at-point))
-     #+END_SRC
+#+END_SRC
 
 ***** mb-depth
 
@@ -1815,7 +1812,7 @@ setup.
 (use-package mb-depth
   :ensure nil
   :hook (minibuffer-setup . minibuffer-depth-indicate-mode))
-     #+END_SRC
+#+END_SRC
 
 **** newcomment
 
@@ -1823,7 +1820,7 @@ setup.
 (use-package newcomment
   :ensure nil
   :bind ("s-/" . comment-or-uncomment-region))
-     #+END_SRC
+#+END_SRC
 
 **** paren
 
@@ -1832,7 +1829,7 @@ setup.
   :ensure nil
   :hook ((prog-mode . show-paren-mode)
          (prog-mode . (lambda () (show-paren-mode -1)))))
-     #+END_SRC
+#+END_SRC
 
 **** pp
 
@@ -1847,7 +1844,7 @@ setup.
   :preface
   (defun always-eval-sexp ()
     (define-key (current-local-map) (kbd "C-x C-e") 'pp-eval-last-sexp)))
-     #+END_SRC
+#+END_SRC
 
 **** prog-mode
 
@@ -1889,7 +1886,7 @@ setup.
   (defun prettify-symbols-js ()
     (push '("function" . ?λ) prettify-symbols-alist)
     (push '("=>" . ?⇒) prettify-symbols-alist)))
-     #+END_SRC
+#+END_SRC
 
 **** re-builder
 #+BEGIN_SRC emacs-lisp
@@ -1898,9 +1895,8 @@ setup.
   :config
   (let ((name '("Regexp[" (:eval (symbol-name reb-re-syntax)) "]")))
     (delight `((reb-mode ,name :major)
-			   (reb-lisp-mode ,name :major))))
-  )
-     #+END_SRC
+			   (reb-lisp-mode ,name :major)))))
+#+END_SRC
 
 **** Shell
 
@@ -1915,9 +1911,8 @@ setup.
          )
   :preface
   (defun use-histfile ()
-    (turn-on-comint-history (getenv "HISTFILE")))
-  )
-     #+END_SRC
+    (turn-on-comint-history (getenv "HISTFILE"))))
+#+END_SRC
 
 **** simple
 
@@ -1935,7 +1930,7 @@ setup.
   :hook (text-mode . visual-line-mode)
   :config
   (column-number-mode))
-     #+END_SRC
+#+END_SRC
 
 **** subword
 
@@ -1943,7 +1938,7 @@ setup.
 (use-package subword
   :ensure nil
   :hook (java-mode . subword-mode))
-     #+END_SRC
+#+END_SRC
 
 **** term
 
@@ -1965,7 +1960,7 @@ setup.
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
   :bind ("C-c t" . my-term))
-     #+END_SRC
+#+END_SRC
 
 **** text-mode
 
@@ -1974,17 +1969,15 @@ setup.
   :no-require
   :ensure nil
   :hook (text-mode . turn-on-auto-fill))
-     #+END_SRC
+#+END_SRC
 
 **** time
 
 #+BEGIN_SRC emacs-lisp
 (use-package time
   :demand
-  :config
-  (display-time-mode)
-  )
-     #+END_SRC
+  :config (display-time-mode))
+#+END_SRC
 
 **** tooltip
 
@@ -1995,7 +1988,7 @@ setup.
   :commands (tooltip-mode)
   :config
   (tooltip-mode -1))
-     #+END_SRC
+#+END_SRC
 
 **** tramp
 
@@ -2008,7 +2001,7 @@ setup.
              tramp-file-name-user
              tramp-file-name-real-host
              tramp-dissect-file-name))
-     #+END_SRC
+#+END_SRC
 
 **** url-handlers
 
@@ -2018,7 +2011,7 @@ setup.
   :demand
   :config
   (url-handler-mode))
-     #+END_SRC
+#+END_SRC
 
 **** view
 
@@ -2033,7 +2026,7 @@ setup.
               ("l" . forward-char)
               ("f" . forward-char)
               ("b" . backward-char)))
-     #+END_SRC
+#+END_SRC
 
 **** which-func
 
@@ -2042,14 +2035,14 @@ setup.
   :ensure nil
   :demand
   :config (which-function-mode))
-     #+END_SRC
+#+END_SRC
 **** whitespace
 
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
   :ensure nil
   :hook (prog-mode . whitespace-mode))
-     #+END_SRC
+#+END_SRC
 
 **** windmove
 
@@ -2059,7 +2052,7 @@ setup.
   :bind (("<s-down>" . windmove-down)
          ("<s-up>" . windmove-up)
          ))
-     #+END_SRC
+#+END_SRC
 
 *** Programming languages
 
@@ -2079,7 +2072,7 @@ packages (for completion, syntax checking, etc.)
          ("\\.cpp\\'" . c++-mode)
          ("\\.c++\\'" . c++-mode)
          ("\\.mm\\'" . c++-mode)))
-     #+END_SRC
+#+END_SRC
 
 ***** irony
 
@@ -2089,28 +2082,28 @@ packages (for completion, syntax checking, etc.)
 (use-package irony-cdb
   :ensure nil
   :hook (irony-mode . irony-cdb-autosetup-compile-options))
-      #+END_SRC
+ #+END_SRC
 
 ****** flycheck-irony
 
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck-irony
   :hook (flycheck-mode . flycheck-irony-setup))
-      #+END_SRC
+#+END_SRC
 
 ****** irony-eldoc
 
 #+BEGIN_SRC emacs-lisp
 (use-package irony-eldoc
   :hook (irony-mode . irony-eldoc))
-      #+END_SRC
+#+END_SRC
 
 **** CoffeeScript
 
 #+BEGIN_SRC emacs-lisp
 (use-package coffee-mode
   :mode (("\\.coffee\\'" . coffee-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** CSS
 
@@ -2119,35 +2112,35 @@ packages (for completion, syntax checking, etc.)
   :ensure nil
   :mode "\\.css\\'"
   :commands (css-mode))
-     #+END_SRC
+#+END_SRC
 
 **** CSV
 
 #+BEGIN_SRC emacs-lisp
 (use-package csv-mode
   :mode "\\.csv\\'")
-     #+END_SRC
+#+END_SRC
 
 **** ELF
 
 #+BEGIN_SRC emacs-lisp
 (use-package elf-mode
   :magic ("ELF" . elf-mode))
-     #+END_SRC
+#+END_SRC
 
 **** Go
 
 #+BEGIN_SRC emacs-lisp
 (use-package go-mode
   :mode "\\.go\\'")
-     #+END_SRC
+#+END_SRC
 
 **** HAML
 
 #+BEGIN_SRC emacs-lisp
 (use-package haml-mode
   :mode "\\.haml\\'")
-     #+END_SRC
+#+END_SRC
 
 **** Haskell
 ***** ghc
@@ -2155,7 +2148,7 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
 (use-package ghc
   :hook (haskell-mode . ghc-init))
-      #+END_SRC
+#+END_SRC
 
 ***** haskell-mode
 
@@ -2192,7 +2185,7 @@ Hacky ways to autoload things (please FIXME).
          (haskell-mode . imenu-add-menubar-index))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
-      #+END_SRC
+#+END_SRC
 
 **** Java
 ***** jdee
@@ -2202,7 +2195,7 @@ Hacky ways to autoload things (please FIXME).
   :mode ("\\.java\\'" . jdee-mode)
   :bind (:map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
-      #+END_SRC
+#+END_SRC
 
 **** JavaScript
 ***** indium
@@ -2211,7 +2204,7 @@ Hacky ways to autoload things (please FIXME).
 (use-package indium
   :mode ("\\.js\\'" . indium-mode)
   :commands (indium-interaction-mode indium-scratch))
-      #+END_SRC
+#+END_SRC
 
 ***** js2-mode
 #+BEGIN_SRC emacs-lisp
@@ -2220,21 +2213,21 @@ Hacky ways to autoload things (please FIXME).
 (use-package js2-imenu-extras
   :ensure nil
   :hook (js2-mode . js2-imenu-extras-mode))
-      #+END_SRC
+#+END_SRC
 
 ***** js3-mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package js3-mode
   :commands (js3-mode))
-      #+END_SRC
+#+END_SRC
 
 ***** tern
 
 #+BEGIN_SRC emacs-lisp
 (use-package tern
   :hook (js2-mode . tern-mode))
-      #+END_SRC
+#+END_SRC
 
 **** JSON
 
@@ -2246,7 +2239,7 @@ Hacky ways to autoload things (please FIXME).
          ("\\.json\\'" . json-mode))
   :config
   (make-local-variable 'js-indent-level))
-     #+END_SRC
+#+END_SRC
 
 **** LaTeX
 ***** auctex
@@ -2263,7 +2256,7 @@ Auctex provides some helpful tools for working with LaTeX.
              LaTeX-mode
              latex-mode)
   :mode ("\\.tex\\'" . TeX-latex-mode))
-      #+END_SRC
+#+END_SRC
 
 **** Lisp
 
@@ -2271,7 +2264,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package elisp-mode
   :ensure nil
   :interpreter (("emacs" . emacs-lisp-mode)))
-     #+END_SRC
+#+END_SRC
 
 ***** ielm
 
@@ -2279,7 +2272,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package ielm
   :ensure nil
   :bind ("C-c :" . ielm))
-      #+END_SRC
+#+END_SRC
 
 **** Mach-O
 
@@ -2290,7 +2283,7 @@ Auctex provides some helpful tools for working with LaTeX.
           ("\xFE\xED\xFA\xCF" . macho-mode)
           ("\xCE\xFA\xED\xFE" . macho-mode)
           ("\xCF\xFA\xED\xFE" . macho-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** Makefile
 ***** make-mode
@@ -2299,7 +2292,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package make-mode
   :ensure nil
   :hook (makefile-mode . indent-tabs-mode))
-      #+END_SRC
+#+END_SRC
 
 **** Markdown
 ***** markdown-mode
@@ -2314,7 +2307,7 @@ Auctex provides some helpful tools for working with LaTeX.
             (not (or (markdown-code-at-point-p)
                      (memq 'markdown-pre-face
                            (face-at-point nil 'mult))))))
-      #+END_SRC
+#+END_SRC
 
 **** Nix
 
@@ -2324,7 +2317,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package nix-shell
   :ensure nil
   :commands (nix-shell nix-unpack))
-     #+END_SRC
+#+END_SRC
 
 ***** nix-buffer
 
@@ -2338,7 +2331,7 @@ Auctex provides some helpful tools for working with LaTeX.
 			   (not (file-remote-p default-directory)))
 	  (nix-buffer)))
   :hook (after-change-major-mode . turn-on-nix-buffer))
-      #+END_SRC
+#+END_SRC
 
 **** NROFF
 
@@ -2346,14 +2339,14 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package nroff-mode
   :ensure nil
   :commands (nroff-mode))
-     #+END_SRC
+#+END_SRC
 
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
 (use-package php-mode
   :mode "\\.php\\'")
-     #+END_SRC
+#+END_SRC
 
 **** Python
 
@@ -2363,7 +2356,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package anaconda-mode
   :hook ((python-mode . anaconda-mode)
          (python-mode . anaconda-eldoc-mode)))
-     #+END_SRC
+#+END_SRC
 
 ***** python-mode
 
@@ -2372,14 +2365,14 @@ Auctex provides some helpful tools for working with LaTeX.
   :ensure nil
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
-      #+END_SRC
+#+END_SRC
 
 ***** elpy
 
 #+BEGIN_SRC emacs-lisp
 (use-package elpy
   :mode ("\\.py\\'" . elpy-mode))
-      #+END_SRC
+#+END_SRC
 
 **** Ruby
 
@@ -2388,35 +2381,35 @@ Auctex provides some helpful tools for working with LaTeX.
   :ensure nil
   :mode ("\\.rb\\'" . ruby-mode)
   :interpreter ("ruby" . ruby-mode))
-     #+END_SRC
+#+END_SRC
 
 **** Rust
 
 #+BEGIN_SRC emacs-lisp
 (use-package rust-mode
   :mode "\\.rs\\'")
-     #+END_SRC
+#+END_SRC
 
 **** SASS
 
 #+BEGIN_SRC emacs-lisp
 (use-package sass-mode
   :mode "\\.sass\\'")
-     #+END_SRC
+#+END_SRC
 
 **** Scala
 
 #+BEGIN_SRC emacs-lisp
 (use-package scala-mode
   :interpreter ("scala" . scala-mode))
-     #+END_SRC
+#+END_SRC
 
 **** SCSS
 
 #+BEGIN_SRC emacs-lisp
 (use-package scss-mode
   :mode "\\.scss\\'")
-     #+END_SRC
+#+END_SRC
 
 **** Shell
 
@@ -2436,21 +2429,21 @@ Auctex provides some helpful tools for working with LaTeX.
          ("\\.zsh\\'" . sh-mode))
   :bind (:map sh-mode-map
               ("C-x C-e" . shell-command-at-point)))
-     #+END_SRC
+#+END_SRC
 
 **** texinfo
 
 #+BEGIN_SRC emacs-lisp
 (use-package texinfo
   :mode ("\\.texi\\'" . texinfo-mode))
-     #+END_SRC
+#+END_SRC
 
 **** TypeScript
 
 #+BEGIN_SRC emacs-lisp
 (use-package typescript-mode
   :mode "\\.ts\\'")
-     #+END_SRC
+#+END_SRC
 
 ***** tide
 
@@ -2459,7 +2452,7 @@ Auctex provides some helpful tools for working with LaTeX.
   :commands (tide-setup tide-hl-identifier-mode)
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tipe-hl-identifier-mode)))
-      #+END_SRC
+#+END_SRC
 
 **** Web
 
@@ -2470,7 +2463,7 @@ Auctex provides some helpful tools for working with LaTeX.
          ("\\.html?\\'" . web-mode)
          ("\\.php\\'" . web-mode)
          ("\\.jsp\\'" . web-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** XML
 
@@ -2480,14 +2473,14 @@ Auctex provides some helpful tools for working with LaTeX.
   :commands (nxml-mode)
   :init
   (defalias 'xml-mode 'nxml-mode))
-     #+END_SRC
+#+END_SRC
 
 **** YAML
 
 #+BEGIN_SRC emacs-lisp
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
-     #+END_SRC
+#+END_SRC
 
 *** Custom
 
@@ -2504,7 +2497,7 @@ repositories.
 (use-package nethack
   :commands (nethack)
   :ensure nil)
-     #+END_SRC
+#+END_SRC
 
 **** nix-fontify
 **** set-defaults
@@ -2521,7 +2514,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package anything
   :commands (anything))
-     #+END_SRC
+#+END_SRC
 
 **** apropospriate-theme
 
@@ -2531,21 +2524,14 @@ This is the theme I use. This has to be defered for some reason.
 (use-package apropospriate-theme
   :demand
   :config (load-theme 'apropospriate-dark t))
-     #+END_SRC
-
-**** bool-flip
-
-#+BEGIN_SRC emacs-lisp
-(use-package bool-flip
-  :bind ("C-c C-b" . bool-flip-do-flip))
-     #+END_SRC
+#+END_SRC
 
 **** browse-at-remote
 
 #+BEGIN_SRC emacs-lisp
 (use-package browse-at-remote
   :commands (browse-at-remote))
-     #+END_SRC
+#+END_SRC
 
 **** copy-as-format
 
@@ -2553,7 +2539,7 @@ This is the theme I use. This has to be defered for some reason.
 (use-package copy-as-format
   :bind (("C-c w s" . copy-as-format-slack)
          ("C-c w g" . copy-as-format-github)))
-     #+END_SRC
+#+END_SRC
 
 **** crux
 
@@ -2562,27 +2548,27 @@ This is the theme I use. This has to be defered for some reason.
   :bind (("C-c D" . crux-delete-file-and-buffer)
          ("C-c C-e" . crux-eval-and-replace)
          ([shift return] . crux-smart-open-line)))
-     #+END_SRC
+#+END_SRC
 
 **** delight
 
 #+BEGIN_SRC emacs-lisp
 (use-package delight)
-     #+END_SRC
+#+END_SRC
 **** TODO dumb-jump
 **** elfeed
 
 #+BEGIN_SRC emacs-lisp
 (use-package elfeed
   :commands (elfeed))
-     #+END_SRC
+#+END_SRC
 
 **** expand-region
 
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :bind (("C-=" . er/expand-region)))
-     #+END_SRC
+#+END_SRC
 
 **** TODO eyebrowse
 **** TODO fill-column-indicator
@@ -2591,27 +2577,27 @@ This is the theme I use. This has to be defered for some reason.
 #+BEGIN_SRC emacs-lisp
 (use-package firestarter
   :bind ("C-c m s" . firestarter-mode))
-     #+END_SRC
+#+END_SRC
 
 **** focus
 
 #+BEGIN_SRC emacs-lisp
 (use-package focus
   :bind ("C-c m f" . focus-mode))
-     #+END_SRC
+#+END_SRC
 
 **** hl-todo
 
 #+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
-     #+END_SRC
+#+END_SRC
 
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
 (use-package htmlize)
-     #+END_SRC
+#+END_SRC
 
 **** TODO iedit
 **** minimap
@@ -2619,7 +2605,7 @@ This is the theme I use. This has to be defered for some reason.
 #+BEGIN_SRC emacs-lisp
 (use-package minimap
   :commands (minimap-mode))
-     #+END_SRC
+#+END_SRC
 
 **** multi-term
 
@@ -2627,14 +2613,14 @@ This is the theme I use. This has to be defered for some reason.
 (use-package multi-term
   :bind (("C-. t" . multi-term-next)
          ("C-. T" . multi-term)))
-     #+END_SRC
+#+END_SRC
 
 **** notmuch
 
 #+BEGIN_SRC emacs-lisp
 (use-package notmuch
   :commands (notmuch))
-     #+END_SRC
+#+END_SRC
 
 **** page-break-lines
 
@@ -2647,7 +2633,7 @@ This is the theme I use. This has to be defered for some reason.
           outline-mode
           prog-mode
           haskell-mode) . page-break-lines-mode))
-     #+END_SRC
+#+END_SRC
 
 **** pandoc-mode
 
@@ -2655,7 +2641,7 @@ This is the theme I use. This has to be defered for some reason.
 (use-package pandoc-mode
   :hook ((markdown-mode . pandoc-mode)
          (pandoc-mode . pandoc-load-default-settings)))
-     #+END_SRC
+#+END_SRC
 
 **** rainbow-delimiters
 
@@ -2668,7 +2654,7 @@ This is the theme I use. This has to be defered for some reason.
           inferior-lisp-mode
           lisp-interaction-mode
           slime-repl-mode) . rainbow-delimiters-mode))
-     #+END_SRC
+#+END_SRC
 
 **** rainbow-mode
 
@@ -2681,7 +2667,7 @@ This is the theme I use. This has to be defered for some reason.
           inferior-lisp-mode
           lisp-interaction-mode
           slime-repl-mode) . rainbow-mode))
-     #+END_SRC
+#+END_SRC
 
 **** restclient
 
@@ -2689,14 +2675,14 @@ This is the theme I use. This has to be defered for some reason.
 (use-package restclient
   :mode (("\\.rest\\'" . restclient-mode)
          ("\\.restclient\\'" . restclient-mode)))
-     #+END_SRC
+#+END_SRC
 
 **** shrink-whitespace
 
 #+BEGIN_SRC emacs-lisp
 (use-package shrink-whitespace
   :bind ("H-SPC" . shrink-whitespace))
-     #+END_SRC
+#+END_SRC
 
 **** smart-shift
 
@@ -2706,7 +2692,7 @@ This is the theme I use. This has to be defered for some reason.
          ("C-c <right>" . smart-shift-right)
          ("C-c <up>" . smart-shift-up)
          ("C-c <down>" . smart-shift-down)))
-     #+END_SRC
+#+END_SRC
 
 **** string-inflection
 
@@ -2718,7 +2704,7 @@ This is the theme I use. This has to be defered for some reason.
          ("C-c r u" . string-inflection-underscore)
          ("C-c r k" . string-inflection-kebab-case)
          ("C-c r J" . string-inflection-java-style-cycle)))
-     #+END_SRC
+#+END_SRC
 
 **** TODO undo-tree
 **** vkill
@@ -2726,7 +2712,7 @@ This is the theme I use. This has to be defered for some reason.
 #+BEGIN_SRC emacs-lisp
 (use-package vkill
   :bind ("C-x L" . vkill))
-     #+END_SRC
+#+END_SRC
 
 * Profiles
 
@@ -2744,7 +2730,7 @@ To use this, you must create a short ~/.profile file. Here is an example,
 #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
-   #+END_SRC
+#+END_SRC
 
 Here we setup =.profile=. First, setup exports.
 
@@ -2764,7 +2750,7 @@ export LANG=en_US.UTF-8 \
        HISTTIMEFORMAT="[%F %T] " \
        HISTCONTROL=ignoreboth \
        SHELL_SESSION_HISTORY=1
-   #+END_SRC
+#+END_SRC
 
 Then setup aliases.
 
@@ -2777,7 +2763,7 @@ alias ls="TERM=ansi ls --color=always" \
       .....="cd ../../../.." \
       tree='tree -Csuh' \
       grep="grep --color=auto"
-   #+END_SRC
+#+END_SRC
 
 Configure INSIDE_EMACS.
 
@@ -2786,7 +2772,7 @@ if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
-   #+END_SRC
+#+END_SRC
 
 Define =update_terminal_cwd= function.
 
@@ -2797,7 +2783,7 @@ update_terminal_cwd () {
     local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
     printf '\e]7;%s\a' "$PWD_URL"
 }
-   #+END_SRC
+#+END_SRC
 ** =.bashrc=
 :PROPERTIES:
 :header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
@@ -2809,13 +2795,13 @@ This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]].
 #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
-   #+END_SRC
+#+END_SRC
 
 Source profile found above.
 
 #+BEGIN_SRC sh :padline no
 source @out@/etc/profile
-   #+END_SRC
+#+END_SRC
 
 When TERM=dumb, just do a simple prompt.
 
@@ -2826,7 +2812,7 @@ case "$TERM" in
         return
         ;;
 esac
-   #+END_SRC
+#+END_SRC
 
 Setup some bash-specific features.
 
@@ -2844,7 +2830,7 @@ shopt -s cdspell \
          nocaseglob \
          no_empty_cmd_completion \
          sourcepath
-   #+END_SRC
+#+END_SRC
 
 Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
 
@@ -2853,13 +2839,13 @@ set -o notify \
     -o noclobber \
     -o ignoreeof \
     -o emacs
-   #+END_SRC
+#+END_SRC
 
 Setup prompt.
 
 #+BEGIN_SRC sh
 PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
-   #+END_SRC
+#+END_SRC
 
 Bind keys when we’re interactive.
 
@@ -2868,7 +2854,7 @@ if [[ $- == *i* ]]; then
     bind '"\e/": dabbrev-expand'
     bind '"\ee": edit-and-execute-command'
 fi
-   #+END_SRC
+#+END_SRC
 
 Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
 give us the working directory in the title window.
@@ -2878,7 +2864,7 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
     update_terminal_cwd
 fi
-   #+END_SRC
+#+END_SRC
 
 #+BEGIN_SRC sh
 function set-eterm-dir {
@@ -2902,13 +2888,13 @@ use this, you must create a short ~/.zshrc file. Here is an example,
 #+BEGIN_SRC sh :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
-   #+END_SRC
+#+END_SRC
 
 Setup ZSH profile. First, we just source the global profile.
 
 #+BEGIN_SRC sh :padline no
 source @out@/etc/profile
-   #+END_SRC
+#+END_SRC
 
 Handle dumb options.
 
@@ -2928,25 +2914,25 @@ case "$TERM" in
         return
         ;;
 esac
-   #+END_SRC
+#+END_SRC
 
 Load up site-functions in ZSH.
 
 #+BEGIN_SRC sh
 fpath+=(@out@/share/zsh/site-functions)
-   #+END_SRC
+#+END_SRC
 
 Setup ZSH auto suggestions.
 
 #+BEGIN_SRC sh
 . @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-   #+END_SRC
+#+END_SRC
 
 Turn on colors.
 
 #+BEGIN_SRC sh
 autoload -U colors && colors
-   #+END_SRC
+#+END_SRC
 
 Turn on ZSH-specific options.
 
@@ -2979,7 +2965,7 @@ setopt always_to_end \
        pushdminus \
        share_history \
        transient_rprompt
-   #+END_SRC
+#+END_SRC
 
 Setup completions.
 
@@ -2987,7 +2973,7 @@ Setup completions.
 ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
 autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
-   #+END_SRC
+#+END_SRC
 
 Zstyle completions.
 
@@ -3029,13 +3015,13 @@ zstyle ':completion:*:ssh:*' tag-order users \
 zstyle ':completion:*:ssh:*' group-order hosts-domain hosts-host users \
        hosts-ipaddr
 zstyle '*' single-ignored show
-   #+END_SRC
+#+END_SRC
 
 Turn on prompt with colors.
 
 #+BEGIN_SRC sh
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
-   #+END_SRC
+#+END_SRC
 
 ZSH key bindings.
 
@@ -3045,7 +3031,7 @@ if [ "$TERM" = xterm-256color ]; then
     bindkey "^[[F" end-of-line
     bindkey "^[[3~" delete-char
 fi
-   #+END_SRC
+#+END_SRC
 
 Setup Apple Terminal so that CWD is shown.
 
@@ -3055,7 +3041,7 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     add-zsh-hook chpwd update_terminal_cwd
     update_terminal_cwd
 fi
-   #+END_SRC
+#+END_SRC
 
 #+BEGIN_SRC sh
 if [ -n "$INSIDE_EMACS" ]; then
@@ -3069,7 +3055,7 @@ if [ -n "$INSIDE_EMACS" ]; then
     # call prmptcmd whenever prompt is redrawn
     precmd_functions=($precmd_functions set_eterm_dir)
 fi
-   #+END_SRC
+#+END_SRC
 ** =etc-profile.sh=
 :PROPERTIES:
 :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
@@ -3080,7 +3066,7 @@ used to reference the Nix output dir.
 
 #+BEGIN_SRC sh :padline no
 export PREFIX=@out@
-   #+END_SRC
+#+END_SRC
 
 This will source everything in =/etc/profile.d=.
 
@@ -3092,7 +3078,7 @@ if [ -d @out@/etc/profile.d ]; then
     fi
   done
 fi
-   #+END_SRC
+#+END_SRC
 ** =.gitignore=
 :PROPERTIES:
 :header-args: :tangle gitignore
@@ -3104,7 +3090,7 @@ Some basic gitignore paths.
 *~
 \#*\#
 *.DS_Store
-   #+END_SRC
+#+END_SRC
 ** =.gitconfig=
 :PROPERTIES:
 :header-args: :tangle gitconfig
@@ -3135,7 +3121,7 @@ Some basic gitignore paths.
 
 [color]
 	ui = true
-   #+END_SRC
+#+END_SRC
 * Bootstrapping
 ** =site-paths.el.in=
 :PROPERTIES:
@@ -3149,7 +3135,7 @@ run this, I’ve set the syntax to =text=.
 #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
 (require 'subr-x)
-   #+END_SRC
+#+END_SRC
 
 =output-directory= points to the nix-profile directory created by Nix.
 Ideally, this could point to a Nix store path, but the order of building
@@ -3157,7 +3143,7 @@ means that we don’t know this until too late.
 
 #+BEGIN_SRC emacs-lisp
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
-   #+END_SRC
+#+END_SRC
 
 Setup =exec-path=.
 
@@ -3165,7 +3151,7 @@ Setup =exec-path=.
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
                           "/usr/sbin" "/usr/bin" "/sbin" "/bin")
                         exec-path))
-   #+END_SRC
+#+END_SRC
 
 Setup =man-path=.
 
@@ -3173,7 +3159,7 @@ Setup =man-path=.
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
                    ,(expand-file-name "share/man" output-directory)))
-   #+END_SRC
+#+END_SRC
 
 This will setup cacert-file var,
 
@@ -3181,7 +3167,7 @@ This will setup cacert-file var,
 (defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
   "Path for SSL certificates."
   :group 'environment)
-   #+END_SRC
+#+END_SRC
 
 Set env vars provided by Nix,
 
@@ -3193,7 +3179,7 @@ Set env vars provided by Nix,
  `("PATH" ,(string-join exec-path ":"))
  `("MANPATH" ,(string-join man-path ":"))
  )
-   #+END_SRC
+#+END_SRC
 
 Set paths provided by Nix,
 
@@ -3293,7 +3279,7 @@ Set paths provided by Nix,
  '(ag-executable "@ag@/bin/ag")
  '(notmuch-command "@notmuch@/bin/notmuch")
  )
-   #+END_SRC
+#+END_SRC
 
 Set some defaults that depend on the path variables below,
 
@@ -3415,13 +3401,13 @@ Set some defaults that depend on the path variables below,
                        ))
  '(woman-manpath man-path)
  )
-   #+END_SRC
+#+END_SRC
 
 Provide site-paths,
 
 #+BEGIN_SRC emacs-lisp
 (provide 'site-paths)
-   #+END_SRC
+#+END_SRC
 
 ** =bootstrap.sh=
 :PROPERTIES:
@@ -3430,7 +3416,7 @@ Provide site-paths,
 
 #+BEGIN_SRC sh :padline no
 #!/bin/sh
-   #+END_SRC
+#+END_SRC
 
 Install Nix.
 
@@ -3440,7 +3426,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install > $nix_installer
     sh $nix_installer
 fi
-   #+END_SRC
+#+END_SRC
 
 Pull into Git repo.
 
@@ -3449,7 +3435,7 @@ if [ -d .git ] && command -v git >/dev/null 2>&1
 then
     git pull origin master || true
 fi
-   #+END_SRC
+#+END_SRC
 
 Clone if default.nix doesn’t exist.
 
@@ -3459,13 +3445,13 @@ if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
     git clone https://github.com/matthewbauer/bauer $repo_dir
     cd $repo_dir
 fi
-   #+END_SRC
+#+END_SRC
 
 Install current directory
 
 #+BEGIN_SRC sh
 nix-env -if .
-   #+END_SRC
+#+END_SRC
 
 ** =runemacs.sh=
 :PROPERTIES:
@@ -3485,7 +3471,7 @@ case $(uname) in
         @out@/bin/emacs
     ;;
 esac
-   #+END_SRC
+#+END_SRC
 * Building
 ** =default.nix=: the tangler
 :PROPERTIES:
@@ -3497,7 +3483,7 @@ esac
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
-   #+END_SRC
+#+END_SRC
 
 Now let's tangle README.org...
 
@@ -3512,7 +3498,7 @@ emacs --batch --quick \
       --eval "(org-babel-tangle-file \"README.org\")"
 cp bauer.nix default.nix
 '') {inherit nixpkgs';}
-   #+END_SRC
+#+END_SRC
 ** =bauer.nix=: the build script
 :PROPERTIES:
 :header-args: :tangle bauer.nix
@@ -3526,7 +3512,7 @@ will be =nixpkgs= instantiated.
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs'; let
-   #+END_SRC
+#+END_SRC
 
 We start out by defining the Nix version to use. nixStable corresponds to the
 last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
@@ -3534,7 +3520,7 @@ soon be released.
 
 #+BEGIN_SRC nix
 nix = nixStable;
-   #+END_SRC
+#+END_SRC
 
 Next we start defining some packages. R is one of the simpler ones right now,
 so let's start with that.
@@ -3545,7 +3531,7 @@ so let's start with that.
       RCurl
     ];
   };
-  #+END_SRC
+#+END_SRC
 
 Here we define our package set. This will just give us access to all of the
 Emacs packages defined in Nixpkgs.
@@ -3560,14 +3546,14 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version
     emacs = if stdenv.isDarwin then emacsMacport
             else emacs;
   });
-  #+END_SRC
+#+END_SRC
 
 Next, we define aspell with the English language. This is used by Emacs
 ispell.
 
 #+BEGIN_SRC nix
   myAspell = aspellWithDicts (ps : with ps; [ en ]);
-  #+END_SRC
+#+END_SRC
 
 Tex live provides some LaTeX commads for us.
 
@@ -3584,7 +3570,7 @@ Tex live provides some LaTeX commads for us.
       collection-metapost collection-texworks
       collection-xetex capt-of ulem hyperref titlesec;
   };
-  #+END_SRC
+#+END_SRC
 
 *** Emacs configuration
 
@@ -3622,7 +3608,7 @@ substitution of all the attributes set.
 cp ${./site-paths.el.in} $out
 substituteAllInPlace $out
   '';
-   #+END_SRC
+#+END_SRC
 
 Emacs building can be divided into phases. Each phase will run through the
 Elisp once.
@@ -3646,7 +3632,7 @@ emacs --batch --quick \
                 --eval "(use-package-list \"${./README.el}\")" > $out
   '';
 myPackages = builtins.fromJSON (builtins.readFile package-list);
-   #+END_SRC
+#+END_SRC
 
 **** Phase 2: byte compiling
 
@@ -3673,7 +3659,7 @@ cp ${./lisp/company-eshell-history.el} \
   $out/share/emacs/site-lisp/company-eshell-history.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
-   #+END_SRC
+#+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
 files. The problem is the .el files all are going to depend on dependencies
@@ -3692,11 +3678,11 @@ emacs --batch --quick \
                         [use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
-   #+END_SRC
+#+END_SRC
 
 #+BEGIN_SRC nix
   '';
-   #+END_SRC
+#+END_SRC
 
 **** Phase 3: wrapping into Emacs
 
@@ -3758,7 +3744,7 @@ emacs --batch --quick \
      # Byte-compiling improves start-up time only slightly, but costs nothing.
      $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
   '';
-   #+END_SRC
+#+END_SRC
 
 requiredPackages is a function that takes two arguments.
 
@@ -3772,7 +3758,7 @@ requiredPackages = epkgs: map (x:
     else if builtins.hasAttr x epkgs.elpaPackages
     then builtins.getAttr x epkgs.elpaPackages
     else builtins.getAttr x pkgs);
-   #+END_SRC
+#+END_SRC
 
 Now we build our Emacs distribution.
 
@@ -3781,7 +3767,7 @@ Now we build our Emacs distribution.
     (requiredPackages epkgs myPackages)
     ++ [default epkgs.melpaPackages.use-package]
   );
-   #+END_SRC
+#+END_SRC
 
 *** The environment
 
@@ -3874,11 +3860,11 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
 #    ++ (with haskellPackages; [ghc-mod])
     ;
 };
-   #+END_SRC
+#+END_SRC
 
 #+BEGIN_SRC nix
 in myEnv
-  #+END_SRC
+#+END_SRC
 
 ** Invoking it
 We can build it with =nix-build=.
@@ -3886,7 +3872,7 @@ We can build it with =nix-build=.
 #+BEGIN_SRC sh :results none
 nix-build
 ./result/bin/run
-   #+END_SRC
+#+END_SRC
 * Continuous integration
 :PROPERTIES:
 :header-args: :tangle .travis.yml
@@ -3904,7 +3890,7 @@ We'll set up Travis support here. We start by configuring =.travis.yml=.
 
 #+BEGIN_SRC yaml :padline no
 language: nix
-  #+END_SRC
+#+END_SRC
 
 Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
@@ -3912,7 +3898,7 @@ Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 script:
   - nix-build -Q --argstr nixpkgs-url $NIXPKGS
   - sh info.sh result
-  #+END_SRC
+#+END_SRC
 
 Setup the OSs. Sadly no Windows support yet.
 
@@ -3923,7 +3909,7 @@ sudo: false
 os:
   - linux
   - osx
-  #+END_SRC
+#+END_SRC
 
 Setup some values for =NIXPKGS= variables.
 
@@ -3931,7 +3917,7 @@ Setup some values for =NIXPKGS= variables.
 env:
   - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
-  #+END_SRC
+#+END_SRC
 
 Configure the matrix...
 
@@ -3944,7 +3930,7 @@ matrix:
       env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
     - os: osx
       env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
-  #+END_SRC
+#+END_SRC
 
 Setup the cache.
 
@@ -3952,14 +3938,14 @@ Setup the cache.
 cache:
   directories:
     - /nix/store
-  #+END_SRC
+#+END_SRC
 
 Turn off those annoying Travis notifications.
 
 #+BEGIN_SRC yaml
 notifications:
   email: false
-  #+END_SRC
+#+END_SRC
 * Extra
 ** =update.sh=
 :PROPERTIES:
@@ -3973,7 +3959,7 @@ files.
 #!/bin/sh
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
-   #+END_SRC
+#+END_SRC
 ** =.gitignore=
 :PROPERTIES:
 :header-args: :tangle .gitignore
@@ -3996,7 +3982,7 @@ flycheck_*.el
 *.aux
 *.out
 *.toc
-   #+END_SRC
+#+END_SRC
 
 Nix-related stuff.
 
@@ -4004,7 +3990,7 @@ Nix-related stuff.
 # nix stuff
 result
 result-*
-   #+END_SRC
+#+END_SRC
 
 These are all tangled by [[./README.org][README.org]].
 
@@ -4022,7 +4008,7 @@ profile.sh
 site-paths.el.in
 init.el
 org-init.el
-   #+END_SRC
+#+END_SRC
 ** =info.sh=
 :PROPERTIES:
 :header-args: :tangle info.sh :tangle-mode (identity #o755)
@@ -4047,7 +4033,7 @@ if [ -e $out ]; then
   echo Dependencies:
   du -scl $(nix-store -qR $out) | sort -n
 fi
-   #+END_SRC
+#+END_SRC
 ** =config.nix=
 :PROPERTIES:
 :header-args: :tangle config.nix
@@ -4064,7 +4050,7 @@ your channel. Having this file available means you can place this repo in
     userPackages = bauer;
   };
 }
-   #+END_SRC
+#+END_SRC
 * COMMENT Footer
 # Local Variables:
 # mode: org
