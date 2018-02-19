@@ -6,8 +6,8 @@
 #+LANGUAGE: en
 #+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
-#+OPTIONS: creator:nil date:nil email:nil inline:nil num:nil pri:t
-#+OPTIONS: prop:t stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
+#+OPTIONS: creator:t date:t email:t inline:nil num:nil pri:t
+#+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+PROPERTY: header-args :cache yes
 #+PROPERTY: header-args:emacs-lisp :results output silent
 #+LATEX_HEADER: \usepackage{parskip}
@@ -17,9 +17,11 @@
 #+LATEX_HEADER: \usepackage{upquote}
 #+TAGS: noexport notangle
 #+STARTUP: hideblocks indent align entitiespretty
-#+HTML_HEAD: <link rel=stylesheet href="https://matthewbauer.us/style.css" />
 #+EXPORT_FILE_NAME: index
 #+KEYWORDS: dotfiles config ide emacs nix bauer
+#+HTML_HEAD: <link rel=stylesheet href="https://matthewbauer.us/style.css" />
+#+LINK_HOME: http://matthewbauer.us
+#+LINK_UP: http://matthewbauer.us/bauer/
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]×[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -186,7 +188,7 @@ currently. FIXME!
 (autoload 'package-installed-p "package")
 (define-obsolete-function-alias 'org-define-error 'define-error)
 (when (and (string= window-system "mac")
-		   (require 'mac-win nil t))
+	   (require 'mac-win nil t))
   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
 #+END_SRC
 
@@ -1733,15 +1735,6 @@ setup.
   :bind* (("M-/". hippie-expand)))
 #+END_SRC
 
-**** imenu
-***** imenu-anywhere
-
-#+BEGIN_SRC emacs-lisp
-(use-package imenu-anywhere
-  :bind (("C-c i" . imenu-anywhere)
-         ("s-i" . imenu-anywhere)))
-#+END_SRC
-
 **** paren
 
 #+BEGIN_SRC emacs-lisp
@@ -1806,32 +1799,6 @@ setup.
   (defun prettify-symbols-js ()
     (push '("function" . ?λ) prettify-symbols-alist)
     (push '("=>" . ?⇒) prettify-symbols-alist)))
-#+END_SRC
-
-**** rainbow-delimiters
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters
-  :hook ((emacs-lisp-mode
-          inferior-emacs-lisp-mode
-          ielm-mode
-          lisp-mode
-          inferior-lisp-mode
-          lisp-interaction-mode
-          slime-repl-mode) . rainbow-delimiters-mode))
-#+END_SRC
-
-**** rainbow-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
-  :hook ((emacs-lisp-mode
-          inferior-emacs-lisp-mode
-          ielm-mode
-          lisp-mode
-          inferior-lisp-mode
-          lisp-interaction-mode
-          slime-repl-mode) . rainbow-mode))
 #+END_SRC
 
 **** Shell
@@ -2543,6 +2510,32 @@ Most of these are available in MELPA.
 (use-package pandoc-mode
   :hook ((markdown-mode . pandoc-mode)
          (pandoc-mode . pandoc-load-default-settings)))
+#+END_SRC
+
+**** rainbow-delimiters
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-delimiters
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-delimiters-mode))
+#+END_SRC
+
+**** rainbow-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+  :hook ((emacs-lisp-mode
+          inferior-emacs-lisp-mode
+          ielm-mode
+          lisp-mode
+          inferior-lisp-mode
+          lisp-interaction-mode
+          slime-repl-mode) . rainbow-mode))
 #+END_SRC
 
 **** restclient
@@ -3939,8 +3932,8 @@ your channel. Having this file available means you can place this repo in
 # Local Variables:
 # mode: org
 # fill-column: 80
-# org-html-postamble-format: ("en" .
+# org-html-postamble: t
+# org-html-postamble-format: (("en"
 # "<p class=\"author\">Author: %a (%e)</p>
-# <p class=\"date\">Date: %d</p>
-# <p class=\"creator\">%c</p>")
+# <p class=\"creator\">%c</p>"))
 # End:
