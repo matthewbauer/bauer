@@ -233,7 +233,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(auto-window-vscroll nil)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-directory-alist `(("." . ,(expand-file-name "backup"
-													  user-emacs-directory))))
+						      user-emacs-directory))))
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
@@ -311,24 +311,25 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(eshell-ls-initial-args "-h")
  '(eshell-mv-interactive-query t)
  '(eshell-output-filter-functions '(eshell-handle-ansi-color
-									eshell-handle-control-codes
-									eshell-watch-for-password-prompt))
+				    eshell-handle-control-codes
+				    eshell-watch-for-password-prompt))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat (when (tramp-tramp-file-p default-directory)
-				   (concat (tramp-file-name-user
-							(tramp-dissect-file-name default-directory))
-						   "@"
-						   (tramp-file-name-real-host (tramp-dissect-file-name
-													   default-directory))
-						   " "))
-				 (let ((dir (eshell/pwd)))
-				   (if (string= dir (getenv "HOME")) "~"
-					 (let ((dirname (file-name-nondirectory dir)))
-					   (if (string= dirname "") "/" dirname))))
-				 (if (= (user-uid) 0) " # " " $ "))))
+		   (concat (tramp-file-name-user
+			    (tramp-dissect-file-name default-directory))
+			   "@"
+			   (tramp-file-name-real-host
+			    (tramp-dissect-file-name
+			     default-directory))
+			   " "))
+		 (let ((dir (eshell/pwd)))
+		   (if (string= dir (getenv "HOME")) "~"
+		     (let ((dirname (file-name-nondirectory dir)))
+		       (if (string= dirname "") "/" dirname))))
+		 (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-stringify-t nil)
  '(eval-expression-print-level nil)
  '(expand-region-contract-fast-key "j")
@@ -343,12 +344,12 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(flycheck-display-errors-function
    'flycheck-display-error-messages-unless-error-list)
  '(flycheck-global-modes '(not erc-mode
-							   message-mode
-							   git-commit-mode
-							   view-mode
-							   outline-mode
-							   text-mode
-							   org-mode))
+			       message-mode
+			       git-commit-mode
+			       view-mode
+			       outline-mode
+			       text-mode
+			       org-mode))
  '(flycheck-standard-error-navigation nil)
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
@@ -356,8 +357,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(flyspell-incorrect-hook nil)
  '(flyspell-issue-welcome-flag nil)
  '(frame-title-format '(:eval (if (buffer-file-name)
-								  (abbreviate-file-name (buffer-file-name))
-								"%b")))
+				  (abbreviate-file-name (buffer-file-name))
+				"%b")))
  '(global-auto-revert-non-file-buffers t)
  '(gnuplot-eldoc-mode t)
  '(gnuplot-inline-image-mode 'dedicated)
@@ -389,8 +390,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ibuffer-default-display-maybe-show-predicates t)
  '(ibuffer-expert t)
  '(ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
-						   (size 6 -1 :right) " " (mode 16 16) " " filename)
-					 (mark " " (name 16 -1) " " filename)))
+			   (size 6 -1 :right) " " (mode 16 16) " " filename)
+		     (mark " " (name 16 -1) " " filename)))
  '(ibuffer-maybe-show-regexps nil)
  '(ibuffer-show-empty-filter-groups nil)
  '(ibuffer-shrink-to-minimum-size t t)
@@ -408,11 +409,11 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ivy-count-format "\"\"")
  '(ivy-dynamic-exhibit-delay-ms 200)
  '(ivy-ignore-buffers '("\\` "
-						"\\`\\*git-monitor:"
-						"\\`\\*magit-process:"
-						"\\.elc$"
-						"\\`\\.newsrc-dribble\\'"
-						"\\`\\.newsrc.eld\\'"))
+			"\\`\\*git-monitor:"
+			"\\`\\*magit-process:"
+			"\\.elc$"
+			"\\`\\.newsrc-dribble\\'"
+			"\\`\\.newsrc.eld\\'"))
  '(ivy-display-style nil)
  '(ivy-fixed-height-minibuffer t)
  '(ivy-minibuffer-faces nil)
@@ -485,10 +486,10 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-ignored-project-function 'file-remote-p)
  '(projectile-mode-line '(:eval
-						  (if (and (ignore-errors (projectile-project-p))
-								   (not (file-remote-p default-directory)))
-							  (format " Projectile[%s]"
-									  (projectile-project-name)) "")))
+			  (if (and (ignore-errors (projectile-project-p))
+				   (not (file-remote-p default-directory)))
+			      (format " Projectile[%s]"
+				      (projectile-project-name)) "")))
  '(projectile-switch-project-action 'projectile-dired)
  '(projectile-verbose nil)
  '(proof-auto-action-when-deactivating-scripting 'retract)
@@ -506,24 +507,24 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ring-bell-function 'ignore)
  '(ruby-insert-encoding-magic-comment nil)
  '(same-window-buffer-names '("*eshell*"
-							  "*shell*"
-							  "*mail*"
-							  "*inferior-lisp*"
-							  "*ielm*"
-							  "*scheme*"))
+			      "*shell*"
+			      "*mail*"
+			      "*inferior-lisp*"
+			      "*ielm*"
+			      "*scheme*"))
  '(save-abbrevs 'silently)
  '(save-interprogram-paste-before-kill t)
  '(savehist-additional-variables '(search-ring
-								   regexp-search-ring
-								   kill-ring
-								   comint-input-ring
-								   kmacro-ring
-								   sr-history-registry
-								   file-name-history
-								   tablist-name-filter))
+				   regexp-search-ring
+				   kill-ring
+				   comint-input-ring
+				   kmacro-ring
+				   sr-history-registry
+				   file-name-history
+				   tablist-name-filter))
  '(savehist-autosave-interval 60)
  '(savehist-ignored-variables '(load-history
-								flyspell-auto-correct-ring kill-ring))
+				flyspell-auto-correct-ring kill-ring))
  '(scroll-preserve-screen-position 'always)
  '(scroll-bar-mode nil)
  '(send-mail-function 'smtpmail-send-it)
@@ -545,8 +546,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(term-input-ring-file-name t)
  '(text-quoting-style 'quote)
  '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
-								 (nil "\\`root\\'" "/ssh:%h:")
-								 (".*" "\\`root\\'" "/ssh:%h:")))
+				 (nil "\\`root\\'" "/ssh:%h:")
+				 (".*" "\\`root\\'" "/ssh:%h:")))
  '(tramp-default-user nil)
  '(truncate-lines nil)
  '(tls-checktrust t)
@@ -566,8 +567,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(vc-follow-symlinks nil)
  '(vc-ignore-dir-regexp
    (concat "\\(\\(\\`"
-		   "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
-		   "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
+	   "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
+	   "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell t)
@@ -701,6 +702,7 @@ try to avoid extremely specific key binds here.
 (bind-key "C-c w w"         'whitespace-mode)
 
 (bind-key "<C-return>"      'other-window)
+(bind-key "s-o"             'other-window)
 (bind-key "C-z"             'delete-other-windows)
 (bind-key "M-g l"           'goto-line)
 (bind-key "<C-M-backspace>" 'backward-kill-sexp)
@@ -731,6 +733,8 @@ try to avoid extremely specific key binds here.
 (bind-key "s-C-<down>"      'shrink-window)
 (bind-key "s-C-<up>"        'enlarge-window)
 
+;; (autoload 'iso-transl-ctl-x-8-map "iso-transl"
+;; "Keymap for C-x 8 prefix." t 'keymap)
 (require 'iso-transl)
 (bind-key "' /"       "′" iso-transl-ctl-x-8-map)
 (bind-key "\" /"      "″" iso-transl-ctl-x-8-map)
@@ -779,6 +783,31 @@ try to avoid extremely specific key binds here.
 ;; (bind-key "l" 'forward-char view-mode-map)
 ;; (bind-key "f" 'forward-char view-mode-map)
 ;; (bind-key "b" 'backward-char view-mode-map)
+
+;; (bind-keys
+;;  :prefix-map hemacs-help-map
+;;  :prefix "s-h"
+;;  ("k" . describe-personal-keybindings)
+;;  ("K" . free-keys)
+;;  ("g" . google-this)
+;;  ("d" . dash-at-point)
+;;  ("D" . dash-at-point-with-docset)
+;;  ("p" . ffap)
+;;  ("." . helpful-at-point)
+;;  ("o" . counsel-find-library))
+
+;; (bind-keys
+;;  :prefix-map hemacs-git-map
+;;  :prefix "s-g"
+;;  ("o" . github-browse-file)
+;;  ("b" . github-browse-file-blame)
+;;  ("c" . github-browse-commit)
+;;  ("l" . magit-clone)
+;;  ("i" . github-new-issue)
+;;  ("I" . github-issues)
+;;  ("g" . gist-region-or-buffer-private)
+;;  ("t" . git-timemachine)
+;;  ("p" . git-messenger:popup-message))
 #+END_SRC
 
 ** Setup installer
@@ -818,9 +847,11 @@ Automatically indent code as you type. Only enabled for Lisp currently.
           slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
-**** apropospriate-theme
+**** Apropospriate Theme
 
-This is the theme I use. This has to be defered for some reason.
+[[https://github.com/waymondo/apropospriate-theme][GitHub]]
+
+This is the theme I use. This cannot be deferred.
 
 #+BEGIN_SRC emacs-lisp
 (use-package apropospriate-theme
@@ -873,10 +904,11 @@ info.
   :bind (("<f6>" . ivy-resume)
          ([remap list-buffers] . ivy-switch-buffer)
          ([remap switch-to-buffer] . ivy-switch-buffer)
-         ([remap switch-to-buffer-other-window] . 
-                      ivy-switch-buffer-other-window)
+         ([remap switch-to-buffer-other-window] .
+	  ivy-switch-buffer-other-window)
          ;; ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
-         )
+	 :map ivy-minibuffer-map
+	 ("<escape>" . abort-recursive-edit))
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
@@ -937,6 +969,77 @@ info.
   :commands (R))
 #+END_SRC
 
+**** Emacs shell
+
+#+BEGIN_SRC emacs-lisp
+(use-package eshell
+  :ensure nil
+  :bind (("C-c M-t" . eshell)
+         ("C-c x" . eshell))
+  :commands (eshell-command eshell-bol)
+  :config
+  (use-package em-rebind
+    :preface
+    (defun eshell-eol ()
+      "Goes to the end of line."
+      (interactive)
+      (end-of-line))
+    :ensure nil
+    :demand
+    :config
+    (setq eshell-rebind-keys-alist
+          '(([(control 97)] . eshell-bol)
+            ([home] . eshell-bol)
+            ([(control 100)] . eshell-delchar-or-maybe-eof)
+            ([backspace] . eshell-delete-backward-char)
+            ([delete] . eshell-delete-backward-char)
+            ([(control 119)] . backward-kill-word)
+            ([(control 117)] . eshell-kill-input)
+            ([tab] . completion-at-point)
+            ([(control 101)] . eshell-eol))))
+  (setq eshell-modules-list
+        '(eshell-alias
+          eshell-banner
+          eshell-basic
+          eshell-cmpl
+          eshell-dirs
+          eshell-glob
+          eshell-hist
+          eshell-ls
+          eshell-pred
+          eshell-prompt
+          eshell-rebind
+          eshell-script
+          eshell-smart
+          eshell-term
+          eshell-tramp
+          eshell-unix
+          eshell-xtra)))
+#+END_SRC
+
+***** esh-help
+
+#+BEGIN_SRC emacs-lisp
+(use-package esh-help
+  :commands (esh-help-eldoc-command)
+  :preface
+  (defun turn-on-esh-eldoc ()
+    (setq-local eldoc-documentation-function 'esh-help-eldoc-command))
+  :hook (eshell-mode . turn-on-esh-eldoc))
+#+END_SRC
+
+***** em-dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package em-dired
+  :ensure nil
+  :commands (em-dired-new)
+  :bind (:map dired-mode-map
+              ("e" . em-dired))
+  :hook (eshell-mode . em-dired-mode)
+  :init (advice-add 'eshell :before 'em-dired-new))
+#+END_SRC
+
 **** ESUP
 
 [[https://github.com/jschaf/esup][GitHub]]
@@ -994,6 +1097,23 @@ apropospriate, and flycheck are the biggest offenders.
 #+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
+#+END_SRC
+
+**** Hippie Expand
+
+#+BEGIN_SRC emacs-lisp
+(use-package hippie-exp
+  :ensure nil
+  :bind* (("M-/" . hippie-expand)
+	  ("s-?" . hippie-expand-line))
+  :hook ((emacs-lisp-mode ielm-mode) . hippie-expand-allow-lisp-symbols)
+  :preface
+  (defun hippie-expand-allow-lisp-symbols ()
+    (setq-local hippie-expand-try-functions-list
+                (append '(try-complete-lisp-symbol-partially
+                          try-complete-lisp-symbol)
+                        hippie-expand-try-functions-list)))
+  )
 #+END_SRC
 
 **** Magit
@@ -1368,6 +1488,19 @@ easymenu to make the "Projectile" modeline clickable.
   :bind (("C-c C-r" . sudo-edit)))
 #+END_SRC
 
+**** Tramp
+
+[[https://www.gnu.org/software/tramp/][Website]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package tramp
+  :ensure nil
+  :commands (tramp-tramp-file-p
+             tramp-file-name-user
+             tramp-file-name-real-host
+             tramp-dissect-file-name))
+#+END_SRC
+
 **** which-key
 
 #+BEGIN_SRC emacs-lisp
@@ -1575,77 +1708,6 @@ setup.
          (smartparens-mode . (lambda () (electric-pair-mode -1)))))
 #+END_SRC
 
-**** Emacs shell
-
-#+BEGIN_SRC emacs-lisp
-(use-package eshell
-  :ensure nil
-  :bind (("C-c M-t" . eshell)
-         ("C-c x" . eshell))
-  :commands (eshell-command eshell-bol)
-  :config
-  (use-package em-rebind
-    :preface
-    (defun eshell-eol ()
-      "Goes to the end of line."
-      (interactive)
-      (end-of-line))
-    :ensure nil
-    :demand
-    :config
-    (setq eshell-rebind-keys-alist
-          '(([(control 97)] . eshell-bol)
-            ([home] . eshell-bol)
-            ([(control 100)] . eshell-delchar-or-maybe-eof)
-            ([backspace] . eshell-delete-backward-char)
-            ([delete] . eshell-delete-backward-char)
-            ([(control 119)] . backward-kill-word)
-            ([(control 117)] . eshell-kill-input)
-            ([tab] . completion-at-point)
-            ([(control 101)] . eshell-eol))))
-  (setq eshell-modules-list
-        '(eshell-alias
-          eshell-banner
-          eshell-basic
-          eshell-cmpl
-          eshell-dirs
-          eshell-glob
-          eshell-hist
-          eshell-ls
-          eshell-pred
-          eshell-prompt
-          eshell-rebind
-          eshell-script
-          eshell-smart
-          eshell-term
-          eshell-tramp
-          eshell-unix
-          eshell-xtra)))
-#+END_SRC
-
-***** esh-help
-
-#+BEGIN_SRC emacs-lisp
-(use-package esh-help
-  :commands (esh-help-eldoc-command)
-  :preface
-  (defun turn-on-esh-eldoc ()
-    (setq-local eldoc-documentation-function 'esh-help-eldoc-command))
-  :hook (eshell-mode . turn-on-esh-eldoc))
-#+END_SRC
-
-***** em-dired
-
-#+BEGIN_SRC emacs-lisp
-(use-package em-dired
-  :ensure nil
-  :commands (em-dired-new)
-  :bind (:map dired-mode-map
-              ("e" . em-dired))
-  :hook (eshell-mode . em-dired-mode)
-  :init (advice-add 'eshell :before 'em-dired-new))
-#+END_SRC
-
 **** executable
 
 #+BEGIN_SRC emacs-lisp
@@ -1707,7 +1769,9 @@ setup.
        (if (boundp 'ispell-program-name) ispell-program-name "ispell")
        exec-path)
   :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)))
+         (prog-mode . flyspell-prog-mode))
+  :init
+  (define-key flyspell-mode-map [(control ?\.)] nil))
 #+END_SRC
 
 **** goto-addr
@@ -1725,14 +1789,6 @@ setup.
 (use-package gud
   :ensure nil
   :commands (gud-gdb))
-#+END_SRC
-
-**** hippie-exp
-
-#+BEGIN_SRC emacs-lisp
-(use-package hippie-exp
-  :ensure nil
-  :bind* (("M-/". hippie-expand)))
 #+END_SRC
 
 **** paren
@@ -1842,6 +1898,15 @@ setup.
   :hook ((java-mode . subword-mode)))
 #+END_SRC
 
+**** text-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package text-mode
+  :no-require
+  :ensure nil
+  :hook (text-mode . turn-on-auto-fill))
+#+END_SRC
+
 **** term
 
 #+BEGIN_SRC emacs-lisp
@@ -1864,15 +1929,6 @@ setup.
   :bind ("C-c t" . my-term))
 #+END_SRC
 
-**** text-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package text-mode
-  :no-require
-  :ensure nil
-  :hook (text-mode . turn-on-auto-fill))
-#+END_SRC
-
 **** time
 
 #+BEGIN_SRC emacs-lisp
@@ -1890,19 +1946,6 @@ setup.
   :commands (tooltip-mode)
   :config
   (tooltip-mode -1))
-#+END_SRC
-
-**** tramp
-
-[[https://www.gnu.org/software/tramp/][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package tramp
-  :ensure nil
-  :commands (tramp-tramp-file-p
-             tramp-file-name-user
-             tramp-file-name-real-host
-             tramp-dissect-file-name))
 #+END_SRC
 
 **** url-handlers
@@ -1982,6 +2025,7 @@ packages (for completion, syntax checking, etc.)
   :mode (("\\.coffee\\'" . coffee-mode)))
 #+END_SRC
 
+**** TODO Coq
 **** CSS
 
 #+BEGIN_SRC emacs-lisp
@@ -2022,35 +2066,52 @@ packages (for completion, syntax checking, etc.)
 **** Haskell
 ***** ghc
 
+Note: this needs ghc-mod to be in PATH to work properly.
+
 #+BEGIN_SRC emacs-lisp
 (use-package ghc
   :hook (haskell-mode . ghc-init))
 #+END_SRC
 
-***** haskell-mode
-
-Hacky ways to autoload things (please FIXME).
-
+***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
   :ensure nil
   :hook (haskell-mode . interactive-haskell-mode))
-(use-package haskell-decl-scan
-  :commands (haskell-ds-create-imenu-index haskell-decl-scan-mode)
-  :ensure nil)
+#+END_SRC
+
+***** haskell-doc
+#+BEGIN_SRC emacs-lisp
 (use-package haskell-doc
   :ensure nil
   :commands (haskell-doc-current-info)
-  :hook (haskell-mode . haskell-doc-setup)
+  :hook (haskell-mode . haskell-eloc-setup)
   :preface
   (defun haskell-eldoc-setup ()
 	(setq-local eldoc-documentation-function 'haskell-doc-current-info)))
+#+END_SRC
+
+***** haskell-decl-scan
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-decl-scan
+  :commands (haskell-ds-create-imenu-index haskell-decl-scan-mode)
+  :ensure nil)
+#+END_SRC
+***** haskell-completions
+#+BEGIN_SRC emacs-lisp
 (use-package haskell-completions
   :ensure nil
   :commands (haskell-completions-completion-at-point))
+#+END_SRC
+***** haskell-unicode
+#+BEGIN_SRC emacs-lisp
 (use-package haskell-unicode-input-method
   :ensure nil
   :commands (turn-on-haskell-unicode-input-method))
+#+END_SRC
+***** haskell-mode
+
+#+BEGIN_SRC emacs-lisp
 (use-package haskell
   :ensure haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
@@ -2200,7 +2261,16 @@ Auctex provides some helpful tools for working with LaTeX.
 	  (nix-buffer)))
   :hook (after-change-major-mode . turn-on-nix-buffer))
 #+END_SRC
+***** nix-update
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
+#+BEGIN_SRC emacs-lisp
+(use-package nix-update-el
+  :disabled
+  :bind (("C-. u" . nix-update-fetch)))
+#+END_SRC
 **** NROFF
 
 #+BEGIN_SRC emacs-lisp
@@ -3936,4 +4006,5 @@ your channel. Having this file available means you can place this repo in
 # org-html-postamble-format: (("en"
 # "<p class=\"author\">Author: %a (%e)</p>
 # <p class=\"creator\">%c</p>"))
+# tab-width: 8
 # End:
