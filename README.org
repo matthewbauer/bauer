@@ -233,7 +233,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(auto-window-vscroll nil)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-directory-alist `(("." . ,(expand-file-name "backup"
-						      user-emacs-directory))))
+					              user-emacs-directory))))
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
@@ -311,25 +311,25 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(eshell-ls-initial-args "-h")
  '(eshell-mv-interactive-query t)
  '(eshell-output-filter-functions '(eshell-handle-ansi-color
-				    eshell-handle-control-codes
-				    eshell-watch-for-password-prompt))
+                                    eshell-handle-control-codes
+                                    eshell-watch-for-password-prompt))
  '(eshell-plain-echo-behavior nil)
  '(eshell-review-quick-commands t)
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat (when (tramp-tramp-file-p default-directory)
-		   (concat (tramp-file-name-user
-			    (tramp-dissect-file-name default-directory))
-			   "@"
-			   (tramp-file-name-real-host
-			    (tramp-dissect-file-name
-			     default-directory))
-			   " "))
-		 (let ((dir (eshell/pwd)))
-		   (if (string= dir (getenv "HOME")) "~"
-		     (let ((dirname (file-name-nondirectory dir)))
-		       (if (string= dirname "") "/" dirname))))
-		 (if (= (user-uid) 0) " # " " $ "))))
+                   (concat (tramp-file-name-user
+                            (tramp-dissect-file-name default-directory))
+                           "@"
+                           (tramp-file-name-real-host
+                            (tramp-dissect-file-name
+                             default-directory))
+                           " "))
+                 (let ((dir (eshell/pwd)))
+                   (if (string= dir (getenv "HOME")) "~"
+                     (let ((dirname (file-name-nondirectory dir)))
+                       (if (string= dirname "") "/" dirname))))
+                 (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-stringify-t nil)
  '(eval-expression-print-level nil)
  '(expand-region-contract-fast-key "j")
@@ -344,12 +344,12 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(flycheck-display-errors-function
    'flycheck-display-error-messages-unless-error-list)
  '(flycheck-global-modes '(not erc-mode
-			       message-mode
-			       git-commit-mode
-			       view-mode
-			       outline-mode
-			       text-mode
-			       org-mode))
+                               message-mode
+                               git-commit-mode
+                               view-mode
+                               outline-mode
+                               text-mode
+                               org-mode))
  '(flycheck-standard-error-navigation nil)
  '(flyspell-abbrev-p nil)
  '(flyspell-auto-correct nil)
@@ -357,8 +357,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(flyspell-incorrect-hook nil)
  '(flyspell-issue-welcome-flag nil)
  '(frame-title-format '(:eval (if (buffer-file-name)
-				  (abbreviate-file-name (buffer-file-name))
-				"%b")))
+                                  (abbreviate-file-name (buffer-file-name))
+                                "%b")))
  '(global-auto-revert-non-file-buffers t)
  '(gnuplot-eldoc-mode t)
  '(gnuplot-inline-image-mode 'dedicated)
@@ -390,8 +390,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ibuffer-default-display-maybe-show-predicates t)
  '(ibuffer-expert t)
  '(ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
-			   (size 6 -1 :right) " " (mode 16 16) " " filename)
-		     (mark " " (name 16 -1) " " filename)))
+                           (size 6 -1 :right) " " (mode 16 16) " " filename)
+                     (mark " " (name 16 -1) " " filename)))
  '(ibuffer-maybe-show-regexps nil)
  '(ibuffer-show-empty-filter-groups nil)
  '(ibuffer-shrink-to-minimum-size t t)
@@ -409,11 +409,11 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ivy-count-format "\"\"")
  '(ivy-dynamic-exhibit-delay-ms 200)
  '(ivy-ignore-buffers '("\\` "
-			"\\`\\*git-monitor:"
-			"\\`\\*magit-process:"
-			"\\.elc$"
-			"\\`\\.newsrc-dribble\\'"
-			"\\`\\.newsrc.eld\\'"))
+                        "\\`\\*git-monitor:"
+                        "\\`\\*magit-process:"
+                        "\\.elc$"
+                        "\\`\\.newsrc-dribble\\'"
+                        "\\`\\.newsrc.eld\\'"))
  '(ivy-display-style nil)
  '(ivy-fixed-height-minibuffer t)
  '(ivy-minibuffer-faces nil)
@@ -486,10 +486,10 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
  '(projectile-ignored-project-function 'file-remote-p)
  '(projectile-mode-line '(:eval
-			  (if (and (ignore-errors (projectile-project-p))
-				   (not (file-remote-p default-directory)))
-			      (format " Projectile[%s]"
-				      (projectile-project-name)) "")))
+                          (if (and (ignore-errors (projectile-project-p))
+                                   (not (file-remote-p default-directory)))
+                              (format " Projectile[%s]"
+                                      (projectile-project-name)) "")))
  '(projectile-switch-project-action 'projectile-dired)
  '(projectile-verbose nil)
  '(proof-auto-action-when-deactivating-scripting 'retract)
@@ -507,24 +507,24 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(ring-bell-function 'ignore)
  '(ruby-insert-encoding-magic-comment nil)
  '(same-window-buffer-names '("*eshell*"
-			      "*shell*"
-			      "*mail*"
-			      "*inferior-lisp*"
-			      "*ielm*"
-			      "*scheme*"))
+                              "*shell*"
+                              "*mail*"
+                              "*inferior-lisp*"
+                              "*ielm*"
+                              "*scheme*"))
  '(save-abbrevs 'silently)
  '(save-interprogram-paste-before-kill t)
  '(savehist-additional-variables '(search-ring
-				   regexp-search-ring
-				   kill-ring
-				   comint-input-ring
-				   kmacro-ring
-				   sr-history-registry
-				   file-name-history
-				   tablist-name-filter))
+                                   regexp-search-ring
+                                   kill-ring
+                                   comint-input-ring
+                                   kmacro-ring
+                                   sr-history-registry
+                                   file-name-history
+                                   tablist-name-filter))
  '(savehist-autosave-interval 60)
  '(savehist-ignored-variables '(load-history
-				flyspell-auto-correct-ring kill-ring))
+                                flyspell-auto-correct-ring kill-ring))
  '(scroll-preserve-screen-position 'always)
  '(scroll-bar-mode nil)
  '(send-mail-function 'smtpmail-send-it)
@@ -546,8 +546,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(term-input-ring-file-name t)
  '(text-quoting-style 'quote)
  '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
-				 (nil "\\`root\\'" "/ssh:%h:")
-				 (".*" "\\`root\\'" "/ssh:%h:")))
+                                 (nil "\\`root\\'" "/ssh:%h:")
+                                 (".*" "\\`root\\'" "/ssh:%h:")))
  '(tramp-default-user nil)
  '(truncate-lines nil)
  '(tls-checktrust t)
@@ -567,8 +567,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(vc-follow-symlinks nil)
  '(vc-ignore-dir-regexp
    (concat "\\(\\(\\`"
-	   "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
-	   "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
+           "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
+           "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
  '(view-read-only t)
  '(view-inhibit-help-message t)
  '(visible-bell t)
@@ -690,6 +690,10 @@ Emacs’ default keybindings. Also, they should only require vanilla Emacs to wo
 declaration). These are meant to all be as close to vanilla Emacs as possible. I
 try to avoid extremely specific key binds here.
 
+What is overwritten can be seen with =M-x describe-personal-keybindings=. The
+goal is to overwrite as little as possible. When it is necessary to overwrite
+Emacs keybinds, documentation on why should be provided.
+
 #+BEGIN_SRC emacs-lisp
 (bind-key "C-c C-u"         'rename-uniquely)
 (bind-key "C-x ~"           (lambda () (interactive) (find-file "~")))
@@ -761,53 +765,41 @@ try to avoid extremely specific key binds here.
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
 
-(bind-key* "C-M-i" 'completion-at-point)
-(bind-key "<s-down>" 'windmove-down)
-(bind-key "<s-up>" 'windmove-up)
-(bind-key [remap switch-to-buffer] 'ibuffer)
-(bind-key "C-c [" 'align-regexp)
-(bind-key "M-s d" 'find-grep-dired)
-(bind-key "M-s F" 'find-grep)
-(bind-key "M-s G" 'grep)
-(bind-key "s-/" 'comment-or-uncomment-region)
+(bind-key* "C-M-i"        'completion-at-point)
+(bind-key "<s-down>"      'windmove-down)
+(bind-key "<s-up>"        'windmove-up)
+(bind-key "C-c ["         'align-regexp)
+(bind-key "M-s d"         'find-grep-dired)
+(bind-key "M-s F"         'find-grep)
+(bind-key "M-s G"         'grep)
+(bind-key "s-/"           'comment-or-uncomment-region)
 
-(bind-key "C-v" 'find-variable help-map)
-(bind-key "C-k" 'find-function-on-key help-map)
-(bind-key "C-f" 'find-function help-map)
-(bind-key "C-l" 'find-library help-map)
+(bind-key "C-v"           'find-variable help-map)
+(bind-key "C-k"           'find-function-on-key help-map)
+(bind-key "C-f"           'find-function help-map)
+(bind-key "C-l"           'find-library  help-map)
 
-;; (bind-key "n" 'next-line view-mode-map)
-;; (bind-key "p" 'previous-line view-mode-map)
-;; (bind-key "j" 'next-line view-mode-map)
-;; (bind-key "k" 'previous-line view-mode-map)
-;; (bind-key "l" 'forward-char view-mode-map)
-;; (bind-key "f" 'forward-char view-mode-map)
-;; (bind-key "b" 'backward-char view-mode-map)
+(require 'view)
+(bind-key "n"             'next-line     view-mode-map)
+(bind-key "p"             'previous-line view-mode-map)
+(bind-key "j"             'next-line     view-mode-map)
+(bind-key "k"             'previous-line view-mode-map)
+(bind-key "l"             'forward-char  view-mode-map)
+(bind-key "f"             'forward-char  view-mode-map)
+(bind-key "b"             'backward-char view-mode-map)
 
-;; (bind-keys
-;;  :prefix-map hemacs-help-map
-;;  :prefix "s-h"
-;;  ("k" . describe-personal-keybindings)
-;;  ("K" . free-keys)
-;;  ("g" . google-this)
-;;  ("d" . dash-at-point)
-;;  ("D" . dash-at-point-with-docset)
-;;  ("p" . ffap)
-;;  ("." . helpful-at-point)
-;;  ("o" . counsel-find-library))
+(bind-keys
+ :prefix-map hemacs-help-map
+ :prefix "s-h"
+ ("k" . describe-personal-keybindings)
+ ("p" . ffap)
+ ("." . helpful-at-point)
+ ("o" . counsel-find-library))
 
-;; (bind-keys
-;;  :prefix-map hemacs-git-map
-;;  :prefix "s-g"
-;;  ("o" . github-browse-file)
-;;  ("b" . github-browse-file-blame)
-;;  ("c" . github-browse-commit)
-;;  ("l" . magit-clone)
-;;  ("i" . github-new-issue)
-;;  ("I" . github-issues)
-;;  ("g" . gist-region-or-buffer-private)
-;;  ("t" . git-timemachine)
-;;  ("p" . git-messenger:popup-message))
+(bind-keys
+ :prefix-map hemacs-git-map
+ :prefix "s-g"
+ ("l" . magit-clone))
 #+END_SRC
 
 ** Setup installer
@@ -1454,8 +1446,7 @@ easymenu to make the "Projectile" modeline clickable.
                    :post-handlers '(("[d1]" "SPC")))
     (sp-local-pair "«" "»"))
 
-  (sp-with-modes
-      '(java-mode c++-mode)
+  (sp-with-modes '(java-mode c++-mode)
     (sp-local-pair "{" nil :post-handlers '(("||\n[i]" "RET")))
     (sp-local-pair "/*" "*/" :post-handlers '((" | " "SPC")
                                               ("* ||\n[i]" "RET"))))
@@ -1469,9 +1460,6 @@ easymenu to make the "Projectile" modeline clickable.
   (sp-local-pair 'emacs-lisp-mode "`" nil :when '(sp-in-string-p))
   (sp-local-pair 'clojure-mode "`" "`" :when '(sp-in-string-p))
   (sp-local-pair 'minibuffer-inactive-mode "'" nil :actions nil)
-  (sp-local-pair 'org-mode "~" "~" :actions '(wrap))
-  (sp-local-pair 'org-mode "/" "/" :actions '(wrap))
-  (sp-local-pair 'org-mode "*" "*" :actions '(wrap))
 
   (sp-with-modes 'nix-mode
     (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p))
@@ -2072,7 +2060,26 @@ Note: this needs ghc-mod to be in PATH to work properly.
 (use-package ghc
   :hook (haskell-mode . ghc-init))
 #+END_SRC
+***** haskell-mode
 
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-mode
+  :mode (("\\.hs\\'" . haskell-mode)
+         ("\\.cabal\\'" . haskell-cabal-mode))
+  :hook ((haskell-mode . subword-mode)
+         (haskell-mode . flyspell-prog-mode)
+         (haskell-mode . haskell-indentation-mode)
+         (haskell-mode . imenu-add-menubar-index))
+  :init
+  (add-to-list 'completion-ignored-extensions ".hi"))
+#+END_SRC
+
+***** haskell-autoloads
+#+BEGIN_SRC emacs-lisp
+(use-package haskell-mode-autoloads
+  :ensure nil
+  :demand)
+#+END_SRC
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
@@ -2085,46 +2092,11 @@ Note: this needs ghc-mod to be in PATH to work properly.
 (use-package haskell-doc
   :ensure nil
   :commands (haskell-doc-current-info)
-  :hook (haskell-mode . haskell-eloc-setup)
+  :hook (haskell-mode . haskell-eldoc-setup)
   :preface
   (defun haskell-eldoc-setup ()
 	(setq-local eldoc-documentation-function 'haskell-doc-current-info)))
 #+END_SRC
-
-***** haskell-decl-scan
-#+BEGIN_SRC emacs-lisp
-(use-package haskell-decl-scan
-  :commands (haskell-ds-create-imenu-index haskell-decl-scan-mode)
-  :ensure nil)
-#+END_SRC
-***** haskell-completions
-#+BEGIN_SRC emacs-lisp
-(use-package haskell-completions
-  :ensure nil
-  :commands (haskell-completions-completion-at-point))
-#+END_SRC
-***** haskell-unicode
-#+BEGIN_SRC emacs-lisp
-(use-package haskell-unicode-input-method
-  :ensure nil
-  :commands (turn-on-haskell-unicode-input-method))
-#+END_SRC
-***** haskell-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package haskell
-  :ensure haskell-mode
-  :mode (("\\.hs\\'" . haskell-mode)
-         ("\\.cabal\\'" . haskell-cabal-mode))
-  :commands (haskell-mode-after-save-handler)
-  :hook ((haskell-mode . subword-mode)
-         (haskell-mode . flyspell-prog-mode)
-         (haskell-mode . haskell-indentation-mode)
-         (haskell-mode . imenu-add-menubar-index))
-  :init
-  (add-to-list 'completion-ignored-extensions ".hi"))
-#+END_SRC
-
 **** Java
 ***** jdee
 
@@ -4006,5 +3978,5 @@ your channel. Having this file available means you can place this repo in
 # org-html-postamble-format: (("en"
 # "<p class=\"author\">Author: %a (%e)</p>
 # <p class=\"creator\">%c</p>"))
-# tab-width: 8
+# indent-tabs-mode: nil
 # End:
