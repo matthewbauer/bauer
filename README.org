@@ -1152,6 +1152,13 @@ apropospriate, and flycheck are the biggest offenders.
   :hook (prog-mode . flycheck-mode))
 #+END_SRC
 
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck-checkbashisms
+  :demand
+  :config
+  (flycheck-checkbashisms-setup))
+#+END_SRC
+
 **** Gnus
 
 [[http://www.gnus.org][Website]]
@@ -1322,6 +1329,8 @@ This is currently disabled.
 (use-package org-cliplink
   :after org
   :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
+(use-package toc-org
+  :bind (org-mode . toc-org-enable))
 #+END_SRC
 ***** org-eldoc
 
@@ -3575,8 +3584,8 @@ Emacs packages defined in Nixpkgs.
 
 We also define our Emacs version to use. Mitsuharo’s Emacs package is much
 better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
-default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version
-25.3 currently).
+default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 25.3
+currently).
 
 #+BEGIN_SRC nix
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
