@@ -238,6 +238,33 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
+ '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
+				    (company-explicit-action-p))))
+ ;; '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+ ;; 		       company-preview-frontend
+ ;; 		       company-echo-metadata-frontend))
+ '(company-continue-commands
+   '(not save-buffer
+	 save-some-buffers
+	 save-buffers-kill-terminal
+	 save-buffers-kill-emacs
+	 comint-previous-matching-input-from-input
+	 comint-next-matching-input-from-input))
+ '(company-require-match nil)
+ '(company-selection-wrap-around t)
+ '(company-backends '((company-eshell-history
+		       :with company-capf company-files)
+		      company-elisp
+		      company-css
+		      company-nxml
+		      company-capf
+		      company-clang
+		      company-cmake
+		      company-dabbrev
+		      company-abbrev
+		      company-dabbrev
+		      company-keywords
+		      company-files))
  '(comint-input-ignoredups t)
  '(comint-process-echoes t)
  '(comint-prompt-read-only t)
@@ -967,6 +994,46 @@ info.
         )
   :commands (ivy-completing-read ivy-completion-in-region))
 #+END_SRC
+**** Company
+
+[[https://github.com/company-mode/company-mode][GitHub]]
+
+[[http://company-mode.github.io][Website]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :commands global-company-mode
+  :demand
+  :preface
+  (defun company-complete-common-or-cycle-backward ()
+    "Complete common prefix or cycle backward."
+    (interactive)
+    (company-complete-common-or-cycle -1))
+  (defun company-add-preview ()
+    (setq-local company-frontends
+		'(company-preview-frontend)))
+  :bind (:map company-active-map
+	      ("RET" . company-complete-selection)
+	      ([return] . company-complete-selection)
+	      ("TAB" . company-complete-common-or-cycle)
+	      ("<tab>" . company-complete-common-or-cycle)
+	      ("S-TAB" . company-complete-common-or-cycle-backward)
+	      ("<backtab>" . company-complete-common-or-cycle-backward)
+	      ("C-n" . company-select-next)
+	      ("C-p" . company-select-previous)
+
+	      ("C-/" . company-search-candidates)
+	      ("C-M-/" . company-filter-candidates)
+	      ("C-d" . company-show-doc-buffer)
+	      )
+  :hook ((minibuffer-setup-hook . company-mode)
+	 (minibuffer-setup-hook . company-add-preview))
+  :config
+  (global-company-mode t)
+  (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
+  )
+     #+END_SRC
+
 
 **** delight
 
