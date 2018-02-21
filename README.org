@@ -1048,6 +1048,7 @@ info.
          ("C-c x" . eshell)
          ("C-c e" . eshell))
   :commands (eshell-command eshell-bol)
+  :hook (eshell-mode . eshell-read-history)
   :config
   (use-package em-rebind
     :preface
@@ -2332,6 +2333,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
+  :comman nix-buffer
   :preface
   (defun turn-on-nix-buffer ()
 	(when (and (not noninteractive)
@@ -2724,9 +2726,10 @@ Most of these are available in MELPA.
 **** volatile-highlights
 #+BEGIN_SRC emacs-lisp
 (use-package volatile-highlights
+  :disabled
   :commands volatile-highlights-mode
   :config (volatile-highlights-mode t)
-  :diminish volatile-highlights-mode
+  :delight
   :demand)
 #+END_SRC
 **** TODO emacs-gif-screencast
