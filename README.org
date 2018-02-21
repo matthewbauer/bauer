@@ -6,7 +6,7 @@
 #+LANGUAGE: en
 #+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
-#+OPTIONS: creator:t date:t email:t inline:nil num:nil pri:t
+#+OPTIONS: creator:t datfe:t email:t inline:nil num:nil pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+PROPERTY: header-args :cache yes
 #+PROPERTY: header-args:emacs-lisp :results output silent
@@ -48,8 +48,7 @@ expr="import (builtins.fetchTarball $url) {}"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
 #+END_SRC
 
-If you don’t have Nix installed, you’re going to need to skip this step and
-just instasll directly.
+If you don’t have Nix installed, you won’t be able to run the demo.
 
 ** Installing/upgrading
 
@@ -84,17 +83,17 @@ process,
 #+BEGIN_SRC sh
 cd ~/.local/share/bauer
 nix-build
-./result/run
+./result/run ./README.org
 #+END_SRC
 
-The last line will spawn an Emacs frame in the Git repo. Anything in there can
-be hacked. To rebuild the IDE just run =nix-build= again and respawn Emacs. Make
-any changes you want to [[./README.org][this document]] or any of the files in [[./lisp][the lisp folder]].
-Make sure you commit your changes afterward by typing =C-c p v=, then =c-ac=
-(using Magit, of course). If you have forked this repo on GitHub, you can add it
-by typing =Mg= then your GitHub username within Magit. To push to it, just type
-=Pr= then find your username in the list and press enter. Pull requests are
-welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
+The last line will spawn an Emacs frame in the Git repo. Anything in that file
+can be change. Once you’ve made a change, just run ‘M-x dev-restart’ to rebuild
+the configuration and restart Emacs. Make any changes you want to [[./README.org][the README.org
+file]] or any of the files in [[./lisp][the lisp folder]]. Make sure you commit your changes
+afterward by typing =C-c p v=, then =c-ac=. If you have forked this repo on
+GitHub, you can add it by typing =Mg= then your GitHub username within Magit. To
+push to it, just type =Pr= then find your username in the list and press enter.
+Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
 
 ** w/o Nix usage
 :PROPERTIES:
@@ -102,8 +101,9 @@ welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
 :header-args: :tangle no
 :END:
 
-You can use ~bauer~ without Nix. This just gives you the unintegrated Emacs
-configuration. To get started, run the following.
+You can use this configuration without Nix. This just gives you the unintegrated
+Emacs configuration. All of the binaries you will have to provide yourself. To
+get started, run the following.
 
 #+BEGIN_SRC sh
 mkdir -p ~/.emacs.d
@@ -188,7 +188,7 @@ currently. FIXME!
 (autoload 'package-installed-p "package")
 (define-obsolete-function-alias 'org-define-error 'define-error)
 (when (and (string= window-system "mac")
-	   (require 'mac-win nil t))
+           (require 'mac-win nil t))
   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
 #+END_SRC
 
@@ -230,10 +230,11 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(auto-revert-interval 1)
  '(auto-revert-verbose nil)
  '(auto-save-visited-file-name t)
+ '(ange-ftp-default-user t)
  '(auto-window-vscroll nil)
  '(backward-delete-char-untabify-method 'hungry)
  '(backup-directory-alist `(("." . ,(expand-file-name "backup"
-					              user-emacs-directory))))
+                                                      user-emacs-directory))))
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
@@ -247,6 +248,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(compilation-environment '("TERM=xterm-256color"))
  '(compilation-scroll-output nil)
  '(compilation-skip-threshold 2)
+ '(completion-styles (quote (basic partial-completion emacs22 substring)))
  '(completions-cycle-threshold t)
  '(completions-format 'vertical)
  '(counsel-find-file-at-point t)
@@ -272,6 +274,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(disabled-command-function nil)
  '(display-buffer-reuse-frames t)
  '(dtrt-indent-verbosity 0)
+ '(dynamic-completion-mode t)
  '(echo-keystrokes 0)
  '(enable-recursive-minibuffers t)
  '(erc-autojoin-timing 'ident)
@@ -287,7 +290,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(erc-prompt-for-password nil)
  '(erc-query-display 'buffer)
  '(erc-rename-buffers t)
- '(erc-server-coding-system '(utf-8 . utf-8))
  '(erc-timestamp-format "%H:%M ")
  '(erc-timestamp-only-if-changed-flag nil)
  '(erc-try-new-nick-p nil)
@@ -318,18 +320,18 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(eshell-rm-interactive-query t)
  '(eshell-prompt-function
    (lambda () (concat (when (tramp-tramp-file-p default-directory)
-                   (concat (tramp-file-name-user
-                            (tramp-dissect-file-name default-directory))
-                           "@"
-                           (tramp-file-name-real-host
-                            (tramp-dissect-file-name
-                             default-directory))
-                           " "))
-                 (let ((dir (eshell/pwd)))
-                   (if (string= dir (getenv "HOME")) "~"
-                     (let ((dirname (file-name-nondirectory dir)))
-                       (if (string= dirname "") "/" dirname))))
-                 (if (= (user-uid) 0) " # " " $ "))))
+                        (concat (tramp-file-name-user
+                                 (tramp-dissect-file-name default-directory))
+                                "@"
+                                (tramp-file-name-real-host
+                                 (tramp-dissect-file-name
+                                  default-directory))
+                                " "))
+                      (let ((dir (eshell/pwd)))
+                        (if (string= dir (getenv "HOME")) "~"
+                          (let ((dirname (file-name-nondirectory dir)))
+                            (if (string= dirname "") "/" dirname))))
+                      (if (= (user-uid) 0) " # " " $ "))))
  '(eshell-stringify-t nil)
  '(eval-expression-print-level nil)
  '(expand-region-contract-fast-key "j")
@@ -385,8 +387,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(hideshowvis-ignore-same-line nil)
  '(highlight-nonselected-windows nil)
  '(history-delete-duplicates t)
- '(hscroll-margin 5)
- '(hscroll-step 5)
  '(ibuffer-default-display-maybe-show-predicates t)
  '(ibuffer-expert t)
  '(ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
@@ -449,6 +449,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(magit-save-repository-buffers 'dontask)
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
+ '(minibuffer-auto-raise t)
+ '(minibuffer-electric-default-mode t)
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
  '(minibuffer-prompt-properties
@@ -465,8 +467,12 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(nxml-sexp-element-flag t)
  '(nxml-slash-auto-complete-flag t)
  '(org-blank-before-new-entry '((heading) (plain-list-item)))
+ '(org-confirm-babel-evaluate nil)
  '(org-edit-src-turn-on-auto-save t)
+ '(org-export-with-toc nil)
  '(org-export-in-background nil)
+ '(org-html-htmlize-output-type (quote css))
+ '(org-latex-listings (quote minted))
  '(org-list-allow-alphabetical t)
  '(org-log-done 'time)
  '(org-return-follows-link t)
@@ -476,7 +482,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(org-src-tab-acts-natively t)
  '(org-support-shift-select t)
  '(parens-require-spaces t)
- '(package-archives '(("melpa-stable" . "http://stable.melpa.org/packages/")
+ '(package-archives '(;; ("melpa-stable" . "http://stable.melpa.org/packages/")
                       ("melpa" . "https://melpa.org/packages/")
                       ("org" . "http://orgmode.org/elpa/")
                       ("gnu" . "https://elpa.gnu.org/packages/")))
@@ -502,7 +508,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(proof-sticky-errors t)
  '(proof-tidy-response t)
  '(reb-re-syntax 'string)
- '(require-final-newline t)
  '(resize-mini-windows t)
  '(ring-bell-function 'ignore)
  '(ruby-insert-encoding-magic-comment nil)
@@ -527,6 +532,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
                                 flyspell-auto-correct-ring kill-ring))
  '(scroll-preserve-screen-position 'always)
  '(scroll-bar-mode nil)
+ '(scroll-conservatively 101)
+ '(scroll-margin 3)
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
@@ -579,9 +586,33 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
  '(window-divider-default-bottom-width 1)
  '(window-divider-default-places 'bottom-only)
- '(yas-triggers-in-field t)
- '(yas-wrap-around-region t)
  )
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(defgroup bauer nil "Options for Bauer IDE."
+  :group 'emacs)
+(defcustom user-symbols '(org-agenda-files
+			  org-default-notes-file
+			  org-capture-templates
+			  erc-nick erc-nickserv-passwords
+			  erc-autojoin-channels-alist
+			  erc-server
+			  smtpmail-smtp-server
+			  smtpmail-smtp-service
+			  smtpmail-smtp-user
+			  user-full-name user-mail-address
+			  gnus-secondary-select-methods)
+  "Symbols that the user should customize for themselves."
+  :group 'bauer)
+
+(defun user-customize ()
+  "Provides an easy way for users to setup their config. Run this
+to input your personal settings."
+  (interactive)
+  (custom-buffer-create (mapcar (lambda (x) (custom-load-symbol x)
+				  `(,x custom-variable)) user-symbols)
+			"*User customize*"))
 #+END_SRC
 
 *** Site paths
@@ -779,6 +810,9 @@ Emacs keybinds, documentation on why should be provided.
 (bind-key "C-f"           'find-function help-map)
 (bind-key "C-l"           'find-library  help-map)
 
+(bind-key "C-x M-p" (lambda () (interactive) (save-excursion (other-window 1)
+							(quit-window))))
+
 (require 'view)
 (bind-key "n"             'next-line     view-mode-map)
 (bind-key "p"             'previous-line view-mode-map)
@@ -800,6 +834,26 @@ Emacs keybinds, documentation on why should be provided.
  :prefix-map hemacs-git-map
  :prefix "s-g"
  ("l" . magit-clone))
+
+(defun spec-to-list (spec) (s-split "-" spec))
+
+(defun list-to-spec (spec) (s-join "-" spec))
+
+(defun update-font-spec-size (spec increment)
+  (list-to-spec
+   (-update-at 7 (lambda (i) (number-to-string
+                              (+ (string-to-number i) increment)))
+               (spec-to-list spec))))
+
+(defun update-font-size (increment)
+  (set-frame-font
+   (update-font-spec-size (frame-parameter nil 'font) increment)))
+
+(bind-key "C-M--" (lambda () (interactive) (update-font-size -1)))
+(bind-key "C-M-=" (lambda () (interactive) (update-font-size 1)))
+
+(bind-key "M-n" 'next-error)
+(bind-key "M-p" 'previous-error)
 #+END_SRC
 
 ** Setup installer
@@ -929,7 +983,8 @@ info.
   :hook ((prog-mode . diff-hl-mode)
          (vc-dir-mode . diff-hl-mode)
          (dired-mode . diff-hl-dir-mode)
-         (magit-post-refresh . diff-hl-magit-post-refresh)))
+         (magit-post-refresh . diff-hl-magit-post-refresh)
+         (org-mode . diff-hl-mode)))
 #+END_SRC
 
 **** dtrt-indent
@@ -943,13 +998,6 @@ info.
   :init (setq dtrt-indent-mode t))
 #+END_SRC
 
-**** elfeed
-
-#+BEGIN_SRC emacs-lisp
-(use-package elfeed
-  :commands (elfeed))
-#+END_SRC
-
 **** Emacs speaks statistics
 
 [[https://ess.r-project.org][Website]]
@@ -958,7 +1006,36 @@ info.
 (use-package ess-site
   :ensure ess
   :no-require
-  :commands (R))
+  :interpreter (("Rscript" . r-mode)
+		("r" . r-mode))
+  :mode (("\\.sp\\'"          . S-mode)
+	 ("/R/.*\\.q\\'"      . R-mode)
+	 ("\\.[qsS]\\'"       . S-mode)
+	 ("\\.ssc\\'"         . S-mode)
+	 ("\\.SSC\\'"         . S-mode)
+	 ("\\.[rR]\\'"        . R-mode)
+	 ("\\.[rR]nw\\'"      . Rnw-mode)
+	 ("\\.[sS]nw\\'"      . Snw-mode)
+	 ("\\.[rR]profile\\'" . R-mode)
+	 ("NAMESPACE\\'"      . R-mode)
+	 ("CITATION\\'"       . R-mode)
+	 ("\\.omg\\'"         . omegahat-mode)
+	 ("\\.hat\\'"         . omegahat-mode)
+	 ("\\.lsp\\'"         . XLS-mode)
+	 ("\\.do\\'"          . STA-mode)
+	 ("\\.ado\\'"         . STA-mode)
+	 ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
+	 ("\\.[Ss]t\\'"       . S-transcript-mode)
+	 ("\\.Sout"           . S-transcript-mode)
+	 ("\\.[Rr]out"        . R-transcript-mode)
+	 ("\\.Rd\\'"          . Rd-mode)
+	 ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
+	 ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
+	 ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
+	 ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
+	 ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
+	 ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+	 ))
 #+END_SRC
 
 **** Emacs shell
@@ -967,7 +1044,8 @@ info.
 (use-package eshell
   :ensure nil
   :bind (("C-c M-t" . eshell)
-         ("C-c x" . eshell))
+         ("C-c x" . eshell)
+         ("C-c e" . eshell))
   :commands (eshell-command eshell-bol)
   :config
   (use-package em-rebind
@@ -1007,6 +1085,8 @@ info.
           eshell-tramp
           eshell-unix
           eshell-xtra)))
+(use-package esh-autosuggest
+  :hook (eshell-mode . esh-autosuggest-mode))
 #+END_SRC
 
 ***** esh-help
@@ -1065,9 +1145,10 @@ apropospriate, and flycheck are the biggest offenders.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
-  :demand
-  :commands (global-flycheck-mode)
-  :config (global-flycheck-mode))
+  ;; :demand
+  ;; :commands (global-flycheck-mode)
+  ;; :config (global-flycheck-mode)
+  :hook (prog-mode . flycheck-mode))
 #+END_SRC
 
 **** Gnus
@@ -1086,7 +1167,8 @@ apropospriate, and flycheck are the biggest offenders.
 
 [[https://github.com/chrisdone/god-mode][GitHub]]
 
-#+BEGIN_SRC emacs-lisp
+Note that god-mode overwrites escape key. This can cause some issues for
+certain Emacs keybinds.cs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
 #+END_SRC
@@ -1207,7 +1289,7 @@ This is currently disabled.
   :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
-		 (org-mode . setup-pcomplete))
+	 (org-mode . setup-pcomplete))
   :preface
   (defun setup-pcomplete ()
     (add-hook 'completion-at-point-functions
@@ -1236,6 +1318,9 @@ This is currently disabled.
                                  (emacs-lisp . t)
                                  (dot . t)
                                  (latex . t))))
+(use-package org-cliplink
+  :after org
+  :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
 #+END_SRC
 ***** org-eldoc
 
@@ -1260,7 +1345,8 @@ easymenu to make the "Projectile" modeline clickable.
   :commands (projectile-mode projectile-project-root)
   :bind-keymap* (("C-c p" . projectile-command-map)
                  ("s-p" . projectile-command-map))
-  :bind (:map projectile-command-map
+  :bind (("C-c C-f" . projectile-find-file)
+         :map projectile-command-map
          ("s r" . projectile-rg))
   :preface
   (defun projectile-rg ()
@@ -1274,6 +1360,8 @@ easymenu to make the "Projectile" modeline clickable.
        (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
                                         compilation-read-command))))
 
+  ;; projectile is global
+  ;; needed to recognize project files
   (projectile-mode)
 
   (use-package easymenu
@@ -1560,7 +1648,7 @@ Get color/ansi codes in compilation mode.
              comint-read-input-ring
              comint-send-input)
   ;; :hook ((kill-buffer . comint-write-input-ring)
-  ;;  	 (kill-buffer . save-history))
+  ;;     (kill-buffer . save-history))
   :preface
   (defun turn-on-comint-history (history-file)
     (setq comint-input-ring-file-name history-file)
@@ -1615,7 +1703,8 @@ Get color/ansi codes in compilation mode.
   :bind (("C-c J" . dired-double-jump)
          :map dired-mode-map
          ("C-c C-c" . compile)
-         ("r" . browse-url-of-dired-file)))
+         ("r" . browse-url-of-dired-file)
+         ("W" . browse-url-of-dired-file)))
 #+END_SRC
 
 ***** dired-column
@@ -1662,9 +1751,9 @@ Provides some info for the thing at the point.
          (eval-expression-minibuffer-setup . eldoc-mode)
          (lisp-mode-interactive-mode . eldoc-mode)
          (typescript-mode . eldoc-mode)
-	 (haskell-mode . eldoc-mode)
-	 (python-mode . eldoc-mode)
-	 (eshell-mode . eldoc-mode)
+         (haskell-mode . eldoc-mode)
+         (python-mode . eldoc-mode)
+         (eshell-mode . eldoc-mode)
          (org-mode . eldoc-mode)))
 #+END_SRC
 
@@ -1709,16 +1798,16 @@ setup.
 #+BEGIN_SRC emacs-lisp
 (use-package ffap
   :bind (("C-x C-f" . find-file-at-point)
-	 ("C-x C-r" . ffap-read-only)
-	 ("\C-x\C-v" . ffap-alternate-file)
-	 ("C-x 4 f" . ffap-other-window)
-	 ("C-x 5 f" . ffap-other-frame)
-	 ("C-x 4 r" . ffap-read-only-other-window)
-	 ("C-x 5 r" . ffap-read-only-other-frame)
-	 ("C-x d"  . dired-at-point)
-	 ("C-x 4 d" . ffap-dired-other-window)
-	 ("C-x 5 d" . ffap-dired-other-frame)
-	 ("C-x C-d" . ffap-list-directory))
+         ("C-x C-r" . ffap-read-only)
+         ("C-x C-v" . ffap-alternate-file)
+         ("C-x 4 f" . ffap-other-window)
+         ("C-x 5 f" . ffap-other-frame)
+         ("C-x 4 r" . ffap-read-only-other-window)
+         ("C-x 5 r" . ffap-read-only-other-frame)
+         ("C-x d"  . dired-at-point)
+         ("C-x 4 d" . ffap-dired-other-window)
+         ("C-x 5 d" . ffap-dired-other-frame)
+         ("C-x C-d" . ffap-list-directory))
   :hook ((gnus-summary-mode . ffap-gnus-hook)
          (gnus-article-mode . ffap-gnus-hook)
          (vm-mode . ffap-ro-mode-hook)
@@ -1732,18 +1821,18 @@ setup.
   :demand
   :preface
   (defun find-file--line-number (orig-fun filename &optional wildcards)
-	"Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
-	(save-match-data
-	  (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
-			 (line-number (and matched
-							   (match-string 2 filename)
-							   (string-to-number (match-string 2 filename))))
-			 (filename (if matched (match-string 1 filename) filename)))
-		(apply orig-fun (list filename wildcards))
-		(when line-number
-		  ;; goto-line is for interactive use
-		  (goto-char (point-min))
-		  (forward-line (1- line-number))))))
+        "Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
+        (save-match-data
+          (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
+                         (line-number (and matched
+                                                           (match-string 2 filename)
+                                                           (string-to-number (match-string 2 filename))))
+                         (filename (if matched (match-string 1 filename) filename)))
+                (apply orig-fun (list filename wildcards))
+                (when line-number
+                  ;; goto-line is for interactive use
+                  (goto-char (point-min))
+                  (forward-line (1- line-number))))))
   :config
   (advice-add 'find-file :around #'find-file--line-number))
 #+END_SRC
@@ -1769,14 +1858,6 @@ setup.
   :ensure nil
   :hook ((prog-mode . goto-address-prog-mode)
          (git-commit-mode . goto-address-mode)))
-#+END_SRC
-
-**** gud
-
-#+BEGIN_SRC emacs-lisp
-(use-package gud
-  :ensure nil
-  :commands (gud-gdb))
 #+END_SRC
 
 **** paren
@@ -1809,10 +1890,10 @@ setup.
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . prettify-symbols-mode)
-	 (lisp-mode . prettify-symbols-lisp)
-	 (c-mode . prettify-symbols-c)
-	 (c++-mode . prettify-symbols-c++)
-	 ((js-mode js2-mode) . prettify-symbols-js))
+         (lisp-mode . prettify-symbols-lisp)
+         (c-mode . prettify-symbols-c)
+         (c++-mode . prettify-symbols-c++)
+         ((js-mode js2-mode) . prettify-symbols-js))
   :preface
   (defun prettify-symbols-prog ()
     (push '("<=" . ?≤) prettify-symbols-alist)
@@ -1845,6 +1926,27 @@ setup.
     (push '("=>" . ?⇒) prettify-symbols-alist)))
 #+END_SRC
 
+**** savehist-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package savehist
+  :ensure nil
+  :disabled
+  :demand
+  :commands (savehist-mode)
+  :config (savehist-mode))
+#+END_SRC
+
+**** saveplace-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package saveplace
+  :demand
+  :ensure nil
+  :commands (save-place-mode)
+  :config (save-place-mode))
+#+END_SRC
+
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
@@ -1854,7 +1956,7 @@ setup.
   :hook ((shell-mode . ansi-color-for-comint-mode-on)
          (shell-mode . dirtrack-mode)
          (shell-mode . pcomplete-shell-setup)
-		 ;; (shell-mode . use-histfile)
+         ;; (shell-mode . use-histfile)
          )
   :preface
   (defun use-histfile ()
@@ -1892,7 +1994,7 @@ setup.
 (use-package text-mode
   :no-require
   :ensure nil
-  :hook (text-mode . turn-on-auto-fill))
+  :hook ((text-mode . turn-on-auto-fill)))
 #+END_SRC
 
 **** term
@@ -1925,17 +2027,6 @@ setup.
   :config (display-time-mode))
 #+END_SRC
 
-**** tooltip
-
-#+BEGIN_SRC emacs-lisp
-(use-package tooltip
-  :ensure nil
-  :demand
-  :commands (tooltip-mode)
-  :config
-  (tooltip-mode -1))
-#+END_SRC
-
 **** url-handlers
 
 #+BEGIN_SRC emacs-lisp
@@ -1961,7 +2052,23 @@ setup.
   :ensure nil
   :hook (prog-mode . whitespace-mode))
 #+END_SRC
-
+**** TODO winner-mode
+**** hl-line
+#+BEGIN_SRC emacs-lisp
+(use-package hl-line
+  :ensure nil
+  :hook ((prog-mode . hl-line-mode)
+	 (org-mode . hl-line-mode)))
+#+END_SRC
+**** eww
+#+BEGIN_SRC emacs-lisp
+(use-package eww
+  :disabled window-system
+  :commands eww-browse-url
+  :init
+  (when (not window-system)
+    (setq browse-url-browser-function 'eww-browse-url)))
+#+END_SRC
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
@@ -2019,8 +2126,7 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
 (use-package css-mode
   :ensure nil
-  :mode "\\.css\\'"
-  :commands (css-mode))
+  :mode "\\.css\\'")
 #+END_SRC
 
 **** CSV
@@ -2063,23 +2169,19 @@ Note: this needs ghc-mod to be in PATH to work properly.
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package haskell-mode
+(use-package haskell
+  :ensure haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
          ("\\.cabal\\'" . haskell-cabal-mode))
   :hook ((haskell-mode . subword-mode)
          (haskell-mode . flyspell-prog-mode)
          (haskell-mode . haskell-indentation-mode)
-         (haskell-mode . imenu-add-menubar-index))
+         (haskell-mode . imenu-add-menubar-index)
+         (haskell-mode . turn-on-haskell-indent))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
 #+END_SRC
 
-***** haskell-autoloads
-#+BEGIN_SRC emacs-lisp
-(use-package haskell-mode-autoloads
-  :ensure nil
-  :demand)
-#+END_SRC
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-interactive-mode
@@ -2112,24 +2214,24 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
 (use-package indium
-  :mode ("\\.js\\'" . indium-mode)
-  :commands (indium-interaction-mode indium-scratch))
+  :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
 
 ***** js2-mode
 #+BEGIN_SRC emacs-lisp
 (use-package js2-mode
-  :mode (("\\.js\\'" . js2-mode)))
+  :mode (("\\.js\\'" . js2-mode)
+	 ("\\.es6\\'" . js2-mode)
+         ("\\.ejs\\'" . js2-mode))
+  :interpreter "node"
+  (setq-default
+   js2-mode-indent-ignore-first-tab t
+   js2-strict-inconsistent-return-warning nil
+   js2-global-externs
+   '("module" "require" "__dirname" "process" "console" "JSON" "$" "_")))
 (use-package js2-imenu-extras
   :ensure nil
   :hook (js2-mode . js2-imenu-extras-mode))
-#+END_SRC
-
-***** js3-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package js3-mode
-  :commands (js3-mode))
 #+END_SRC
 
 ***** tern
@@ -2147,6 +2249,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
          ("\\.jshintrc$"    . json-mode)
          ("\\.json_schema$" . json-mode)
          ("\\.json\\'" . json-mode))
+  :bind (:map json-mode-map ("C-c <tab>" . json-mode-beautify))
   :config
   (make-local-variable 'js-indent-level))
 #+END_SRC
@@ -2160,11 +2263,6 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package tex-site
   :ensure auctex
   :no-require
-  :commands (TeX-latex-mode
-             TeX-mode
-             tex-mode
-             LaTeX-mode
-             latex-mode)
   :mode ("\\.tex\\'" . TeX-latex-mode))
 #+END_SRC
 
@@ -2224,7 +2322,6 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
-  :commands (nix-buffer)
   :preface
   (defun turn-on-nix-buffer ()
 	(when (and (not noninteractive)
@@ -2243,14 +2340,6 @@ Auctex provides some helpful tools for working with LaTeX.
   :disabled
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
-**** NROFF
-
-#+BEGIN_SRC emacs-lisp
-(use-package nroff-mode
-  :ensure nil
-  :commands (nroff-mode))
-#+END_SRC
-
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -2277,6 +2366,14 @@ Auctex provides some helpful tools for working with LaTeX.
   :interpreter ("python" . python-mode))
 #+END_SRC
 
+***** jedi
+#+BEGIN_SRC emacs-lisp
+(use-package jedi
+  :hook ((python-mode . jedi:setup))
+  :config
+  (setq jedi:complete-on-dot t)
+  (setq elpy-rpc-backend "jedi"))
+#+END_SRC
 ***** elpy
 
 #+BEGIN_SRC emacs-lisp
@@ -2359,7 +2456,6 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package tide
-  :commands (tide-setup tide-hl-identifier-mode)
   :hook ((typescript-mode . tide-setup)
          (typescript-mode . tipe-hl-identifier-mode)))
 #+END_SRC
@@ -2372,17 +2468,19 @@ Auctex provides some helpful tools for working with LaTeX.
          ("\\.mustache\\'" . web-mode)
          ("\\.html?\\'" . web-mode)
          ("\\.php\\'" . web-mode)
-         ("\\.jsp\\'" . web-mode)))
-#+END_SRC
-
-**** XML
-
-#+BEGIN_SRC emacs-lisp
-(use-package nxml-mode
-  :ensure nil
-  :commands (nxml-mode)
-  :init
-  (defalias 'xml-mode 'nxml-mode))
+         ("\\.jsp\\'" . web-mode)
+         ("\\.jsx?$" . web-mode)
+         ("\\.es6\\'" . web-mode)
+         ("\\.ejs\\'" . web-mode)
+         ("\\.phtml\\'" . web-mode)
+         ("\\.tpl\\.php\\'" . web-mode)
+         ("\\.[agj]sp\\'" . web-mode)
+         ("\\.as[cp]x\\'" . web-mode)
+         ("\\.djhtml\\'" . web-mode))
+  :config
+  (setq web-mode-content-types-alist '(("jsx" . "\\.jsx?$")))
+  (setq-default web-mode-enable-current-element-highlight t)
+  (add-to-list 'web-mode-comment-formats `("jsx" . "//")))
 #+END_SRC
 
 **** YAML
@@ -2418,13 +2516,6 @@ These should correspond to minor modes or helper functions. Some of them are
 more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
-
-**** browse-at-remote
-
-#+BEGIN_SRC emacs-lisp
-(use-package browse-at-remote
-  :commands (browse-at-remote))
-#+END_SRC
 
 **** buffer-move
 [[https://github.com/lukhas/buffer-move][GitHub]]
@@ -2501,13 +2592,6 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO iedit
-**** minimap
-
-#+BEGIN_SRC emacs-lisp
-(use-package minimap
-  :commands (minimap-mode))
-#+END_SRC
-
 **** multi-term
 
 #+BEGIN_SRC emacs-lisp
@@ -2530,7 +2614,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
 (use-package notmuch
-  :commands (notmuch))
+  :bind ("s-m" . notmuch))
 #+END_SRC
 
 **** page-break-lines
@@ -2577,7 +2661,11 @@ Most of these are available in MELPA.
           lisp-mode
           inferior-lisp-mode
           lisp-interaction-mode
-          slime-repl-mode) . rainbow-mode))
+          slime-repl-mode
+          web-mode
+          less-css-mode
+          html-mode
+	  css-mode) . rainbow-mode))
 #+END_SRC
 
 **** restclient
@@ -2593,16 +2681,6 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package shrink-whitespace
   :bind ("H-SPC" . shrink-whitespace))
-#+END_SRC
-
-**** smart-shift
-
-#+BEGIN_SRC emacs-lisp
-(use-package smart-shift
-  :bind (("C-c <left>" . smart-shift-left)
-         ("C-c <right>" . smart-shift-right)
-         ("C-c <up>" . smart-shift-up)
-         ("C-c <down>" . smart-shift-down)))
 #+END_SRC
 
 **** string-inflection
@@ -2633,6 +2711,45 @@ Most of these are available in MELPA.
   :bind ("C-x L" . vkill))
 #+END_SRC
 
+**** volatile-highlights
+#+BEGIN_SRC emacs-lisp
+(use-package volatile-highlights
+  :commands volatile-highlights-mode
+  :config (volatile-highlights-mode t)
+  :diminish volatile-highlights-mode
+  :demand)
+#+END_SRC
+**** TODO emacs-gif-screencast
+**** TODO epresent
+**** TODO hackernews
+**** TODO twittering-mode
+**** TODO sx
+**** TODO smex
+**** TODO undo-tree
+**** TODO yasnippet
+**** git-modes
+#+BEGIN_SRC emacs-lisp
+(use-package gitattributes-mode
+  :mode (("/\\.gitattributes\\'" . gitattributes-mode)
+         ("/info/attributes\\'" . gitattributes-mode)
+         ("/git/attributes\\'" . gitattributes-mode)))
+(use-package gitconfig-mode
+  :mode (("/\\.gitconfig\\'" . gitconfig-mode)
+	 ("/\\.git/config\\'" . gitconfig-mode)
+	 ("/modules/.*/config\\'" . gitconfig-mode)
+	 ("/git/config\\'" . gitconfig-mode)
+	 ("/\\.gitmodules\\'" . gitconfig-mode)
+	 ("/etc/gitconfig\\'" . gitconfig-mode)))
+(use-package gitignore-mode
+  :mode (("/\\.gitignore\\'" . gitignore-mode)
+	 ("/info/exclude\\'" . gitignore-mode)
+	 ("/git/ignore\\'" . gitignore-mode)))
+#+END_SRC
+**** browse-at-remote
+#+BEGIN_SRC emacs-lisp
+(use-package browse-at-remote
+  :bind ("C-c g g" . browse-at-remote))
+#+END_SRC
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
@@ -3776,7 +3893,7 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
     ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
     ++ [stack ghc]
-#    ++ (with haskellPackages; [ghc-mod])
+#   ++ (with haskellPackages; [ghc-mod])
     ;
 };
 #+END_SRC
