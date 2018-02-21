@@ -27,8 +27,8 @@ This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]×[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
 Nix store paths. This provides a kind of functional Emacs configuration. The
 integration between Emacs and Nix comes with lots of useful side effects. The
-raw Org file can always be viewed [[https://matthewbauer.us/bauer/README.org][here]] and additional information is available
-on [[https://github.com/matthewbauer/bauer][GitHub]].
+raw Org file can always be downloaded [[https://matthewbauer.us/bauer/README.org][here]] and additional information is
+available on [[https://github.com/matthewbauer/bauer][the GitHub repo]].
 
 #+TOC: headlines 2
 
@@ -3816,7 +3816,6 @@ Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 #+BEGIN_SRC yaml
 script:
   - nix-build -Q --argstr nixpkgs-url $NIXPKGS
-  - sh info.sh result
 #+END_SRC
 
 Setup the OSs. Sadly no Windows support yet.
@@ -3927,31 +3926,6 @@ profile.sh
 site-paths.el.in
 init.el
 org-init.el
-#+END_SRC
-** =info.sh=
-:PROPERTIES:
-:header-args: :tangle info.sh :tangle-mode (identity #o755)
-:END:
-
-This file gives us some info on the built derivation. Only arg is optional
-and should be a path to a Nix store derivation.
-
-#+BEGIN_SRC sh :padline no
-#!/bin/sh
-out=$1
-
-if [ -z "$out" ]; then
-  out=$(nix-build)
-fi
-
-if [ -L "$out" ]; then
-  out=$(readlink -f $out)
-fi
-
-if [ -e $out ]; then
-  echo Dependencies:
-  du -scl $(nix-store -qR $out) | sort -n
-fi
 #+END_SRC
 ** =config.nix=
 :PROPERTIES:
