@@ -52,6 +52,8 @@
   :group 'installer
   :type 'boolean)
 
+(defvar installer-out-path (expand-file-name "result" temporary-file-directory))
+
 (defvar installer-running-process nil)
 
 (defun is-exec (command)
@@ -69,13 +71,11 @@
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
-  (lexical-let* ((installer-out-path
-                  (with-current-buffer (get-buffer-create "repo-install")
-                    (buffer-string)))
+  (lexical-let* ((installer-out-path (file-truename installer-out-path))
                  (emacs-binary
                   (file-truename
                    (expand-file-name (nix-emacs-path) installer-out-path)))
-                 (old-emacs-binary (file-truename
+                 (old-emacs-binary (file-chase-links
                                     (expand-file-name (nix-emacs-path)
                                                       nix-profile))))
     (switch-to-buffer-other-window buffer)
@@ -126,8 +126,11 @@
 (defun repo-build (&rest _)
   "Build repo."
   (make-process :name "repo-install"
-                :command `("nix-build" "--no-out-link" ,installer-repo-dir)
-                :buffer (get-buffer-create "repo-install")))
+                :command `("nix-build"
+                           "--out-link"
+                           ,installer-out-path
+
+                           ,installer-repo-dir)))
 
 (defun run-sequentially (buffer fns)
   "Run each process in BUFFER generator, FNS, sequentially.
@@ -152,7 +155,8 @@ BUFFER is the buffer to show output in."
   "Install Emacs.
 BUFFER to show output in."
   (interactive)
-  (when installer-running-process (error "Can’t run two installers at once."))
+  (when (process-live-p installer-running-process)
+    (error "Can’t run two installers at once."))
   (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
   (switch-to-buffer-other-window buffer)
   (unless (process-live-p installer-running-process)
@@ -170,10 +174,15 @@ BUFFER to show output in."
   "Development restart Emacs.
 BUFFER to show output in."
   (interactive)
-  (setq installer-auto-restart t)
-  (when (f-exists-p (expand-file-name "default.nix" default-directory))
+
+  (when (process-live-p installer-running-process)
+    (error "Can’t run two installers at once."))
+
+  ;; TODO move these into let bindings
+  ;; (setq installer-auto-restart t)
+  (when (file-exists-p (expand-file-name "default.nix" default-directory))
     (setq installer-repo-dir (expand-file-name default-directory)))
-  (when installer-running-process (error "Can’t run two installers at once."))
+
   (when (not buffer) (setq buffer (get-buffer-create "*dev*")))
   (switch-to-buffer-other-window buffer)
   (unless (process-live-p installer-running-process)
@@ -188,7 +197,10 @@ BUFFER to show output in."
   "Upgrade Emacs.
 BUFFER to show output in."
   (interactive)
-  (when installer-running-process (error "Can’t run two installers at once."))
+
+  (when (process-live-p installer-running-process)
+    (error "Can’t run two installers at once."))
+
   (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
   (when (and (not (process-live-p installer-running-process))
              (is-exec "nix-build"))
