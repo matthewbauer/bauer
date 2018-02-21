@@ -38,7 +38,7 @@
   :group 'installer)
 
 (defcustom installer-repo-dir
-  (expand-file-name "bauer" temporary-file-directory)
+  (expand-file-name ".local/share/bauer" (getenv "HOME"))
   "Location of repo config."
   :group 'installer)
 
@@ -69,13 +69,12 @@
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
-  (lexical-let* ((new-profile (string-trim
-                               (shell-command-to-string
-                                (format "nix-build --no-out-link %s"
-                                        installer-repo-dir))))
+  (lexical-let* ((installer-out-path
+                  (with-current-buffer (get-buffer-create "repo-install")
+                    (buffer-string)))
                  (emacs-binary
                   (file-truename
-                   (expand-file-name (nix-emacs-path) new-profile)))
+                   (expand-file-name (nix-emacs-path) installer-out-path)))
                  (old-emacs-binary (file-truename
                                     (expand-file-name (nix-emacs-path)
                                                       nix-profile))))
@@ -83,7 +82,7 @@
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
                   :override (lambda () emacs-binary))
-      (shell-command (format "nix-env -i %s" new-profile) buffer)
+      (shell-command (format "nix-env -i %s" installer-out-path) buffer)
       (when installer-auto-restart
         (restart-emacs)))
     (with-current-buffer buffer
@@ -91,6 +90,8 @@
           (progn
             (insert "\nEmacs is already up to date."))
         (progn (insert "\nEmacs updated!")
+               (insert (format "\nYour new output path is %s."
+                               installer-out-path))
                (insert "\nRun M-x restart-emacs to upgrade.")
                (insert "\n"))))))
 
@@ -125,7 +126,8 @@
 (defun repo-build (&rest _)
   "Build repo."
   (make-process :name "repo-install"
-                :command `("nix-build" "--no-out-link" ,installer-repo-dir)))
+                :command `("nix-build" "--no-out-link" ,installer-repo-dir)
+                :buffer (get-buffer-create "repo-install")))
 
 (defun run-sequentially (buffer fns)
   "Run each process in BUFFER generator, FNS, sequentially.
@@ -150,6 +152,7 @@ BUFFER is the buffer to show output in."
   "Install Emacs.
 BUFFER to show output in."
   (interactive)
+  (when installer-running-process (error "Can’t run two installers at once."))
   (when (not buffer) (setq buffer (get-buffer-create "*installer*")))
   (switch-to-buffer-other-window buffer)
   (unless (process-live-p installer-running-process)
@@ -163,10 +166,29 @@ BUFFER to show output in."
                                  repo-build
                                  restart-info)))))
 
+(defun dev-restart (&optional buffer)
+  "Development restart Emacs.
+BUFFER to show output in."
+  (interactive)
+  (setq installer-auto-restart t)
+  (when (f-exists-p (expand-file-name "default.nix" default-directory))
+    (setq installer-repo-dir (expand-file-name default-directory)))
+  (when installer-running-process (error "Can’t run two installers at once."))
+  (when (not buffer) (setq buffer (get-buffer-create "*dev*")))
+  (switch-to-buffer-other-window buffer)
+  (unless (process-live-p installer-running-process)
+    (with-current-buffer buffer
+      (erase-buffer)
+      (comint-mode)
+      (local-set-key (kbd "q") 'quit-window)
+      (run-sequentially buffer '(repo-build
+                                 restart-info)))))
+
 (defun upgrade (&optional buffer)
   "Upgrade Emacs.
 BUFFER to show output in."
   (interactive)
+  (when installer-running-process (error "Can’t run two installers at once."))
   (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
   (when (and (not (process-live-p installer-running-process))
              (is-exec "nix-build"))
