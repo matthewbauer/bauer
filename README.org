@@ -238,31 +238,27 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(bookmark-save-flag t)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
- '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
-					 (company-explicit-action-p))))
- ;; '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
- ;;		       company-preview-frontend
- ;;		       company-echo-metadata-frontend))
+ '(company-auto-complete (lambda () (and (company-tooltip-visible-p) (company-explicit-action-p))))
  '(company-continue-commands
    '(not save-buffer
-	 save-some-buffers
-	 save-buffers-kill-terminal
-	 save-buffers-kill-emacs
-	 comint-previous-matching-input-from-input
-	 comint-next-matching-input-from-input))
+         save-some-buffers
+         save-buffers-kill-terminal
+         save-buffers-kill-emacs
+         comint-previous-matching-input-from-input
+         comint-next-matching-input-from-input))
  '(company-require-match nil)
  '(company-selection-wrap-around t)
  '(company-backends '(company-elisp
-		      company-css
-		      company-nxml
-		      company-cmake
-		      company-capf
-		      (company-files
-		       company-keywords company-dabbrev
-		       company-dabbrev-code
-		       ;; company-ispell
-		       )
-		      ))
+                      company-css
+                      company-nxml
+                      company-cmake
+                      company-capf
+                      (company-files
+                       company-keywords company-dabbrev
+                       company-dabbrev-code
+                       ;; company-ispell
+                       )
+                      ))
  '(comint-input-ignoredups t)
  '(comint-process-echoes t)
  '(comint-prompt-read-only t)
@@ -611,16 +607,16 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 (defgroup bauer nil "Options for Bauer IDE."
   :group 'emacs)
 (defcustom user-symbols '(org-agenda-files
-			  org-default-notes-file
-			  org-capture-templates
-			  erc-nick erc-nickserv-passwords
-			  erc-autojoin-channels-alist
-			  erc-server
-			  smtpmail-smtp-server
-			  smtpmail-smtp-service
-			  smtpmail-smtp-user
-			  user-full-name user-mail-address
-			  gnus-secondary-select-methods)
+                          org-default-notes-file
+                          org-capture-templates
+                          erc-nick erc-nickserv-passwords
+                          erc-autojoin-channels-alist
+                          erc-server
+                          smtpmail-smtp-server
+                          smtpmail-smtp-service
+                          smtpmail-smtp-user
+                          user-full-name user-mail-address
+                          gnus-secondary-select-methods)
   "Symbols that the user should customize for themselves."
   :group 'bauer)
 
@@ -629,8 +625,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 to input your personal settings."
   (interactive)
   (custom-buffer-create (mapcar (lambda (x) (custom-load-symbol x)
-				  `(,x custom-variable)) user-symbols)
-			"*User customize*"))
+                                  `(,x custom-variable)) user-symbols)
+                        "*User customize*"))
 #+END_SRC
 
 *** Site paths
@@ -744,7 +740,7 @@ goal is to overwrite as little as possible. When it is necessary to overwrite
 Emacs keybinds, documentation on why should be provided.
 
 #+BEGIN_SRC emacs-lisp
-;; (require  'dash)
+;; (require 'dash)
 (require 'subr-x)
 (require 'view)
 (require 'iso-transl)
@@ -752,7 +748,7 @@ Emacs keybinds, documentation on why should be provided.
 (defun update-font-spec-size (spec increment)
   (string-join
    (-update-at 7 (lambda (i) (number-to-string
-			 (+ (string-to-number i) increment)))
+                         (+ (string-to-number i) increment)))
                (split-string spec "-")) "-"))
 
 (defun update-font-size (increment)
@@ -760,6 +756,7 @@ Emacs keybinds, documentation on why should be provided.
    (update-font-spec-size (frame-parameter nil  'font) increment)))
 
 (bind-keys
+ :map global-map
  ("C-c C-u" . rename-uniquely)
  ("C-x ~" . (lambda () (interactive) (find-file "~")))
  ("C-x /" . (lambda () (interactive) (find-file "/")))
@@ -813,9 +810,9 @@ Emacs keybinds, documentation on why should be provided.
  ("s-/" . comment-or-uncomment-region)
 
  ("C-x M-p" . (lambda ()
- 		(interactive)
- 		(save-excursion (other-window 1)
- 				(quit-window))))
+                (interactive)
+                (save-excursion (other-window 1)
+                                (quit-window))))
 
  ("C-M--" . (lambda () (interactive) (update-font-size -1)))
  ("C-M-=" . (lambda () (interactive) (update-font-size 1)))
@@ -831,9 +828,8 @@ Emacs keybinds, documentation on why should be provided.
  ("C-c m i" . eval-expression)
  ("C-c m d" . eval-defun)
  ("C-c m n" . eval-print-last-sexp)
- ("C-c m r" . eval-region))
+ ("C-c m r" . eval-region)
 
-(bind-keys
  :map help-map
  ("C-v" . find-variable)
  ("C-k" . find-function-on-key)
@@ -870,8 +866,9 @@ Emacs keybinds, documentation on why should be provided.
  ("<S-right>" . "→")
  ("<up>" . "⇑")
  ("<S-up>" .  "↑")
- ("," .  "…")
+ ("," .  "…"))
 
+(bind-keys
  :prefix-map bauer-git
  :prefix "s-g"
  ("l" . magit-clone)
@@ -881,8 +878,7 @@ Emacs keybinds, documentation on why should be provided.
  ("k" . describe-personal-keybindings)
  ("p" . ffap)
  ("." . helpful-at-point)
- ("o" . counsel-find-library)
- )
+ ("o" . counsel-find-library))
 #+END_SRC
 
 ** Setup installer
@@ -981,10 +977,10 @@ info.
          ([remap list-buffers] . ivy-switch-buffer)
          ([remap switch-to-buffer] . ivy-switch-buffer)
          ([remap switch-to-buffer-other-window] .
-	  ivy-switch-buffer-other-window)
+          ivy-switch-buffer-other-window)
          ;; ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
-	 :map ivy-minibuffer-map
-	 ("<escape>" . abort-recursive-edit))
+         :map ivy-minibuffer-map
+         ("<escape>" . abort-recursive-edit))
   :init
   (defvar projectile-completion-system)
   (defvar magit-completing-read-function)
@@ -1013,26 +1009,26 @@ info.
     (interactive)
     (company-complete-common-or-cycle -1))
   :bind* (:map company-mode-map
-	       ("C-M-i" . company-complete-common-or-cycle)
-	  :map company-active-map
-	      ("RET" . company-complete-selection)
-	      ([return] . company-complete-selection)
-	      ("TAB" . company-complete-common-or-cycle)
-	      ("<tab>" . company-complete-common-or-cycle)
-	      ("S-TAB" . company-complete-common-or-cycle-backward)
-	      ("<backtab>" . company-complete-common-or-cycle-backward)
-	      ("C-n" . company-select-next)
-	      ("C-p" . company-select-previous)
+               ("C-M-i" . company-complete-common-or-cycle)
+          :map company-active-map
+              ("RET" . company-complete-selection)
+              ([return] . company-complete-selection)
+              ("TAB" . company-complete-common-or-cycle)
+              ("<tab>" . company-complete-common-or-cycle)
+              ("S-TAB" . company-complete-common-or-cycle-backward)
+              ("<backtab>" . company-complete-common-or-cycle-backward)
+              ("C-n" . company-select-next)
+              ("C-p" . company-select-previous)
 
-	      ("C-/" . company-search-candidates)
-	      ("C-M-/" . company-filter-candidates)
-	      ("C-d" . company-show-doc-buffer)
-	      )
+              ("C-/" . company-search-candidates)
+              ("C-M-/" . company-filter-candidates)
+              ("C-d" . company-show-doc-buffer)
+              )
   :hook ((minibuffer-setup . company-mode)
-	 (minibuffer-setup . (lambda ()
-			       (setq-local company-frontends
-					   '(company-preview-frontend))))
-	 (after-init . global-company-mode))
+         (minibuffer-setup . (lambda ()
+                               (setq-local company-frontends
+                                           '(company-preview-frontend))))
+         (after-init . global-company-mode))
   :config
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
   (global-company-mode))
@@ -1056,7 +1052,7 @@ info.
 (use-package company-jedi
   :commands company-jedi
   :hook (python-mode . (lambda ()
-			   (add-to-list 'company-backends 'company-jedi))))
+                           (add-to-list 'company-backends 'company-jedi))))
 (use-package company-tern
   :commands company-jedi
   :init (add-to-list 'company-backends 'company-jedi))
@@ -1065,32 +1061,32 @@ info.
   :init (add-to-list 'company-backends 'company-ghc))
 (use-package company-auctex
   :commands (company-auctex company-auctext-labels
-			    company-auctest-bibs company-auctex-macros
-			    company-auctext-symbols
-			    company-auctext-environments)
+                            company-auctest-bibs company-auctex-macros
+                            company-auctext-symbols
+                            company-auctext-environments)
   :init
   (add-to-list 'company-backends 'company-auctex-labels)
   (add-to-list 'company-backends 'company-auctex-bibs)
   (add-to-list 'company-backends
-	       '(company-auctex-macros
-		 company-auctex-symbols
-		 company-auctex-environments)))
+               '(company-auctex-macros
+                 company-auctex-symbols
+                 company-auctex-environments)))
 (use-package company-web
   :init
-  (autoload company-web-html "company-web-html")
-  (autoload company-web-jade "company-web-html")
-  (autoload company-web-slim "company-web-html")
+  (autoload 'company-web-html "company-web-html")
+  (autoload 'company-web-jade "company-web-html")
+  (autoload 'company-web-slim "company-web-html")
   (add-to-list 'company-backends 'company-web-html)
   (add-to-list 'company-backends 'company-web-jade)
   (add-to-list 'company-backends 'company-web-slim))
 (use-package company-math
   :hook (TeX-mode . (lambda ()
-		      (setq-local
-		       company-backends
-		       (append
-			'((company-math-symbols-latex company-latex-commands))
-			company-backends)))))
-     #+END_SRC
+                      (setq-local
+                       company-backends
+                       (append
+                        '((company-math-symbols-latex company-latex-commands))
+                        company-backends)))))
+#+END_SRC
 **** delight
 
 #+BEGIN_SRC emacs-lisp
@@ -1131,35 +1127,35 @@ info.
   :ensure ess
   :no-require
   :interpreter (("Rscript" . r-mode)
-		("r" . r-mode))
+                ("r" . r-mode))
   :mode (("\\.sp\\'"          . S-mode)
-	 ("/R/.*\\.q\\'"      . R-mode)
-	 ("\\.[qsS]\\'"       . S-mode)
-	 ("\\.ssc\\'"         . S-mode)
-	 ("\\.SSC\\'"         . S-mode)
-	 ("\\.[rR]\\'"        . R-mode)
-	 ("\\.[rR]nw\\'"      . Rnw-mode)
-	 ("\\.[sS]nw\\'"      . Snw-mode)
-	 ("\\.[rR]profile\\'" . R-mode)
-	 ("NAMESPACE\\'"      . R-mode)
-	 ("CITATION\\'"       . R-mode)
-	 ("\\.omg\\'"         . omegahat-mode)
-	 ("\\.hat\\'"         . omegahat-mode)
-	 ("\\.lsp\\'"         . XLS-mode)
-	 ("\\.do\\'"          . STA-mode)
-	 ("\\.ado\\'"         . STA-mode)
-	 ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-	 ("\\.[Ss]t\\'"       . S-transcript-mode)
-	 ("\\.Sout"           . S-transcript-mode)
-	 ("\\.[Rr]out"        . R-transcript-mode)
-	 ("\\.Rd\\'"          . Rd-mode)
-	 ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
-	 ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
-	 ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-	 ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-	 ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-	 ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
-	 ))
+         ("/R/.*\\.q\\'"      . R-mode)
+         ("\\.[qsS]\\'"       . S-mode)
+         ("\\.ssc\\'"         . S-mode)
+         ("\\.SSC\\'"         . S-mode)
+         ("\\.[rR]\\'"        . R-mode)
+         ("\\.[rR]nw\\'"      . Rnw-mode)
+         ("\\.[sS]nw\\'"      . Snw-mode)
+         ("\\.[rR]profile\\'" . R-mode)
+         ("NAMESPACE\\'"      . R-mode)
+         ("CITATION\\'"       . R-mode)
+         ("\\.omg\\'"         . omegahat-mode)
+         ("\\.hat\\'"         . omegahat-mode)
+         ("\\.lsp\\'"         . XLS-mode)
+         ("\\.do\\'"          . STA-mode)
+         ("\\.ado\\'"         . STA-mode)
+         ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
+         ("\\.[Ss]t\\'"       . S-transcript-mode)
+         ("\\.Sout"           . S-transcript-mode)
+         ("\\.[Rr]out"        . R-transcript-mode)
+         ("\\.Rd\\'"          . Rd-mode)
+         ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
+         ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+         ))
 #+END_SRC
 
 **** Emacs shell
@@ -1176,9 +1172,9 @@ info.
   (defun pcomplete/sudo ()
     (let ((prec (pcomplete-arg 'last -1)))
       (cond ((string= "sudo" prec)
-	     (while (pcomplete-here*
-		     (funcall pcomplete-command-completion-function)
-		     (pcomplete-arg 'last) t))))))
+             (while (pcomplete-here*
+                     (funcall pcomplete-command-completion-function)
+                     (pcomplete-arg 'last) t))))))
   :config
   (use-package em-rebind
     :ensure nil
@@ -1194,8 +1190,8 @@ info.
             ([(control 117)] . eshell-kill-input)
             ([tab] . completion-at-point)
             ([(control 101)] . (lambda ()
-				 (interactive)
-				 (end-of-line)))))
+                                 (interactive)
+                                 (end-of-line)))))
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1219,7 +1215,7 @@ info.
   :commands esh-autosuggest
   :init
   (add-to-list 'company-backends
-	       '(esh-autosuggest :with company-capf company-files)))
+               '(esh-autosuggest :with company-capf company-files)))
 #+END_SRC
 
 ***** esh-help
@@ -1228,8 +1224,8 @@ info.
 (use-package esh-help
   :commands (esh-help-eldoc-command)
   :hook (eshell-mode . (lambda ()
-			 (setq-local eldoc-documentation-function
-				     'esh-help-eldoc-command))))
+                         (setq-local eldoc-documentation-function
+                                     'esh-help-eldoc-command))))
 #+END_SRC
 
 ***** em-dired
@@ -1238,7 +1234,7 @@ info.
 (use-package em-dired
   :ensure nil
   :commands (em-dired-new)
-  :bind (:map dired-mode-map
+  :bind* (:map dired-mode-map
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
   :init (advice-add 'eshell :before 'em-dired-new))
@@ -1311,10 +1307,10 @@ certain Emacs keybinds.cs-lisp
 (use-package hippie-exp
   :ensure nil
   :bind* (("M-/" . hippie-expand)
-	  ("s-?" . hippie-expand-line))
+          ("s-?" . hippie-expand-line))
   :hook ((emacs-lisp-mode ielm-mode) .
-	 (lambda ()
-	   (setq-local hippie-expand-try-functions-list
+         (lambda ()
+           (setq-local hippie-expand-try-functions-list
                 (append '(try-complete-lisp-symbol-partially
                           try-complete-lisp-symbol)
                         hippie-expand-try-functions-list)))))
@@ -1420,10 +1416,10 @@ This is currently disabled.
   :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
-	 (org-mode . (lambda ()
-		       (add-hook 'completion-at-point-functions
-				 'pcomplete-completions-at-point nil t)))
-	 (org-mode . auto-fill-mode))
+         (org-mode . (lambda ()
+                       (add-hook 'completion-at-point-functions
+                                 'pcomplete-completions-at-point nil t)))
+         (org-mode . auto-fill-mode))
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1461,7 +1457,7 @@ This is currently disabled.
   :ensure nil
   :commands (org-eldoc-documentation-function)
   :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
-					   'org-eldoc-documentation-function))))
+                                           'org-eldoc-documentation-function))))
 #+END_SRC
 
 **** Projectile
@@ -1894,7 +1890,7 @@ Setup these modes:
      - electric-indent
      - electric-layout
 
-     #+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (use-package electric
   :ensure nil
   :hook ((prog-mode . electric-quote-mode)
@@ -1953,15 +1949,15 @@ setup.
     "Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
     (save-match-data
       (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
-	     (line-number (and matched
-			       (match-string 2 filename)
-			       (string-to-number (match-string 2 filename))))
-	     (filename (if matched (match-string 1 filename) filename)))
-	(apply orig-fun (list filename wildcards))
-	(when line-number
-	  ;; goto-line is for interactive use
-	  (goto-char (point-min))
-	  (forward-line (1- line-number))))))
+             (line-number (and matched
+                               (match-string 2 filename)
+                               (string-to-number (match-string 2 filename))))
+             (filename (if matched (match-string 1 filename) filename)))
+        (apply orig-fun (list filename wildcards))
+        (when line-number
+          ;; goto-line is for interactive use
+          (goto-char (point-min))
+          (forward-line (1- line-number))))))
   :config
   (advice-add 'find-file :around #'find-file--line-number))
 #+END_SRC
@@ -2133,9 +2129,9 @@ setup.
   :ensure nil
   :commands (term-mode term-char-mode term-set-escape-char)
   :hook (term-mode . (lambda ()
-		       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-		       (setq-local transient-mark-mode nil)
-		       (auto-fill-mode -1)))
+                       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+                       (setq-local transient-mark-mode nil)
+                       (auto-fill-mode -1)))
   :preface
   (defun my-term ()
     (interactive)
@@ -2186,7 +2182,7 @@ setup.
 (use-package hl-line
   :ensure nil
   :hook ((prog-mode . hl-line-mode)
-	 (org-mode . hl-line-mode)))
+         (org-mode . hl-line-mode)))
 #+END_SRC
 **** eww
 #+BEGIN_SRC emacs-lisp
@@ -2293,7 +2289,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 #+BEGIN_SRC emacs-lisp
 (use-package ghc
   :hook ((haskell-mode . ghc-init)
-	 (haskell-mode . ghc-comp-init)))
+         (haskell-mode . ghc-comp-init)))
 #+END_SRC
 ***** haskell-mode
 
@@ -2326,8 +2322,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
   :ensure nil
   :commands (haskell-doc-current-info)
   :hook (haskell-mode . (lambda ()
-			  (setq-local eldoc-documentation-function
-				      'haskell-doc-current-info))))
+                          (setq-local eldoc-documentation-function
+                                      'haskell-doc-current-info))))
 #+END_SRC
 **** Java
 ***** jdee
@@ -2351,7 +2347,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 #+BEGIN_SRC emacs-lisp
 (use-package js2-mode
   :mode (("\\.js\\'" . js2-mode)
-	 ("\\.es6\\'" . js2-mode)
+         ("\\.es6\\'" . js2-mode)
          ("\\.ejs\\'" . js2-mode))
   :interpreter "node"
   :config
@@ -2456,10 +2452,10 @@ Auctex provides some helpful tools for working with LaTeX.
   :commands nix-buffer
   :preface
   (defun turn-on-nix-buffer ()
-	(when (and (not noninteractive)
-			   (not (eq (aref (buffer-name) 0) ?\s))
-			   (not (file-remote-p default-directory)))
-	  (nix-buffer)))
+        (when (and (not noninteractive)
+                           (not (eq (aref (buffer-name) 0) ?\s))
+                           (not (file-remote-p default-directory)))
+          (nix-buffer)))
   :hook (after-change-major-mode . turn-on-nix-buffer))
 #+END_SRC
 ***** nix-update
@@ -2793,7 +2789,7 @@ Most of these are available in MELPA.
           web-mode
           less-css-mode
           html-mode
-	  css-mode) . rainbow-mode))
+          css-mode) . rainbow-mode))
 #+END_SRC
 
 **** restclient
@@ -2864,15 +2860,15 @@ Most of these are available in MELPA.
          ("/git/attributes\\'" . gitattributes-mode)))
 (use-package gitconfig-mode
   :mode (("/\\.gitconfig\\'" . gitconfig-mode)
-	 ("/\\.git/config\\'" . gitconfig-mode)
-	 ("/modules/.*/config\\'" . gitconfig-mode)
-	 ("/git/config\\'" . gitconfig-mode)
-	 ("/\\.gitmodules\\'" . gitconfig-mode)
-	 ("/etc/gitconfig\\'" . gitconfig-mode)))
+         ("/\\.git/config\\'" . gitconfig-mode)
+         ("/modules/.*/config\\'" . gitconfig-mode)
+         ("/git/config\\'" . gitconfig-mode)
+         ("/\\.gitmodules\\'" . gitconfig-mode)
+         ("/etc/gitconfig\\'" . gitconfig-mode)))
 (use-package gitignore-mode
   :mode (("/\\.gitignore\\'" . gitignore-mode)
-	 ("/info/exclude\\'" . gitignore-mode)
-	 ("/git/ignore\\'" . gitignore-mode)))
+         ("/info/exclude\\'" . gitignore-mode)
+         ("/git/ignore\\'" . gitignore-mode)))
 #+END_SRC
 **** github-clone
 #+BEGIN_SRC emacs-lisp
@@ -3268,29 +3264,29 @@ Some basic gitignore paths.
 
 #+BEGIN_SRC gitconfig :padline no
 [core]
-	editor = emacsclient
-	excludesfile = @gitignore@
+        editor = emacsclient
+        excludesfile = @gitignore@
 
 [commit]
-	gpgSign = true
+        gpgSign = true
 
 [gpg]
-	program = "@gnupg@/bin/gpg"
+        program = "@gnupg@/bin/gpg"
 
 [push]
-	default = simple
+        default = simple
 
 [pull]
-	rebase = true
+        rebase = true
 
 [alias]
-	amend = commit --amend
+        amend = commit --amend
 
 [help]
-	autcorrect = 1
+        autcorrect = 1
 
 [color]
-	ui = true
+        ui = true
 #+END_SRC
 * Bootstrapping
 ** =site-paths.el.in=
