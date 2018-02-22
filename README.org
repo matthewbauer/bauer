@@ -239,10 +239,10 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(c-syntactic-indentation nil)
  '(checkdoc-spellcheck-documentation-flag t)
  '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
-				    (company-explicit-action-p))))
+					 (company-explicit-action-p))))
  ;; '(company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
- ;; 		       company-preview-frontend
- ;; 		       company-echo-metadata-frontend))
+ ;;		       company-preview-frontend
+ ;;		       company-echo-metadata-frontend))
  '(company-continue-commands
    '(not save-buffer
 	 save-some-buffers
@@ -297,7 +297,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(disabled-command-function nil)
  '(display-buffer-reuse-frames t)
  '(dtrt-indent-verbosity 0)
- '(dynamic-completion-mode t)
  '(echo-keystrokes 0)
  '(enable-recursive-minibuffers t)
  '(erc-autojoin-timing 'ident)
@@ -384,8 +383,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(frame-title-format '(:eval (if (buffer-file-name)
                                   (abbreviate-file-name (buffer-file-name))
                                 "%b")))
- '(global-auto-revert-non-file-buffers t)
- '(gnuplot-eldoc-mode t)
  '(gnuplot-inline-image-mode 'dedicated)
  '(grep-command "egrep -nH -e ")
  '(grep-find-command
@@ -405,7 +402,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(haskell-process-suggest-remove-import-lines t)
  '(haskell-process-suggest-restart nil)
  '(haskell-process-use-presentation-mode nil)
- '(haskell-process-use-presentation-mode nil)
  '(help-window-select t)
  '(hideshowvis-ignore-same-line nil)
  '(highlight-nonselected-windows nil)
@@ -424,7 +420,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(indicate-empty-lines t)
  '(inhibit-startup-echo-area-message t)
  '(inhibit-startup-screen t)
- '(initial-major-mode 'fundamental-mode)
  '(initial-scratch-message "")
  '(ispell-extra-args '("--sug-mode=ultra"))
  '(ispell-quietly t)
@@ -472,8 +467,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
  '(magit-save-repository-buffers 'dontask)
  '(magit-stage-all-confirm nil)
  '(magit-unstage-all-confirm nil)
- '(minibuffer-auto-raise t)
- '(minibuffer-electric-default-mode t)
  '(mmm-global-mode 'buffers-with-submode-classes)
  '(mmm-submode-decoration-level 2)
  '(minibuffer-prompt-properties
@@ -819,7 +812,7 @@ Emacs keybinds, documentation on why should be provided.
 (bind-key "<S-s-up>"      'shrink-window)
 (bind-key "<S-s-down>"    'enlarge-window)
 
-(bind-key* "C-M-i"        'completion-at-point)
+;; (bind-key* "C-M-i"        'completion-at-point)
 (bind-key "<s-down>"      'windmove-down)
 (bind-key "<s-up>"        'windmove-up)
 (bind-key "C-c ["         'align-regexp)
@@ -877,6 +870,9 @@ Emacs keybinds, documentation on why should be provided.
 
 (bind-key "M-n" 'next-error)
 (bind-key "M-p" 'previous-error)
+
+(bind-key "s-r" 'revert-buffer)
+(bind-key "s-u" 'revert-buffer)
 #+END_SRC
 
 ** Setup installer
@@ -999,6 +995,7 @@ info.
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :commands global-company-mode
+  :delight
   :demand
   :preface
   (defun company-complete-common-or-cycle-backward ()
@@ -1008,7 +1005,9 @@ info.
   (defun company-add-preview ()
     (setq-local company-frontends
 		'(company-preview-frontend)))
-  :bind (:map company-active-map
+  :bind* (:map company-mode-map
+	       ("C-M-i" . company-complete-common-or-cycle)
+	  :map company-active-map
 	      ("RET" . company-complete-selection)
 	      ([return] . company-complete-selection)
 	      ("TAB" . company-complete-common-or-cycle)
@@ -1022,15 +1021,72 @@ info.
 	      ("C-M-/" . company-filter-candidates)
 	      ("C-d" . company-show-doc-buffer)
 	      )
-  :hook ((minibuffer-setup-hook . company-mode)
-	 (minibuffer-setup-hook . company-add-preview))
+  :hook ((minibuffer-setup . company-mode)
+	 (minibuffer-setup . company-add-preview)
+	 (after-init . global-company-mode))
   :config
-  (global-company-mode t)
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
-  )
+  (global-company-mode))
+(use-package company-autoloads
+  :demand
+  :no-require
+  :ensure nil)
+(use-package readline-complete
+  :commands company-readline
+  :preface
+  (defun no-company-mode () (company-mode -1))
+  :hook (rlc-no-readline . no-company-mode)
+  :init (push 'company-readline company-backends))
+(use-package company-irony
+  :commands company-irony
+  :init (add-to-list 'company-backends 'company-irony))
+(use-package company-restclient
+  :commands company-restclient
+  :init (add-to-list 'company-backends 'company-restclient))
+(use-package company-anaconda
+  :commands company-anaconda
+  :init
+  (add-to-list 'company-backends '(company-anaconda :with company-capf)))
+(use-package company-jedi
+  :commands company-jedi
+  :hook (python-mode . setup-company-jedi)
+  :preface
+  (defun setup-company-jedi ()
+    (add-to-list 'company-backends 'company-jedi)))
+(use-package company-tern
+  :commands company-jedi
+  :init (add-to-list 'company-backends 'company-jedi))
+(use-package company-ghc
+  :commands company-ghc
+  :init (add-to-list 'company-backends 'company-ghc))
+(use-package company-auctex
+  :commands (company-auctex company-auctext-labels
+			    company-auctest-bibs company-auctex-macros
+			    company-auctext-symbols
+			    company-auctext-environments)
+  :init
+  (add-to-list 'company-backends 'company-auctex-labels)
+  (add-to-list 'company-backends 'company-auctex-bibs)
+  (add-to-list 'company-backends
+	       '(company-auctex-macros
+		 company-auctex-symbols
+		 company-auctex-environments)))
+(use-package company-web
+  :init
+  (autoload company-web-html "company-web-html")
+  (autoload company-web-jade "company-web-html")
+  (autoload company-web-slim "company-web-html")
+  (add-to-list 'company-backends 'company-web-html)
+  (add-to-list 'company-backends 'company-web-jade)
+  (add-to-list 'company-backends 'company-web-slim))
+(use-package company-math
+  :preface
+  (defun setup-company-math ()
+    (setq-local company-backends
+		(append '((company-math-symbols-latex company-latex-commands))
+			company-backends)))
+  :hook (TeX-mode . setup-company-math))
      #+END_SRC
-
-
 **** delight
 
 #+BEGIN_SRC emacs-lisp
@@ -1150,8 +1206,12 @@ info.
           eshell-tramp
           eshell-unix
           eshell-xtra)))
+
 (use-package esh-autosuggest
-  :hook (eshell-mode . esh-autosuggest-mode))
+  :commands esh-autosuggest
+  :disabled
+  :init
+  (add-to-list 'company-backends '(esh-autosuggest :with company-capf company-files)))
 #+END_SRC
 
 ***** esh-help
@@ -1214,13 +1274,6 @@ apropospriate, and flycheck are the biggest offenders.
   ;; :commands (global-flycheck-mode)
   ;; :config (global-flycheck-mode)
   :hook (prog-mode . flycheck-mode))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-(use-package flycheck-checkbashisms
-  :demand
-  :config
-  (flycheck-checkbashisms-setup))
 #+END_SRC
 
 **** Gnus
@@ -1361,11 +1414,12 @@ This is currently disabled.
   :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
-	 (org-mode . setup-pcomplete))
+	 (org-mode . setup-pcomplete)
+	 (org-mode . auto-fill-mode))
   :preface
   (defun setup-pcomplete ()
     (add-hook 'completion-at-point-functions
-			  'pcomplete-completions-at-point nil t))
+	      'pcomplete-completions-at-point nil t))
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1394,7 +1448,7 @@ This is currently disabled.
   :after org
   :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
 (use-package toc-org
-  :bind (org-mode . toc-org-enable))
+  :hook (org-mode . toc-org-enable))
 #+END_SRC
 ***** org-eldoc
 
@@ -1687,7 +1741,6 @@ Get color/ansi codes in compilation mode.
   :ensure nil
   :commands (global-auto-revert-mode)
   :demand
-  :hook ((dired-mode . auto-revert-mode))
   :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -2238,7 +2291,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
 (use-package ghc
-  :hook (haskell-mode . ghc-init))
+  :hook ((haskell-mode . ghc-init)
+	 (haskell-mode . ghc-comp-init)))
 #+END_SRC
 ***** haskell-mode
 
@@ -2254,6 +2308,10 @@ Note: this needs ghc-mod to be in PATH to work properly.
          (haskell-mode . turn-on-haskell-indent))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
+(use-package haskell-mode-autoloads
+  :demand
+  :no-require
+  :ensure nil)
 #+END_SRC
 
 ***** haskell-interactive-mode
@@ -2298,6 +2356,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 	 ("\\.es6\\'" . js2-mode)
          ("\\.ejs\\'" . js2-mode))
   :interpreter "node"
+  :config
   (setq-default
    js2-mode-indent-ignore-first-tab t
    js2-strict-inconsistent-return-warning nil
@@ -2396,7 +2455,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package nix-buffer
-  :comman nix-buffer
+  :commands nix-buffer
   :preface
   (defun turn-on-nix-buffer ()
 	(when (and (not noninteractive)
@@ -2551,11 +2610,7 @@ Auctex provides some helpful tools for working with LaTeX.
          ("\\.tpl\\.php\\'" . web-mode)
          ("\\.[agj]sp\\'" . web-mode)
          ("\\.as[cp]x\\'" . web-mode)
-         ("\\.djhtml\\'" . web-mode))
-  :config
-  (setq web-mode-content-types-alist '(("jsx" . "\\.jsx?$")))
-  (setq-default web-mode-enable-current-element-highlight t)
-  (add-to-list 'web-mode-comment-formats `("jsx" . "//")))
+         ("\\.djhtml\\'" . web-mode)))
 #+END_SRC
 
 **** YAML
@@ -2820,6 +2875,11 @@ Most of these are available in MELPA.
   :mode (("/\\.gitignore\\'" . gitignore-mode)
 	 ("/info/exclude\\'" . gitignore-mode)
 	 ("/git/ignore\\'" . gitignore-mode)))
+#+END_SRC
+**** github-clone
+#+BEGIN_SRC emacs-lisp
+(use-package github-clone
+  :bind ("C-c g c" . github-clone))
 #+END_SRC
 **** browse-at-remote
 #+BEGIN_SRC emacs-lisp
