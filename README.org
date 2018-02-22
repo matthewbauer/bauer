@@ -1168,6 +1168,13 @@ info.
          ("C-c e" . eshell))
   :commands (eshell-command eshell-bol)
   :hook (eshell-mode . eshell-read-history)
+  :preface
+  (defun pcomplete/sudo ()
+    (let ((prec (pcomplete-arg 'last -1)))
+      (cond ((string= "sudo" prec)
+	     (while (pcomplete-here*
+		     (funcall pcomplete-command-completion-function)
+		     (pcomplete-arg 'last) t))))))
   :config
   (use-package em-rebind
     :preface
