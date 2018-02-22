@@ -742,137 +742,142 @@ goal is to overwrite as little as possible. When it is necessary to overwrite
 Emacs keybinds, documentation on why should be provided.
 
 #+BEGIN_SRC emacs-lisp
-(bind-key "C-c C-u"         'rename-uniquely)
-(bind-key "C-x ~"           (lambda () (interactive) (find-file "~")))
-(bind-key "C-x /"           (lambda () (interactive) (find-file "/")))
-(bind-key "C-c C-o"         'browse-url-at-point)
-(bind-key "H-l"             'browse-url-at-point)
-(bind-key "C-x 5 3"         'iconify-frame)
-(bind-key "C-x 5 4"         'toggle-frame-fullscreen)
-(bind-key "s-SPC"           'cycle-spacing)
-(bind-key "C-c w w"         'whitespace-mode)
-
-(bind-key "<C-return>"      'other-window)
-(bind-key "s-o"             'other-window)
-(bind-key "C-z"             'delete-other-windows)
-(bind-key "M-g l"           'goto-line)
-(bind-key "<C-M-backspace>" 'backward-kill-sexp)
-(bind-key "C-x t"           'toggle-truncate-lines)
-(bind-key "C-x v H"         'vc-region-history)
-(bind-key "C-c SPC"         'just-one-space)
-(bind-key "C-c f"           'flush-lines)
-(bind-key "C-c o"           'customize-option)
-(bind-key "C-c O"           'customize-group)
-(bind-key "C-c F"           'customize-face)
-(bind-key "C-c q"           'fill-region)
-(bind-key "C-c s"           'replace-string)
-(bind-key "C-c u"           'rename-uniquely)
-(bind-key "C-c z"           'clean-buffer-list)
-(bind-key "C-c ="           'count-matches)
-(bind-key "C-c ;"           'comment-or-uncomment-region)
-(bind-key "C-c n"           'clean-up-buffer-or-region)
-(bind-key "C-c d"           'duplicate-current-line-or-region)
-(bind-key "M-+"             'text-scale-increase)
-(bind-key "M-_"             'text-scale-decrease)
-
-(bind-key "H-c"             'compile)
-(bind-key "s-1"             'other-frame)
-(bind-key "<s-return>"      'toggle-frame-fullscreen)
-
-(bind-key "s-C-<left>"      'shrink-window-horizontally)
-(bind-key "s-C-<right>"     'enlarge-window-horizontally)
-(bind-key "s-C-<down>"      'shrink-window)
-(bind-key "s-C-<up>"        'enlarge-window)
-
-;; (autoload 'iso-transl-ctl-x-8-map "iso-transl"
-;; "Keymap for C-x 8 prefix." t 'keymap)
-(require 'iso-transl)
-(bind-key "' /"       "′" iso-transl-ctl-x-8-map)
-(bind-key "\" /"      "″" iso-transl-ctl-x-8-map)
-(bind-key "\" ("      "“" iso-transl-ctl-x-8-map)
-(bind-key "\" )"      "”" iso-transl-ctl-x-8-map)
-(bind-key "' ("       "‘" iso-transl-ctl-x-8-map)
-(bind-key "' )"       "’" iso-transl-ctl-x-8-map)
-(bind-key "4 < -"     "←" iso-transl-ctl-x-8-map)
-(bind-key "4 - >"     "→" iso-transl-ctl-x-8-map)
-(bind-key "4 b"       "←" iso-transl-ctl-x-8-map)
-(bind-key "4 f"       "→" iso-transl-ctl-x-8-map)
-(bind-key "4 p"       "↑" iso-transl-ctl-x-8-map)
-(bind-key "4 n"       "↓" iso-transl-ctl-x-8-map)
-(bind-key "<down>"    "⇓" iso-transl-ctl-x-8-map)
-(bind-key "<S-down>"  "↓" iso-transl-ctl-x-8-map)
-(bind-key "<left>"    "⇐" iso-transl-ctl-x-8-map)
-(bind-key "<S-left>"  "←" iso-transl-ctl-x-8-map)
-(bind-key "<right>"   "⇒" iso-transl-ctl-x-8-map)
-(bind-key "<S-right>" "→" iso-transl-ctl-x-8-map)
-(bind-key "<up>"      "⇑" iso-transl-ctl-x-8-map)
-(bind-key "<S-up>"    "↑" iso-transl-ctl-x-8-map)
-(bind-key ","         "…" iso-transl-ctl-x-8-map)
-
-(bind-key "<S-s-up>"      'shrink-window)
-(bind-key "<S-s-down>"    'enlarge-window)
-
-;; (bind-key* "C-M-i"        'completion-at-point)
-(bind-key "<s-down>"      'windmove-down)
-(bind-key "<s-up>"        'windmove-up)
-(bind-key "C-c ["         'align-regexp)
-(bind-key "M-s d"         'find-grep-dired)
-(bind-key "M-s F"         'find-grep)
-(bind-key "M-s G"         'grep)
-(bind-key "s-/"           'comment-or-uncomment-region)
-
-(bind-key "C-v"           'find-variable help-map)
-(bind-key "C-k"           'find-function-on-key help-map)
-(bind-key "C-f"           'find-function help-map)
-(bind-key "C-l"           'find-library  help-map)
-
-(bind-key "C-x M-p" (lambda () (interactive) (save-excursion (other-window 1)
-							(quit-window))))
-
+;; (require  'dash)
+(require 'subr-x)
 (require 'view)
-(bind-key "n"             'next-line     view-mode-map)
-(bind-key "p"             'previous-line view-mode-map)
-(bind-key "j"             'next-line     view-mode-map)
-(bind-key "k"             'previous-line view-mode-map)
-(bind-key "l"             'forward-char  view-mode-map)
-(bind-key "f"             'forward-char  view-mode-map)
-(bind-key "b"             'backward-char view-mode-map)
-
-(bind-keys
- :prefix-map hemacs-help-map
- :prefix "s-h"
- ("k" . describe-personal-keybindings)
- ("p" . ffap)
- ("." . helpful-at-point)
- ("o" . counsel-find-library))
-
-(bind-keys
- :prefix-map hemacs-git-map
- :prefix "s-g"
- ("l" . magit-clone))
-
-(defun spec-to-list (spec) (s-split "-" spec))
-
-(defun list-to-spec (spec) (s-join "-" spec))
+(require 'iso-transl)
 
 (defun update-font-spec-size (spec increment)
-  (list-to-spec
+  (string-join
    (-update-at 7 (lambda (i) (number-to-string
-                              (+ (string-to-number i) increment)))
-               (spec-to-list spec))))
+			 (+ (string-to-number i) increment)))
+               (split-string spec "-")) "-"))
 
 (defun update-font-size (increment)
   (set-frame-font
-   (update-font-spec-size (frame-parameter nil 'font) increment)))
+   (update-font-spec-size (frame-parameter nil  . font) increment)))
 
-(bind-key "C-M--" (lambda () (interactive) (update-font-size -1)))
-(bind-key "C-M-=" (lambda () (interactive) (update-font-size 1)))
+(bind-keys ("C-c C-u" . rename-uniquely)
+	   ("C-x ~" . (lambda () (interactive) (find-file "~")))
+	   ("C-x /" . (lambda () (interactive) (find-file "/")))
+	   ("C-c C-o" . browse-url-at-point)
+	   ("H-l" . browse-url-at-point)
+	   ("C-x 5 3" . iconify-frame)
+	   ("C-x 5 4" . toggle-frame-fullscreen)
+	   ("s-SPC" . cycle-spacing)
+	   ("C-c w w" . whitespace-mode)
+	   ("<C-return>" . other-window)
+	   ("s-o" . other-window)
+	   ("C-z" . delete-other-windows)
+	   ("M-g l" . goto-line)
+	   ("<C-M-backspace>" . backward-kill-sexp)
+	   ("C-x t" . toggle-truncate-lines)
+	   ("C-x v H" . vc-region-history)
+	   ("C-c SPC" . just-one-space)
+	   ("C-c f" . flush-lines)
+	   ("C-c o" . customize-option)
+	   ("C-c O" . customize-group)
+	   ("C-c F"            . customize-face)
+	   ("C-c q"            . fill-region)
+	   ("C-c s"            . replace-string)
+	   ("C-c u"            . rename-uniquely)
+	   ("C-c z"            . clean-buffer-list)
+	   ("C-c ="            . count-matches)
+	   ("C-c ;"            . comment-or-uncomment-region)
+	   ("C-c n"            . clean-up-buffer-or-region)
+	   ("C-c d"            . duplicate-current-line-or-region)
+	   ("M-+"              . text-scale-increase)
+	   ("M-_"              . text-scale-decrease)
 
-(bind-key "M-n" 'next-error)
-(bind-key "M-p" 'previous-error)
+	   ("H-c"              . compile)
+	   ("s-1"              . other-frame)
+	   ("<s-return>"       . toggle-frame-fullscreen)
 
-(bind-key "s-r" 'revert-buffer)
-(bind-key "s-u" 'revert-buffer)
+	   ("s-C-<left>"       . shrink-window-horizontally)
+	   ("s-C-<right>"      . enlarge-window-horizontally)
+	   ("s-C-<down>"       . shrink-window)
+	   ("s-C-<up>"         . enlarge-window)
+
+	   ("<S-s-up>"       . shrink-window)
+	   ("<S-s-down>"     . enlarge-window)
+
+	   ("<s-down>"       . windmove-down)
+	   ("<s-up>"         . windmove-up)
+	   ("C-c ["          . align-regexp)
+	   ("M-s d"          . find-grep-dired)
+	   ("M-s F"          . find-grep)
+	   ("M-s G"          . grep)
+	   ("s-/"            . comment-or-uncomment-region)
+
+	   ("C-v"            . find-variable help-map)
+	   ("C-k"            . find-function-on-key help-map)
+	   ("C-f"            . find-function help-map)
+	   ("C-l"            . find-library  help-map)
+
+	   ("C-x M-p" . (lambda ()
+			  (interactive)
+			  (save-excursion (other-window 1)
+					  (quit-window))))
+
+	   ("n"              . next-line     view-mode-map)
+	   ("p"              . previous-line view-mode-map)
+	   ("j"              . next-line     view-mode-map)
+	   ("k"              . previous-line view-mode-map)
+	   ("l"              . forward-char  view-mode-map)
+	   ("f"              . forward-char  view-mode-map)
+	   ("b"              . backward-char view-mode-map)
+
+	   ("C-M--" . (lambda () (interactive) (update-font-size -1)))
+	   ("C-M-=" . (lambda () (interactive) (update-font-size 1)))
+
+	   ("M-n"  . next-error)
+	   ("M-p"  . previous-error)
+
+	   ("s-r"  . revert-buffer)
+	   ("s-u"  . revert-buffer)
+
+	   ("C-c m b"  . eval-buffer)
+	   ("C-c m e"  . eval-last-sexp)
+	   ("C-c m i"  . eval-expression)
+	   ("C-c m d"  . eval-defun)
+	   ("C-c m n"  . eval-print-last-sexp)
+	   ("C-c m r"  . eval-region)
+
+	   :map iso-transl-ctl-x-8-map
+	   (" .  /"  .     "′")
+	   ("\" /"   .   "″")
+	   ("\" ("   .   "“")
+	   ("\" )"   .   "”")
+	   (" .  ("  .     "‘" )
+	   (" .  )"  .     "’" )
+	   ("4 < -"  .   "←")
+	   ("4 - >"  .   "→")
+	   ("4 b"    .   "←")
+	   ("4 f"    .   "→")
+	   ("4 p"    .   "↑")
+	   ("4 n"    .   "↓")
+	   ("<down>" .   "⇓")
+	   ("<S-down>" . "↓")
+	   ("<left>"   . "⇐")
+	   ("<S-left>" . "←")
+	   ("<right>"  . "⇒")
+	   ("<S-right>" . "→")
+	   ("<up>"     . "⇑")
+	   ("<S-up>"  .  "↑")
+	   (","       .  "…")
+
+	   :prefix-map hemacs-git-map
+	   :prefix "s-g"
+	   ("l" . magit-clone)
+
+	   :prefix-map hemacs-help-map
+	   :prefix "s-h"
+	   ("k" . describe-personal-keybindings)
+	   ("p" . ffap)
+	   ("." . helpful-at-point)
+	   ("o" . counsel-find-library)
+
+	   )
 #+END_SRC
 
 ** Setup installer
