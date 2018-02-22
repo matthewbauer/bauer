@@ -252,19 +252,15 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 	 comint-next-matching-input-from-input))
  '(company-require-match nil)
  '(company-selection-wrap-around t)
- '(company-backends '((company-eshell-history
-		       :with company-capf company-files)
-		      company-elisp
+ '(company-backends '(company-elisp
 		      company-css
 		      company-nxml
-		      company-capf
-		      company-clang
 		      company-cmake
-		      company-dabbrev
-		      company-abbrev
-		      company-dabbrev
-		      company-keywords
-		      company-files))
+		      company-capf
+		      (company-files
+		       company-keywords company-dabbrev
+		       company-dabbrev-code company-ispell)
+		      ))
  '(comint-input-ignoredups t)
  '(comint-process-echoes t)
  '(comint-prompt-read-only t)
@@ -3771,8 +3767,6 @@ cp ${./lisp/set-defaults.el} \
 cp ${./lisp/installer.el} $out/share/emacs/site-lisp/installer.el
 cp ${./lisp/restart-emacs.el} \
   $out/share/emacs/site-lisp/restart-emacs.el
-cp ${./lisp/company-eshell-history.el} \
-  $out/share/emacs/site-lisp/company-eshell-history.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
 #+END_SRC
