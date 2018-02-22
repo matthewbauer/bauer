@@ -259,7 +259,9 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 		      company-capf
 		      (company-files
 		       company-keywords company-dabbrev
-		       company-dabbrev-code company-ispell)
+		       company-dabbrev-code
+		       ;; company-ispell
+		       )
 		      ))
  '(comint-input-ignoredups t)
  '(comint-process-echoes t)
@@ -755,129 +757,132 @@ Emacs keybinds, documentation on why should be provided.
 
 (defun update-font-size (increment)
   (set-frame-font
-   (update-font-spec-size (frame-parameter nil  . font) increment)))
+   (update-font-spec-size (frame-parameter nil  'font) increment)))
 
-(bind-keys ("C-c C-u" . rename-uniquely)
-	   ("C-x ~" . (lambda () (interactive) (find-file "~")))
-	   ("C-x /" . (lambda () (interactive) (find-file "/")))
-	   ("C-c C-o" . browse-url-at-point)
-	   ("H-l" . browse-url-at-point)
-	   ("C-x 5 3" . iconify-frame)
-	   ("C-x 5 4" . toggle-frame-fullscreen)
-	   ("s-SPC" . cycle-spacing)
-	   ("C-c w w" . whitespace-mode)
-	   ("<C-return>" . other-window)
-	   ("s-o" . other-window)
-	   ("C-z" . delete-other-windows)
-	   ("M-g l" . goto-line)
-	   ("<C-M-backspace>" . backward-kill-sexp)
-	   ("C-x t" . toggle-truncate-lines)
-	   ("C-x v H" . vc-region-history)
-	   ("C-c SPC" . just-one-space)
-	   ("C-c f" . flush-lines)
-	   ("C-c o" . customize-option)
-	   ("C-c O" . customize-group)
-	   ("C-c F"            . customize-face)
-	   ("C-c q"            . fill-region)
-	   ("C-c s"            . replace-string)
-	   ("C-c u"            . rename-uniquely)
-	   ("C-c z"            . clean-buffer-list)
-	   ("C-c ="            . count-matches)
-	   ("C-c ;"            . comment-or-uncomment-region)
-	   ("C-c n"            . clean-up-buffer-or-region)
-	   ("C-c d"            . duplicate-current-line-or-region)
-	   ("M-+"              . text-scale-increase)
-	   ("M-_"              . text-scale-decrease)
+(bind-keys
+ ("C-c C-u" . rename-uniquely)
+ ("C-x ~" . (lambda () (interactive) (find-file "~")))
+ ("C-x /" . (lambda () (interactive) (find-file "/")))
+ ("C-c C-o" . browse-url-at-point)
+ ("H-l" . browse-url-at-point)
+ ("C-x 5 3" . iconify-frame)
+ ("C-x 5 4" . toggle-frame-fullscreen)
+ ("s-SPC" . cycle-spacing)
+ ("C-c w w" . whitespace-mode)
+ ("<C-return>" . other-window)
+ ("s-o" . other-window)
+ ("C-z" . delete-other-windows)
+ ("M-g l" . goto-line)
+ ("<C-M-backspace>" . backward-kill-sexp)
+ ("C-x t" . toggle-truncate-lines)
+ ("C-x v H" . vc-region-history)
+ ("C-c SPC" . just-one-space)
+ ("C-c f" . flush-lines)
+ ("C-c o" . customize-option)
+ ("C-c O" . customize-group)
+ ("C-c F" . customize-face)
+ ("C-c q" . fill-region)
+ ("C-c s" . replace-string)
+ ("C-c u" . rename-uniquely)
+ ("C-c z" . clean-buffer-list)
+ ("C-c =" . count-matches)
+ ("C-c ;" . comment-or-uncomment-region)
+ ("C-c n" . clean-up-buffer-or-region)
+ ("C-c d" . duplicate-current-line-or-region)
+ ("M-+" . text-scale-increase)
+ ("M-_" . text-scale-decrease)
 
-	   ("H-c"              . compile)
-	   ("s-1"              . other-frame)
-	   ("<s-return>"       . toggle-frame-fullscreen)
+ ("H-c" . compile)
+ ("s-1" . other-frame)
+ ("<s-return>" . toggle-frame-fullscreen)
 
-	   ("s-C-<left>"       . shrink-window-horizontally)
-	   ("s-C-<right>"      . enlarge-window-horizontally)
-	   ("s-C-<down>"       . shrink-window)
-	   ("s-C-<up>"         . enlarge-window)
+ ("s-C-<left>" . shrink-window-horizontally)
+ ("s-C-<right>" . enlarge-window-horizontally)
+ ("s-C-<down>" . shrink-window)
+ ("s-C-<up>" . enlarge-window)
 
-	   ("<S-s-up>"       . shrink-window)
-	   ("<S-s-down>"     . enlarge-window)
+ ("<S-s-up>" . shrink-window)
+ ("<S-s-down>" . enlarge-window)
 
-	   ("<s-down>"       . windmove-down)
-	   ("<s-up>"         . windmove-up)
-	   ("C-c ["          . align-regexp)
-	   ("M-s d"          . find-grep-dired)
-	   ("M-s F"          . find-grep)
-	   ("M-s G"          . grep)
-	   ("s-/"            . comment-or-uncomment-region)
+ ("<s-down>" . windmove-down)
+ ("<s-up>" . windmove-up)
+ ("C-c [" . align-regexp)
+ ("M-s d" . find-grep-dired)
+ ("M-s F" . find-grep)
+ ("M-s G" . grep)
+ ("s-/" . comment-or-uncomment-region)
 
-	   ("C-v"            . find-variable help-map)
-	   ("C-k"            . find-function-on-key help-map)
-	   ("C-f"            . find-function help-map)
-	   ("C-l"            . find-library  help-map)
+ ("C-x M-p" . (lambda ()
+ 		(interactive)
+ 		(save-excursion (other-window 1)
+ 				(quit-window))))
 
-	   ("C-x M-p" . (lambda ()
-			  (interactive)
-			  (save-excursion (other-window 1)
-					  (quit-window))))
+ ("C-M--" . (lambda () (interactive) (update-font-size -1)))
+ ("C-M-=" . (lambda () (interactive) (update-font-size 1)))
 
-	   ("n"              . next-line     view-mode-map)
-	   ("p"              . previous-line view-mode-map)
-	   ("j"              . next-line     view-mode-map)
-	   ("k"              . previous-line view-mode-map)
-	   ("l"              . forward-char  view-mode-map)
-	   ("f"              . forward-char  view-mode-map)
-	   ("b"              . backward-char view-mode-map)
+ ("M-n" . next-error)
+ ("M-p" . previous-error)
 
-	   ("C-M--" . (lambda () (interactive) (update-font-size -1)))
-	   ("C-M-=" . (lambda () (interactive) (update-font-size 1)))
+ ("s-r" . revert-buffer)
+ ("s-u" . revert-buffer)
 
-	   ("M-n"  . next-error)
-	   ("M-p"  . previous-error)
+ ("C-c m b" . eval-buffer)
+ ("C-c m e" . eval-last-sexp)
+ ("C-c m i" . eval-expression)
+ ("C-c m d" . eval-defun)
+ ("C-c m n" . eval-print-last-sexp)
+ ("C-c m r" . eval-region))
 
-	   ("s-r"  . revert-buffer)
-	   ("s-u"  . revert-buffer)
+(bind-keys
+ :map help-map
+ ("C-v" . find-variable)
+ ("C-k" . find-function-on-key)
+ ("C-f" . find-function)
+ ("C-l" . find-library)
 
-	   ("C-c m b"  . eval-buffer)
-	   ("C-c m e"  . eval-last-sexp)
-	   ("C-c m i"  . eval-expression)
-	   ("C-c m d"  . eval-defun)
-	   ("C-c m n"  . eval-print-last-sexp)
-	   ("C-c m r"  . eval-region)
+ :map view-mode-map
+ ("n" . next-line)
+ ("p" . previous-line)
+ ("j" . next-line)
+ ("k" . previous-line)
+ ("l" . forward-char)
+ ("f" . forward-char)
+ ("b" . backward-char)
 
-	   :map iso-transl-ctl-x-8-map
-	   (" .  /"  .     "′")
-	   ("\" /"   .   "″")
-	   ("\" ("   .   "“")
-	   ("\" )"   .   "”")
-	   (" .  ("  .     "‘" )
-	   (" .  )"  .     "’" )
-	   ("4 < -"  .   "←")
-	   ("4 - >"  .   "→")
-	   ("4 b"    .   "←")
-	   ("4 f"    .   "→")
-	   ("4 p"    .   "↑")
-	   ("4 n"    .   "↓")
-	   ("<down>" .   "⇓")
-	   ("<S-down>" . "↓")
-	   ("<left>"   . "⇐")
-	   ("<S-left>" . "←")
-	   ("<right>"  . "⇒")
-	   ("<S-right>" . "→")
-	   ("<up>"     . "⇑")
-	   ("<S-up>"  .  "↑")
-	   (","       .  "…")
+ :map iso-transl-ctl-x-8-map
+ ("' /" . "′")
+ ("\" /" . "″")
+ ("\" (" . "“")
+ ("\" )" . "”")
+ ("' (" . "‘" )
+ ("' )" . "’" )
+ ("4 < -" . "←")
+ ("4 - >" . "→")
+ ("4 b" . "←")
+ ("4 f" . "→")
+ ("4 p" . "↑")
+ ("4 n" . "↓")
+ ("<down>" . "⇓")
+ ("<S-down>" . "↓")
+ ("<left>" . "⇐")
+ ("<S-left>" . "←")
+ ("<right>" . "⇒")
+ ("<S-right>" . "→")
+ ("<up>" . "⇑")
+ ("<S-up>" .  "↑")
+ ("," .  "…")
 
-	   :prefix-map hemacs-git-map
-	   :prefix "s-g"
-	   ("l" . magit-clone)
+ :prefix-map bauer-git
+ :prefix "s-g"
+ ("l" . magit-clone)
 
-	   :prefix-map hemacs-help-map
-	   :prefix "s-h"
-	   ("k" . describe-personal-keybindings)
-	   ("p" . ffap)
-	   ("." . helpful-at-point)
-	   ("o" . counsel-find-library)
-
-	   )
+ :prefix-map bauer-help
+ :prefix "s-h"
+ ("k" . describe-personal-keybindings)
+ ("p" . ffap)
+ ("." . helpful-at-point)
+ ("o" . counsel-find-library)
+ )
 #+END_SRC
 
 ** Setup installer
@@ -1007,9 +1012,6 @@ info.
     "Complete common prefix or cycle backward."
     (interactive)
     (company-complete-common-or-cycle -1))
-  (defun company-add-preview ()
-    (setq-local company-frontends
-		'(company-preview-frontend)))
   :bind* (:map company-mode-map
 	       ("C-M-i" . company-complete-common-or-cycle)
 	  :map company-active-map
@@ -1027,20 +1029,19 @@ info.
 	      ("C-d" . company-show-doc-buffer)
 	      )
   :hook ((minibuffer-setup . company-mode)
-	 (minibuffer-setup . company-add-preview)
+	 (minibuffer-setup . (lambda ()
+			       (setq-local company-frontends
+					   '(company-preview-frontend))))
 	 (after-init . global-company-mode))
   :config
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
   (global-company-mode))
 (use-package company-autoloads
   :demand
-  :no-require
   :ensure nil)
 (use-package readline-complete
   :commands company-readline
-  :preface
-  (defun no-company-mode () (company-mode -1))
-  :hook (rlc-no-readline . no-company-mode)
+  :hook (rlc-no-readline . (lambda () (company-mode -1)))
   :init (push 'company-readline company-backends))
 (use-package company-irony
   :commands company-irony
@@ -1054,10 +1055,8 @@ info.
   (add-to-list 'company-backends '(company-anaconda :with company-capf)))
 (use-package company-jedi
   :commands company-jedi
-  :hook (python-mode . setup-company-jedi)
-  :preface
-  (defun setup-company-jedi ()
-    (add-to-list 'company-backends 'company-jedi)))
+  :hook (python-mode . (lambda ()
+			   (add-to-list 'company-backends 'company-jedi))))
 (use-package company-tern
   :commands company-jedi
   :init (add-to-list 'company-backends 'company-jedi))
@@ -1085,12 +1084,12 @@ info.
   (add-to-list 'company-backends 'company-web-jade)
   (add-to-list 'company-backends 'company-web-slim))
 (use-package company-math
-  :preface
-  (defun setup-company-math ()
-    (setq-local company-backends
-		(append '((company-math-symbols-latex company-latex-commands))
-			company-backends)))
-  :hook (TeX-mode . setup-company-math))
+  :hook (TeX-mode . (lambda ()
+		      (setq-local
+		       company-backends
+		       (append
+			'((company-math-symbols-latex company-latex-commands))
+			company-backends)))))
      #+END_SRC
 **** delight
 
@@ -1172,7 +1171,7 @@ info.
          ("C-c x" . eshell)
          ("C-c e" . eshell))
   :commands (eshell-command eshell-bol)
-  :hook (eshell-mode . eshell-read-history)
+  :hook ((eshell-mode . eshell-read-history))
   :preface
   (defun pcomplete/sudo ()
     (let ((prec (pcomplete-arg 'last -1)))
@@ -1182,11 +1181,6 @@ info.
 		     (pcomplete-arg 'last) t))))))
   :config
   (use-package em-rebind
-    :preface
-    (defun eshell-eol ()
-      "Goes to the end of line."
-      (interactive)
-      (end-of-line))
     :ensure nil
     :demand
     :config
@@ -1199,7 +1193,9 @@ info.
             ([(control 119)] . backward-kill-word)
             ([(control 117)] . eshell-kill-input)
             ([tab] . completion-at-point)
-            ([(control 101)] . eshell-eol))))
+            ([(control 101)] . (lambda ()
+				 (interactive)
+				 (end-of-line)))))
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1217,13 +1213,13 @@ info.
           eshell-term
           eshell-tramp
           eshell-unix
-          eshell-xtra)))
+          eshell-xtra))))
 
 (use-package esh-autosuggest
   :commands esh-autosuggest
-  :disabled
   :init
-  (add-to-list 'company-backends '(esh-autosuggest :with company-capf company-files)))
+  (add-to-list 'company-backends
+	       '(esh-autosuggest :with company-capf company-files)))
 #+END_SRC
 
 ***** esh-help
@@ -1231,10 +1227,9 @@ info.
 #+BEGIN_SRC emacs-lisp
 (use-package esh-help
   :commands (esh-help-eldoc-command)
-  :preface
-  (defun turn-on-esh-eldoc ()
-    (setq-local eldoc-documentation-function 'esh-help-eldoc-command))
-  :hook (eshell-mode . turn-on-esh-eldoc))
+  :hook (eshell-mode . (lambda ()
+			 (setq-local eldoc-documentation-function
+				     'esh-help-eldoc-command))))
 #+END_SRC
 
 ***** em-dired
@@ -1317,14 +1312,12 @@ certain Emacs keybinds.cs-lisp
   :ensure nil
   :bind* (("M-/" . hippie-expand)
 	  ("s-?" . hippie-expand-line))
-  :hook ((emacs-lisp-mode ielm-mode) . hippie-expand-allow-lisp-symbols)
-  :preface
-  (defun hippie-expand-allow-lisp-symbols ()
-    (setq-local hippie-expand-try-functions-list
+  :hook ((emacs-lisp-mode ielm-mode) .
+	 (lambda ()
+	   (setq-local hippie-expand-try-functions-list
                 (append '(try-complete-lisp-symbol-partially
                           try-complete-lisp-symbol)
-                        hippie-expand-try-functions-list)))
-  )
+                        hippie-expand-try-functions-list)))))
 #+END_SRC
 
 **** Magit
@@ -1356,6 +1349,7 @@ certain Emacs keybinds.cs-lisp
                                                   username repo) args))))
 
   (defun magit-github-hook ()
+    "Add to remote popup to add from github username."
     (magit-define-popup-action 'magit-remote-popup
       ?g "Add remote from github user name" #'magit-remote-github))
   :hook (magit-mode . magit-github-hook)
@@ -1426,12 +1420,10 @@ This is currently disabled.
   :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
-	 (org-mode . setup-pcomplete)
+	 (org-mode . (lambda ()
+		       (add-hook 'completion-at-point-functions
+				 'pcomplete-completions-at-point nil t)))
 	 (org-mode . auto-fill-mode))
-  :preface
-  (defun setup-pcomplete ()
-    (add-hook 'completion-at-point-functions
-	      'pcomplete-completions-at-point nil t))
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1468,10 +1460,8 @@ This is currently disabled.
 (use-package org-eldoc
   :ensure nil
   :commands (org-eldoc-documentation-function)
-  :preface
-  (defun turn-on-org-eldoc ()
-    (setq-local eldoc-documentation-function 'org-eldoc-documentation-function))
-  :hook (org-mode . turn-on-org-eldoc))
+  :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
+					   'org-eldoc-documentation-function))))
 #+END_SRC
 
 **** Projectile
@@ -1960,18 +1950,18 @@ setup.
   :demand
   :preface
   (defun find-file--line-number (orig-fun filename &optional wildcards)
-        "Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
-        (save-match-data
-          (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
-                         (line-number (and matched
-                                                           (match-string 2 filename)
-                                                           (string-to-number (match-string 2 filename))))
-                         (filename (if matched (match-string 1 filename) filename)))
-                (apply orig-fun (list filename wildcards))
-                (when line-number
-                  ;; goto-line is for interactive use
-                  (goto-char (point-min))
-                  (forward-line (1- line-number))))))
+    "Turn files like file.cpp:14 into file.cpp and going to the 14-th line."
+    (save-match-data
+      (let* ((matched (string-match "^\\(.*\\):\\([0-9]+\\):?$" filename))
+	     (line-number (and matched
+			       (match-string 2 filename)
+			       (string-to-number (match-string 2 filename))))
+	     (filename (if matched (match-string 1 filename) filename)))
+	(apply orig-fun (list filename wildcards))
+	(when line-number
+	  ;; goto-line is for interactive use
+	  (goto-char (point-min))
+	  (forward-line (1- line-number))))))
   :config
   (advice-add 'find-file :around #'find-file--line-number))
 #+END_SRC
@@ -2142,12 +2132,11 @@ setup.
 (use-package term
   :ensure nil
   :commands (term-mode term-char-mode term-set-escape-char)
-  :hook ((term-mode . term-hook))
+  :hook (term-mode . (lambda ()
+		       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+		       (setq-local transient-mark-mode nil)
+		       (auto-fill-mode -1)))
   :preface
-  (defun term-hook ()
-    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-    (setq-local transient-mark-mode nil)
-    (auto-fill-mode -1))
   (defun my-term ()
     (interactive)
     (set-buffer (make-term "my-term" "zsh"))
@@ -2316,13 +2305,11 @@ Note: this needs ghc-mod to be in PATH to work properly.
   :hook ((haskell-mode . subword-mode)
          (haskell-mode . flyspell-prog-mode)
          (haskell-mode . haskell-indentation-mode)
-         (haskell-mode . imenu-add-menubar-index)
-         (haskell-mode . turn-on-haskell-indent))
+         (haskell-mode . imenu-add-menubar-index))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
 (use-package haskell-mode-autoloads
   :demand
-  :no-require
   :ensure nil)
 #+END_SRC
 
@@ -2338,10 +2325,9 @@ Note: this needs ghc-mod to be in PATH to work properly.
 (use-package haskell-doc
   :ensure nil
   :commands (haskell-doc-current-info)
-  :hook (haskell-mode . haskell-eldoc-setup)
-  :preface
-  (defun haskell-eldoc-setup ()
-	(setq-local eldoc-documentation-function 'haskell-doc-current-info)))
+  :hook (haskell-mode . (lambda ()
+			  (setq-local eldoc-documentation-function
+				      'haskell-doc-current-info))))
 #+END_SRC
 **** Java
 ***** jdee
