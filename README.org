@@ -2793,6 +2793,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
   :ensure git-attr
+  :preface (require 'cl-lib)
   :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 * Profiles
@@ -3484,15 +3485,17 @@ Set some defaults that depend on the path variables below,
                          ,(expand-file-name "bin" output-directory)
                          ))
    '(woman-manpath man-path)
-   '(sys-headers "@sysheaders@/include")
    '(Man-header-file-path
-     `(,sys-headers "/usr/include" "/usr/local/include"))
-   '(ffap-c-path `(,sys-headers "/usr/include" "/usr/local/include"))
+     `("@sysheaders@/include" "/usr/include" "/usr/local/include"))
+   '(ffap-c-path '("@sysheaders@/include" "/usr/include" "/usr/local/include"))
    '(rng-schema-locating-files `("schemas.xml"
                                  "@schemas@"
                                  ,(expand-file-name
                                    "schema/schemas.xml" data-directory)
                                  ))
+   '(irony-additional-clang-options '("-I@sysheaders@/include"
+                                      "-I@sysheaders@/include/c++/v1"
+                                      "-F@sysframeworks@/Library/Frameworks"))
    )
 #+END_SRC
 
@@ -3686,7 +3689,7 @@ substitution of all the attributes set.
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
     inherit (haskellPackages) hoogle hlint hasktags;
-    inherit manpages sysheaders schemas;
+    inherit manpages sysheaders sysframeworks schemas;
     stylish = haskellPackages.stylish-haskell;
     # intero = haskellPackages.intero-nix-shim;
     texlive = myTex;
@@ -3877,6 +3880,11 @@ sysheaders = buildEnv {
   name = "headers";
   paths = [ libcxx ]
     ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+};
+
+sysframeworks = buildEnv {
+  name = "frameworks";
+  paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
 };
 
 schemas = writeText "schemas.xml" ''
