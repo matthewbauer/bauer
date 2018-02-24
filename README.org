@@ -328,18 +328,18 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    '(eshell-review-quick-commands t)
    '(eshell-prompt-function
      (lambda () (concat (when (tramp-tramp-file-p default-directory)
-                     (concat (tramp-file-name-user
-                              (tramp-dissect-file-name default-directory))
-                             "@"
-                             (tramp-file-name-real-host
-                              (tramp-dissect-file-name
-                               default-directory))
-                             " "))
-                   (let ((dir (eshell/pwd)))
-                     (if (string= dir (getenv "HOME")) "~"
-                       (let ((dirname (file-name-nondirectory dir)))
-                         (if (string= dirname "") "/" dirname))))
-                   (if (= (user-uid) 0) " # " " $ "))))
+                          (concat (tramp-file-name-user
+                                   (tramp-dissect-file-name default-directory))
+                                  "@"
+                                  (tramp-file-name-real-host
+                                   (tramp-dissect-file-name
+                                    default-directory))
+                                  " "))
+                        (let ((dir (eshell/pwd)))
+                          (if (string= dir (getenv "HOME")) "~"
+                            (let ((dirname (file-name-nondirectory dir)))
+                              (if (string= dirname "") "/" dirname))))
+                        (if (= (user-uid) 0) " # " " $ "))))
    '(eval-expression-print-level nil)
    '(expand-region-contract-fast-key "j")
    '(explicit-shell-args
@@ -668,134 +668,137 @@ goal is to overwrite as little as possible. When it is necessary to overwrite
 Emacs keybinds, documentation on why should be provided.
 
 #+BEGIN_SRC emacs-lisp
-(require 'bauer)
-(require 'view)
-(require 'iso-transl)
+  (require 'bauer)
+  (require 'view)
+  (require 'iso-transl)
 
-(bind-keys
- :map global-map
- ("C-c C-u" . rename-uniquely)
- ("C-x ~" . (lambda () (interactive) (find-file "~")))
- ("C-x /" . (lambda () (interactive) (find-file "/")))
- ("C-c C-o" . browse-url-at-point)
- ("H-l" . browse-url-at-point)
- ("C-x 5 3" . iconify-frame)
- ("C-x 5 4" . toggle-frame-fullscreen)
- ("s-SPC" . cycle-spacing)
- ("C-c w w" . whitespace-mode)
- ("<C-return>" . other-window)
- ("s-o" . other-window)
- ("C-z" . delete-other-windows)
- ("M-g l" . goto-line)
- ("<C-M-backspace>" . backward-kill-sexp)
- ("C-x t" . toggle-truncate-lines)
- ("C-x v H" . vc-region-history)
- ("C-c SPC" . just-one-space)
- ("C-c f" . flush-lines)
- ("C-c o" . customize-option)
- ("C-c O" . customize-group)
- ("C-c F" . customize-face)
- ("C-c q" . fill-region)
- ("C-c s" . replace-string)
- ("C-c u" . rename-uniquely)
- ("C-c z" . clean-buffer-list)
- ("C-c =" . count-matches)
- ("C-c ;" . comment-or-uncomment-region)
- ("C-c n" . clean-up-buffer-or-region)
- ("C-c d" . duplicate-current-line-or-region)
- ("M-+" . text-scale-increase)
- ("M-_" . text-scale-decrease)
+  (bind-keys
+   :map global-map
+   ("C-c C-u" . rename-uniquely)
+   ("C-x ~" . (lambda () (interactive) (find-file "~")))
+   ("C-x /" . (lambda () (interactive) (find-file "/")))
+   ("C-c C-o" . browse-url-at-point)
+   ("H-l" . browse-url-at-point)
+   ("C-x 5 3" . iconify-frame)
+   ("C-x 5 4" . toggle-frame-fullscreen)
+   ("s-SPC" . cycle-spacing)
+   ("C-c w w" . whitespace-mode)
+   ("<C-return>" . other-window)
+   ("s-o" . other-window)
+   ("C-z" . delete-other-windows)
+   ("M-g l" . goto-line)
+   ("<C-M-backspace>" . backward-kill-sexp)
+   ("C-x t" . toggle-truncate-lines)
+   ("C-x v H" . vc-region-history)
+   ("C-c SPC" . just-one-space)
+   ("C-c f" . flush-lines)
+   ("C-c o" . customize-option)
+   ("C-c O" . customize-group)
+   ("C-c F" . customize-face)
+   ("C-c q" . fill-region)
+   ("C-c s" . replace-string)
+   ("C-c u" . rename-uniquely)
+   ("C-c z" . clean-buffer-list)
+   ("C-c =" . count-matches)
+   ("C-c ;" . comment-or-uncomment-region)
+   ("C-c n" . clean-up-buffer-or-region)
+   ("C-c d" . duplicate-current-line-or-region)
+   ("M-+" . text-scale-increase)
+   ("M-_" . text-scale-decrease)
 
- ("H-c" . compile)
- ("s-1" . other-frame)
- ("<s-return>" . toggle-frame-fullscreen)
+   ("H-c" . compile)
+   ("s-1" . other-frame)
+   ("<s-return>" . toggle-frame-fullscreen)
 
- ("s-C-<left>" . shrink-window-horizontally)
- ("s-C-<right>" . enlarge-window-horizontally)
- ("s-C-<down>" . shrink-window)
- ("s-C-<up>" . enlarge-window)
+   ("s-C-<left>" . shrink-window-horizontally)
+   ("s-C-<right>" . enlarge-window-horizontally)
+   ("s-C-<down>" . shrink-window)
+   ("s-C-<up>" . enlarge-window)
 
- ("<S-s-up>" . shrink-window)
- ("<S-s-down>" . enlarge-window)
+   ("<S-s-up>" . shrink-window)
+   ("<S-s-down>" . enlarge-window)
 
- ("<s-down>" . windmove-down)
- ("<s-up>" . windmove-up)
- ("C-c [" . align-regexp)
- ("M-s d" . find-grep-dired)
- ("M-s F" . find-grep)
- ("M-s G" . grep)
- ("s-/" . comment-or-uncomment-region)
+   ("<s-down>" . windmove-down)
+   ("<s-up>" . windmove-up)
+   ("C-c [" . align-regexp)
+   ("M-s d" . find-grep-dired)
+   ("M-s F" . find-grep)
+   ("M-s G" . grep)
+   ("s-/" . comment-or-uncomment-region)
 
- ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
-                                         (quit-window))))
+   ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
+                                                    (quit-window))))
 
- ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
- ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
- ("C-M-0" . (lambda () (interactive) (update-font-size 12 nil)))
+   ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
+   ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
+   ("C-M-0" . (lambda () (interactive) (update-font-size 12 nil)))
 
- ("M-n" . next-error)
- ("M-p" . previous-error)
+   ("M-n" . next-error)
+   ("M-p" . previous-error)
 
- ("s-r" . revert-buffer)
- ("s-u" . revert-buffer)
+   ("s-r" . revert-buffer)
+   ("s-u" . revert-buffer)
 
- ("C-c m b" . eval-buffer)
- ("C-c m e" . eval-last-sexp)
- ("C-c m i" . eval-expression)
- ("C-c m d" . eval-defun)
- ("C-c m n" . eval-print-last-sexp)
- ("C-c m r" . eval-region))
+   ("s-c m" . man)
+   ("s-c i" . imenu)
 
-(bind-keys
- :map help-map
- ("C-v" . find-variable)
- ("C-k" . find-function-on-key)
- ("C-f" . find-function)
- ("C-l" . find-library)
+   ("C-c m b" . eval-buffer)
+   ("C-c m e" . eval-last-sexp)
+   ("C-c m i" . eval-expression)
+   ("C-c m d" . eval-defun)
+   ("C-c m n" . eval-print-last-sexp)
+   ("C-c m r" . eval-region))
 
- :map view-mode-map
- ("n" . next-line)
- ("p" . previous-line)
- ("j" . next-line)
- ("k" . previous-line)
- ("l" . forward-char)
- ("f" . forward-char)
- ("b" . backward-char)
+  (bind-keys
+   :map help-map
+   ("C-v" . find-variable)
+   ("C-k" . find-function-on-key)
+   ("C-f" . find-function)
+   ("C-l" . find-library)
 
- :map iso-transl-ctl-x-8-map
- ("' /" . "′")
- ("\" /" . "″")
- ("\" (" . "“")
- ("\" )" . "”")
- ("' (" . "‘" )
- ("' )" . "’" )
- ("4 < -" . "←")
- ("4 - >" . "→")
- ("4 b" . "←")
- ("4 f" . "→")
- ("4 p" . "↑")
- ("4 n" . "↓")
- ("<down>" . "⇓")
- ("<S-down>" . "↓")
- ("<left>" . "⇐")
- ("<S-left>" . "←")
- ("<right>" . "⇒")
- ("<S-right>" . "→")
- ("<up>" . "⇑")
- ("<S-up>" .  "↑")
- ("," .  "…"))
+   :map view-mode-map
+   ("n" . next-line)
+   ("p" . previous-line)
+   ("j" . next-line)
+   ("k" . previous-line)
+   ("l" . forward-char)
+   ("f" . forward-char)
+   ("b" . backward-char)
 
-(bind-keys
- :prefix-map bauer-git
- :prefix "s-g"
- ("l" . magit-clone)
+   :map iso-transl-ctl-x-8-map
+   ("' /" . "′")
+   ("\" /" . "″")
+   ("\" (" . "“")
+   ("\" )" . "”")
+   ("' (" . "‘" )
+   ("' )" . "’" )
+   ("4 < -" . "←")
+   ("4 - >" . "→")
+   ("4 b" . "←")
+   ("4 f" . "→")
+   ("4 p" . "↑")
+   ("4 n" . "↓")
+   ("<down>" . "⇓")
+   ("<S-down>" . "↓")
+   ("<left>" . "⇐")
+   ("<S-left>" . "←")
+   ("<right>" . "⇒")
+   ("<S-right>" . "→")
+   ("<up>" . "⇑")
+   ("<S-up>" .  "↑")
+   ("," .  "…"))
 
- :prefix-map bauer-help
- :prefix "s-h"
- ("k" . describe-personal-keybindings)
- ("p" . ffap)
- ("." . helpful-at-point)
- ("o" . counsel-find-library))
+  (bind-keys
+   :prefix-map bauer-git
+   :prefix "s-g"
+   ("l" . magit-clone)
+
+   :prefix-map bauer-help
+   :prefix "s-h"
+   ("k" . describe-personal-keybindings)
+   ("p" . ffap)
+   ("." . helpful-at-point)
+   ("o" . counsel-find-library))
 #+END_SRC
 
 ** Setup installer
@@ -895,7 +898,6 @@ info.
          ([remap switch-to-buffer] . ivy-switch-buffer)
          ([remap switch-to-buffer-other-window] .
           ivy-switch-buffer-other-window)
-         ;; ("C-x C-q" . ivy-wgrep-change-to-wgrep-mode)
          :map ivy-minibuffer-map
          ("<escape>" . abort-recursive-edit))
   :init
@@ -1987,22 +1989,25 @@ setup.
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package savehist
-  :ensure nil
-  :disabled
-  :demand
-  :commands (savehist-mode)
-  :config (savehist-mode))
+  (use-package savehist
+    :ensure nil
+    ;; :demand
+    ;; :commands (savehist-mode)
+    ;; :config (savehist-mode)
+    :hook (after-init . savehist-mode)
+    )
 #+END_SRC
 
 **** saveplace-mode
 
 #+BEGIN_SRC emacs-lisp
-(use-package saveplace
-  :demand
-  :ensure nil
-  :commands (save-place-mode)
-  :config (save-place-mode))
+  (use-package saveplace
+    :ensure nil
+    ;; :demand
+    ;; :commands (save-place-mode)
+    ;; :config (save-place-mode)
+    :hook (after-init . save-place-mode)
+    )
 #+END_SRC
 
 **** Shell
@@ -2605,20 +2610,6 @@ Most of these are available in MELPA.
 
 **** TODO eyebrowse
 **** TODO fill-column-indicator
-**** firestarter
-
-#+BEGIN_SRC emacs-lisp
-(use-package firestarter
-  :bind ("C-c m s" . firestarter-mode))
-#+END_SRC
-
-**** focus
-
-#+BEGIN_SRC emacs-lisp
-(use-package focus
-  :bind ("C-c m f" . focus-mode))
-#+END_SRC
-
 **** helpful
 
 #+BEGIN_SRC emacs-lisp
@@ -3961,9 +3952,6 @@ substituteInPlace $out/bin/run \
   --replace @out@ $out
 ln -s $out/bin/run $out/bin/bauer
   '';
-  meta = {
-    priority = -10;
-  };
   pathsToLink = [
     "/bin"
     "/etc/profile.d"
@@ -3994,8 +3982,11 @@ substituteInPlace $out/etc/profile.d/my-profile.sh \
   --replace @manpages@ ${manpages} \
   --replace @cacert@ ${cacert}
     '')]
-   ++ [bashInteractive zsh coreutils git wget
+    ++ [bashInteractive zsh coreutils git wget
         gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
+    # info pages
+    ++ [ed lzip libmpc flex autoconf bison
+        which bc gnum4 time gnutls aspell]
     ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
     ++ [gitAndTools.hub]
     ++ [nodePackages.tern isync notmuch graphviz]
