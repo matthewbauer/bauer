@@ -1357,9 +1357,11 @@ This is currently disabled.
                                  (emacs-lisp . t)
                                  (dot . t)
                                  (latex . t))))
+
 (use-package org-cliplink
   :after org
   :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
+
 (use-package toc-org
   :hook (org-mode . toc-org-enable))
 #+END_SRC
@@ -2790,7 +2792,7 @@ Most of these are available in MELPA.
 **** git-attr
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
-  :ensure "git-attr"
+  :ensure git-attr
   :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 * Profiles
@@ -3486,6 +3488,11 @@ Set some defaults that depend on the path variables below,
    '(Man-header-file-path
      `(,sys-headers "/usr/include" "/usr/local/include"))
    '(ffap-c-path `(,sys-headers "/usr/include" "/usr/local/include"))
+   '(rng-schema-locating-files `("schemas.xml"
+                                 "@schemas@"
+                                 ,(expand-file-name
+                                   "schema/schemas.xml" data-directory)
+                                 ))
    )
 #+END_SRC
 
@@ -3679,7 +3686,7 @@ substitution of all the attributes set.
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
     inherit (haskellPackages) hoogle hlint hasktags;
-    inherit manpages sysheaders;
+    inherit manpages sysheaders schemas;
     stylish = haskellPackages.stylish-haskell;
     # intero = haskellPackages.intero-nix-shim;
     texlive = myTex;
@@ -3871,6 +3878,16 @@ sysheaders = buildEnv {
   paths = [ libcxx ]
     ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
 };
+
+schemas = writeText "schemas.xml" ''
+  <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+    <documentElement localName="section" typeId="DocBook"/>
+    <documentElement localName="chapter" typeId="DocBook"/>
+    <documentElement localName="article" typeId="DocBook"/>
+    <documentElement localName="book" typeId="DocBook"/>
+    <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
+  </locatingRules>
+'';
 
 myEnv = buildEnv {
   buildInputs = [ makeWrapper ];
