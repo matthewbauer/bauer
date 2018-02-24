@@ -190,6 +190,12 @@ currently. FIXME!
 (when (and (string= window-system "mac")
            (require 'mac-win nil t))
   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
+
+(load "company-autoloads" t t)
+(load "haskell-mode-autoloads" t t)
+
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 #+END_SRC
 
 ** Custom config
@@ -216,417 +222,339 @@ to be installed to work (those go in use-package). In addition, they should take
 almost no time to run (meaning they probably shouldn’t have custom init hooks).
 
 #+BEGIN_SRC emacs-lisp
-(set-defaults
- '(TeX-auto-save t)
- '(TeX-auto-untabify t)
- '(TeX-electric-escape t)
- '(TeX-engine 'xetex)
- '(TeX-parse-self t)
- '(ad-redefinition-action 'accept)
- '(apropos-do-all t)
- '(async-shell-command-buffer 'new-buffer)
- '(auth-source-save-behavior t)
- '(auto-revert-check-vc-info t)
- '(auto-revert-interval 1)
- '(auto-revert-verbose nil)
- '(auto-save-visited-file-name t)
- '(ange-ftp-default-user t)
- '(auto-window-vscroll nil)
- '(backward-delete-char-untabify-method 'hungry)
- '(backup-directory-alist `(("." . ,(expand-file-name "backup"
-                                                      user-emacs-directory))))
- '(bookmark-save-flag t)
- '(c-syntactic-indentation nil)
- '(checkdoc-spellcheck-documentation-flag t)
- '(company-auto-complete (lambda () (and (company-tooltip-visible-p) (company-explicit-action-p))))
- '(company-continue-commands
-   '(not save-buffer
-         save-some-buffers
-         save-buffers-kill-terminal
-         save-buffers-kill-emacs
-         comint-previous-matching-input-from-input
-         comint-next-matching-input-from-input))
- '(company-require-match nil)
- '(company-selection-wrap-around t)
- '(company-backends '(company-elisp
-                      company-css
-                      company-nxml
-                      company-cmake
-                      company-capf
-                      (company-files
-                       company-keywords company-dabbrev
-                       company-dabbrev-code
-                       ;; company-ispell
-                       )
-                      ))
- '(comint-input-ignoredups t)
- '(comint-process-echoes t)
- '(comint-prompt-read-only t)
- '(comint-scroll-show-maximum-output nil)
- '(compilation-always-kill t)
- '(compilation-ask-about-save nil)
- '(compilation-auto-jump-to-first-error nil)
- '(compilation-environment '("TERM=xterm-256color"))
- '(compilation-scroll-output nil)
- '(compilation-skip-threshold 2)
- '(completion-styles (quote (basic partial-completion emacs22 substring)))
- '(completions-cycle-threshold t)
- '(completions-format 'vertical)
- '(counsel-find-file-at-point t)
- '(counsel-mode-override-describe-bindings t)
- '(create-lockfiles nil)
- '(create-lockfiles nil)
- '(cursor-in-non-selected-windows nil)
- '(custom-buffer-done-kill t)
- '(custom-file (expand-file-name "settings.el" user-emacs-directory))
- '(custom-safe-themes t)
- '(custom-search-field nil)
- '(delete-by-moving-to-trash t)
- '(delete-old-versions t)
- '(dired-auto-revert-buffer t)
- '(dired-dwim-target t)
- '(dired-hide-details-hide-symlink-targets nil)
- '(dired-listing-switches "-alhv")
- '(dired-omit-files "^\\.\\|^#.*#$")
- '(dired-omit-verbose nil)
- '(dired-recursive-copies 'always)
- '(dired-recursive-deletes 'always)
- '(dired-subtree-line-prefix " ")
- '(disabled-command-function nil)
- '(display-buffer-reuse-frames t)
- '(dtrt-indent-verbosity 0)
- '(echo-keystrokes 0)
- '(enable-recursive-minibuffers t)
- '(erc-autojoin-timing 'ident)
- '(erc-insert-timestamp-function 'erc-insert-timestamp-left)
- '(erc-interpret-mirc-color t)
- '(erc-join-buffer 'bury)
- '(erc-kill-buffer-on-part t)
- '(erc-kill-queries-on-quit t)
- '(erc-kill-server-buffer-on-quit t)
- '(erc-log-write-after-send t)
- '(erc-lurker-hide-list '("JOIN" "NICK" "PART" "QUIT" "MODE"))
- '(erc-prompt (lambda nil (concat "[" (buffer-name) "]")))
- '(erc-prompt-for-password nil)
- '(erc-query-display 'buffer)
- '(erc-rename-buffers t)
- '(erc-timestamp-format "%H:%M ")
- '(erc-timestamp-only-if-changed-flag nil)
- '(erc-try-new-nick-p nil)
- '(erc-user-full-name 'user-full-name)
- '(eshell-banner-message "")
- '(eshell-cd-on-directory t)
- '(eshell-cmpl-autolist t)
- '(eshell-cmpl-cycle-completions nil)
- '(eshell-cmpl-cycle-cutoff-length 2)
- '(eshell-cmpl-ignore-case t)
- '(eshell-cp-interactive-query t)
- '(eshell-cp-overwrite-files nil)
- '(eshell-default-target-is-dot t)
- '(eshell-destroy-buffer-when-process-dies t)
- '(eshell-highlight-prompt t)
- '(eshell-hist-ignoredups t)
- '(eshell-history-size nil)
- '(eshell-list-files-after-cd t)
- '(eshell-ln-interactive-query t)
- '(eshell-ls-dired-initial-args '("-h"))
- '(eshell-ls-initial-args "-h")
- '(eshell-mv-interactive-query t)
- '(eshell-output-filter-functions '(eshell-handle-ansi-color
-                                    eshell-handle-control-codes
-                                    eshell-watch-for-password-prompt))
- '(eshell-plain-echo-behavior nil)
- '(eshell-review-quick-commands t)
- '(eshell-rm-interactive-query t)
- '(eshell-prompt-function
-   (lambda () (concat (when (tramp-tramp-file-p default-directory)
-                        (concat (tramp-file-name-user
-                                 (tramp-dissect-file-name default-directory))
-                                "@"
-                                (tramp-file-name-real-host
-                                 (tramp-dissect-file-name
-                                  default-directory))
-                                " "))
-                      (let ((dir (eshell/pwd)))
-                        (if (string= dir (getenv "HOME")) "~"
-                          (let ((dirname (file-name-nondirectory dir)))
-                            (if (string= dirname "") "/" dirname))))
-                      (if (= (user-uid) 0) " # " " $ "))))
- '(eshell-stringify-t nil)
- '(eval-expression-print-level nil)
- '(expand-region-contract-fast-key "j")
- '(explicit-shell-args '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
- '(explicit-shell-file-name "/bin/bash")
- '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
- '(find-ls-subdir-switches "-ldN")
- '(flycheck-check-syntax-automatically '(save
-                                         idle-change
-                                         mode-enabled
-                                         new-line))
- '(flycheck-display-errors-function
-   'flycheck-display-error-messages-unless-error-list)
- '(flycheck-global-modes '(not erc-mode
-                               message-mode
-                               git-commit-mode
-                               view-mode
-                               outline-mode
-                               text-mode
-                               org-mode))
- '(flycheck-standard-error-navigation nil)
- '(flyspell-abbrev-p nil)
- '(flyspell-auto-correct nil)
- '(flyspell-highlight-properties nil)
- '(flyspell-incorrect-hook nil)
- '(flyspell-issue-welcome-flag nil)
- '(frame-title-format '(:eval (if (buffer-file-name)
-                                  (abbreviate-file-name (buffer-file-name))
-                                "%b")))
- '(gnuplot-inline-image-mode 'dedicated)
- '(grep-command "egrep -nH -e ")
- '(grep-find-command
-   "find . -name '*.v' -type f -print0 | xargs -P4 -0 egrep -nH ")
- '(haskell-ask-also-kill-buffers nil)
- '(haskell-interactive-mode-scroll-to-bottom t)
- '(haskell-process-args-stack-ghci
-   '("--ghci-options=-ferror-spans"
-     "--ghci-options=-fno-diagnostics-show-caret"
-     "--no-build"
-     "--no-load"))
- '(haskell-process-load-or-reload-prompt t)
- '(haskell-process-prompt-restart-on-cabal-change nil)
- '(haskell-process-show-debug-tips nil)
- '(haskell-process-suggest-haskell-docs-imports t)
- '(haskell-process-suggest-hoogle-imports t)
- '(haskell-process-suggest-remove-import-lines t)
- '(haskell-process-suggest-restart nil)
- '(haskell-process-use-presentation-mode nil)
- '(help-window-select t)
- '(hideshowvis-ignore-same-line nil)
- '(highlight-nonselected-windows nil)
- '(history-delete-duplicates t)
- '(ibuffer-default-display-maybe-show-predicates t)
- '(ibuffer-expert t)
- '(ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
-                           (size 6 -1 :right) " " (mode 16 16) " " filename)
-                     (mark " " (name 16 -1) " " filename)))
- '(ibuffer-maybe-show-regexps nil)
- '(ibuffer-show-empty-filter-groups nil)
- '(ibuffer-shrink-to-minimum-size t t)
- '(ibuffer-use-other-window t)
- '(iedit-toggle-key-default nil)
- '(imenu-auto-rescan t)
- '(indicate-empty-lines t)
- '(inhibit-startup-echo-area-message t)
- '(inhibit-startup-screen t)
- '(initial-scratch-message "")
- '(ispell-extra-args '("--sug-mode=ultra"))
- '(ispell-quietly t)
- '(ispell-silently-savep t)
- '(ivy-count-format "\"\"")
- '(ivy-dynamic-exhibit-delay-ms 200)
- '(ivy-ignore-buffers '("\\` "
-                        "\\`\\*git-monitor:"
-                        "\\`\\*magit-process:"
-                        "\\.elc$"
-                        "\\`\\.newsrc-dribble\\'"
-                        "\\`\\.newsrc.eld\\'"))
- '(ivy-display-style nil)
- '(ivy-fixed-height-minibuffer t)
- '(ivy-minibuffer-faces nil)
- '(ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
- '(ivy-use-virtual-buffers t)
- '(jit-lock-defer-time 0.01)
- '(js2-mode-show-parse-errors nil)
- '(js2-mode-show-strict-warnings nil)
- '(js2-strict-missing-semi-warning nil)
- '(kill-do-not-save-duplicates t)
- '(kill-whole-line t)
- '(load-prefer-newer t)
- '(mac-allow-anti-aliasing t)
- '(mac-command-key-is-meta t)
- '(mac-command-modifier 'meta)
- '(mac-frame-tabbing t)
- '(mac-option-key-is-meta nil)
- '(mac-option-modifier 'super)
- '(mac-right-option-modifier nil)
- '(mac-system-move-file-to-trash-use-finder t)
- '(magit-clone-set-remote\.pushDefault t)
- '(magit-diff-options nil)
- '(magit-ediff-dwim-show-on-hunks t)
- '(magit-fetch-arguments nil)
- '(magit-highlight-trailing-whitespace nil)
- '(magit-highlight-whitespace nil)
- '(magit-log-auto-more t)
- '(magit-no-confirm t)
- '(magit-process-connection-type nil)
- '(magit-process-find-password-functions '(magit-process-password-auth-source))
- '(magit-process-popup-time 15)
- '(magit-push-always-verify nil)
- '(magit-save-repository-buffers 'dontask)
- '(magit-stage-all-confirm nil)
- '(magit-unstage-all-confirm nil)
- '(mmm-global-mode 'buffers-with-submode-classes)
- '(mmm-submode-decoration-level 2)
- '(minibuffer-prompt-properties
-   '(read-only t cursor-intangible t face minibuffer-prompt))
- '(mwim-beginning-of-line-function 'beginning-of-line)
- '(mwim-end-of-line-function 'end-of-line)
- '(next-error-recenter t)
- '(next-line-add-newlines nil)
- '(notmuch-show-logo nil)
- '(nrepl-log-messages t)
- '(ns-function-modifier 'hyper)
- '(ns-pop-up-frames nil)
- '(nsm-save-host-names t)
- '(nxml-sexp-element-flag t)
- '(nxml-slash-auto-complete-flag t)
- '(org-blank-before-new-entry '((heading) (plain-list-item)))
- '(org-confirm-babel-evaluate nil)
- '(org-edit-src-turn-on-auto-save t)
- '(org-export-with-toc nil)
- '(org-export-in-background nil)
- '(org-html-htmlize-output-type (quote css))
- '(org-latex-listings (quote minted))
- '(org-list-allow-alphabetical t)
- '(org-log-done 'time)
- '(org-return-follows-link t)
- '(org-special-ctrl-a/e t)
- '(org-src-fontify-natively t)
- '(org-src-preserve-indentation t)
- '(org-src-tab-acts-natively t)
- '(org-support-shift-select t)
- '(parens-require-spaces t)
- '(package-archives '(;; ("melpa-stable" . "http://stable.melpa.org/packages/")
-                      ("melpa" . "https://melpa.org/packages/")
-                      ("org" . "http://orgmode.org/elpa/")
-                      ("gnu" . "https://elpa.gnu.org/packages/")))
- '(pcomplete-compare-entries-function 'file-newer-than-file-p)
- '(projectile-do-log nil)
- '(projectile-enable-caching t)
- '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
- '(projectile-ignored-project-function 'file-remote-p)
- '(projectile-mode-line '(:eval
-                          (if (and (ignore-errors (projectile-project-p))
-                                   (not (file-remote-p default-directory)))
-                              (format " Projectile[%s]"
-                                      (projectile-project-name)) "")))
- '(projectile-switch-project-action 'projectile-dired)
- '(projectile-verbose nil)
- '(proof-auto-action-when-deactivating-scripting 'retract)
- '(proof-autosend-enable nil)
- '(proof-electric-terminator-enable t)
- '(proof-fast-process-buffer nil)
- '(proof-script-fly-past-comments t)
- '(proof-shell-fiddle-frames nil)
- '(proof-splash-enable nil)
- '(proof-sticky-errors t)
- '(proof-tidy-response t)
- '(reb-re-syntax 'string)
- '(resize-mini-windows t)
- '(ring-bell-function 'ignore)
- '(ruby-insert-encoding-magic-comment nil)
- '(same-window-buffer-names '("*eshell*"
-                              "*shell*"
-                              "*mail*"
-                              "*inferior-lisp*"
-                              "*ielm*"
-                              "*scheme*"))
- '(save-abbrevs 'silently)
- '(save-interprogram-paste-before-kill t)
- '(savehist-additional-variables '(search-ring
-                                   regexp-search-ring
-                                   kill-ring
-                                   comint-input-ring
-                                   kmacro-ring
-                                   sr-history-registry
-                                   file-name-history
-                                   tablist-name-filter))
- '(savehist-autosave-interval 60)
- '(savehist-ignored-variables '(load-history
-                                flyspell-auto-correct-ring kill-ring))
- '(scroll-preserve-screen-position 'always)
- '(scroll-bar-mode nil)
- '(scroll-conservatively 101)
- '(scroll-margin 3)
- '(send-mail-function 'smtpmail-send-it)
- '(sentence-end-double-space nil)
- '(set-mark-command-repeat-pop t)
- '(shell-completion-execonly nil)
- '(shell-input-autoexpand nil)
- '(sh-guess-basic-offset t)
- '(show-paren-delay 0)
- '(sp-autoskip-closing-pair 'always)
- '(sp-highlight-pair-overlay nil)
- '(sp-hybrid-kill-entire-symbol nil)
- '(swiper-stay-on-quit t)
- '(switch-to-buffer-preserve-window-point t)
- '(tab-always-indent 'complete)
- '(tool-bar-mode nil)
- '(term-input-autoexpand t)
- '(term-input-ignoredups t)
- '(term-input-ring-file-name t)
- '(text-quoting-style 'quote)
- '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
-                                 (nil "\\`root\\'" "/ssh:%h:")
-                                 (".*" "\\`root\\'" "/ssh:%h:")))
- '(tramp-default-user nil)
- '(truncate-lines nil)
- '(tls-checktrust t)
- '(undo-limit 800000)
- '(uniquify-after-kill-buffer-p t)
- '(uniquify-buffer-name-style 'forward)
- '(uniquify-ignore-buffers-re "^\\*")
- '(uniquify-separator "/")
- '(use-dialog-box nil)
- '(use-file-dialog nil)
- '(use-package-always-defer t)
- '(use-package-enable-imenu-support t)
- '(version-control t)
- '(vc-allow-async-revert t)
- '(vc-command-messages t)
- '(vc-git-diff-switches '("-w" "-U3"))
- '(vc-follow-symlinks nil)
- '(vc-ignore-dir-regexp
-   (concat "\\(\\(\\`"
-           "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
-           "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
- '(view-read-only t)
- '(view-inhibit-help-message t)
- '(visible-bell t)
- '(woman-imenu t)
- '(x-stretch-cursor t)
- '(which-key-lighter "")
- '(whitespace-action '(cleanup auto-cleanup))
- '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
- '(window-divider-default-bottom-width 1)
- '(window-divider-default-places 'bottom-only)
- )
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-(defgroup bauer nil "Options for Bauer IDE."
-  :group 'emacs)
-(defcustom user-symbols '(org-agenda-files
-                          org-default-notes-file
-                          org-capture-templates
-                          erc-nick erc-nickserv-passwords
-                          erc-autojoin-channels-alist
-                          erc-server
-                          smtpmail-smtp-server
-                          smtpmail-smtp-service
-                          smtpmail-smtp-user
-                          user-full-name user-mail-address
-                          gnus-secondary-select-methods)
-  "Symbols that the user should customize for themselves."
-  :group 'bauer)
-
-(defun user-customize ()
-  "Provides an easy way for users to setup their config. Run this
-to input your personal settings."
-  (interactive)
-  (custom-buffer-create (mapcar (lambda (x) (custom-load-symbol x)
-                                  `(,x custom-variable)) user-symbols)
-                        "*User customize*"))
+  (set-defaults
+   '(TeX-auto-save t)
+   '(TeX-auto-untabify t)
+   '(TeX-electric-escape t)
+   '(TeX-engine 'xetex)
+   '(TeX-parse-self t)
+   '(ad-redefinition-action 'accept)
+   '(apropos-do-all t)
+   '(async-shell-command-buffer 'new-buffer)
+   '(auth-source-save-behavior t)
+   '(auto-revert-check-vc-info t)
+   '(auto-revert-verbose nil)
+   '(auto-save-visited-file-name t)
+   '(ange-ftp-default-user t)
+   '(auto-window-vscroll nil)
+   '(backward-delete-char-untabify-method 'hungry)
+   '(backup-directory-alist `(("." . ,(expand-file-name "backup"
+                                                        user-emacs-directory))))
+   '(checkdoc-spellcheck-documentation-flag t)
+   '(company-auto-complete (lambda () (and (company-tooltip-visible-p)
+                                           (company-explicit-action-p))))
+   '(company-continue-commands
+     '(not save-buffer
+           save-some-buffers
+           save-buffers-kill-terminal
+           save-buffers-kill-emacs
+           comint-previous-matching-input-from-input
+           comint-next-matching-input-from-input))
+   '(company-require-match nil)
+   '(company-selection-wrap-around t)
+   '(company-backends '(company-elisp
+                        company-css
+                        company-nxml
+                        company-cmake
+                        company-capf
+                        (company-files
+                         company-keywords company-dabbrev
+                         company-dabbrev-code)))
+   '(comint-input-ignoredups t)
+   '(comint-process-echoes t)
+   '(comint-prompt-read-only t)
+   '(comint-scroll-show-maximum-output nil)
+   '(compilation-always-kill t)
+   '(compilation-ask-about-save nil)
+   '(compilation-environment '("TERM=xterm-256color"))
+   '(compilation-skip-threshold 2)
+   '(completion-styles '(basic partial-completion emacs22 substring))
+   '(completions-cycle-threshold t)
+   '(completions-format 'vertical)
+   '(counsel-find-file-at-point t)
+   '(counsel-mode-override-describe-bindings t)
+   '(create-lockfiles nil)
+   '(cursor-in-non-selected-windows nil)
+   '(custom-buffer-done-kill t)
+   '(custom-file (expand-file-name "settings.el" user-emacs-directory))
+   '(custom-safe-themes t)
+   '(custom-search-field nil)
+   '(delete-by-moving-to-trash t)
+   '(delete-old-versions t)
+   '(dired-auto-revert-buffer t)
+   '(dired-dwim-target t)
+   '(dired-hide-details-hide-symlink-targets nil)
+   '(dired-listing-switches "-alhv")
+   '(dired-omit-files "^\\.\\|^#.*#$")
+   '(dired-omit-verbose nil)
+   '(dired-recursive-copies 'always)
+   '(dired-recursive-deletes 'always)
+   '(dired-subtree-line-prefix " ")
+   '(disabled-command-function nil)
+   '(display-buffer-reuse-frames t)
+   '(dtrt-indent-verbosity 0)
+   '(echo-keystrokes 0)
+   '(enable-recursive-minibuffers t)
+   '(erc-autojoin-timing 'ident)
+   '(erc-insert-timestamp-function 'erc-insert-timestamp-left)
+   '(erc-interpret-mirc-color t)
+   '(erc-join-buffer 'bury)
+   '(erc-kill-buffer-on-part t)
+   '(erc-kill-queries-on-quit t)
+   '(erc-kill-server-buffer-on-quit t)
+   '(erc-log-write-after-send t)
+   '(erc-lurker-hide-list '("JOIN" "NICK" "PART" "QUIT" "MODE"))
+   '(erc-prompt (lambda nil (concat "[" (buffer-name) "]")))
+   '(erc-prompt-for-password nil)
+   '(erc-query-display 'buffer)
+   '(erc-rename-buffers t)
+   '(erc-timestamp-format "%H:%M ")
+   '(erc-timestamp-only-if-changed-flag nil)
+   '(erc-try-new-nick-p nil)
+   '(erc-user-full-name 'user-full-name)
+   '(eshell-banner-message "")
+   '(eshell-cmpl-autolist t)
+   '(eshell-cmpl-cycle-completions nil)
+   '(eshell-cmpl-cycle-cutoff-length 2)
+   '(eshell-cmpl-ignore-case t)
+   '(eshell-cp-overwrite-files nil)
+   '(eshell-default-target-is-dot t)
+   '(eshell-destroy-buffer-when-process-dies t)
+   '(eshell-hist-ignoredups t)
+   '(eshell-history-size nil)
+   '(eshell-list-files-after-cd t)
+   '(eshell-ls-dired-initial-args '("-h"))
+   '(eshell-ls-initial-args "-h")
+   '(eshell-review-quick-commands t)
+   '(eshell-prompt-function
+     (lambda () (concat (when (tramp-tramp-file-p default-directory)
+                     (concat (tramp-file-name-user
+                              (tramp-dissect-file-name default-directory))
+                             "@"
+                             (tramp-file-name-real-host
+                              (tramp-dissect-file-name
+                               default-directory))
+                             " "))
+                   (let ((dir (eshell/pwd)))
+                     (if (string= dir (getenv "HOME")) "~"
+                       (let ((dirname (file-name-nondirectory dir)))
+                         (if (string= dirname "") "/" dirname))))
+                   (if (= (user-uid) 0) " # " " $ "))))
+   '(eval-expression-print-level nil)
+   '(expand-region-contract-fast-key "j")
+   '(explicit-shell-args
+     '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
+   '(explicit-shell-file-name "/bin/bash")
+   '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
+   '(find-ls-subdir-switches "-ldN")
+   '(flycheck-display-errors-function
+     'flycheck-display-error-messages-unless-error-list)
+   '(flycheck-global-modes '(not erc-mode
+                                 message-mode
+                                 git-commit-mode
+                                 view-mode
+                                 outline-mode
+                                 text-mode
+                                 org-mode))
+   '(flycheck-standard-error-navigation nil)
+   '(flyspell-highlight-properties nil)
+   '(flyspell-issue-welcome-flag nil)
+   '(frame-title-format '(:eval (if (buffer-file-name)
+                                    (abbreviate-file-name (buffer-file-name))
+                                  "%b")))
+   '(gnuplot-inline-image-mode 'dedicated)
+   '(haskell-ask-also-kill-buffers nil)
+   '(haskell-interactive-mode-scroll-to-bottom t)
+   '(haskell-process-args-stack-ghci
+     '("--ghci-options=-ferror-spans"
+       "--ghci-options=-fno-diagnostics-show-caret"
+       "--no-build"
+       "--no-load"))
+   '(haskell-process-load-or-reload-prompt t)
+   '(haskell-process-prompt-restart-on-cabal-change nil)
+   '(haskell-process-show-debug-tips nil)
+   '(haskell-process-suggest-haskell-docs-imports t)
+   '(haskell-process-suggest-hoogle-imports t)
+   '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-process-suggest-restart nil)
+   '(haskell-process-use-presentation-mode nil)
+   '(help-window-select t)
+   '(hideshowvis-ignore-same-line nil)
+   '(highlight-nonselected-windows nil)
+   '(history-delete-duplicates t)
+   '(ibuffer-default-display-maybe-show-predicates t)
+   '(ibuffer-expert t)
+   '(ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
+                             (size 6 -1 :right) " " (mode 16 16) " " filename)
+                       (mark " " (name 16 -1) " " filename)))
+   '(ibuffer-maybe-show-regexps nil)
+   '(ibuffer-show-empty-filter-groups nil)
+   '(ibuffer-shrink-to-minimum-size t)
+   '(ibuffer-use-other-window t)
+   '(iedit-toggle-key-default nil)
+   '(imenu-auto-rescan t)
+   '(indicate-empty-lines t)
+   '(inhibit-startup-echo-area-message t)
+   '(inhibit-startup-screen t)
+   '(initial-scratch-message "")
+   '(ispell-extra-args '("--sug-mode=ultra"))
+   '(ispell-quietly t)
+   '(ispell-silently-savep t)
+   '(ivy-count-format "\"\"")
+   '(ivy-dynamic-exhibit-delay-ms 200)
+   '(ivy-ignore-buffers '("\\` "
+                          "\\`\\*git-monitor:"
+                          "\\`\\*magit-process:"
+                          "\\.elc$"
+                          "\\`\\.newsrc-dribble\\'"
+                          "\\`\\.newsrc.eld\\'"))
+   '(ivy-display-style nil)
+   '(ivy-fixed-height-minibuffer t)
+   '(ivy-minibuffer-faces nil)
+   '(ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
+   '(ivy-use-virtual-buffers t)
+   '(jit-lock-defer-time 0.01)
+   '(js2-mode-show-parse-errors nil)
+   '(js2-mode-show-strict-warnings nil)
+   '(js2-strict-missing-semi-warning nil)
+   '(kill-do-not-save-duplicates t)
+   '(kill-whole-line t)
+   '(load-prefer-newer t)
+   '(mac-allow-anti-aliasing t)
+   '(mac-command-key-is-meta t)
+   '(mac-command-modifier 'meta)
+   '(mac-frame-tabbing t)
+   '(mac-option-key-is-meta nil)
+   '(mac-option-modifier 'super)
+   '(mac-right-option-modifier nil)
+   '(mac-system-move-file-to-trash-use-finder t)
+   '(magit-clone-set-remote\.pushDefault t)
+   '(magit-diff-options nil)
+   '(magit-ediff-dwim-show-on-hunks t)
+   '(magit-highlight-trailing-whitespace nil)
+   '(magit-highlight-whitespace nil)
+   '(magit-log-auto-more t)
+   '(magit-no-confirm t)
+   '(magit-process-find-password-functions '(magit-process-password-auth-source))
+   '(magit-process-popup-time 15)
+   '(magit-push-always-verify nil)
+   '(magit-save-repository-buffers 'dontask)
+   '(magit-stage-all-confirm nil)
+   '(magit-unstage-all-confirm nil)
+   '(mmm-global-mode 'buffers-with-submode-classes)
+   '(mmm-submode-decoration-level 2)
+   '(minibuffer-prompt-properties
+     '(read-only t cursor-intangible t face minibuffer-prompt))
+   '(next-error-recenter t)
+   '(notmuch-show-logo nil)
+   '(nrepl-log-messages t)
+   '(ns-function-modifier 'hyper)
+   '(ns-pop-up-frames nil)
+   '(nsm-save-host-names t)
+   '(nxml-sexp-element-flag t)
+   '(nxml-slash-auto-complete-flag t)
+   '(org-confirm-babel-evaluate nil)
+   '(org-edit-src-turn-on-auto-save t)
+   '(org-export-with-toc nil)
+   '(org-html-htmlize-output-type (quote css))
+   '(org-latex-listings (quote minted))
+   ;; '(org-list-allow-alphabetical t)
+   '(org-log-done 'time)
+   '(org-special-ctrl-a/e t)
+   '(org-support-shift-select t)
+   '(package-archives '(("melpa" . "https://melpa.org/packages/")
+                        ("org" . "http://orgmode.org/elpa/")
+                        ("gnu" . "https://elpa.gnu.org/packages/")))
+   '(pcomplete-compare-entries-function 'file-newer-than-file-p)
+   '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
+   '(projectile-ignored-project-function 'file-remote-p)
+   '(projectile-mode-line '(:eval
+                            (if (and (ignore-errors (projectile-project-p))
+                                     (not (file-remote-p default-directory)))
+                                (format " Projectile[%s]"
+                                        (projectile-project-name)) "")))
+   '(projectile-switch-project-action 'projectile-dired)
+   '(projectile-verbose nil)
+   '(proof-auto-action-when-deactivating-scripting 'retract)
+   '(proof-autosend-enable nil)
+   '(proof-electric-terminator-enable t)
+   '(proof-fast-process-buffer nil)
+   '(proof-script-fly-past-comments t)
+   '(proof-shell-fiddle-frames nil)
+   '(proof-splash-enable nil)
+   '(proof-sticky-errors t)
+   '(proof-tidy-response t)
+   '(reb-re-syntax 'string)
+   '(resize-mini-windows t)
+   '(ring-bell-function 'ignore)
+   '(ruby-insert-encoding-magic-comment nil)
+   '(same-window-buffer-names '("*eshell*"
+                                "*shell*"
+                                "*mail*"
+                                "*inferior-lisp*"
+                                "*ielm*"
+                                "*scheme*"))
+   '(save-abbrevs 'silently)
+   '(save-interprogram-paste-before-kill t)
+   '(savehist-additional-variables '(search-ring
+                                     regexp-search-ring
+                                     kill-ring
+                                     comint-input-ring
+                                     kmacro-ring
+                                     sr-history-registry
+                                     file-name-history
+                                     tablist-name-filter))
+   '(savehist-autosave-interval 60)
+   '(savehist-ignored-variables '(load-history
+                                  flyspell-auto-correct-ring kill-ring))
+   '(scroll-preserve-screen-position 'always)
+   '(scroll-conservatively 101)
+   '(sentence-end-double-space nil)
+   '(set-mark-command-repeat-pop t)
+   '(shell-completion-execonly nil)
+   '(shell-input-autoexpand nil)
+   '(sh-learn-basic-offset t)
+   ;; '(show-paren-delay 0)
+   '(sp-autoskip-closing-pair 'always)
+   '(sp-highlight-pair-overlay nil)
+   '(swiper-stay-on-quit t)
+   '(switch-to-buffer-preserve-window-point t)
+   '(tab-always-indent 'complete)
+   '(term-input-autoexpand t)
+   '(term-input-ignoredups t)
+   '(term-input-ring-file-name t)
+   '(text-quoting-style 'quote)
+   '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
+                                   (nil "\\`root\\'" "/ssh:%h:")
+                                   (".*" "\\`root\\'" "/ssh:%h:")))
+   ;; '(truncate-lines nil)
+   '(tls-checktrust t)
+   '(undo-limit 800000)
+   '(uniquify-buffer-name-style 'forward)
+   '(uniquify-ignore-buffers-re "^\\*")
+   '(uniquify-separator "/")
+   '(use-dialog-box nil)
+   '(use-file-dialog nil)
+   '(use-package-always-defer t)
+   ;; '(use-package-enable-imenu-support t)
+   '(version-control t)
+   '(vc-allow-async-revert t)
+   '(vc-command-messages t)
+   '(vc-git-diff-switches '("-w" "-U3"))
+   '(vc-follow-symlinks nil)
+   '(vc-ignore-dir-regexp
+     (concat "\\(\\(\\`"
+             "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
+             "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
+   '(view-read-only t)
+   '(view-inhibit-help-message t)
+   '(visible-bell t)
+   '(woman-imenu t)
+   '(x-stretch-cursor t)
+   '(which-key-lighter "")
+   '(whitespace-action '(cleanup auto-cleanup))
+   '(whitespace-style '(face trailing lines space-before-tab empty lines-style))
+   )
 #+END_SRC
 
 *** Site paths
@@ -740,20 +668,9 @@ goal is to overwrite as little as possible. When it is necessary to overwrite
 Emacs keybinds, documentation on why should be provided.
 
 #+BEGIN_SRC emacs-lisp
-;; (require 'dash)
-(require 'subr-x)
+(require 'bauer)
 (require 'view)
 (require 'iso-transl)
-
-(defun update-font-spec-size (spec increment)
-  (string-join
-   (-update-at 7 (lambda (i) (number-to-string
-                         (+ (string-to-number i) increment)))
-               (split-string spec "-")) "-"))
-
-(defun update-font-size (increment)
-  (set-frame-font
-   (update-font-spec-size (frame-parameter nil  'font) increment)))
 
 (bind-keys
  :map global-map
@@ -809,13 +726,12 @@ Emacs keybinds, documentation on why should be provided.
  ("M-s G" . grep)
  ("s-/" . comment-or-uncomment-region)
 
- ("C-x M-p" . (lambda ()
-                (interactive)
-                (save-excursion (other-window 1)
-                                (quit-window))))
+ ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
+                                         (quit-window))))
 
- ("C-M--" . (lambda () (interactive) (update-font-size -1)))
- ("C-M-=" . (lambda () (interactive) (update-font-size 1)))
+ ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
+ ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
+ ("C-M-0" . (lambda () (interactive) (update-font-size 12 nil)))
 
  ("M-n" . next-error)
  ("M-p" . previous-error)
@@ -828,8 +744,9 @@ Emacs keybinds, documentation on why should be provided.
  ("C-c m i" . eval-expression)
  ("C-c m d" . eval-defun)
  ("C-c m n" . eval-print-last-sexp)
- ("C-c m r" . eval-region)
+ ("C-c m r" . eval-region))
 
+(bind-keys
  :map help-map
  ("C-v" . find-variable)
  ("C-k" . find-function-on-key)
@@ -1032,9 +949,6 @@ info.
   :config
   (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
   (global-company-mode))
-(use-package company-autoloads
-  :demand
-  :ensure nil)
 (use-package readline-complete
   :commands company-readline
   :hook (rlc-no-readline . (lambda () (company-mode -1)))
@@ -1074,8 +988,8 @@ info.
 (use-package company-web
   :init
   (autoload 'company-web-html "company-web-html")
-  (autoload 'company-web-jade "company-web-html")
-  (autoload 'company-web-slim "company-web-html")
+  (autoload 'company-web-jade "company-web-jade")
+  (autoload 'company-web-slim "company-web-slim")
   (add-to-list 'company-backends 'company-web-html)
   (add-to-list 'company-backends 'company-web-jade)
   (add-to-list 'company-backends 'company-web-slim))
@@ -1114,8 +1028,7 @@ info.
 #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
   :delight
-  :hook (find-file . dtrt-indent-find-file-hook)
-  :init (setq dtrt-indent-mode t))
+  :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
 **** Emacs speaks statistics
@@ -1189,9 +1102,7 @@ info.
             ([(control 119)] . backward-kill-word)
             ([(control 117)] . eshell-kill-input)
             ([tab] . completion-at-point)
-            ([(control 101)] . (lambda ()
-                                 (interactive)
-                                 (end-of-line)))))
+            ([(control 101)] . (lambda () (interactive) (end-of-line)))))
   (setq eshell-modules-list
         '(eshell-alias
           eshell-banner
@@ -1234,7 +1145,7 @@ info.
 (use-package em-dired
   :ensure nil
   :commands (em-dired-new)
-  :bind* (:map dired-mode-map
+  :bind (:map dired-mode-map
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
   :init (advice-add 'eshell :before 'em-dired-new))
@@ -1296,7 +1207,8 @@ apropospriate, and flycheck are the biggest offenders.
 [[https://github.com/chrisdone/god-mode][GitHub]]
 
 Note that god-mode overwrites escape key. This can cause some issues for
-certain Emacs keybinds.cs-lisp
+certain Emacs keybinds.
+#+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
 #+END_SRC
@@ -1419,7 +1331,8 @@ This is currently disabled.
          (org-mode . (lambda ()
                        (add-hook 'completion-at-point-functions
                                  'pcomplete-completions-at-point nil t)))
-         (org-mode . auto-fill-mode))
+         (org-mode . auto-fill-mode)
+         (org-mode . (lambda () (setq-local scroll-margin 3))))
   :bind* (("C-c c" . org-capture)
           ("C-c a" . org-agenda)
           ("C-c l" . org-store-link)
@@ -1467,34 +1380,25 @@ Setup projectile and link it with some other packages. This also adds an
 easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :commands (projectile-mode projectile-project-root)
-  :bind-keymap* (("C-c p" . projectile-command-map)
-                 ("s-p" . projectile-command-map))
-  :bind (("C-c C-f" . projectile-find-file)
-         :map projectile-command-map
-         ("s r" . projectile-rg))
-  :preface
-  (defun projectile-rg ()
-    "Run ripgrep in projectile."
-    (interactive)
-    (counsel-rg "" (projectile-project-root)))
-  :demand
-  :config
-  (put 'projectile-project-run-cmd 'safe-local-variable #'stringp)
-  (put 'projectile-project-compilation-cmd 'safe-local-variable
-       (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command))
-                                        compilation-read-command))))
-
-  ;; projectile is global
-  ;; needed to recognize project files
-  (projectile-mode)
-
-  (use-package easymenu
-    :ensure nil
-    :commands (easy-menu-do-define)
+  (use-package projectile
+    :commands (projectile-mode projectile-project-root)
+    :bind-keymap* (("C-c p" . projectile-command-map)
+                   ("s-p" . projectile-command-map))
+    :bind (("C-c C-f" . projectile-find-file)
+           :map projectile-command-map
+           ("s r" . projectile-rg))
+    :preface
+    (defun projectile-rg ()
+      "Run ripgrep in projectile."
+      (interactive)
+      (counsel-rg "" (projectile-project-root)))
+    :demand
     :config
+    ;; projectile is global
+    ;; needed to recognize project files
+    (projectile-mode)
 
+    (require 'easymenu)
     (easy-menu-define projectile-menu projectile-mode-map "Projectile"
       '("Projectile"
         :active nil
@@ -1535,7 +1439,8 @@ easymenu to make the "Projectile" modeline clickable.
         ["Run project" projectile-run-project]
         "--"
         ["Project info" projectile-project-info]
-        ["About" projectile-version]))))
+        ["About" projectile-version]))
+    )
 #+END_SRC
 
 **** Proof General
@@ -1745,16 +1650,22 @@ Get color/ansi codes in compilation mode.
 **** bug-reference
 
 #+BEGIN_SRC emacs-lisp
-(use-package bug-reference
-  :ensure nil
-  :hook (prog-mode . bug-reference-prog-mode))
+  (use-package bug-reference
+    :ensure nil
+    :hook ((prog-mode . bug-reference-prog-mode)
+           (text-mode . bug-reference-mode)))
 #+END_SRC
 
 ***** bug-reference-github
 
 #+BEGIN_SRC emacs-lisp
-(use-package bug-reference-github
-  :hook (prog-mode . bug-reference-github-set-url-format))
+  (use-package bug-reference-github
+    :preface
+    (defun bug-reference-github-projectile ()
+      (when (and projectile-mode
+                 (eq (projectile-project-vcs (projectile-project-root)) 'git))
+        (bug-reference-github-set-url-format)))
+    :hook (projectile-mode . bug-reference-github-projectile))
 #+END_SRC
 
 **** comint
@@ -1965,15 +1876,16 @@ setup.
 **** flyspell
 
 #+BEGIN_SRC emacs-lisp
-(use-package flyspell
-  :ensure nil
-  :if (locate-file
-       (if (boundp 'ispell-program-name) ispell-program-name "ispell")
-       exec-path)
-  :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
-  :init
-  (define-key flyspell-mode-map [(control ?\.)] nil))
+  (use-package flyspell
+    :ensure nil
+    :if (locate-file
+         (if (boundp 'ispell-program-name) ispell-program-name "ispell")
+         exec-path)
+    :hook ((text-mode . flyspell-mode)
+           (prog-mode . flyspell-prog-mode))
+    ;; :init
+    ;; (define-key flyspell-mode-map [(control ?\.)] nil)
+    )
 #+END_SRC
 
 **** goto-addr
@@ -2018,7 +1930,8 @@ setup.
          (lisp-mode . prettify-symbols-lisp)
          (c-mode . prettify-symbols-c)
          (c++-mode . prettify-symbols-c++)
-         ((js-mode js2-mode) . prettify-symbols-js))
+         ((js-mode js2-mode) . prettify-symbols-js)
+         (prog-mode . (lambda () (setq-local scroll-margin 3))))
   :preface
   (defun prettify-symbols-prog ()
     (push '("<=" . ?≤) prettify-symbols-alist)
@@ -2182,7 +2095,8 @@ setup.
 (use-package hl-line
   :ensure nil
   :hook ((prog-mode . hl-line-mode)
-         (org-mode . hl-line-mode)))
+         (org-mode . hl-line-mode)
+         (dired-mode . hl-line-mode)))
 #+END_SRC
 **** eww
 #+BEGIN_SRC emacs-lisp
@@ -2304,9 +2218,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
          (haskell-mode . imenu-add-menubar-index))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
-(use-package haskell-mode-autoloads
-  :demand
-  :ensure nil)
 #+END_SRC
 
 ***** haskell-interactive-mode
@@ -2425,14 +2336,8 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
-  :mode
-  (("\\.md\\'" . gfm-mode)
-   ("\\.markdown\\'" . gfm-mode))
-  :config
-  (bind-key "'" "’" markdown-mode-map
-            (not (or (markdown-code-at-point-p)
-                     (memq 'markdown-pre-face
-                           (face-at-point nil 'mult))))))
+  :mode (("\\.md\\'" . gfm-mode)
+         ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
 **** Nix
@@ -2712,7 +2617,7 @@ Most of these are available in MELPA.
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
-(use-package htmlize)
+(use-package htmlize :disabled)
 #+END_SRC
 
 **** TODO iedit
@@ -2751,7 +2656,9 @@ Most of these are available in MELPA.
           compilation-mode
           outline-mode
           prog-mode
-          haskell-mode) . page-break-lines-mode))
+          haskell-mode
+          help-mode
+          magit-mode) . page-break-lines-mode))
 #+END_SRC
 
 **** pandoc-mode
@@ -2880,6 +2787,12 @@ Most of these are available in MELPA.
 (use-package browse-at-remote
   :bind ("C-c g g" . browse-at-remote))
 #+END_SRC
+**** git-attr
+#+BEGIN_SRC emacs-lisp
+(use-package git-attr-linguist
+  :ensure "git-attr"
+  :hook ((find-file . git-attr-linguist)))
+#+END_SRC
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
@@ -2901,10 +2814,12 @@ bootstrap=$HOME/.nix-profile/etc/profile
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC sh :padline no
+MAN_PATH=/usr/share/man:/usr/local/share/man:@manpages@:$PREFIX/share/man:
+export MAN_PATH
+
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
        INFOPATH=$PREFIX/share/info \
-       MANPATH=$PREFIX/share/man: \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
        GREP_COLOR='3;33' \
@@ -3324,6 +3239,7 @@ Setup =man-path=.
 #+BEGIN_SRC emacs-lisp
 (defvar man-path `("/usr/share/man"
                    "/usr/local/share/man"
+                   "@manpages@/share/man"
                    ,(expand-file-name "share/man" output-directory)))
 #+END_SRC
 
@@ -3450,123 +3366,127 @@ Set paths provided by Nix,
 Set some defaults that depend on the path variables below,
 
 #+BEGIN_SRC emacs-lisp
-(set-defaults
- '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
- '(tls-program (concat gnutls " --tofu -p %p %h"))
- '(preview-pdf2dsc-command
-   (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
- '(preview-dvips-command
-   (concat dvips-command " -Pwww %d -o %m/preview.ps"))
- '(preview-fast-dvips-command
-   (concat dvips-command " -Pwww %d -o %m/preview.ps"))
- '(preview-dvipng-command
-   (concat dvipng-command
-           " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
- '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
-                             xetex-command)
-                      (luatex "LuaTeX" luatex-command
-                              ,(concat luatex-command " --jobname=%s")
-                              luatex-command)))
- '(TeX-command-list
-   `(("TeX"
-      "%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
-      TeX-run-TeX nil
-      (plain-tex-mode ams-tex-mode texinfo-mode)
-      :help "Run plain TeX")
-     ("LaTeX" "%`%l%(mode)%' %t" TeX-run-TeX nil
-      (latex-mode doctex-mode)
-      :help "Run LaTeX")
-     ("Makeinfo" ,(concat makeinfo-command " %(extraopts) %t")
-      TeX-run-compile nil
-      (texinfo-mode)
-      :help "Run Makeinfo with Info output")
-     ("Makeinfo HTML" ,(concat makeinfo-command " %(extraopts) --html %t")
-      TeX-run-compile nil
-      (texinfo-mode)
-      :help "Run Makeinfo with HTML output")
-     ("AmSTeX"
-      ,(concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
-      TeX-run-TeX nil
-      (ams-tex-mode)
-      :help "Run AMSTeX")
-     ("ConTeXt"
-      ,(concat context-command " --once --texutil %(extraopts) %(execopts)%t")
-      TeX-run-TeX nil
-      (context-mode)
-      :help "Run ConTeXt once")
-     ("ConTeXt Full" ,(concat context-command " %(extraopts) %(execopts)%t")
-      TeX-run-TeX nil
-      (context-mode)
-      :help "Run ConTeXt until completion")
-     ("BibTeX" ,(concat bibtex-command " %s")
-      TeX-run-BibTeX nil t :help "Run BibTeX")
-     ("Biber" "biber %s" TeX-run-Biber nil t :help "Run Biber")
-     ("View" "%V" TeX-run-discard-or-function t t :help "Run Viewer")
-     ("Print" "%p" TeX-run-command t t :help "Print the file")
-     ("Queue" "%q" TeX-run-background nil t
-      :help "View the printer queue" :visible TeX-queue-command)
-     ("File" ,(concat dvips-command " %d -o %f ")
-      TeX-run-dvips t t :help "Generate PostScript file")
-     ("Dvips" ,(concat dvips-command " %d -o %f ")
-      TeX-run-dvips nil t :help "Convert DVI file to PostScript")
-     ("Dvipdfmx" ,(concat dvipdfmx-command " %d")
-      TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
-     ("Ps2pdf" ,(concat ps2pdf-command " %f")
-      TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
-     ("Index" ,(concat makeindex-command " %s")
-      TeX-run-index nil t :help "Run makeindex to create index file")
-     ("upMendex" "upmendex %s"
-      TeX-run-index t t :help "Run mendex to create index file")
-     ("Xindy" "xindy %s"
-      TeX-run-command nil t :help "Run xindy to create index file")
-     ("Check" ,(concat lacheck-command " %s") TeX-run-compile nil
-      (latex-mode)
-      :help "Check LaTeX file for correctness")
-     ("ChkTeX" ,(concat chktex-command " -v6 %s") TeX-run-compile nil
-      (latex-mode)
-      :help "Check LaTeX file for common mistakes")
-     ("Spell" "(TeX-ispell-document \"\")"
-      TeX-run-function nil t :help "Spell-check the document")
-     ("Clean" "TeX-clean"
-      TeX-run-function nil t :help "Delete generated intermediate files")
-     ("Clean All" "(TeX-clean t)" TeX-run-function nil t
-      :help "Delete generated intermediate and output files")
-     ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
- '(counsel-grep-base-command
-   (concat ripgrep-executable
-           " -i -M 120 --no-heading --line-number --color never '%s' %s"))
- '(counsel-rg-base-command
-   (concat ripgrep-executable " -i --no-heading --line-number %s ."))
- '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
- '(org-preview-latex-process-alist
-   `((dvipng :programs ("latex" "dvipng")
-             :description "dvi > png"
-             :message ""
-             :image-input-type "dvi"
-             :image-output-type "png"
-             :image-size-adjust (1.0 . 1.0)
-             :latex-compiler
-             (,(concat LaTeX-command
-                       " -interaction nonstopmode -output-directory %o %f"))
-             :image-converter
-             (,(concat dvipng-command
-                       " -fg %F -bg %B -D %D -T tight -o %O %f")))))
- '(Info-directory-list `(,(expand-file-name "share/info" output-directory)))
- '(tramp-remote-path `(tramp-own-remote-path
-                       "/run/current-system/sw/bin"
-                       tramp-default-remote-path
-                       "/bin"
-                       "/usr/bin"
-                       "/sbin"
-                       "/usr/sbin"
-                       "/usr/local/bin"
-                       "/usr/local/sbin"
-                       "/opt/bin"
-                       "/opt/sbin"
-                       ,(expand-file-name "bin" output-directory)
-                       ))
- '(woman-manpath man-path)
- )
+  (set-defaults
+   '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
+   '(tls-program (concat gnutls " --tofu -p %p %h"))
+   '(preview-pdf2dsc-command
+     (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
+   '(preview-dvips-command
+     (concat dvips-command " -Pwww %d -o %m/preview.ps"))
+   '(preview-fast-dvips-command
+     (concat dvips-command " -Pwww %d -o %m/preview.ps"))
+   '(preview-dvipng-command
+     (concat dvipng-command
+             " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
+   '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
+                               xetex-command)
+                        (luatex "LuaTeX" luatex-command
+                                ,(concat luatex-command " --jobname=%s")
+                                luatex-command)))
+   '(TeX-command-list
+     `(("TeX"
+        "%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
+        TeX-run-TeX nil
+        (plain-tex-mode ams-tex-mode texinfo-mode)
+        :help "Run plain TeX")
+       ("LaTeX" "%`%l%(mode)%' %t" TeX-run-TeX nil
+        (latex-mode doctex-mode)
+        :help "Run LaTeX")
+       ("Makeinfo" ,(concat makeinfo-command " %(extraopts) %t")
+        TeX-run-compile nil
+        (texinfo-mode)
+        :help "Run Makeinfo with Info output")
+       ("Makeinfo HTML" ,(concat makeinfo-command " %(extraopts) --html %t")
+        TeX-run-compile nil
+        (texinfo-mode)
+        :help "Run Makeinfo with HTML output")
+       ("AmSTeX"
+        ,(concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
+        TeX-run-TeX nil
+        (ams-tex-mode)
+        :help "Run AMSTeX")
+       ("ConTeXt"
+        ,(concat context-command " --once --texutil %(extraopts) %(execopts)%t")
+        TeX-run-TeX nil
+        (context-mode)
+        :help "Run ConTeXt once")
+       ("ConTeXt Full" ,(concat context-command " %(extraopts) %(execopts)%t")
+        TeX-run-TeX nil
+        (context-mode)
+        :help "Run ConTeXt until completion")
+       ("BibTeX" ,(concat bibtex-command " %s")
+        TeX-run-BibTeX nil t :help "Run BibTeX")
+       ("Biber" "biber %s" TeX-run-Biber nil t :help "Run Biber")
+       ("View" "%V" TeX-run-discard-or-function t t :help "Run Viewer")
+       ("Print" "%p" TeX-run-command t t :help "Print the file")
+       ("Queue" "%q" TeX-run-background nil t
+        :help "View the printer queue" :visible TeX-queue-command)
+       ("File" ,(concat dvips-command " %d -o %f ")
+        TeX-run-dvips t t :help "Generate PostScript file")
+       ("Dvips" ,(concat dvips-command " %d -o %f ")
+        TeX-run-dvips nil t :help "Convert DVI file to PostScript")
+       ("Dvipdfmx" ,(concat dvipdfmx-command " %d")
+        TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
+       ("Ps2pdf" ,(concat ps2pdf-command " %f")
+        TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
+       ("Index" ,(concat makeindex-command " %s")
+        TeX-run-index nil t :help "Run makeindex to create index file")
+       ("upMendex" "upmendex %s"
+        TeX-run-index t t :help "Run mendex to create index file")
+       ("Xindy" "xindy %s"
+        TeX-run-command nil t :help "Run xindy to create index file")
+       ("Check" ,(concat lacheck-command " %s") TeX-run-compile nil
+        (latex-mode)
+        :help "Check LaTeX file for correctness")
+       ("ChkTeX" ,(concat chktex-command " -v6 %s") TeX-run-compile nil
+        (latex-mode)
+        :help "Check LaTeX file for common mistakes")
+       ("Spell" "(TeX-ispell-document \"\")"
+        TeX-run-function nil t :help "Spell-check the document")
+       ("Clean" "TeX-clean"
+        TeX-run-function nil t :help "Delete generated intermediate files")
+       ("Clean All" "(TeX-clean t)" TeX-run-function nil t
+        :help "Delete generated intermediate and output files")
+       ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
+   '(counsel-grep-base-command
+     (concat ripgrep-executable
+             " -i -M 120 --no-heading --line-number --color never '%s' %s"))
+   '(counsel-rg-base-command
+     (concat ripgrep-executable " -i --no-heading --line-number %s ."))
+   '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
+   '(org-preview-latex-process-alist
+     `((dvipng :programs ("latex" "dvipng")
+               :description "dvi > png"
+               :message ""
+               :image-input-type "dvi"
+               :image-output-type "png"
+               :image-size-adjust (1.0 . 1.0)
+               :latex-compiler
+               (,(concat LaTeX-command
+                         " -interaction nonstopmode -output-directory %o %f"))
+               :image-converter
+               (,(concat dvipng-command
+                         " -fg %F -bg %B -D %D -T tight -o %O %f")))))
+   '(Info-directory-list `(,(expand-file-name "share/info" output-directory)))
+   '(tramp-remote-path `(tramp-own-remote-path
+                         "/run/current-system/sw/bin"
+                         tramp-default-remote-path
+                         "/bin"
+                         "/usr/bin"
+                         "/sbin"
+                         "/usr/sbin"
+                         "/usr/local/bin"
+                         "/usr/local/sbin"
+                         "/opt/bin"
+                         "/opt/sbin"
+                         ,(expand-file-name "bin" output-directory)
+                         ))
+   '(woman-manpath man-path)
+   '(sys-headers "@sysheaders@/include")
+   '(Man-header-file-path
+     `(,sys-headers "/usr/include" "/usr/local/include"))
+   '(ffap-c-path `(,sys-headers "/usr/include" "/usr/local/include"))
+   )
 #+END_SRC
 
 Provide site-paths,
@@ -3759,6 +3679,7 @@ substitution of all the attributes set.
     inherit (pythonPackages) flake8;
     inherit (nodePackages) jshint eslint;
     inherit (haskellPackages) hoogle hlint hasktags;
+    inherit manpages sysheaders;
     stylish = haskellPackages.stylish-haskell;
     # intero = haskellPackages.intero-nix-shim;
     texlive = myTex;
@@ -3823,6 +3744,8 @@ cp ${./lisp/restart-emacs.el} \
   $out/share/emacs/site-lisp/restart-emacs.el
 cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
+cp ${./lisp/bauer.el} \
+  $out/share/emacs/site-lisp/bauer.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
@@ -3938,6 +3861,17 @@ Now we build our Emacs distribution.
 Finally, we can actually build the environment.
 
 #+BEGIN_SRC nix
+manpages = buildEnv {
+  name = "man-pages";
+  paths = [posix_man_pages man-pages]; # stdmanpages
+};
+
+sysheaders = buildEnv {
+  name = "headers";
+  paths = [ libcxx ]
+    ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+};
+
 myEnv = buildEnv {
   buildInputs = [ makeWrapper ];
   postBuild = ''
@@ -3970,6 +3904,7 @@ cp $out/etc/.zshrc $out/etc/zshrc
 
 cp ${./etc-profile.sh} $out/etc/profile
 substituteInPlace $out/etc/profile \
+  --replace @manpages@ ${manpages} \
   --replace @out@ $out
 
 wrapProgram $out/bin/bash \
@@ -4013,6 +3948,7 @@ cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
 substituteInPlace $out/etc/profile.d/my-profile.sh \
   --replace @emacs@ ${myEmacs} \
   --replace @fortune@ ${fortune} \
+  --replace @manpages@ ${manpages} \
   --replace @cacert@ ${cacert}
     '')]
    ++ [bashInteractive zsh coreutils git wget
