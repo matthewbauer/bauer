@@ -1736,13 +1736,34 @@ Get color/ansi codes in compilation mode.
 **** dired
 
 #+BEGIN_SRC emacs-lisp
-(use-package dired
-  :ensure nil
-  :bind (("C-c J" . dired-double-jump)
-         :map dired-mode-map
-         ("C-c C-c" . compile)
-         ("r" . browse-url-of-dired-file)
-         ("W" . browse-url-of-dired-file)))
+  (use-package dired
+    :ensure nil
+    :preface
+    (defun dired-run-command (&optional filename)
+      "Run file at point in a new buffer."
+      (interactive)
+      (unless filename
+        (setq filename (expand-file-name
+                        (dired-get-filename t t)
+                        default-directory)))
+      (lexical-let* ((progname (file-name-nondirectory filename))
+                     (buffer (generate-new-buffer progname)))
+        (with-current-buffer buffer
+          (make-term progname filename)
+          (term-mode)
+          ;;(term-char-mode)
+          (term-set-escape-char ?\C-x))
+        (set-process-sentinel (get-buffer-process buffer)
+                              (lambda (proc event)
+                                (when (process-live-p proc)
+                                  (kill-buffer buffer))))
+        (switch-to-buffer buffer)))
+    :bind (("C-c J" . dired-double-jump)
+           :map dired-mode-map
+           ("C-c C-c" . compile)
+           ("r" . browse-url-of-dired-file)
+           ("W" . browse-url-of-dired-file)
+           ("@" . dired-run-command)))
 #+END_SRC
 
 ***** dired-column
@@ -1750,7 +1771,6 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired-column
   :ensure nil
-  :after dired
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
 #+END_SRC
@@ -1759,7 +1779,6 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-subtree
-  :after dired
   :bind (:map dired-mode-map
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)))
@@ -1770,7 +1789,6 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired-x
   :ensure nil
-  :after dired
   :hook ((dired-mode . dired-omit-mode)
          (dired-mode . dired-hide-details-mode))
   :bind (("s-\\" . dired-jump-other-window)
