@@ -2262,7 +2262,7 @@ packages (for completion, syntax checking, etc.)
     :preface
     (defun irony-mode-disable-remote ()
       "Disabled irony in remote buffers."
-      (when (or buffer-file-name (file-remote-p buffer-file-name))
+      (when (and buffer-file-name (file-remote-p buffer-file-name))
         (irony-mode -1)))
     :hook (((c++-mode c-mode objc-mode) . irony-mode-disable-remote)
            ((c++-mode c-mode objc-mode) . irony-mode)))
@@ -2734,7 +2734,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
   :ensure git-attr
-  :preface (require 'cl-lib)
+  :preface (require 'cl-macs)
   :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 **** git-modes
