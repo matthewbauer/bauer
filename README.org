@@ -2148,17 +2148,17 @@ packages (for completion, syntax checking, etc.)
          ("\\.mm\\'" . c++-mode)))
 #+END_SRC
 
-***** irony
+***** Irony
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
     :preface
-    (defun disable-irony-remote ()
+    (defun irony-mode-disable-remote ()
       "Disabled irony in remote buffers."
       (when (or buffer-file-name (file-remote-p buffer-file-name))
         (irony-mode -1)))
-    :hook (((c++-mode c-mode objc-mode) . irony-mode)
-           ((c++-mode c-mode objc-mode) . disable-irony-remote)))
+    :hook (((c++-mode c-mode objc-mode) . irony-mode-disable-remote)
+           ((c++-mode c-mode objc-mode) . irony-mode)))
   (use-package irony-cdb
     :ensure nil
     :hook (irony-mode . irony-cdb-autosetup-compile-options))
