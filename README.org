@@ -837,73 +837,6 @@ This is the theme I use. This cannot be deferred.
   :config (load-theme 'apropospriate-dark t))
 #+END_SRC
 
-**** Counsel
-
-[[https://github.com/abo-abo/swiper][GitHub]]
-
-Counsel is only enabled on non-Windows systems. This is due to an issue in
-counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
-info.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package counsel
-    :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
-
-    ;; counsel doesn’t work well with windows drives
-    ;; see https://github.com/abo-abo/swiper/issues/773
-    :if (not (string= system-type "windows-nt"))
-
-    :bind* (([remap execute-extended-command] . counsel-M-x)
-            ;; ("s-c s-f" . counsel-find-file)
-            ;; ([remap find-file] . counsel-find-file)
-            ([remap find-library] . counsel-find-library)
-            ([remap describe-function] . counsel-describe-function)
-            ([remap describe-variable] . counsel-describe-variable)
-            ([remap describe-bindings]  . counsel-descbinds)
-            ([remap describe-face]  . counsel-describe-faces)
-            ([remap list-faces-display] . counsel-faces)
-            ([remap imenu] . counsel-imenu)
-            ([remap load-library] . counsel-load-library)
-            ([remap load-theme] . counsel-load-theme)
-            ([remap yank-pop] . counsel-yank-pop)
-            ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-            ([remap pop-to-mark-command] . counsel-mark-ring)
-            ([remap bookmark-jump] . counsel-bookmark)
-            ("C-c j" . counsel-git-grep)
-            ("C-c k" . counsel-rg)
-            ("C-x l" . counsel-locate)
-            ("M-y" . counsel-yank-pop)
-            ("C-c i 8" . counsel-unicode-char)
-
-            :map help-map
-            ("C-v" . counsel-find-variable)
-            ("C-k" . counsel-find-function-on-key)
-            ;; ("C-f" . counsel-find-function)
-            ("C-l" . counsel-find-library)
-            ))
-#+END_SRC
-
-***** ivy
-
-#+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :bind (([remap list-buffers] . ivy-switch-buffer)
-         ([remap switch-to-buffer] . ivy-switch-buffer)
-         ([remap switch-to-buffer-other-window] .
-          ivy-switch-buffer-other-window)
-         :map ivy-minibuffer-map
-         ("<escape>" . abort-recursive-edit))
-  :init
-  (defvar projectile-completion-system)
-  (defvar magit-completing-read-function)
-  (defvar projector-completion-system)
-  (setq projectile-completion-system 'ivy
-        magit-completing-read-function 'ivy-completing-read
-        ;; completing-read-function 'ivy-completing-read
-        ;; completion-in-region-function 'ivy-completion-in-region
-        )
-  :commands (ivy-completing-read ivy-completion-in-region))
-#+END_SRC
 **** Company
 
 [[https://github.com/company-mode/company-mode][GitHub]]
@@ -996,6 +929,73 @@ info.
                         '((company-math-symbols-latex company-latex-commands))
                         company-backends)))))
 #+END_SRC
+**** Counsel
+
+[[https://github.com/abo-abo/swiper][GitHub]]
+
+Counsel is only enabled on non-Windows systems. This is due to an issue in
+counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
+info.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel
+    :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
+
+    ;; counsel doesn’t work well with windows drives
+    ;; see https://github.com/abo-abo/swiper/issues/773
+    :if (not (string= system-type "windows-nt"))
+
+    :bind* (([remap execute-extended-command] . counsel-M-x)
+            ;; ("s-c s-f" . counsel-find-file)
+            ;; ([remap find-file] . counsel-find-file)
+            ([remap find-library] . counsel-find-library)
+            ([remap describe-function] . counsel-describe-function)
+            ([remap describe-variable] . counsel-describe-variable)
+            ([remap describe-bindings]  . counsel-descbinds)
+            ([remap describe-face]  . counsel-describe-faces)
+            ([remap list-faces-display] . counsel-faces)
+            ([remap imenu] . counsel-imenu)
+            ([remap load-library] . counsel-load-library)
+            ([remap load-theme] . counsel-load-theme)
+            ([remap yank-pop] . counsel-yank-pop)
+            ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+            ([remap pop-to-mark-command] . counsel-mark-ring)
+            ([remap bookmark-jump] . counsel-bookmark)
+            ("C-c j" . counsel-git-grep)
+            ("C-c k" . counsel-rg)
+            ("C-x l" . counsel-locate)
+            ("M-y" . counsel-yank-pop)
+            ("C-c i 8" . counsel-unicode-char)
+
+            :map help-map
+            ("C-v" . counsel-find-variable)
+            ("C-k" . counsel-find-function-on-key)
+            ;; ("C-f" . counsel-find-function)
+            ("C-l" . counsel-find-library)
+            ))
+#+END_SRC
+
+***** ivy
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :bind (([remap list-buffers] . ivy-switch-buffer)
+         ([remap switch-to-buffer] . ivy-switch-buffer)
+         ([remap switch-to-buffer-other-window] .
+          ivy-switch-buffer-other-window)
+         :map ivy-minibuffer-map
+         ("<escape>" . abort-recursive-edit))
+  :init
+  (defvar projectile-completion-system)
+  (defvar magit-completing-read-function)
+  (defvar projector-completion-system)
+  (setq projectile-completion-system 'ivy
+        magit-completing-read-function 'ivy-completing-read
+        ;; completing-read-function 'ivy-completing-read
+        ;; completion-in-region-function 'ivy-completion-in-region
+        )
+  :commands (ivy-completing-read ivy-completion-in-region))
+#+END_SRC
 **** delight
 
 #+BEGIN_SRC emacs-lisp
@@ -1024,46 +1024,6 @@ info.
 (use-package dtrt-indent
   :delight
   :hook (prog-mode . dtrt-indent-mode))
-#+END_SRC
-
-**** Emacs speaks statistics
-
-[[https://ess.r-project.org][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package ess-site
-  :ensure ess
-  :no-require
-  :interpreter (("Rscript" . r-mode)
-                ("r" . r-mode))
-  :mode (("\\.sp\\'"          . S-mode)
-         ("/R/.*\\.q\\'"      . R-mode)
-         ("\\.[qsS]\\'"       . S-mode)
-         ("\\.ssc\\'"         . S-mode)
-         ("\\.SSC\\'"         . S-mode)
-         ("\\.[rR]\\'"        . R-mode)
-         ("\\.[rR]nw\\'"      . Rnw-mode)
-         ("\\.[sS]nw\\'"      . Snw-mode)
-         ("\\.[rR]profile\\'" . R-mode)
-         ("NAMESPACE\\'"      . R-mode)
-         ("CITATION\\'"       . R-mode)
-         ("\\.omg\\'"         . omegahat-mode)
-         ("\\.hat\\'"         . omegahat-mode)
-         ("\\.lsp\\'"         . XLS-mode)
-         ("\\.do\\'"          . STA-mode)
-         ("\\.ado\\'"         . STA-mode)
-         ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-         ("\\.[Ss]t\\'"       . S-transcript-mode)
-         ("\\.Sout"           . S-transcript-mode)
-         ("\\.[Rr]out"        . R-transcript-mode)
-         ("\\.Rd\\'"          . Rd-mode)
-         ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
-         ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
-         ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-         ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-         ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-         ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
-         ))
 #+END_SRC
 
 **** Emacs shell
@@ -1144,6 +1104,46 @@ info.
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
   :init (advice-add 'eshell :before 'em-dired-new))
+#+END_SRC
+
+**** Emacs speaks statistics
+
+[[https://ess.r-project.org][Website]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package ess-site
+  :ensure ess
+  :no-require
+  :interpreter (("Rscript" . r-mode)
+                ("r" . r-mode))
+  :mode (("\\.sp\\'"          . S-mode)
+         ("/R/.*\\.q\\'"      . R-mode)
+         ("\\.[qsS]\\'"       . S-mode)
+         ("\\.ssc\\'"         . S-mode)
+         ("\\.SSC\\'"         . S-mode)
+         ("\\.[rR]\\'"        . R-mode)
+         ("\\.[rR]nw\\'"      . Rnw-mode)
+         ("\\.[sS]nw\\'"      . Snw-mode)
+         ("\\.[rR]profile\\'" . R-mode)
+         ("NAMESPACE\\'"      . R-mode)
+         ("CITATION\\'"       . R-mode)
+         ("\\.omg\\'"         . omegahat-mode)
+         ("\\.hat\\'"         . omegahat-mode)
+         ("\\.lsp\\'"         . XLS-mode)
+         ("\\.do\\'"          . STA-mode)
+         ("\\.ado\\'"         . STA-mode)
+         ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
+         ("\\.[Ss]t\\'"       . S-transcript-mode)
+         ("\\.Sout"           . S-transcript-mode)
+         ("\\.[Rr]out"        . R-transcript-mode)
+         ("\\.Rd\\'"          . Rd-mode)
+         ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
+         ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+         ))
 #+END_SRC
 
 **** ESUP
@@ -1839,6 +1839,15 @@ setup.
          (smartparens-mode . (lambda () (electric-pair-mode -1)))))
 #+END_SRC
 
+**** eww
+#+BEGIN_SRC emacs-lisp
+(use-package eww
+  :disabled window-system
+  :commands eww-browse-url
+  :init
+  (when (not window-system)
+    (setq browse-url-browser-function 'eww-browse-url)))
+#+END_SRC
 **** executable
 
 #+BEGIN_SRC emacs-lisp
@@ -1915,6 +1924,14 @@ setup.
          (git-commit-mode . goto-address-mode)))
 #+END_SRC
 
+**** hl-line
+#+BEGIN_SRC emacs-lisp
+(use-package hl-line
+  :ensure nil
+  :hook ((prog-mode . hl-line-mode)
+         (org-mode . hl-line-mode)
+         (dired-mode . hl-line-mode)))
+#+END_SRC
 **** paren
 
 #+BEGIN_SRC emacs-lisp
@@ -2047,15 +2064,6 @@ setup.
   :hook ((java-mode . subword-mode)))
 #+END_SRC
 
-**** text-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package text-mode
-  :no-require
-  :ensure nil
-  :hook ((text-mode . turn-on-auto-fill)))
-#+END_SRC
-
 **** term
 
 #+BEGIN_SRC emacs-lisp
@@ -2075,6 +2083,15 @@ setup.
     (term-set-escape-char ?\C-x)
     (switch-to-buffer "*my-term*"))
   :bind ("C-c t" . my-term))
+#+END_SRC
+
+**** text-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package text-mode
+  :no-require
+  :ensure nil
+  :hook ((text-mode . turn-on-auto-fill)))
 #+END_SRC
 
 **** time
@@ -2111,23 +2128,6 @@ setup.
   :hook (prog-mode . whitespace-mode))
 #+END_SRC
 **** TODO winner-mode
-**** hl-line
-#+BEGIN_SRC emacs-lisp
-(use-package hl-line
-  :ensure nil
-  :hook ((prog-mode . hl-line-mode)
-         (org-mode . hl-line-mode)
-         (dired-mode . hl-line-mode)))
-#+END_SRC
-**** eww
-#+BEGIN_SRC emacs-lisp
-(use-package eww
-  :disabled window-system
-  :commands eww-browse-url
-  :init
-  (when (not window-system)
-    (setq browse-url-browser-function 'eww-browse-url)))
-#+END_SRC
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
@@ -2574,6 +2574,11 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
+**** browse-at-remote
+#+BEGIN_SRC emacs-lisp
+(use-package browse-at-remote
+  :bind ("C-c g g" . browse-at-remote))
+#+END_SRC
 **** buffer-move
 [[https://github.com/lukhas/buffer-move][GitHub]]
 
@@ -2604,6 +2609,8 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO dumb-jump
+**** TODO emacs-gif-screencast
+**** TODO epresent
 **** expand-region
 
 #+BEGIN_SRC emacs-lisp
@@ -2613,6 +2620,37 @@ Most of these are available in MELPA.
 
 **** TODO eyebrowse
 **** TODO fill-column-indicator
+**** git-attr
+#+BEGIN_SRC emacs-lisp
+(use-package git-attr-linguist
+  :ensure git-attr
+  :preface (require 'cl-lib)
+  :hook ((find-file . git-attr-linguist)))
+#+END_SRC
+**** git-modes
+#+BEGIN_SRC emacs-lisp
+(use-package gitattributes-mode
+  :mode (("/\\.gitattributes\\'" . gitattributes-mode)
+         ("/info/attributes\\'" . gitattributes-mode)
+         ("/git/attributes\\'" . gitattributes-mode)))
+(use-package gitconfig-mode
+  :mode (("/\\.gitconfig\\'" . gitconfig-mode)
+         ("/\\.git/config\\'" . gitconfig-mode)
+         ("/modules/.*/config\\'" . gitconfig-mode)
+         ("/git/config\\'" . gitconfig-mode)
+         ("/\\.gitmodules\\'" . gitconfig-mode)
+         ("/etc/gitconfig\\'" . gitconfig-mode)))
+(use-package gitignore-mode
+  :mode (("/\\.gitignore\\'" . gitignore-mode)
+         ("/info/exclude\\'" . gitignore-mode)
+         ("/git/ignore\\'" . gitignore-mode)))
+#+END_SRC
+**** github-clone
+#+BEGIN_SRC emacs-lisp
+(use-package github-clone
+  :bind ("C-c g c" . github-clone))
+#+END_SRC
+**** TODO hackernews
 **** helpful
 
 #+BEGIN_SRC emacs-lisp
@@ -2729,6 +2767,7 @@ Most of these are available in MELPA.
   :bind ("H-SPC" . shrink-whitespace))
 #+END_SRC
 
+**** TODO smex
 **** string-inflection
 
 #+BEGIN_SRC emacs-lisp
@@ -2741,6 +2780,7 @@ Most of these are available in MELPA.
          ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
+**** TODO sx
 **** try
 [[https://github.com/larstvei/Try][GitHub]]
 
@@ -2749,6 +2789,8 @@ Most of these are available in MELPA.
   :commands (try))
 #+END_SRC
 
+**** TODO twittering-mode
+**** TODO undo-tree
 **** TODO undo-tree
 **** vkill
 
@@ -2766,49 +2808,7 @@ Most of these are available in MELPA.
   :delight
   :demand)
 #+END_SRC
-**** TODO emacs-gif-screencast
-**** TODO epresent
-**** TODO hackernews
-**** TODO twittering-mode
-**** TODO sx
-**** TODO smex
-**** TODO undo-tree
 **** TODO yasnippet
-**** git-modes
-#+BEGIN_SRC emacs-lisp
-(use-package gitattributes-mode
-  :mode (("/\\.gitattributes\\'" . gitattributes-mode)
-         ("/info/attributes\\'" . gitattributes-mode)
-         ("/git/attributes\\'" . gitattributes-mode)))
-(use-package gitconfig-mode
-  :mode (("/\\.gitconfig\\'" . gitconfig-mode)
-         ("/\\.git/config\\'" . gitconfig-mode)
-         ("/modules/.*/config\\'" . gitconfig-mode)
-         ("/git/config\\'" . gitconfig-mode)
-         ("/\\.gitmodules\\'" . gitconfig-mode)
-         ("/etc/gitconfig\\'" . gitconfig-mode)))
-(use-package gitignore-mode
-  :mode (("/\\.gitignore\\'" . gitignore-mode)
-         ("/info/exclude\\'" . gitignore-mode)
-         ("/git/ignore\\'" . gitignore-mode)))
-#+END_SRC
-**** github-clone
-#+BEGIN_SRC emacs-lisp
-(use-package github-clone
-  :bind ("C-c g c" . github-clone))
-#+END_SRC
-**** browse-at-remote
-#+BEGIN_SRC emacs-lisp
-(use-package browse-at-remote
-  :bind ("C-c g g" . browse-at-remote))
-#+END_SRC
-**** git-attr
-#+BEGIN_SRC emacs-lisp
-(use-package git-attr-linguist
-  :ensure git-attr
-  :preface (require 'cl-lib)
-  :hook ((find-file . git-attr-linguist)))
-#+END_SRC
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
