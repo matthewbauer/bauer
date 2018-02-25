@@ -183,20 +183,39 @@ normally. Eventually this section should be removed but it leads to errors
 currently. FIXME!
 
 #+BEGIN_SRC emacs-lisp
-(autoload 'tramp-tramp-file-p "tramp")
-(eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
-(autoload 'package-installed-p "package")
-(define-obsolete-function-alias 'org-define-error 'define-error)
-(when (and (string= window-system "mac")
-           (require 'mac-win nil t))
-  (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
+  (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
+  (autoload 'package-installed-p "package")
+  (define-obsolete-function-alias 'org-define-error 'define-error)
+  (when (and (string= window-system "mac")
+             (require 'mac-win nil t))
+    (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
 
-(load "company-autoloads" t t)
-(load "haskell-mode-autoloads" t t)
+  (load "company-autoloads" t t)
+  (load "haskell-mode-autoloads" t t)
 
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(blink-cursor-mode -1)
+  (eval-and-compile
+    (autoload 'sp-with-modes "smartparens" "" nil 'macro)
+    (autoload 'sp-local-pair "smartparens" "" nil nil)
+    (autoload 'sp-local-tag  "smartparens" "" nil nil)
+
+    (autoload 'projectile-project-vcs "projectile" "" nil nil)
+    (autoload 'pcomplete-arg   "pcomplete" "" nil nil)
+    (autoload 'pcomplete--here "pcomplete" "" nil nil)
+
+    ;; (autoload 'comint-write-input-ring "comint" "" nil nil)
+    ;; (autoload 'ansi-color-process-output "ansi-color" "" nil nil)
+    ;; (autoload 'dired-get-filename "dired" "" nil nil)
+    ;; (autoload 'locate-file "files" "" nil nil)
+    ;; (autoload 'file-remote-p "files" "" nil nil)
+    ;; (autoload 'tramp-tramp-file-p        "tramp" "" nil nil)
+    ;; (autoload 'tramp-file-name-method    "tramp" "" nil nil)
+    ;; (autoload 'tramp-file-name-host      "tramp" "" nil nil)
+    ;; (autoload 'tramp-file-name-localname "tramp" "" nil nil)
+    )
+
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (blink-cursor-mode -1)
 #+END_SRC
 
 ** Custom config
@@ -625,10 +644,55 @@ First handle using =package.el=.
 Actually require =use-package=,
 
 #+BEGIN_SRC emacs-lisp
-(eval-and-compile
-  (require 'delight)
-  (require 'use-package)
-  (require 'bind-key))
+  (eval-and-compile
+    (require 'delight)
+    (require 'use-package)
+    (require 'bind-key)
+
+     (defun use-package-normalize-binder-override (name keyword args)
+      (let ((arg args)
+            args*)
+        (while arg
+          (let ((x (car arg)))
+            (cond
+             ;; (KEY . COMMAND)
+             ((and (consp x)
+                   (or (stringp (car x))
+                       (vectorp (car x)))
+                   (or (use-package-recognize-function (cdr x) t #'stringp)))
+              (setq args* (nconc args* (list x)))
+              (setq arg (cdr arg)))
+             ;; KEYWORD
+             ;;   :map KEYMAP
+             ;;   :prefix-docstring STRING
+             ;;   :prefix-map SYMBOL
+             ;;   :prefix STRING
+             ;;   :filter SEXP
+             ;;   :menu-name STRING
+             ;;   :package SYMBOL
+             ((or (and (eq x :map) (symbolp (cadr arg)))
+                  (and (eq x :prefix) (stringp (cadr arg)))
+                  (and (eq x :prefix-map) (symbolp (cadr arg)))
+                  (and (eq x :prefix-docstring) (stringp (cadr arg)))
+                  (eq x :filter)
+                  (and (eq x :menu-name) (stringp (cadr arg)))
+                  (and (eq x :package) (symbolp (cadr arg))))
+              (setq args* (nconc args* (list x (cadr arg))))
+              (setq arg (cddr arg)))
+             ((listp x)
+              (setq args*
+                    (nconc args* (use-package-normalize-binder name keyword x)))
+              (setq arg (cdr arg)))
+             (t
+              ;; Error!
+              (use-package-error
+               (concat (symbol-name name)
+                       " wants arguments acceptable to the `bind-keys' macro,"
+                       " or a list of such values"))))))
+        args*))
+
+    (advice-add 'use-package-normalize-binder :override 'use-package-normalize-binder-override)
+    )
 #+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
@@ -657,8 +721,6 @@ Emacs keybinds, documentation on why should be provided.
 
 #+BEGIN_SRC emacs-lisp
   (require 'bauer)
-  (require 'view)
-  (require 'iso-transl)
 
   (bind-keys
    :map global-map
@@ -689,8 +751,6 @@ Emacs keybinds, documentation on why should be provided.
    ("C-c z" . clean-buffer-list)
    ("C-c =" . count-matches)
    ("C-c ;" . comment-or-uncomment-region)
-   ("C-c n" . clean-up-buffer-or-region)
-   ("C-c d" . duplicate-current-line-or-region)
    ("M-+" . text-scale-increase)
    ("M-_" . text-scale-decrease)
 
@@ -738,13 +798,8 @@ Emacs keybinds, documentation on why should be provided.
    ("C-c m n" . eval-print-last-sexp)
    ("C-c m r" . eval-region))
 
-  (bind-keys
-   ;; :map help-map
-   ;; ("C-v" . find-variable)
-   ;; ("C-k" . find-function-on-key)
-   ;; ("C-f" . find-function)
-   ;; ("C-l" . find-library)
-
+ (bind-keys
+   :package view
    :map view-mode-map
    ("n" . next-line)
    ("p" . previous-line)
@@ -753,7 +808,20 @@ Emacs keybinds, documentation on why should be provided.
    ("l" . forward-char)
    ("f" . forward-char)
    ("b" . backward-char)
+   ("e" . end-of-line)
+   ("a" . beginning-of-line))
 
+  ;;(bind-keys
+   ;; :package help
+   ;; :map help-map
+   ;; ("C-v" . find-variable)
+   ;; ("C-k" . find-function-on-key)
+   ;; ("C-f" . find-function)
+   ;; ("C-l" . find-library)
+  ;;)
+
+  (bind-keys
+   :package iso-transl
    :map iso-transl-ctl-x-8-map
    ("' /" . "′")
    ("\" /" . "″")
@@ -938,7 +1006,7 @@ counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
 info.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package counsel
+(use-package counsel
     :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
     ;; counsel doesn’t work well with windows drives
@@ -968,7 +1036,7 @@ info.
             ("C-c i 8" . counsel-unicode-char)
 
             :map help-map
-            ("C-v" . counsel-find-variable)
+            ("C-v" . counsel-find-symbol)
             ("C-k" . counsel-find-function-on-key)
             ;; ("C-f" . counsel-find-function)
             ("C-l" . counsel-find-library)
@@ -983,6 +1051,7 @@ info.
          ([remap switch-to-buffer] . ivy-switch-buffer)
          ([remap switch-to-buffer-other-window] .
           ivy-switch-buffer-other-window)
+         :package ivy
          :map ivy-minibuffer-map
          ("<escape>" . abort-recursive-edit))
   :init
@@ -1007,7 +1076,8 @@ info.
 
 #+BEGIN_SRC emacs-lisp
 (use-package diff-hl
-  :bind (:map diff-hl-mode-map
+  :bind (:package diff-hl
+         :map diff-hl-mode-map
               ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
   :hook ((prog-mode . diff-hl-mode)
          (vc-dir-mode . diff-hl-mode)
@@ -1100,7 +1170,8 @@ info.
 (use-package em-dired
   :ensure nil
   :commands (em-dired-new)
-  :bind (:map dired-mode-map
+  :bind (:package dired
+         :map dired-mode-map
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
   :init (advice-add 'eshell :before 'em-dired-new))
@@ -1263,9 +1334,10 @@ certain Emacs keybinds.
              magit-get
              magit-remote-add
              magit-define-popup-action)
-
+  :if (locate-file "git" exec-path)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
+         :package magit
          :map magit-mode-map
          ("C-o" . magit-dired-other-window)))
 #+END_SRC
@@ -1473,7 +1545,8 @@ easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
-  :bind (:map smartparens-mode-map
+  :bind (:package smartparens
+         :map smartparens-mode-map
               ("C-M-k" . sp-kill-sexp)
               ("C-M-f" . sp-forward-sexp)
               ("C-M-b" . sp-backward-sexp)
@@ -1517,6 +1590,7 @@ easymenu to make the "Projectile" modeline clickable.
               ("M-[" . sp-backward-unwrap-sexp)
               ("M-]" . sp-unwrap-sexp)
               ("C-x C-t" . sp-transpose-hybrid-sexp)
+              :package smartparens
               :map smartparens-strict-mode-map
               ([remap c-electric-backspace] . sp-backward-delete-char)
               :map emacs-lisp-mode-map
@@ -1657,6 +1731,7 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference-github
+    :commands (bug-reference-github-set-url-format)
     :preface
     (defun bug-reference-github-projectile ()
       (when (and projectile-mode
@@ -1753,6 +1828,7 @@ Get color/ansi codes in compilation mode.
                                   (kill-buffer (process-buffer proc)))))
         (switch-to-buffer buffer)))
     :bind (("C-c J" . dired-double-jump)
+           :package dired
            :map dired-mode-map
            ("C-c C-c" . compile)
            ("r" . term)
@@ -1768,7 +1844,8 @@ Get color/ansi codes in compilation mode.
 (use-package dired-column
   :after dired
   :ensure nil
-  :bind (:map dired-mode-map
+  :bind (:package dired
+         :map dired-mode-map
               ("o" . dired-column-find-file)))
 #+END_SRC
 
@@ -1776,7 +1853,8 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-subtree
-  :bind (:map dired-mode-map
+  :bind (:package dired
+         :map dired-mode-map
               ("<tab>" . dired-subtree-toggle)
               ("<backtab>" . dired-subtree-cycle)))
 #+END_SRC
@@ -1790,6 +1868,7 @@ Get color/ansi codes in compilation mode.
   :hook ((dired-mode . dired-omit-mode)
          (dired-mode . dired-hide-details-mode))
   :bind (("s-\\" . dired-jump-other-window)
+         :package dired
          :map dired-mode-map
          (")" . dired-omit-mode)))
 #+END_SRC
@@ -2067,22 +2146,50 @@ setup.
 **** term
 
 #+BEGIN_SRC emacs-lisp
-(use-package term
-  :ensure nil
-  :commands (term-mode term-char-mode term-set-escape-char)
-  :hook (term-mode . (lambda ()
-                       (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-                       (setq-local transient-mark-mode nil)
-                       (auto-fill-mode -1)))
-  :preface
-  (defun my-term ()
-    (interactive)
-    (set-buffer (make-term "my-term" "zsh"))
-    (term-mode)
-    (term-char-mode)
-    (term-set-escape-char ?\C-x)
-    (switch-to-buffer "*my-term*"))
-  :bind ("C-c t" . my-term))
+  (use-package term
+    :ensure nil
+    :commands (term-mode term-char-mode term-set-escape-char)
+    :hook (term-mode . (lambda ()
+                         (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+                         (setq-local transient-mark-mode nil)
+                         (auto-fill-mode -1)))
+    :preface
+    (defun my-term (&optional path name)
+      (interactive)
+      (set-buffer (make-term "my-term" "zsh"))
+      (term-mode)
+      (term-char-mode)
+      (term-set-escape-char ?\C-x)
+      (switch-to-buffer "*my-term*"))
+    (defun term-remote (&optional path name)
+      "Opens an ansi terminal at PATH. If no PATH is given, it uses
+  the value of `default-directory'. PATH may be a tramp remote path.
+  The ansi-term buffer is named based on `name' "
+      (interactive)
+      (unless path (setq path default-directory))
+      (unless name (setq name "ansi-term"))
+      (ansi-term "/bin/bash" name)
+      (let ((path (replace-regexp-in-string "^file:" "" path))
+            (cd-str
+             "fn=%s; if test ! -d $fn; then fn=$(dirname $fn); fi; cd $fn;")
+            (bufname (concat "*" name "*" )))
+        (if (tramp-tramp-file-p path)
+            (let ((tstruct (tramp-dissect-file-name path)))
+              (cond
+               ((equal (tramp-file-name-method tstruct) "ssh")
+                (process-send-string bufname (format
+                                              (concat  "ssh -t %s '"
+                                                       cd-str
+                                                       "exec bash'; exec bash; clear\n")
+                                              (tramp-file-name-host tstruct)
+                                              (tramp-file-name-localname tstruct))))
+               (t (error "not implemented for method %s"
+                         (tramp-file-name-method tstruct)))))
+          (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
+                                               path)))))
+    :bind ("C-c t" . my-term))
+  (use-package tramp-term
+    :commands tramp-term)
 #+END_SRC
 
 **** text-mode
@@ -2270,7 +2377,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 #+BEGIN_SRC emacs-lisp
 (use-package jdee
   :mode ("\\.java\\'" . jdee-mode)
-  :bind (:map jdee-mode-map
+  :bind (:package jdee
+         :map jdee-mode-map
               ("<s-mouse-1>" . jdee-open-class-at-event)))
 #+END_SRC
 
@@ -2315,7 +2423,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
          ("\\.jshintrc$"    . json-mode)
          ("\\.json_schema$" . json-mode)
          ("\\.json\\'" . json-mode))
-  :bind (:map json-mode-map ("C-c <tab>" . json-mode-beautify))
+  :bind (:package json-mode-map
+         :map json-mode-map ("C-c <tab>" . json-mode-beautify))
   :config
   (make-local-variable 'js-indent-level))
 #+END_SRC
@@ -2495,7 +2604,8 @@ Auctex provides some helpful tools for working with LaTeX.
   :mode (("\\.*shellrc$" . sh-mode)
          ("\\.*shell_profile" . sh-mode)
          ("\\.zsh\\'" . sh-mode))
-  :bind (:map sh-mode-map
+  :bind (:package sh-script
+         :map sh-mode-map
               ("C-x C-e" . shell-command-at-point)))
 #+END_SRC
 
@@ -2648,6 +2758,7 @@ Most of these are available in MELPA.
 **** github-clone
 #+BEGIN_SRC emacs-lisp
 (use-package github-clone
+  :if (locate-file "git" exec-path)
   :bind ("C-c g c" . github-clone))
 #+END_SRC
 **** TODO hackernews
@@ -3540,8 +3651,7 @@ fi
 Pull into Git repo.
 
 #+BEGIN_SRC sh
-if [ -d .git ] && command -v git >/dev/null 2>&1
-then
+if [ -d .git ] && command -v git >/dev/null 2>&1; then
     git pull origin master || true
 fi
 #+END_SRC
@@ -3729,15 +3839,13 @@ myPackages gets a listing of all of the packages that are needed by the Emacs
 configuration. use-package-list generates this list automatically.
 
 #+BEGIN_SRC nix
-package-list = with customEmacsPackages.melpaPackages;
-               with customEmacsPackages.elpaPackages;
+package-list =
   runCommand "package-list" {
-      buildInputs = [ customEmacsPackages.emacs ];
+    buildInputs = [ customEmacsPackages.emacs ];
   } ''
 emacs --batch --quick \
-                -L ${bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-                -L ${use-package}/share/emacs/site-lisp/elpa/use-package-* \
-                -L ${delight}/share/emacs/site-lisp/elpa/delight-* \
+                -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+                -L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
                 -L ${./lisp} -l use-package-list \
                 --eval "(use-package-list \"${./README.el}\")" > $out
   '';
@@ -3769,6 +3877,8 @@ cp ${./lisp/use-package-list.el} \
   $out/share/emacs/site-lisp/use-package-list.el
 cp ${./lisp/bauer.el} \
   $out/share/emacs/site-lisp/bauer.el
+cp ${./lisp/bind-key.el} \
+  $out/share/emacs/site-lisp/bind-key.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
