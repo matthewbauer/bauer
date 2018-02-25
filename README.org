@@ -196,6 +196,7 @@ currently. FIXME!
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+(blink-cursor-mode -1)
 #+END_SRC
 
 ** Custom config
@@ -400,19 +401,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(ispell-quietly t)
    '(ispell-silently-savep t)
-   '(ivy-count-format "\"\"")
-   '(ivy-dynamic-exhibit-delay-ms 200)
-   '(ivy-ignore-buffers '("\\` "
-                          "\\`\\*git-monitor:"
-                          "\\`\\*magit-process:"
-                          "\\.elc$"
-                          "\\`\\.newsrc-dribble\\'"
-                          "\\`\\.newsrc.eld\\'"))
-   '(ivy-display-style nil)
-   '(ivy-fixed-height-minibuffer t)
-   '(ivy-minibuffer-faces nil)
-   '(ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
-   '(ivy-use-virtual-buffers t)
    '(jit-lock-defer-time 0.01)
    '(js2-mode-show-parse-errors nil)
    '(js2-mode-show-strict-warnings nil)
@@ -517,7 +505,6 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    ;; '(show-paren-delay 0)
    '(sp-autoskip-closing-pair 'always)
    '(sp-highlight-pair-overlay nil)
-   '(swiper-stay-on-quit t)
    '(switch-to-buffer-preserve-window-point t)
    '(tab-always-indent 'complete)
    '(term-input-autoexpand t)
@@ -580,14 +567,15 @@ these entries correspond to environment variables that we want to always be
 set in the Emacs process.
 
 #+BEGIN_SRC emacs-lisp
-(set-envs
- '("EDITOR" "emacsclient -nw")
- '("LANG" "en_US.UTF-8")
- '("LC_ALL" "en_US.UTF-8")
- '("NODE_NO_READLINE" "1")
- '("PAGER" "cat")
- '("PS1" "\\W > ")
- )
+  (set-envs
+   ;; '("EDITOR" "emacsclient -nw")
+   '("EDITOR" "emacsclient")
+   '("LANG" "en_US.UTF-8")
+   '("LC_ALL" "en_US.UTF-8")
+   '("NODE_NO_READLINE" "1")
+   '("PAGER" "cat")
+   '("PS1" "\\W > ")
+   )
 #+END_SRC
 
 *** Load custom file
@@ -741,6 +729,7 @@ Emacs keybinds, documentation on why should be provided.
 
    ("s-c m" . man)
    ("s-c i" . imenu)
+   ("s-i" . imenu)
 
    ("C-c m b" . eval-buffer)
    ("C-c m e" . eval-last-sexp)
@@ -750,11 +739,11 @@ Emacs keybinds, documentation on why should be provided.
    ("C-c m r" . eval-region))
 
   (bind-keys
-   :map help-map
-   ("C-v" . find-variable)
-   ("C-k" . find-function-on-key)
-   ("C-f" . find-function)
-   ("C-l" . find-library)
+   ;; :map help-map
+   ;; ("C-v" . find-variable)
+   ;; ("C-k" . find-function-on-key)
+   ;; ("C-f" . find-function)
+   ;; ("C-l" . find-library)
 
    :map view-mode-map
    ("n" . next-line)
@@ -796,9 +785,7 @@ Emacs keybinds, documentation on why should be provided.
    :prefix-map bauer-help
    :prefix "s-h"
    ("k" . describe-personal-keybindings)
-   ("p" . ffap)
-   ("." . helpful-at-point)
-   ("o" . counsel-find-library))
+   ("p" . ffap))
 #+END_SRC
 
 ** Setup installer
@@ -859,42 +846,48 @@ counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
 info.
 
 #+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
+  (use-package counsel
+    :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
-  ;; counsel doesn’t work well with windows drives
-  ;; see https://github.com/abo-abo/swiper/issues/773
-  :if (not (string= system-type "windows-nt"))
+    ;; counsel doesn’t work well with windows drives
+    ;; see https://github.com/abo-abo/swiper/issues/773
+    :if (not (string= system-type "windows-nt"))
 
-  :bind* (([remap execute-extended-command] . counsel-M-x)
-          ("s-c s-f" . counsel-find-file)
-          ;; ([remap find-file] . counsel-find-file)
-          ;; ([remap find-library] . counsel-find-library)
-          ;; ([remap describe-function] . counsel-describe-function)
-          ;; ([remap describe-variable] . counsel-describe-variable)
-          ;; ([remap describe-bindings]  . counsel-descbinds)
-          ;; ([remap describe-face]  . counsel-describe-faces)
-          ;; ([remap list-faces-display] . counsel-faces)
-          ;; ([remap imenu] . counsel-imenu)
-          ;; ([remap load-library] . counsel-load-library)
-          ;; ([remap load-theme] . counsel-load-theme)
-          ;; ([remap yank-pop] . counsel-yank-pop)
-          ;; ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-          ;; ([remap pop-to-mark-command] . counsel-mark-ring)
-          ;; ([remap bookmark-jump] . counsel-bookmark)
-          ("C-c j" . counsel-git-grep)
-          ("C-c k" . counsel-rg)
-          ("C-x l" . counsel-locate)
-          ("M-y" . counsel-yank-pop)
-          ("C-c i 8" . counsel-unicode-char)))
+    :bind* (([remap execute-extended-command] . counsel-M-x)
+            ;; ("s-c s-f" . counsel-find-file)
+            ;; ([remap find-file] . counsel-find-file)
+            ([remap find-library] . counsel-find-library)
+            ([remap describe-function] . counsel-describe-function)
+            ([remap describe-variable] . counsel-describe-variable)
+            ([remap describe-bindings]  . counsel-descbinds)
+            ([remap describe-face]  . counsel-describe-faces)
+            ([remap list-faces-display] . counsel-faces)
+            ([remap imenu] . counsel-imenu)
+            ([remap load-library] . counsel-load-library)
+            ([remap load-theme] . counsel-load-theme)
+            ([remap yank-pop] . counsel-yank-pop)
+            ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+            ([remap pop-to-mark-command] . counsel-mark-ring)
+            ([remap bookmark-jump] . counsel-bookmark)
+            ("C-c j" . counsel-git-grep)
+            ("C-c k" . counsel-rg)
+            ("C-x l" . counsel-locate)
+            ("M-y" . counsel-yank-pop)
+            ("C-c i 8" . counsel-unicode-char)
+
+            :map help-map
+            ("C-v" . counsel-find-variable)
+            ("C-k" . counsel-find-function-on-key)
+            ;; ("C-f" . counsel-find-function)
+            ("C-l" . counsel-find-library)
+            ))
 #+END_SRC
 
 ***** ivy
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
-  :bind (("<f6>" . ivy-resume)
-         ([remap list-buffers] . ivy-switch-buffer)
+  :bind (([remap list-buffers] . ivy-switch-buffer)
          ([remap switch-to-buffer] . ivy-switch-buffer)
          ([remap switch-to-buffer-other-window] .
           ivy-switch-buffer-other-window)
@@ -927,7 +920,7 @@ info.
     "Complete common prefix or cycle backward."
     (interactive)
     (company-complete-common-or-cycle -1))
-  :bind* (:map company-mode-map
+  :bind (:map company-mode-map
                ("C-M-i" . company-complete-common-or-cycle)
           :map company-active-map
               ("RET" . company-complete-selection)
@@ -1748,22 +1741,23 @@ Get color/ansi codes in compilation mode.
         (setq filename (expand-file-name
                         (dired-get-filename t t)
                         default-directory)))
-      (lexical-let* ((progname (file-name-nondirectory filename))
-                     (buffer (generate-new-buffer progname)))
+      (let ((buffer (make-term (file-name-nondirectory filename) filename))
+            (buffer-read-only nil))
         (with-current-buffer buffer
-          (make-term progname filename)
-          (term-mode)
-          ;;(term-char-mode)
+          ;; (term-mode)
+          (term-char-mode)
           (term-set-escape-char ?\C-x))
         (set-process-sentinel (get-buffer-process buffer)
                               (lambda (proc event)
-                                (when (process-live-p proc)
-                                  (kill-buffer buffer))))
+                                (when (not (process-live-p proc))
+                                  (kill-buffer (process-buffer proc)))))
         (switch-to-buffer buffer)))
     :bind (("C-c J" . dired-double-jump)
            :map dired-mode-map
            ("C-c C-c" . compile)
-           ("r" . browse-url-of-dired-file)
+           ("r" . term)
+           ("M-@" . shell)
+           ("M-*" . eshell)
            ("W" . browse-url-of-dired-file)
            ("@" . dired-run-command)))
 #+END_SRC
@@ -1772,6 +1766,7 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-column
+  :after dired
   :ensure nil
   :bind (:map dired-mode-map
               ("o" . dired-column-find-file)))
@@ -1791,6 +1786,7 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired-x
   :ensure nil
+  :after dired
   :hook ((dired-mode . dired-omit-mode)
          (dired-mode . dired-hide-details-mode))
   :bind (("s-\\" . dired-jump-other-window)
@@ -2155,11 +2151,17 @@ packages (for completion, syntax checking, etc.)
 ***** irony
 
 #+BEGIN_SRC emacs-lisp
-(use-package irony
-  :hook ((c++-mode c-mode objc-mode) . irony-mode))
-(use-package irony-cdb
-  :ensure nil
-  :hook (irony-mode . irony-cdb-autosetup-compile-options))
+  (use-package irony
+    :preface
+    (defun disable-irony-remote ()
+      "Disabled irony in remote buffers."
+      (when (or buffer-file-name (file-remote-p buffer-file-name))
+        (irony-mode -1)))
+    :hook (((c++-mode c-mode objc-mode) . irony-mode)
+           ((c++-mode c-mode objc-mode) . disable-irony-remote)))
+  (use-package irony-cdb
+    :ensure nil
+    :hook (irony-mode . irony-cdb-autosetup-compile-options))
  #+END_SRC
 
 ****** flycheck-irony
@@ -2226,9 +2228,10 @@ packages (for completion, syntax checking, etc.)
 Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
-(use-package ghc
-  :hook ((haskell-mode . ghc-init)
-         (haskell-mode . ghc-comp-init)))
+  (use-package ghc
+    :if (locate-file "ghc-mod" exec-path)
+    :hook ((haskell-mode . ghc-init)
+           (haskell-mode . ghc-comp-init)))
 #+END_SRC
 ***** haskell-mode
 
@@ -2614,8 +2617,9 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
 (use-package helpful
-  :bind (("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)))
+  :bind (([remap describe-function] . helpful-callable)
+         ([remap describe-variable] . helpful-variable)
+         ([remap describe-key] . helpful-key)))
 #+END_SRC
 
 **** hl-todo
@@ -3880,120 +3884,122 @@ Now we build our Emacs distribution.
 Finally, we can actually build the environment.
 
 #+BEGIN_SRC nix
-manpages = buildEnv {
-  name = "man-pages";
-  paths = [posix_man_pages man-pages]; # stdmanpages
-};
+  manpages = buildEnv {
+    name = "man-pages";
+    paths = [posix_man_pages] # stdmanpages
+      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
+      ++ stdenv.lib.optional stdenv.isLinux man-pages;
+  };
 
-sysheaders = buildEnv {
-  name = "headers";
-  paths = [ libcxx ]
-    ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
-};
+  sysheaders = buildEnv {
+    name = "headers";
+    paths = [ libcxx ]
+      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+  };
 
-sysframeworks = buildEnv {
-  name = "frameworks";
-  paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
-};
+  sysframeworks = buildEnv {
+    name = "frameworks";
+    paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+  };
 
-schemas = writeText "schemas.xml" ''
-  <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
-    <documentElement localName="section" typeId="DocBook"/>
-    <documentElement localName="chapter" typeId="DocBook"/>
-    <documentElement localName="article" typeId="DocBook"/>
-    <documentElement localName="book" typeId="DocBook"/>
-    <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
-  </locatingRules>
-'';
-
-myEnv = buildEnv {
-  buildInputs = [ makeWrapper ];
-  postBuild = ''
-if [ -w $out/share/info ]; then
-  shopt -s nullglob
-  for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
-    ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
-  done
-fi
-
-mkdir -p $out/etc
-
-cp ${./gitconfig} $out/etc/gitconfig
-substituteInPlace $out/etc/gitconfig \
-  --replace @gitignore@ ${./gitignore} \
-  --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-  --replace @out@ $out
-
-cp ${./bashrc.sh} $out/etc/bashrc
-substituteInPlace $out/etc/bashrc \
-  --replace @fortune@ ${fortune} \
-  --replace @out@ $out
-
-cp ${./zshrc.sh} $out/etc/.zshrc
-substituteInPlace $out/etc/.zshrc \
-  --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-  --replace @fortune@ ${fortune} \
-  --replace @out@ $out
-cp $out/etc/.zshrc $out/etc/zshrc
-
-cp ${./etc-profile.sh} $out/etc/profile
-substituteInPlace $out/etc/profile \
-  --replace @manpages@ ${manpages} \
-  --replace @out@ $out
-
-wrapProgram $out/bin/bash \
-  --add-flags "--rcfile $out/etc/bashrc"
-
-wrapProgram $out/bin/zsh \
-  --set ZDOTDIR $out/etc
-
-cp ${./runemacs.sh} $out/bin/run
-substituteInPlace $out/bin/run \
-  --replace @out@ $out
-ln -s $out/bin/run $out/bin/bauer
+  schemas = writeText "schemas.xml" ''
+    <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+      <documentElement localName="section" typeId="DocBook"/>
+      <documentElement localName="chapter" typeId="DocBook"/>
+      <documentElement localName="article" typeId="DocBook"/>
+      <documentElement localName="book" typeId="DocBook"/>
+      <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
+    </locatingRules>
   '';
-  pathsToLink = [
-    "/bin"
-    "/etc/profile.d"
-    "/etc/bash_completion.d"
-    "/etc/ssl"
-    "/Applications"
-    "/share/doc"
-    "/share/man"
-    "/share/info"
-    "/share/zsh"
-    "/share/bash-completion"
-    "/share/mime"
-  ];
 
-  extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
-  name = "bauer";
+  myEnv = buildEnv {
+    buildInputs = [ makeWrapper ];
+    postBuild = ''
+  if [ -w $out/share/info ]; then
+    shopt -s nullglob
+    for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
+      ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
+    done
+  fi
 
-  paths = [
-    myEmacs
-    myTex
-    rEnv
-    (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-mkdir -p $out/etc/profile.d
-cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
-substituteInPlace $out/etc/profile.d/my-profile.sh \
-  --replace @emacs@ ${myEmacs} \
-  --replace @fortune@ ${fortune} \
-  --replace @manpages@ ${manpages} \
-  --replace @cacert@ ${cacert}
-    '')]
-    ++ [bashInteractive zsh coreutils git wget
-        gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
-    # info pages
-    ++ [ed lzip libmpc flex autoconf bison
-        which bc gnum4 time gnutls aspell]
-    ++ [nox nix nix-index nix-repl nix-zsh-completions nix-bash-completions]
-    ++ [gitAndTools.hub]
-    ++ [nodePackages.tern isync notmuch graphviz]
-    ++ [stack ghc]
-#   ++ (with haskellPackages; [ghc-mod])
-    ;
-};
+  mkdir -p $out/etc
+
+  cp ${./gitconfig} $out/etc/gitconfig
+  substituteInPlace $out/etc/gitconfig \
+    --replace @gitignore@ ${./gitignore} \
+    --replace @gnupg@ ${gnupg1compat}/bin/gpg \
+    --replace @out@ $out
+
+  cp ${./bashrc.sh} $out/etc/bashrc
+  substituteInPlace $out/etc/bashrc \
+    --replace @fortune@ ${fortune} \
+    --replace @out@ $out
+
+  cp ${./zshrc.sh} $out/etc/.zshrc
+  substituteInPlace $out/etc/.zshrc \
+    --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
+    --replace @fortune@ ${fortune} \
+    --replace @out@ $out
+  cp $out/etc/.zshrc $out/etc/zshrc
+
+  cp ${./etc-profile.sh} $out/etc/profile
+  substituteInPlace $out/etc/profile \
+    --replace @manpages@ ${manpages} \
+    --replace @out@ $out
+
+  wrapProgram $out/bin/bash \
+    --add-flags "--rcfile $out/etc/bashrc"
+
+  wrapProgram $out/bin/zsh \
+    --set ZDOTDIR $out/etc
+
+  cp ${./runemacs.sh} $out/bin/run
+  substituteInPlace $out/bin/run \
+    --replace @out@ $out
+  ln -s $out/bin/run $out/bin/bauer
+    '';
+    pathsToLink = [
+      "/bin"
+      "/etc/profile.d"
+      "/etc/bash_completion.d"
+      "/etc/ssl"
+      "/Applications"
+      "/share/doc"
+      "/share/man"
+      "/share/info"
+      "/share/zsh"
+      "/share/bash-completion"
+      "/share/mime"
+    ];
+
+    extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
+    name = "bauer";
+
+    paths = [
+      myEmacs
+      myTex
+      rEnv
+      (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
+  mkdir -p $out/etc/profile.d
+  cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
+  substituteInPlace $out/etc/profile.d/my-profile.sh \
+    --replace @emacs@ ${myEmacs} \
+    --replace @fortune@ ${fortune} \
+    --replace @manpages@ ${manpages} \
+    --replace @cacert@ ${cacert}
+      '')]
+      ++ [bashInteractive zsh coreutils git wget
+          gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
+      # info pages
+      ++ [ed lzip libmpc flex autoconf bison
+          which bc gnum4 time gnutls aspell]
+      ++ [nox nix nix-index nix-zsh-completions nix-bash-completions]
+      ++ [gitAndTools.hub]
+      ++ [nodePackages.tern isync notmuch graphviz]
+      ++ [stack ghc]
+  #   ++ (with haskellPackages; [ghc-mod])
+      ;
+  };
 #+END_SRC
 
 #+BEGIN_SRC nix

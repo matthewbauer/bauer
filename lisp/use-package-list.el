@@ -25,9 +25,7 @@
                 (use-package-always-ensure nil)
                 (use-package-always-defer t)
                 (use-package-list--packages nil)
-                (use-package-list--is-running t)
-                (use-package-ensure-function 'ignore)
-                )
+                (use-package-ensure-function 'ignore))
     (advice-add 'use-package
                 :before (lambda (name &rest args)
                           (unless (or (and (member :disabled args)
