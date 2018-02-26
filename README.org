@@ -1383,7 +1383,7 @@ This is currently disabled.
 (use-package org
   ;; just use builtin org-mode for now
   ;; versions are mismatched so can cause a conflict
-  ;; :ensure org-plus-contrib
+  :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
          (org-mode . (lambda ()
@@ -1409,7 +1409,7 @@ This is currently disabled.
     :ensure nil
     :demand)
   (use-package org-static-blog
-    :disabled)
+    :demand)
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((sh . t)
                                  (emacs-lisp . t)
@@ -1427,10 +1427,9 @@ This is currently disabled.
 ***** org-eldoc
 
 #+BEGIN_SRC emacs-lisp
-(autoload 'org-eldoc-documentation-function "org-eldoc")
 (use-package org-eldoc
   :ensure nil
-  :disabled
+  :commands org-eldoc-documentation-function
   :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
                                            'org-eldoc-documentation-function))))
 #+END_SRC
