@@ -189,31 +189,20 @@ currently. FIXME!
   ;;            (require 'mac-win nil t))
   ;;   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
 
-  (load "company-autoloads" t t)
-  (load "haskell-mode-autoloads" t t)
-
   (eval-and-compile
     (autoload 'use-package-autoload-keymap "use-package")
-    (autoload 'sp-with-modes "smartparens" "" nil 'macro)
-    (autoload 'sp-local-pair "smartparens")
-    (autoload 'sp-local-tag  "smartparens")
-
-    (autoload 'projectile-project-vcs "projectile")
-    (autoload 'projectile-project-root "projectile")
 
     (autoload 'pcomplete-arg   "pcomplete")
-    (autoload 'pcomplete--here "pcomplete")
-
-    (autoload 'magit-toplevel "magit")
-    (autoload 'magit-read-string-ns "magit")
-    (autoload 'magit-get "magit")
-    (autoload 'magit-define-popup-action "magit")
-    (autoload 'magit-remote-arguments "magit"))
+    (autoload 'pcomplete--here "pcomplete"))
 
   (when window-system
     (tool-bar-mode -1)
     (scroll-bar-mode -1)
     (blink-cursor-mode -1))
+
+  (when (not window-system)
+    (menu-bar-mode -1)
+    (xterm-mouse-mode 1))
 #+END_SRC
 
 ** Custom config
@@ -415,6 +404,7 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    '(inhibit-startup-echo-area-message t)
    '(inhibit-startup-screen t)
    '(initial-scratch-message "")
+   '(initial-major-mode 'fundamental-mode)
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(ispell-quietly t)
    '(ispell-silently-savep t)
@@ -440,7 +430,8 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    '(magit-highlight-whitespace nil)
    '(magit-log-auto-more t)
    '(magit-no-confirm t)
-   '(magit-process-find-password-functions '(magit-process-password-auth-source))
+   '(magit-process-find-password-functions
+     '(magit-process-password-auth-source))
    '(magit-process-popup-time 15)
    '(magit-push-always-verify nil)
    '(magit-save-repository-buffers 'dontask)
@@ -493,12 +484,12 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
    '(resize-mini-windows t)
    '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
-   '(same-window-buffer-names '("*eshell*"
-                                "*shell*"
-                                "*mail*"
-                                "*inferior-lisp*"
-                                "*ielm*"
-                                "*scheme*"))
+   ;; '(same-window-buffer-names '("*eshell*"
+   ;;                              "*shell*"
+   ;;                              "*mail*"
+   ;;                              "*inferior-lisp*"
+   ;;                              "*ielm*"
+   ;;                              "*scheme*"))
    '(save-abbrevs 'silently)
    '(save-interprogram-paste-before-kill t)
    '(savehist-additional-variables '(search-ring
@@ -903,6 +894,7 @@ This is the theme I use. This cannot be deferred.
 #+BEGIN_SRC emacs-lisp
 (use-package apropospriate-theme
   :demand
+  :if window-system
   :config (load-theme 'apropospriate-dark t))
 #+END_SRC
 
@@ -913,6 +905,7 @@ This is the theme I use. This cannot be deferred.
 [[http://company-mode.github.io][Website]]
 
 #+BEGIN_SRC emacs-lisp
+(load "company-autoloads" t t)
 (use-package company
   :commands global-company-mode
   :delight
@@ -927,6 +920,8 @@ This is the theme I use. This cannot be deferred.
           :map company-active-map
               ("RET" . company-complete-selection)
               ([return] . company-complete-selection)
+              ("C-j" . company-complete-selection)
+
               ("TAB" . company-complete-common-or-cycle)
               ("<tab>" . company-complete-common-or-cycle)
               ("S-TAB" . company-complete-common-or-cycle-backward)
@@ -982,11 +977,11 @@ This is the theme I use. This cannot be deferred.
                '(company-auctex-macros
                  company-auctex-symbols
                  company-auctex-environments)))
-(use-package company-web
-  :init
   (autoload 'company-web-html "company-web-html")
   (autoload 'company-web-jade "company-web-jade")
   (autoload 'company-web-slim "company-web-slim")
+(use-package company-web
+  :init
   (add-to-list 'company-backends 'company-web-html)
   (add-to-list 'company-backends 'company-web-jade)
   (add-to-list 'company-backends 'company-web-slim))
@@ -1157,23 +1152,25 @@ info.
 ***** esh-help
 
 #+BEGIN_SRC emacs-lisp
-(use-package esh-help
-  :hook (eshell-mode . (lambda ()
-                         (setq-local eldoc-documentation-function
-                                     'esh-help-eldoc-command))))
+  (use-package esh-help
+    :after eshell
+    :hook (eshell-mode . (lambda ()
+                           (setq-local eldoc-documentation-function
+                                       'esh-help-eldoc-command))))
 #+END_SRC
 
 ***** em-dired
 
 #+BEGIN_SRC emacs-lisp
+(autoload 'em-dired-new "em-dired")
 (use-package em-dired
   :ensure nil
-  :commands em-dired-new
   :bind (:package dired
          :map dired-mode-map
               ("e" . em-dired))
   :hook (eshell-mode . em-dired-mode)
-  :init (advice-add 'eshell :before 'em-dired-new))
+  :init
+  (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
 **** Emacs speaks statistics
@@ -1301,6 +1298,12 @@ certain Emacs keybinds.
   :hook ((git-commit-mode . flyspell-mode)
          (git-commit-mode . git-commit-save-message)
          (git-commit-mode . turn-on-auto-fill)))
+(eval-and-compile
+  (autoload 'magit-toplevel "magit")
+  (autoload 'magit-read-string-ns "magit")
+  (autoload 'magit-get "magit")
+  (autoload 'magit-define-popup-action "magit")
+  (autoload 'magit-remote-arguments "magit"))
 (use-package magit
   :preface
   (defun magit-dired-other-window ()
@@ -1341,8 +1344,7 @@ This is currently disabled.
 
 #+BEGIN_SRC emacs-lisp
 (use-package magithub
-  :hook (magit-mode . magithub-feature-autoinject)
-  :after magit)
+  :hook (magit-mode . magithub-feature-autoinject))
 #+END_SRC
 
 **** MMM Mode
@@ -1381,7 +1383,7 @@ This is currently disabled.
 (use-package org
   ;; just use builtin org-mode for now
   ;; versions are mismatched so can cause a conflict
-  :ensure org-plus-contrib
+  ;; :ensure org-plus-contrib
   ;; :ensure nil
   :hook ((message-mode . turn-on-orgstruct++)
          (org-mode . (lambda ()
@@ -1406,7 +1408,8 @@ This is currently disabled.
   (use-package ox-md
     :ensure nil
     :demand)
-  (use-package org-static-blog)
+  (use-package org-static-blog
+    :disabled)
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((sh . t)
                                  (emacs-lisp . t)
@@ -1414,18 +1417,20 @@ This is currently disabled.
                                  (latex . t))))
 
 (use-package org-cliplink
-  :after org
+  :disabled
   :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
 
 (use-package toc-org
+  :disabled
   :hook (org-mode . toc-org-enable))
 #+END_SRC
 ***** org-eldoc
 
 #+BEGIN_SRC emacs-lisp
+(autoload 'org-eldoc-documentation-function "org-eldoc")
 (use-package org-eldoc
   :ensure nil
-  :commands org-eldoc-documentation-function
+  :disabled
   :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
                                            'org-eldoc-documentation-function))))
 #+END_SRC
@@ -1437,6 +1442,9 @@ Setup projectile and link it with some other packages. This also adds an
 easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
+(eval-and-compile
+    (autoload 'projectile-project-vcs "projectile")
+    (autoload 'projectile-project-root "projectile"))
   (use-package projectile
     :commands projectile-mode
     :bind-keymap* (("C-c p" . projectile-command-map)
@@ -1532,6 +1540,10 @@ easymenu to make the "Projectile" modeline clickable.
 [[https://github.com/Fuco1/smartparens][Website]]
 
 #+BEGIN_SRC emacs-lisp
+(eval-and-compile
+  (autoload 'sp-with-modes "smartparens" "" nil 'macro)
+  (autoload 'sp-local-pair "smartparens")
+  (autoload 'sp-local-tag  "smartparens"))
 (use-package smartparens
   :bind (:package smartparens
          :map smartparens-mode-map
@@ -1810,7 +1822,6 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
 (use-package dired-column
-  :after dired
   :ensure nil
   :bind (:package dired
          :map dired-mode-map
@@ -1832,7 +1843,6 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package dired-x
   :ensure nil
-  :after dired
   :hook ((dired-mode . dired-omit-mode)
          (dired-mode . dired-hide-details-mode))
   :bind (("s-\\" . dired-jump-other-window)
@@ -2304,6 +2314,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
+(load "haskell-mode-autoloads" t t)
 (use-package haskell
   :ensure haskell-mode
   :mode (("\\.hs\\'" . haskell-mode)
@@ -2327,6 +2338,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-doc
   :ensure nil
+  :after haskell
   :hook (haskell-mode . (lambda ()
                           (setq-local eldoc-documentation-function
                                       'haskell-doc-current-info))))

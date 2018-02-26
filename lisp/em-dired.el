@@ -63,6 +63,7 @@ ARGS anything else Eshell needs."
   (em-dired-new)
   (eshell))
 
+;;;###autoload
 (defun em-dired-new (&rest args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
