@@ -2704,7 +2704,9 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
   :ensure git-attr
-  :preface (require 'cl-macs)
+  :preface
+  (require 'cl-lib)
+  (defalias 'caddr 'cl-caddr)
   :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 **** git-modes
