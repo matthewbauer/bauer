@@ -564,7 +564,7 @@ corresponds to a customizable variable. Unlike =settings.el=, each entry is
 path in the Nix store and we verify it exists before setting it.
 
 #+BEGIN_SRC emacs-lisp
-(load "site-paths" t t)
+(load "site-paths" t)
 #+END_SRC
 
 *** Set environment
@@ -592,7 +592,7 @@ This file allows users to override the above defaults. This will mean you
 can use custom as you normally would in vanilla Emacs.
 
 #+BEGIN_SRC emacs-lisp
-(load custom-file 'noerror)
+(load custom-file t)
 #+END_SRC
 
 ** Setup use-package
@@ -1002,41 +1002,41 @@ counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
 info.
 
 #+BEGIN_SRC emacs-lisp
-(use-package counsel
-    :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
+  (use-package counsel
+      :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
-    ;; counsel doesn’t work well with windows drives
-    ;; see https://github.com/abo-abo/swiper/issues/773
-    :if (not (string= system-type "windows-nt"))
+      ;; counsel doesn’t work well with windows drives
+      ;; see https://github.com/abo-abo/swiper/issues/773
+      ;; :if (not (string= system-type "windows-nt"))
 
-    :bind* (([remap execute-extended-command] . counsel-M-x)
-            ;; ("s-c s-f" . counsel-find-file)
-            ;; ([remap find-file] . counsel-find-file)
-            ([remap find-library] . counsel-find-library)
-            ([remap describe-function] . counsel-describe-function)
-            ([remap describe-variable] . counsel-describe-variable)
-            ([remap describe-bindings]  . counsel-descbinds)
-            ([remap describe-face]  . counsel-describe-faces)
-            ([remap list-faces-display] . counsel-faces)
-            ([remap imenu] . counsel-imenu)
-            ([remap load-library] . counsel-load-library)
-            ([remap load-theme] . counsel-load-theme)
-            ([remap yank-pop] . counsel-yank-pop)
-            ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
-            ([remap pop-to-mark-command] . counsel-mark-ring)
-            ([remap bookmark-jump] . counsel-bookmark)
-            ("C-c j" . counsel-git-grep)
-            ("C-c k" . counsel-rg)
-            ("C-x l" . counsel-locate)
-            ("M-y" . counsel-yank-pop)
-            ("C-c i 8" . counsel-unicode-char)
+      :bind* (([remap execute-extended-command] . counsel-M-x)
+              ;; ("s-c s-f" . counsel-find-file)
+              ;; ([remap find-file] . counsel-find-file)
+              ([remap find-library] . counsel-find-library)
+              ;; ([remap describe-function] . counsel-describe-function)
+              ;; ([remap describe-variable] . counsel-describe-variable)
+              ([remap describe-bindings]  . counsel-descbinds)
+              ([remap describe-face]  . counsel-describe-faces)
+              ([remap list-faces-display] . counsel-faces)
+              ([remap imenu] . counsel-imenu)
+              ([remap load-library] . counsel-load-library)
+              ([remap load-theme] . counsel-load-theme)
+              ([remap yank-pop] . counsel-yank-pop)
+              ([remap info-lookup-symbol] . counsel-info-lookup-symbol)
+              ([remap pop-to-mark-command] . counsel-mark-ring)
+              ([remap bookmark-jump] . counsel-bookmark)
+              ("C-c j" . counsel-git-grep)
+              ("C-c k" . counsel-rg)
+              ("C-x l" . counsel-locate)
+              ("M-y" . counsel-yank-pop)
+              ("C-c i 8" . counsel-unicode-char)
 
-            :map help-map
-            ("C-v" . counsel-find-symbol)
-            ("C-k" . counsel-find-function-on-key)
-            ;; ("C-f" . counsel-find-function)
-            ("C-l" . counsel-find-library)
-            ))
+              :map help-map
+              ("C-v" . counsel-find-symbol)
+              ("C-k" . counsel-find-function-on-key)
+              ;; ("C-f" . counsel-find-function)
+              ("C-l" . counsel-find-library)
+              ))
 #+END_SRC
 
 ***** ivy
