@@ -3598,11 +3598,14 @@ Set some defaults that depend on the path variables below,
 :header-args: :tangle bootstrap.sh
 :END:
 
+This is the bootstrap script that is mentioned above. We use it to install the
+IDE. It ensures Nix is installed and that the Git repo is available and up-to-date.
+
 #+BEGIN_SRC sh :padline no
 #!/bin/sh
 #+END_SRC
 
-Install Nix.
+First we install Nix if it isn’t already.
 
 #+BEGIN_SRC sh
 if ! command -v nix-env >/dev/null 2>&1; then
@@ -3612,7 +3615,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
 fi
 #+END_SRC
 
-Pull into Git repo.
+If we are in a Git repo already, we’ll pull to get latest updates.
 
 #+BEGIN_SRC sh
 if [ -d .git ] && command -v git >/dev/null 2>&1; then
@@ -3620,7 +3623,8 @@ if [ -d .git ] && command -v git >/dev/null 2>&1; then
 fi
 #+END_SRC
 
-Clone if default.nix doesn’t exist.
+If we can’t find default.nix then we’ll clone from GitHub. This will be stored in
+=~/.local/share/bauer=. 
 
 #+BEGIN_SRC sh
 if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
@@ -3630,7 +3634,7 @@ if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
 fi
 #+END_SRC
 
-Install current directory
+The last action is to install our new derivation.
 
 #+BEGIN_SRC sh
 nix-env -if .
