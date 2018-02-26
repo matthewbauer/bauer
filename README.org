@@ -3670,12 +3670,14 @@ esac
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
-#+END_SRC
 
 Now let's tangle README.org...
 
 #+BEGIN_SRC nix
 import (runCommand "README" { buildInputs = [ emacs ]; } ''
+#+END_SRC
+
+#+BEGIN_SRC sh
 mkdir -p $out
 cd $out
 cp -r ${./lisp} $out/lisp
@@ -3684,6 +3686,9 @@ emacs --batch --quick \
       -l ob-tangle \
       --eval "(org-babel-tangle-file \"README.org\")"
 cp bauer.nix default.nix
+#+END_SRC
+
+#+BEGIN_SRC nix
 '') {inherit nixpkgs';}
 #+END_SRC
 ** =bauer.nix=: the build script
@@ -3811,11 +3816,17 @@ package-list =
   runCommand "package-list" {
     buildInputs = [ customEmacsPackages.emacs ];
   } ''
-emacs --batch --quick \
-                -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-                -L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-                -L ${./lisp} -l use-package-list \
-                --eval "(use-package-list \"${./README.el}\")" > $out
+#+END_SRC
+
+#+BEGIN_SRC sh
+  emacs --batch --quick \
+        -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+        -L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+        -L ${./lisp} -l use-package-list \
+        --eval "(use-package-list \"${./README.el}\")" > $out
+#+END_SRC
+
+#+BEGIN_SRC
   '';
 myPackages = builtins.fromJSON (builtins.readFile package-list);
 #+END_SRC
@@ -3826,27 +3837,30 @@ myPackages = builtins.fromJSON (builtins.readFile package-list);
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
   } ''
-mkdir -p $out/share/emacs/site-lisp
+#+END_SRC
 
-cp ${./README.el} $out/share/emacs/site-lisp/default.el
-cp ${site-paths} $out/share/emacs/site-lisp/site-paths.el
+#+BEGIN_SRC sh
+  mkdir -p $out/share/emacs/site-lisp
 
-cp ${./lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
-cp ${./lisp/dired-column.el} \
-  $out/share/emacs/site-lisp/dired-column.el
-cp ${./lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-cp ${./lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
-cp ${./lisp/set-defaults.el} \
-  $out/share/emacs/site-lisp/set-defaults.el
-cp ${./lisp/installer.el} $out/share/emacs/site-lisp/installer.el
-cp ${./lisp/restart-emacs.el} \
-  $out/share/emacs/site-lisp/restart-emacs.el
-cp ${./lisp/use-package-list.el} \
-  $out/share/emacs/site-lisp/use-package-list.el
-cp ${./lisp/bauer.el} \
-  $out/share/emacs/site-lisp/bauer.el
-cp ${./lisp/bind-key.el} \
-  $out/share/emacs/site-lisp/bind-key.el
+  cp ${./README.el} $out/share/emacs/site-lisp/default.el
+  cp ${site-paths} $out/share/emacs/site-lisp/site-paths.el
+
+  cp ${./lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
+  cp ${./lisp/dired-column.el} \
+    $out/share/emacs/site-lisp/dired-column.el
+  cp ${./lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+  cp ${./lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
+  cp ${./lisp/set-defaults.el} \
+    $out/share/emacs/site-lisp/set-defaults.el
+  cp ${./lisp/installer.el} $out/share/emacs/site-lisp/installer.el
+  cp ${./lisp/restart-emacs.el} \
+    $out/share/emacs/site-lisp/restart-emacs.el
+  cp ${./lisp/use-package-list.el} \
+    $out/share/emacs/site-lisp/use-package-list.el
+  cp ${./lisp/bauer.el} \
+    $out/share/emacs/site-lisp/bauer.el
+  cp ${./lisp/bind-key.el} \
+    $out/share/emacs/site-lisp/bind-key.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
@@ -3855,7 +3869,7 @@ that we have just found in package-list. The solution is that complex eval
 below where we add all of the paths (and their requisites) to the load
 path. This works but is hacky and I am interested in fixing it.
 
-#+BEGIN_SRC nix
+#+BEGIN_SRC sh
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
@@ -3880,57 +3894,63 @@ emacs --batch --quick \
      inherit (xorg) lndir;
      inherit (customEmacsPackages) emacs;}
    ''
-     findInputsOld() {
-         local pkg="$1"; shift
-         local var="$1"; shift
-         local propagatedBuildInputsFiles=("$@")
-         local varSlice="$var[*]"
-         # ''${..-} to hack around old bash empty array problem
-         case "''${!varSlice-}" in
-             *" $pkg "*) return 0 ;;
-         esac
-         unset -v varSlice
-         eval "$var"'+=("$pkg")'
-         if ! [ -e "$pkg" ]; then
-             echo "build input $pkg does not exist" >&2
-             exit 1
-         fi
-         local file
-         for file in "''${propagatedBuildInputsFiles[@]}"; do
-             file="$pkg/nix-support/$file"
-             [[ -f "$file" ]] || continue
-             local pkgNext
-             for pkgNext in $(< "$file"); do
-                 findInputsOld "$pkgNext" "$var" \
-                               "''${propagatedBuildInputsFiles[@]}"
-             done
-         done
-     }
-     mkdir -p $out/bin
-     mkdir -p $out/share/emacs/site-lisp
-     local requires
-     for pkg in $explicitRequires; do
-       findInputsOld $pkg requires propagated-user-env-packages
-     done
-     linkPath() {
-       local pkg=$1
-       local origin_path=$2
-       local dest_path=$3
-       # Add the path to the search path list, but only if it exists
-       if [[ -d "$pkg/$origin_path" ]]; then
-         $lndir/bin/lndir -silent "$pkg/$origin_path" "$out/$dest_path"
-       fi
-     }
-     linkEmacsPackage() {
-       linkPath "$1" "bin" "bin"
-       linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
-     }
-     # Iterate over the array of inputs (avoiding nix's own interpolation)
-     for pkg in "''${requires[@]}"; do
-       linkEmacsPackage $pkg
-     done
-     # Byte-compiling improves start-up time only slightly, but costs nothing.
-     $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
+#+END_SRC
+
+#+BEGIN_SRC sh
+  findInputsOld() {
+      local pkg="$1"; shift
+      local var="$1"; shift
+      local propagatedBuildInputsFiles=("$@")
+      local varSlice="$var[*]"
+      # ''${..-} to hack around old bash empty array problem
+      case "''${!varSlice-}" in
+          ,*" $pkg "*) return 0 ;;
+      esac
+      unset -v varSlice
+      eval "$var"'+=("$pkg")'
+      if ! [ -e "$pkg" ]; then
+          echo "build input $pkg does not exist" >&2
+          exit 1
+      fi
+      local file
+      for file in "''${propagatedBuildInputsFiles[@]}"; do
+          file="$pkg/nix-support/$file"
+          [[ -f "$file" ]] || continue
+          local pkgNext
+          for pkgNext in $(< "$file"); do
+              findInputsOld "$pkgNext" "$var" \
+                            "''${propagatedBuildInputsFiles[@]}"
+          done
+      done
+  }
+  mkdir -p $out/bin
+  mkdir -p $out/share/emacs/site-lisp
+  local requires
+  for pkg in $explicitRequires; do
+    findInputsOld $pkg requires propagated-user-env-packages
+  done
+  linkPath() {
+    local pkg=$1
+    local origin_path=$2
+    local dest_path=$3
+    # Add the path to the search path list, but only if it exists
+    if [[ -d "$pkg/$origin_path" ]]; then
+      $lndir/bin/lndir -silent "$pkg/$origin_path" "$out/$dest_path"
+    fi
+  }
+  linkEmacsPackage() {
+    linkPath "$1" "bin" "bin"
+    linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
+  }
+  # Iterate over the array of inputs (avoiding nix's own interpolation)
+  for pkg in "''${requires[@]}"; do
+    linkEmacsPackage $pkg
+  done
+  # Byte-compiling improves start-up time only slightly, but costs nothing.
+  $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
+#+END_SRC
+
+#+BEGIN_SRC nix
   '';
 #+END_SRC
 
@@ -3981,18 +4001,30 @@ Finally, we can actually build the environment.
   };
 
   schemas = writeText "schemas.xml" ''
-    <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
-      <documentElement localName="section" typeId="DocBook"/>
-      <documentElement localName="chapter" typeId="DocBook"/>
-      <documentElement localName="article" typeId="DocBook"/>
-      <documentElement localName="book" typeId="DocBook"/>
-      <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
-    </locatingRules>
-  '';
+#+END_SRC
 
+#+BEGIN_SRC xml
+  <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+    <documentElement localName="section" typeId="DocBook"/>
+    <documentElement localName="chapter" typeId="DocBook"/>
+    <documentElement localName="article" typeId="DocBook"/>
+    <documentElement localName="book" typeId="DocBook"/>
+    <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
+  </locatingRules>
+#+END_SRC
+
+
+#+BEGIN_SRC nix
+  '';
+#+END_SRC
+
+#+BEGIN_SRC nix
   myEnv = buildEnv {
     buildInputs = [ makeWrapper ];
     postBuild = ''
+#+END_SRC
+
+#+BEGIN_SRC sh
   if [ -w $out/share/info ]; then
     shopt -s nullglob
     for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
@@ -4035,7 +4067,13 @@ Finally, we can actually build the environment.
   substituteInPlace $out/bin/run \
     --replace @out@ $out
   ln -s $out/bin/run $out/bin/bauer
+#+END_SRC
+
+#+BEGIN_SRC nix
     '';
+#+END_SRC
+
+#+BEGIN_SRC nix
     pathsToLink = [
       "/bin"
       "/etc/profile.d"
