@@ -219,7 +219,7 @@ in other Emacs distributions.
 (require 'set-defaults)
 #+END_SRC
 
-Occasionally this block will error in cases where =./lisp= hasn’t been added
+Occasionally this block will error in cases where =./site-lisp= hasn’t been added
 correctly. Currently trying to find a way to handle this. FIXME
 
 *** Better defaults
@@ -2629,7 +2629,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 *** Custom
 
-These are all available in [[./lisp]]. Eventually they should go into separate
+These are all available in [[./site-lisp][./site-lisp]]. Eventually they should go into separate
 repositories.
 
 **** dired-column
@@ -2703,6 +2703,7 @@ Most of these are available in MELPA.
 **** git-attr
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
+  :disabled
   :ensure git-attr
   :preface
   (require 'cl-lib)
@@ -3597,15 +3598,11 @@ Set some defaults that depend on the path variables below,
 
 ** =bootstrap.sh=
 :PROPERTIES:
-:header-args: :tangle bootstrap.sh
+:header-args: :tangle bootstrap.sh :shebang "#!/usr/bin/env sh"
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
 IDE. It ensures Nix is installed and that the Git repo is available and up-to-date.
-
-#+BEGIN_SRC sh :padline no
-#!/bin/sh
-#+END_SRC
 
 First we install Nix if it isn’t already.
 
@@ -3644,14 +3641,12 @@ nix-env -if .
 
 ** =runemacs.sh=
 :PROPERTIES:
-:header-args: :tangle runemacs.sh :tangle-mode (identity #o755)
+:header-args: :tangle runemacs.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 Cross-platform script to execute app.
 
 #+BEGIN_SRC sh :padline no
-#!/usr/bin/env sh
-
 case $(uname) in
     Darwin)
         open @out@/Applications/Emacs.app
@@ -3672,6 +3667,7 @@ esac
 , nixpkgs ? builtins.fetchTarball nixpkgs-url
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
+#+END_SRC
 
 Now let's tangle README.org...
 
@@ -3679,20 +3675,25 @@ Now let's tangle README.org...
 import (runCommand "README" { buildInputs = [ emacs ]; } ''
 #+END_SRC
 
-#+BEGIN_SRC sh
-mkdir -p $out
-cd $out
-cp -r ${./lisp} $out/lisp
-cp ${./README.org} README.org
-emacs --batch --quick \
-      -l ob-tangle \
-      --eval "(org-babel-tangle-file \"README.org\")"
-cp bauer.nix default.nix
+#+BEGIN_SRC nix
+  mkdir -p $out
+  cd $out
+  cp -r ${./site-lisp} $out/site-lisp
+  cp ${./README.org} README.org
+  emacs --batch --quick \
+        -l ob-tangle \
+        --eval "(org-babel-tangle-file \"README.org\")"
+  cp bauer.nix default.nix
 #+END_SRC
 
 #+BEGIN_SRC nix
-'') {inherit nixpkgs';}
+''
 #+END_SRC
+
+#+BEGIN_SRC nix
+) {inherit nixpkgs';}
+#+END_SRC
+
 ** =bauer.nix=: the build script
 :PROPERTIES:
 :header-args: :tangle bauer.nix
@@ -3820,16 +3821,19 @@ package-list =
   } ''
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC nix
   emacs --batch --quick \
         -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
         -L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-        -L ${./lisp} -l use-package-list \
+        -L ${./site-lisp} -l use-package-list \
         --eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
 
-#+BEGIN_SRC
+#+BEGIN_SRC nix
   '';
+#+END_SRC
+
+#+BEGIN_SRC nix
 myPackages = builtins.fromJSON (builtins.readFile package-list);
 #+END_SRC
 
@@ -3841,7 +3845,7 @@ myPackages = builtins.fromJSON (builtins.readFile package-list);
   } ''
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC nix
   mkdir -p $out/share/emacs/site-lisp
 
   cp ${./README.el} $out/share/emacs/site-lisp/default.el
@@ -3871,7 +3875,7 @@ that we have just found in package-list. The solution is that complex eval
 below where we add all of the paths (and their requisites) to the load
 path. This works but is hacky and I am interested in fixing it.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
@@ -3898,7 +3902,7 @@ emacs --batch --quick \
    ''
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC nix
   findInputsOld() {
       local pkg="$1"; shift
       local var="$1"; shift
@@ -4005,7 +4009,7 @@ Finally, we can actually build the environment.
   schemas = writeText "schemas.xml" ''
 #+END_SRC
 
-#+BEGIN_SRC xml
+#+BEGIN_SRC nix
   <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
     <documentElement localName="section" typeId="DocBook"/>
     <documentElement localName="chapter" typeId="DocBook"/>
@@ -4026,7 +4030,7 @@ Finally, we can actually build the environment.
     postBuild = ''
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC nix
   if [ -w $out/share/info ]; then
     shopt -s nullglob
     for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
@@ -4132,9 +4136,6 @@ nix-build
 ./result/bin/run
 #+END_SRC
 * Continuous integration
-:PROPERTIES:
-:header-args: :tangle .travis.yml
-:END:
 
 #+BEGIN_HTML
 <a href="https://travis-ci.org/matthewbauer/bauer">
@@ -4145,6 +4146,9 @@ nix-build
 We'll set up Travis support here. We start by configuring =.travis.yml=.
 
 ** =.travis.yml=
+:PROPERTIES:
+:header-args: :tangle .travis.yml
+:END:
 
 #+BEGIN_SRC yaml :padline no
 language: nix
@@ -4206,14 +4210,13 @@ notifications:
 * Extra
 ** =update.sh=
 :PROPERTIES:
-:header-args: :tangle update.sh :tangle-mode (identity #o755)
+:header-args: :tangle update.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 This is a simple script that I use to make sure I've updated the generated
 files.
 
 #+BEGIN_SRC sh :padline no
-#!/bin/sh
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
 #+END_SRC

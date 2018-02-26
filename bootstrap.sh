@@ -1,5 +1,4 @@
-#!/bin/sh
-
+#!/usr/bin/env sh
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install > $nix_installer
