@@ -138,8 +138,7 @@ Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
 available.
 
 #+BEGIN_SRC emacs-lisp
-(unless (>= emacs-major-version 25)
-  (error "Need Emacs 25+ to work properly"))
+(unless (>= emacs-major-version 25) (error "Need Emacs 25+ to work properly"))
 #+END_SRC
 
 *** EXPERIMENTAL Emacs 24 support
@@ -183,39 +182,38 @@ normally. Eventually this section should be removed but it leads to errors
 currently. FIXME!
 
 #+BEGIN_SRC emacs-lisp
-  (eval-and-compile (autoload 'use-package-autoload-keymap "use-package"))
   (autoload 'package-installed-p "package")
   (define-obsolete-function-alias 'org-define-error 'define-error)
-  (when (and (string= window-system "mac")
-             (require 'mac-win nil t))
-    (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
+
+  ;; (when (and (string= window-system "mac")
+  ;;            (require 'mac-win nil t))
+  ;;   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
 
   (load "company-autoloads" t t)
   (load "haskell-mode-autoloads" t t)
 
   (eval-and-compile
+    (autoload 'use-package-autoload-keymap "use-package")
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
-    (autoload 'sp-local-pair "smartparens" "" nil nil)
-    (autoload 'sp-local-tag  "smartparens" "" nil nil)
+    (autoload 'sp-local-pair "smartparens")
+    (autoload 'sp-local-tag  "smartparens")
 
-    (autoload 'projectile-project-vcs "projectile" "" nil nil)
-    (autoload 'pcomplete-arg   "pcomplete" "" nil nil)
-    (autoload 'pcomplete--here "pcomplete" "" nil nil)
+    (autoload 'projectile-project-vcs "projectile")
+    (autoload 'projectile-project-root "projectile")
 
-    ;; (autoload 'comint-write-input-ring "comint" "" nil nil)
-    ;; (autoload 'ansi-color-process-output "ansi-color" "" nil nil)
-    ;; (autoload 'dired-get-filename "dired" "" nil nil)
-    ;; (autoload 'locate-file "files" "" nil nil)
-    ;; (autoload 'file-remote-p "files" "" nil nil)
-    ;; (autoload 'tramp-tramp-file-p        "tramp" "" nil nil)
-    ;; (autoload 'tramp-file-name-method    "tramp" "" nil nil)
-    ;; (autoload 'tramp-file-name-host      "tramp" "" nil nil)
-    ;; (autoload 'tramp-file-name-localname "tramp" "" nil nil)
-    )
+    (autoload 'pcomplete-arg   "pcomplete")
+    (autoload 'pcomplete--here "pcomplete")
 
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (blink-cursor-mode -1)
+    (autoload 'magit-toplevel "magit")
+    (autoload 'magit-read-string-ns "magit")
+    (autoload 'magit-get "magit")
+    (autoload 'magit-define-popup-action "magit")
+    (autoload 'magit-remote-arguments "magit"))
+
+  (when window-system
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (blink-cursor-mode -1))
 #+END_SRC
 
 ** Custom config
@@ -649,7 +647,8 @@ Actually require =use-package=,
     (require 'use-package)
     (require 'bind-key)
 
-     (defun use-package-normalize-binder-override (name keyword args)
+    ;; remove once PR jwiegley/use-package#633 is merged
+    (defun use-package-normalize-binder-override (name keyword args)
       (let ((arg args)
             args*)
         (while arg
@@ -691,8 +690,8 @@ Actually require =use-package=,
                        " or a list of such values"))))))
         args*))
 
-    (advice-add 'use-package-normalize-binder :override 'use-package-normalize-binder-override)
-    )
+    (advice-add 'use-package-normalize-binder
+                :override 'use-package-normalize-binder-override))
 #+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
@@ -723,7 +722,6 @@ Emacs keybinds, documentation on why should be provided.
   (require 'bauer)
 
   (bind-keys
-   :map global-map
    ("C-c C-u" . rename-uniquely)
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
    ("C-x /" . (lambda () (interactive) (find-file "/")))
@@ -768,6 +766,9 @@ Emacs keybinds, documentation on why should be provided.
 
    ("<s-down>" . windmove-down)
    ("<s-up>" . windmove-up)
+   ("<s-left>" . windmove-left)
+   ("<s-right>" . windmove-right)
+
    ("C-c [" . align-regexp)
    ("M-s d" . find-grep-dired)
    ("M-s F" . find-grep)
@@ -1104,7 +1105,6 @@ info.
   :bind (("C-c M-t" . eshell)
          ("C-c x" . eshell)
          ("C-c e" . eshell))
-  :commands (eshell-command eshell-bol)
   :hook ((eshell-mode . eshell-read-history))
   :preface
   (defun pcomplete/sudo ()
@@ -1158,7 +1158,6 @@ info.
 
 #+BEGIN_SRC emacs-lisp
 (use-package esh-help
-  :commands (esh-help-eldoc-command)
   :hook (eshell-mode . (lambda ()
                          (setq-local eldoc-documentation-function
                                      'esh-help-eldoc-command))))
@@ -1169,7 +1168,7 @@ info.
 #+BEGIN_SRC emacs-lisp
 (use-package em-dired
   :ensure nil
-  :commands (em-dired-new)
+  :commands em-dired-new
   :bind (:package dired
          :map dired-mode-map
               ("e" . em-dired))
@@ -1235,7 +1234,7 @@ apropospriate, and flycheck are the biggest offenders.
 
 #+BEGIN_SRC emacs-lisp
 (use-package esup
-  :commands (esup)
+  :commands esup
   :preface
   (defun startup-profile ()
     (interactive)
@@ -1250,9 +1249,6 @@ apropospriate, and flycheck are the biggest offenders.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
-  ;; :demand
-  ;; :commands (global-flycheck-mode)
-  ;; :config (global-flycheck-mode)
   :hook (prog-mode . flycheck-mode))
 #+END_SRC
 
@@ -1263,7 +1259,7 @@ apropospriate, and flycheck are the biggest offenders.
 #+BEGIN_SRC emacs-lisp
 (use-package gnus
   :ensure nil
-  :commands (gnus)
+  :commands gnus
   :hook ((gnus-group-mode . gnus-topic-mode)
          (dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
@@ -1327,13 +1323,7 @@ certain Emacs keybinds.
     (magit-define-popup-action 'magit-remote-popup
       ?g "Add remote from github user name" #'magit-remote-github))
   :hook (magit-mode . magit-github-hook)
-  :commands (magit-clone
-             magit-toplevel
-             magit-read-string-ns
-             magit-remote-arguments
-             magit-get
-             magit-remote-add
-             magit-define-popup-action)
+  :commands magit-clone
   :if (locate-file "git" exec-path)
   :bind (("C-x g" . magit-status)
          ("C-x G" . magit-dispatch-popup)
@@ -1361,11 +1351,10 @@ This is currently disabled.
 
 #+BEGIN_SRC emacs-lisp
 (use-package mmm-mode
-  :commands (mmm-mode)
+  :commands mmm-mode
   :config
   (use-package mmm-auto
-    :ensure nil
-    :demand))
+    :ensure nil))
 #+END_SRC
 
 **** multiple-cursors
@@ -1417,8 +1406,7 @@ This is currently disabled.
   (use-package ox-md
     :ensure nil
     :demand)
-  (use-package org-static-blog
-    :demand)
+  (use-package org-static-blog)
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((sh . t)
                                  (emacs-lisp . t)
@@ -1437,7 +1425,7 @@ This is currently disabled.
 #+BEGIN_SRC emacs-lisp
 (use-package org-eldoc
   :ensure nil
-  :commands (org-eldoc-documentation-function)
+  :commands org-eldoc-documentation-function
   :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
                                            'org-eldoc-documentation-function))))
 #+END_SRC
@@ -1450,7 +1438,7 @@ easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
-    :commands (projectile-mode projectile-project-root)
+    :commands projectile-mode
     :bind-keymap* (("C-c p" . projectile-command-map)
                    ("s-p" . projectile-command-map))
     :bind (("C-c C-f" . projectile-find-file)
@@ -1520,7 +1508,7 @@ easymenu to make the "Projectile" modeline clickable.
 (use-package proof-site
   :ensure proofgeneral
   :no-require
-  :disabled needs-package-init
+  :if (not needs-package-init)
   :commands (proofgeneral proof-mode proof-shell-mode))
 #+END_SRC
 
@@ -1616,11 +1604,9 @@ easymenu to make the "Projectile" modeline clickable.
            html-mode) . smartparens-mode))
   :config
   (use-package smartparens-html
-    :ensure nil
-    :demand)
+    :ensure nil)
   (use-package smartparens-config
-    :ensure nil
-    :demand)
+    :ensure nil)
 
   (sp-with-modes 'org-mode
     (sp-local-pair "*" "*"
@@ -1666,25 +1652,12 @@ easymenu to make the "Projectile" modeline clickable.
   :bind (("C-c C-r" . sudo-edit)))
 #+END_SRC
 
-**** Tramp
-
-[[https://www.gnu.org/software/tramp/][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package tramp
-  :ensure nil
-  :commands (tramp-tramp-file-p
-             tramp-file-name-user
-             tramp-file-name-real-host
-             tramp-dissect-file-name))
-#+END_SRC
-
 **** which-key
 
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
   :demand
-  :commands (which-key-mode)
+  :commands which-key-mode
   :config (which-key-mode))
 #+END_SRC
 
@@ -1700,7 +1673,6 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package ansi-color
   :ensure nil
-  :commands (ansi-color-apply-on-region)
   :hook (compilation-filter . colorize-compilation-buffer)
   :preface
   (defun colorize-compilation-buffer ()
@@ -1713,7 +1685,7 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
 (use-package autorevert
   :ensure nil
-  :commands (global-auto-revert-mode)
+  :commands global-auto-revert-mode
   :demand
   :config (global-auto-revert-mode t))
 #+END_SRC
@@ -1731,7 +1703,7 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference-github
-    :commands (bug-reference-github-set-url-format)
+    :commands bug-reference-github-set-url-format
     :preface
     (defun bug-reference-github-projectile ()
       (when (and projectile-mode
@@ -1751,10 +1723,6 @@ Get color/ansi codes in compilation mode.
   ;;       ("s-k"       . comint-clear-buffer)
   ;;       ("M-TAB"     . comint-previous-matching-input-from-input)
   ;;       ("<M-S-tab>" . comint-next-matching-input-from-input))
-  :commands (comint-next-prompt
-             comint-after-pmark-p
-             comint-read-input-ring
-             comint-send-input)
   ;; :hook ((kill-buffer . comint-write-input-ring)
   ;;     (kill-buffer . save-history))
   :preface
@@ -1799,7 +1767,7 @@ Get color/ansi codes in compilation mode.
 (use-package delsel
   :ensure nil
   :demand
-  :commands (delete-selection-mode)
+  :commands delete-selection-mode
   :config (delete-selection-mode t))
 #+END_SRC
 
@@ -1921,11 +1889,11 @@ setup.
 **** eww
 #+BEGIN_SRC emacs-lisp
 (use-package eww
-  :disabled window-system
+  :ensure nil
+  :if (not window-system)
   :commands eww-browse-url
   :init
-  (when (not window-system)
-    (setq browse-url-browser-function 'eww-browse-url)))
+  (setq browse-url-browser-function 'eww-browse-url))
 #+END_SRC
 **** executable
 
@@ -2025,7 +1993,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
 (use-package pp
   :ensure nil
-  :commands (pp-eval-last-sexp)
+  :commands pp-eval-last-sexp
   :bind (([remap eval-expression] . pp-eval-expression))
   ;; :init
   ;;(global-unset-key (kbd "C-x C-e"))
@@ -2083,11 +2051,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
     :ensure nil
-    ;; :demand
-    ;; :commands (savehist-mode)
-    ;; :config (savehist-mode)
-    :hook (after-init . savehist-mode)
-    )
+    :hook (after-init . savehist-mode))
 #+END_SRC
 
 **** saveplace-mode
@@ -2095,11 +2059,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :ensure nil
-    ;; :demand
-    ;; :commands (save-place-mode)
-    ;; :config (save-place-mode)
-    :hook (after-init . save-place-mode)
-    )
+    :hook (after-init . save-place-mode))
 #+END_SRC
 
 **** Shell
@@ -2148,7 +2108,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package term
     :ensure nil
-    :commands (term-mode term-char-mode term-set-escape-char)
+    :commands (term-mode term-char-mode)
     :hook (term-mode . (lambda ()
                          (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
                          (setq-local transient-mark-mode nil)
@@ -2188,6 +2148,7 @@ setup.
           (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
                                                path)))))
     :bind ("C-c t" . my-term))
+
   (use-package tramp-term
     :commands tramp-term)
 #+END_SRC
@@ -2215,7 +2176,7 @@ setup.
 (use-package url-handlers
   :ensure nil
   :demand
-  :commands (url-handler-mode)
+  :commands url-handler-mode
   :config (url-handler-mode))
 #+END_SRC
 
@@ -2366,7 +2327,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
 #+BEGIN_SRC emacs-lisp
 (use-package haskell-doc
   :ensure nil
-  :commands (haskell-doc-current-info)
   :hook (haskell-mode . (lambda ()
                           (setq-local eldoc-documentation-function
                                       'haskell-doc-current-info))))
@@ -2541,8 +2501,7 @@ Auctex provides some helpful tools for working with LaTeX.
 (use-package jedi
   :hook ((python-mode . jedi:setup))
   :config
-  (setq jedi:complete-on-dot t)
-  (setq elpy-rpc-backend "jedi"))
+  (setq jedi:complete-on-dot t))
 #+END_SRC
 ***** elpy
 
@@ -2593,7 +2552,7 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
 (use-package sh-script
   :ensure nil
-  :commands (shell-command)
+  :commands shell-command
   :preface
   (defun shell-command-at-point ()
     (interactive)
@@ -2670,7 +2629,7 @@ repositories.
 
 #+BEGIN_SRC emacs-lisp
 (use-package nethack
-  :commands (nethack)
+  :commands nethack
   :ensure nil)
 #+END_SRC
 
@@ -2897,7 +2856,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
 (use-package try
-  :commands (try))
+  :commands try)
 #+END_SRC
 
 **** TODO twittering-mode
