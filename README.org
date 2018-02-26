@@ -564,7 +564,7 @@ corresponds to a customizable variable. Unlike =settings.el=, each entry is
 path in the Nix store and we verify it exists before setting it.
 
 #+BEGIN_SRC emacs-lisp
-(load "site-paths" :noerror)
+(load "site-paths" t t)
 #+END_SRC
 
 *** Set environment
@@ -3591,12 +3591,6 @@ Set some defaults that depend on the path variables below,
                                       "-I@sysheaders@/include/c++/v1"
                                       "-F@sysframeworks@/Library/Frameworks"))
    )
-#+END_SRC
-
-Provide site-paths,
-
-#+BEGIN_SRC emacs-lisp
-(provide 'site-paths)
 #+END_SRC
 
 ** =bootstrap.sh=
