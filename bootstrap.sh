@@ -6,8 +6,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     sh $nix_installer
 fi
 
-if [ -d .git ] && command -v git >/dev/null 2>&1
-then
+if [ -d .git ] && command -v git >/dev/null 2>&1; then
     git pull origin master || true
 fi
 
