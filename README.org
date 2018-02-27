@@ -132,7 +132,10 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 This is the main part of the IDE. It is written in Emacs lisp and will be loaded
 every time Emacs is started.
 
-** Verify Emacs version ≥ 25
+** Verify Emacs version ≥ 25                                      :noexport:
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
 available.
@@ -200,8 +203,10 @@ currently. FIXME!
     (scroll-bar-mode -1)
     (blink-cursor-mode -1))
 
+  (when (not (string= window-system "mac"))
+    (menu-bar-mode -1))
+
   (when (not window-system)
-    (menu-bar-mode -1)
     (xterm-mouse-mode 1))
 #+END_SRC
 
@@ -627,7 +632,10 @@ First handle using =package.el=.
   (package-initialize)
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
-    (package-install 'use-package)))
+    (package-install 'use-package))
+  (unless (package-installed-p 'delight)
+    (package-refresh-contents)
+    (package-install 'delight)))
 #+END_SRC
 
 Actually require =use-package=,
@@ -1516,7 +1524,8 @@ easymenu to make the "Projectile" modeline clickable.
 (use-package proof-site
   :ensure proofgeneral
   :no-require
-  :if (not needs-package-init)
+  :if (and (not needs-package-init)
+           (>= emacs-major-version 25))
   :commands (proofgeneral proof-mode proof-shell-mode))
 #+END_SRC
 
@@ -1879,6 +1888,7 @@ Setup these modes:
 #+BEGIN_SRC emacs-lisp
 (use-package electric
   :ensure nil
+  :if (>= emacs-major-version 25)
   :hook ((prog-mode . electric-quote-mode)
          (prog-mode . electric-indent-mode)
          (prog-mode . electric-layout-mode)))
@@ -2359,6 +2369,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
 (use-package indium
+  :if (>= emacs-major-version 25)
   :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
 
@@ -2740,6 +2751,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
 (use-package helpful
+  :if (>= emacs-major-version 25)
   :bind (([remap describe-function] . helpful-callable)
          ([remap describe-variable] . helpful-variable)
          ([remap describe-key] . helpful-key)))
