@@ -203,7 +203,7 @@ currently. FIXME!
     (scroll-bar-mode -1)
     (blink-cursor-mode -1))
 
-  (when (not (string= window-system "mac"))
+  (when (not (memq window-system '(mac ns)))
     (menu-bar-mode -1))
 
   (when (not window-system)
