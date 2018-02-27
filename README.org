@@ -3676,25 +3676,15 @@ Now let's tangle README.org...
 
 #+BEGIN_SRC nix
 import (runCommand "README" { buildInputs = [ emacs ]; } ''
-#+END_SRC
-
-#+BEGIN_SRC nix
   mkdir -p $out
   cd $out
-  cp -r ${./site-lisp} $out/site-lisp
+  cp -r ${./site-lisp} site-lisp
   cp ${./README.org} README.org
   emacs --batch --quick \
         -l ob-tangle \
         --eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-#+END_SRC
-
-#+BEGIN_SRC nix
-''
-#+END_SRC
-
-#+BEGIN_SRC nix
-) {inherit nixpkgs';}
+'') {inherit nixpkgs';}
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3901,11 +3891,7 @@ emacs --batch --quick \
   emacsWrapper = explicitRequires: runCommand "emacs-packages-deps"
    { inherit explicitRequires;
      inherit (xorg) lndir;
-     inherit (customEmacsPackages) emacs;}
-   ''
-#+END_SRC
-
-#+BEGIN_SRC nix
+     inherit (customEmacsPackages) emacs; } ''
   findInputsOld() {
       local pkg="$1"; shift
       local var="$1"; shift
@@ -3957,9 +3943,6 @@ emacs --batch --quick \
   done
   # Byte-compiling improves start-up time only slightly, but costs nothing.
   $emacs/bin/emacs --batch -f batch-byte-compile "$siteStart"
-#+END_SRC
-
-#+BEGIN_SRC nix
   '';
 #+END_SRC
 
@@ -4010,9 +3993,6 @@ Finally, we can actually build the environment.
   };
 
   schemas = writeText "schemas.xml" ''
-#+END_SRC
-
-#+BEGIN_SRC nix
   <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
     <documentElement localName="section" typeId="DocBook"/>
     <documentElement localName="chapter" typeId="DocBook"/>
@@ -4020,10 +4000,6 @@ Finally, we can actually build the environment.
     <documentElement localName="book" typeId="DocBook"/>
     <typeId id="DocBook" uri="${docbook5}/xml/rng/docbook/docbookxi.rnc" />
   </locatingRules>
-#+END_SRC
-
-
-#+BEGIN_SRC nix
   '';
 #+END_SRC
 
@@ -4031,9 +4007,6 @@ Finally, we can actually build the environment.
   myEnv = buildEnv {
     buildInputs = [ makeWrapper ];
     postBuild = ''
-#+END_SRC
-
-#+BEGIN_SRC nix
   if [ -w $out/share/info ]; then
     shopt -s nullglob
     for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
@@ -4076,13 +4049,7 @@ Finally, we can actually build the environment.
   substituteInPlace $out/bin/run \
     --replace @out@ $out
   ln -s $out/bin/run $out/bin/bauer
-#+END_SRC
-
-#+BEGIN_SRC nix
     '';
-#+END_SRC
-
-#+BEGIN_SRC nix
     pathsToLink = [
       "/bin"
       "/etc/profile.d"
