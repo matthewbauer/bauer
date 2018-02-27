@@ -1161,8 +1161,8 @@ info.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
-    :after eshell
     :hook (eshell-mode . (lambda ()
+                           (autoload 'esh-help-eldoc-command "esh-help")
                            (setq-local eldoc-documentation-function
                                        'esh-help-eldoc-command))))
 #+END_SRC
@@ -1388,61 +1388,55 @@ This is currently disabled.
 [[https://orgmode.org][Website]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package org
-  ;; just use builtin org-mode for now
-  ;; versions are mismatched so can cause a conflict
-  :ensure org-plus-contrib
-  ;; :ensure nil
-  :hook ((message-mode . turn-on-orgstruct++)
-         (org-mode . (lambda ()
-                       (add-hook 'completion-at-point-functions
-                                 'pcomplete-completions-at-point nil t)))
-         (org-mode . auto-fill-mode)
-         (org-mode . (lambda () (setq-local scroll-margin 3)))
-         (message-mode . turn-on-orgtbl))
-  :bind* (("C-c c" . org-capture)
-          ("C-c a" . org-agenda)
-          ("C-c l" . org-store-link)
-          ("C-c b" . org-iswitchb))
-  :config
-  (use-package ob-dot
-    :ensure nil
-    :demand)
-  (use-package ox-latex
-    :ensure nil
-    :demand)
-  (use-package ox-beamer
-    :ensure nil
-    :demand)
-  (use-package ox-md
-    :ensure nil
-    :demand)
-  (use-package org-static-blog
-    :demand)
-  (org-babel-do-load-languages 'org-babel-load-languages
-                               '((sh . t)
-                                 (emacs-lisp . t)
-                                 (dot . t)
-                                 (latex . t))))
+  (use-package org
+    ;; just use builtin org-mode for now
+    ;; versions are mismatched so can cause a conflict
+    :ensure org-plus-contrib
+    ;; :ensure nil
+    :hook ((message-mode . turn-on-orgstruct++)
+           (org-mode . (lambda ()
+                         (add-hook 'completion-at-point-functions
+                                   'pcomplete-completions-at-point nil t)))
+           (org-mode . auto-fill-mode)
+           (org-mode . (lambda () (setq-local scroll-margin 3)))
+           (message-mode . turn-on-orgtbl)
+           (org-mode . (lambda ()
+                         (autoload 'org-eldoc-documentation-function "esh-help")
+                         (setq-local eldoc-documentation-function
+                                     'org-eldoc-documentation-function))))
+    :bind* (("C-c c" . org-capture)
+            ("C-c a" . org-agenda)
+            ("C-c l" . org-store-link)
+            ("C-c b" . org-iswitchb))
+    :config
+    (use-package ob-dot
+      :ensure nil
+      :demand)
+    (use-package ox-latex
+      :ensure nil
+      :demand)
+    (use-package ox-beamer
+      :ensure nil
+      :demand)
+    (use-package ox-md
+      :ensure nil
+      :demand)
+    (use-package org-static-blog
+      :demand)
+    (org-babel-do-load-languages 'org-babel-load-languages
+                                 '((sh . t)
+                                   (emacs-lisp . t)
+                                   (dot . t)
+                                   (latex . t))))
 
-(use-package org-cliplink
-  :disabled
-  :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
+  (use-package org-cliplink
+    :disabled
+    :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
 
-(use-package toc-org
-  :disabled
-  :hook (org-mode . toc-org-enable))
+  (use-package toc-org
+    :disabled
+    :hook (org-mode . toc-org-enable))
 #+END_SRC
-***** org-eldoc
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-eldoc
-  :ensure nil
-  :commands org-eldoc-documentation-function
-  :hook (org-mode . (lambda () (setq-local eldoc-documentation-function
-                                           'org-eldoc-documentation-function))))
-#+END_SRC
-
 **** Projectile
 [[https://github.com/bbatsov/projectile][GitHub]]
 
@@ -2334,7 +2328,11 @@ Note: this needs ghc-mod to be in PATH to work properly.
   :hook ((haskell-mode . subword-mode)
          (haskell-mode . flyspell-prog-mode)
          (haskell-mode . haskell-indentation-mode)
-         (haskell-mode . imenu-add-menubar-index))
+         (haskell-mode . imenu-add-menubar-index)
+         (haskell-mode . (lambda ()
+                            (autoload 'haskell-doc-current-info "haskell-doc")
+                            (setq-local eldoc-documentation-function
+                                        'haskell-doc-current-info))))
   :init
   (add-to-list 'completion-ignored-extensions ".hi"))
 #+END_SRC
@@ -2346,15 +2344,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
   :hook (haskell-mode . interactive-haskell-mode))
 #+END_SRC
 
-***** haskell-doc
-#+BEGIN_SRC emacs-lisp
-(use-package haskell-doc
-  :ensure nil
-  :after haskell
-  :hook (haskell-mode . (lambda ()
-                          (setq-local eldoc-documentation-function
-                                      'haskell-doc-current-info))))
-#+END_SRC
 **** Java
 ***** jdee
 
