@@ -6,7 +6,7 @@
 #+LANGUAGE: en
 #+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
 #+OPTIONS: arch:nil author:t broken-links:nil
-#+OPTIONS: creator:t datfe:t email:t inline:nil num:nil pri:t
+#+OPTIONS: creator:t date:t email:t inline:nil num:nil pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+PROPERTY: header-args :cache yes
 #+PROPERTY: header-args:emacs-lisp :results output silent
@@ -1522,10 +1522,10 @@ easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
 (use-package proof-site
+  :disabled (< emacs-major-version 25)
   :ensure proofgeneral
   :no-require
-  :if (and (not needs-package-init)
-           (>= emacs-major-version 25))
+  :if (not needs-package-init)
   :commands (proofgeneral proof-mode proof-shell-mode))
 #+END_SRC
 
@@ -1888,7 +1888,7 @@ Setup these modes:
 #+BEGIN_SRC emacs-lisp
 (use-package electric
   :ensure nil
-  :if (>= emacs-major-version 25)
+  :disabled (< emacs-major-version 25)
   :hook ((prog-mode . electric-quote-mode)
          (prog-mode . electric-indent-mode)
          (prog-mode . electric-layout-mode)))
@@ -2079,6 +2079,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :ensure nil
+    :disabled (< emacs-major-version 25)
     :hook (after-init . save-place-mode))
 #+END_SRC
 
@@ -2369,7 +2370,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
 (use-package indium
-  :if (>= emacs-major-version 25)
+  :disabled (< emacs-major-version 25)
   :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
 
@@ -2751,7 +2752,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
 (use-package helpful
-  :if (>= emacs-major-version 25)
+  :disabled (< emacs-major-version 25)
   :bind (([remap describe-function] . helpful-callable)
          ([remap describe-variable] . helpful-variable)
          ([remap describe-key] . helpful-key)))
