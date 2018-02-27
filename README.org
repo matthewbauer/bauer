@@ -42,7 +42,7 @@ available on [[https://github.com/matthewbauer/bauer][the GitHub repo]].
 If you already have Nix installed, you can demo this out easily. Just run the
 following,
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
 expr="import (builtins.fetchTarball $url) {}"; \
    nix-shell -p nix-bundle --run "nix-run '$expr'"
@@ -58,7 +58,7 @@ you’re on a Unixy system).
 
 Run this command from your shell,
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 curl https://matthewbauer.us/bootstrap.sh | sh
 #+END_SRC
 
@@ -70,7 +70,7 @@ successfully loaded.
 
 Once it’s installed, you can open Emacs at any time with this shortcut command,
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 $HOME/.nix-profile/bin/run
 #+END_SRC
 
@@ -80,7 +80,7 @@ After you’ve installed it, it’s easy to make changes. By default, the
 configuration lives in =~/.local/share/bauer=. To make changes just follow this
 process,
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 cd ~/.local/share/bauer
 nix-build
 ./result/run ./README.org
@@ -105,7 +105,7 @@ You can use this configuration without Nix. This just gives you the unintegrated
 Emacs configuration. All of the binaries you will have to provide yourself. To
 get started, run the following.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 #+END_SRC
@@ -152,7 +152,7 @@ available.
 If Nix is unavailable and only Emacs 24 is installed for you, then you can try
 the experimental v24 branch. From the Git root of this repository, just run:
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 git checkout v24
 #+END_SRC
 
@@ -1444,9 +1444,10 @@ Setup projectile and link it with some other packages. This also adds an
 easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
-(eval-and-compile
+  (eval-and-compile
     (autoload 'projectile-project-vcs "projectile")
-    (autoload 'projectile-project-root "projectile"))
+    (autoload 'projectile-project-root "projectile")
+    (autoload 'easy-menu-define "easymenu" "" nil 'macro))
   (use-package projectile
     :commands projectile-mode
     :bind-keymap* (("C-c p" . projectile-command-map)
@@ -1465,7 +1466,6 @@ easymenu to make the "Projectile" modeline clickable.
     ;; needed to recognize project files
     (projectile-mode)
 
-    (require 'easymenu)
     (easy-menu-define projectile-menu projectile-mode-map "Projectile"
       '("Projectile"
         :active nil
@@ -2910,14 +2910,14 @@ scripts as well.
 
 To use this, you must create a short ~/.profile file. Here is an example,
 
-#+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC shell :tangle no
 bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
 Here we setup =.profile=. First, setup exports.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 MAN_PATH=/usr/share/man:/usr/local/share/man:@manpages@:$PREFIX/share/man:
 export MAN_PATH
 
@@ -2939,7 +2939,7 @@ export LANG=en_US.UTF-8 \
 
 Then setup aliases.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 alias ls="TERM=ansi ls --color=always" \
       l="ls -lF" \
       ..="cd .." \
@@ -2952,7 +2952,7 @@ alias ls="TERM=ansi ls --color=always" \
 
 Configure INSIDE_EMACS.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
@@ -2961,7 +2961,7 @@ fi
 
 Define =update_terminal_cwd= function.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 update_terminal_cwd () {
     local SEARCH=' '
     local REPLACE='%20'
@@ -2977,20 +2977,20 @@ update_terminal_cwd () {
 This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
 =~/.bash_profile= file. Here is an example,
 
-#+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC shell :tangle no
 bootstrap=$HOME/.nix-profile/etc/bashrc
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
 Source profile found above.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 source @out@/etc/profile
 #+END_SRC
 
 When TERM=dumb, just do a simple prompt.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 case "$TERM" in
     dumb)
         PS1="\W > "
@@ -3001,7 +3001,7 @@ esac
 
 Setup some bash-specific features.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 shopt -s cdspell \
          cdable_vars \
          checkhash \
@@ -3019,7 +3019,7 @@ shopt -s cdspell \
 
 Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 set -o notify \
     -o noclobber \
     -o ignoreeof \
@@ -3028,13 +3028,13 @@ set -o notify \
 
 Setup prompt.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
 #+END_SRC
 
 Bind keys when we’re interactive.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [[ $- == *i* ]]; then
     bind '"\e/": dabbrev-expand'
     bind '"\ee": edit-and-execute-command'
@@ -3044,14 +3044,14 @@ fi
 Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
 give us the working directory in the title window.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
     update_terminal_cwd
 fi
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 function set-eterm-dir {
     echo -e "\033AnSiTc" "$(pwd)"
     echo -e "\033AnSiTh" "$(hostname -f)"
@@ -3070,20 +3070,20 @@ fi
 This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
 use this, you must create a short ~/.zshrc file. Here is an example,
 
-#+BEGIN_SRC sh :tangle no
+#+BEGIN_SRC shell :tangle no
 bootstrap=$HOME/.nix-profile/etc/zshrc
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
 Setup ZSH profile. First, we just source the global profile.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 source @out@/etc/profile
 #+END_SRC
 
 Handle dumb options.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 case "$TERM" in
     dumb)
         unsetopt zle \
@@ -3103,25 +3103,25 @@ esac
 
 Load up site-functions in ZSH.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 fpath+=(@out@/share/zsh/site-functions)
 #+END_SRC
 
 Setup ZSH auto suggestions.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 . @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 #+END_SRC
 
 Turn on colors.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 autoload -U colors && colors
 #+END_SRC
 
 Turn on ZSH-specific options.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 setopt always_to_end \
        append_history \
        auto_cd \
@@ -3154,7 +3154,7 @@ setopt always_to_end \
 
 Setup completions.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
 autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
@@ -3162,7 +3162,7 @@ zmodload -i zsh/complist
 
 Zstyle completions.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 zstyle ':vcs_info:*' actionformats \
        '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
 zstyle ':vcs_info:*' formats '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
@@ -3204,13 +3204,13 @@ zstyle '*' single-ignored show
 
 Turn on prompt with colors.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
 ZSH key bindings.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ "$TERM" = xterm-256color ]; then
     bindkey "^[[H" beginning-of-line
     bindkey "^[[F" end-of-line
@@ -3220,7 +3220,7 @@ fi
 
 Setup Apple Terminal so that CWD is shown.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     autoload add-zsh-hook
     add-zsh-hook chpwd update_terminal_cwd
@@ -3228,7 +3228,7 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
 fi
 #+END_SRC
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ -n "$INSIDE_EMACS" ]; then
     # function to set the dired and host for ansiterm
     set_eterm_dir() {
@@ -3249,13 +3249,13 @@ fi
 This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
 used to reference the Nix output dir.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 export PREFIX=@out@
 #+END_SRC
 
 This will source everything in =/etc/profile.d=.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ -d @out@/etc/profile.d ]; then
   for i in @out@/etc/profile.d/*.sh; do
     if [ -r $i ]; then
@@ -3610,7 +3610,7 @@ IDE. It ensures Nix is installed and that the Git repo is available and up-to-da
 
 First we install Nix if it isn’t already.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install > $nix_installer
@@ -3620,7 +3620,7 @@ fi
 
 If we are in a Git repo already, we’ll pull to get latest updates.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if [ -d .git ] && command -v git >/dev/null 2>&1; then
     git pull origin master || true
 fi
@@ -3629,7 +3629,7 @@ fi
 If we can’t find default.nix then we’ll clone from GitHub. This will be stored in
 =~/.local/share/bauer=. 
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 if ! [ -f default.nix ] && command -v git >/dev/null 2>&1; then
     repo_dir=$(mktemp -d)
     git clone https://github.com/matthewbauer/bauer $repo_dir
@@ -3639,7 +3639,7 @@ fi
 
 The last action is to install our new derivation.
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 nix-env -if .
 #+END_SRC
 
@@ -3650,7 +3650,7 @@ nix-env -if .
 
 Cross-platform script to execute app.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 case $(uname) in
     Darwin)
         open @out@/Applications/Emacs.app
@@ -4135,7 +4135,7 @@ in myEnv
 ** Invoking it
 We can build it with =nix-build=.
 
-#+BEGIN_SRC sh :results none
+#+BEGIN_SRC shell :results none
 nix-build
 ./result/bin/run
 #+END_SRC
@@ -4220,7 +4220,7 @@ notifications:
 This is a simple script that I use to make sure I've updated the generated
 files.
 
-#+BEGIN_SRC sh :padline no
+#+BEGIN_SRC shell :padline no
 emacs --batch \
       -l ob-tangle --eval "(org-babel-tangle-file \"README.org\")"
 #+END_SRC
