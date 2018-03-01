@@ -37,24 +37,10 @@ issues on [[https://github.com/matthewbauer/bauer][the GitHub repo]].
 :header-args: :tangle no
 :END:
 
-** Demo
-
-If you already have Nix installed, you can demo this out easily. Just run the
-following,
-
-#+BEGIN_SRC shell
-url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
-expr="import (builtins.fetchTarball $url) {}"; \
-   nix-shell -p nix-bundle --run "nix-run '$expr'"
-#+END_SRC
-
-If you don’t have Nix installed, you won’t be able to run the demo.
-
 ** Installing/upgrading
 
-Once you’ve demo’d it, you can setup a permanent install. This is the script
-that I use to setup all of my new machines but anyone can also use it (provided
-you’re on a Unixy system).
+This is the script that I use to setup all of my new machines but anyone can
+also use it (provided you’re on a Unixy system).
 
 Run this command from your shell,
 
@@ -63,12 +49,12 @@ curl https://matthewbauer.us/bootstrap.sh | sh
 #+END_SRC
 
 Alternatively, you can accomplish the same thing from Emacs by downloading
-[[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
-(=M‑x install<RET>=). This process will take a little bit of time as everything
-is downloaded. After you restart Emacs, you’re environment should be
-successfully loaded.
+[[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], opening the file in your Emacs installation, loading it
+(=M‑x load‑file<RET>=) and running ‘install’ (=M‑x install<RET>=). This process
+will take a little bit of time as everything is downloaded. After you restart
+Emacs, you’re environment should be successfully loaded.
 
-Once it’s installed, you can open Emacs at any time with this shortcut command,
+Once it’s installed, you can open Emacs at any time with this command,
 
 #+BEGIN_SRC shell
 $HOME/.nix-profile/bin/run
