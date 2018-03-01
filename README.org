@@ -2179,59 +2179,6 @@ Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
-**** Emacs speaks statistics
-
-[[https://ess.r-project.org][Website]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ess-site
-    :ensure ess
-    :no-require
-    :interpreter (("Rscript" . r-mode)
-		  ("r" . r-mode))
-    :mode (("\\.sp\\'"          . S-mode)
-	   ("/R/.*\\.q\\'"      . R-mode)
-	   ("\\.[qsS]\\'"       . S-mode)
-	   ("\\.ssc\\'"         . S-mode)
-	   ("\\.SSC\\'"         . S-mode)
-	   ("\\.[rR]\\'"        . R-mode)
-	   ("\\.[rR]nw\\'"      . Rnw-mode)
-	   ("\\.[sS]nw\\'"      . Snw-mode)
-	   ("\\.[rR]profile\\'" . R-mode)
-	   ("NAMESPACE\\'"      . R-mode)
-	   ("CITATION\\'"       . R-mode)
-	   ("\\.omg\\'"         . omegahat-mode)
-	   ("\\.hat\\'"         . omegahat-mode)
-	   ("\\.lsp\\'"         . XLS-mode)
-	   ("\\.do\\'"          . STA-mode)
-	   ("\\.ado\\'"         . STA-mode)
-	   ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-	   ("\\.[Ss]t\\'"       . S-transcript-mode)
-	   ("\\.Sout"           . S-transcript-mode)
-	   ("\\.[Rr]out"        . R-transcript-mode)
-	   ("\\.Rd\\'"          . Rd-mode)
-	   ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
-	   ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
-	   ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-	   ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-	   ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-	   ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
-	   ))
-#+END_SRC
-
-**** Proof General
-
-[[https://proofgeneral.github.io][Website]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package proof-site
-    :disabled (< emacs-major-version 25)
-    :ensure proofgeneral
-    :no-require
-    :if (not needs-package-init)
-    :commands (proofgeneral proof-mode proof-shell-mode))
-#+END_SRC
-
 **** TODO Agda
 **** C/C++
 
@@ -2304,6 +2251,46 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package elf-mode
     :magic ("ELF" . elf-mode))
+#+END_SRC
+
+**** Emacs speaks statistics
+
+[[https://ess.r-project.org][Website]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ess-site
+    :ensure ess
+    :no-require
+    :interpreter (("Rscript" . r-mode)
+		  ("r" . r-mode))
+    :mode (("\\.sp\\'"          . S-mode)
+	   ("/R/.*\\.q\\'"      . R-mode)
+	   ("\\.[qsS]\\'"       . S-mode)
+	   ("\\.ssc\\'"         . S-mode)
+	   ("\\.SSC\\'"         . S-mode)
+	   ("\\.[rR]\\'"        . R-mode)
+	   ("\\.[rR]nw\\'"      . Rnw-mode)
+	   ("\\.[sS]nw\\'"      . Snw-mode)
+	   ("\\.[rR]profile\\'" . R-mode)
+	   ("NAMESPACE\\'"      . R-mode)
+	   ("CITATION\\'"       . R-mode)
+	   ("\\.omg\\'"         . omegahat-mode)
+	   ("\\.hat\\'"         . omegahat-mode)
+	   ("\\.lsp\\'"         . XLS-mode)
+	   ("\\.do\\'"          . STA-mode)
+	   ("\\.ado\\'"         . STA-mode)
+	   ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
+	   ("\\.[Ss]t\\'"       . S-transcript-mode)
+	   ("\\.Sout"           . S-transcript-mode)
+	   ("\\.[Rr]out"        . R-transcript-mode)
+	   ("\\.Rd\\'"          . Rd-mode)
+	   ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
+	   ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
+	   ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
+	   ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
+	   ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
+	   ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+	   ))
 #+END_SRC
 
 **** Go
@@ -2505,6 +2492,19 @@ Auctex provides some helpful tools for working with LaTeX.
     :mode "\\.php\\'")
 #+END_SRC
 
+**** Proof General
+
+[[https://proofgeneral.github.io][Website]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package proof-site
+    :disabled (< emacs-major-version 25)
+    :ensure proofgeneral
+    :no-require
+    :if (not needs-package-init)
+    :commands (proofgeneral proof-mode proof-shell-mode))
+#+END_SRC
+
 **** Python
 
 ***** Anaconda
@@ -2671,13 +2671,6 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
-**** delight
-
-
-
-#+BEGIN_SRC emacs-lisp
-  (use-package delight)
-#+END_SRC
 **** browse-at-remote
 #+BEGIN_SRC emacs-lisp
   (use-package browse-at-remote
@@ -2712,7 +2705,18 @@ Most of these are available in MELPA.
 	   ([shift return] . crux-smart-open-line)))
 #+END_SRC
 
-**** TODO dumb-jump
+**** delight
+
+
+
+#+BEGIN_SRC emacs-lisp
+  (use-package delight)
+#+END_SRC
+**** dumb-jump
+#+BEGIN_SRC emacs-lisp
+(use-package dumb-jump
+  :hook ((prog-mode . dumb-jump-mode)))
+#+END_SRC
 **** TODO emacs-gif-screencast
 **** TODO epresent
 **** expand-region
@@ -2723,7 +2727,6 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO eyebrowse
-**** TODO fill-column-indicator
 **** git-attr
 #+BEGIN_SRC emacs-lisp
   (use-package git-attr-linguist
@@ -2918,11 +2921,6 @@ Most of these are available in MELPA.
     :demand)
 #+END_SRC
 **** TODO yasnippet
-**** dumb-jump
-#+BEGIN_SRC emacs-lisp
-(use-package dumb-jump
-  :hook ((prog-mode . dumb-jump-mode)))
-#+END_SRC
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
