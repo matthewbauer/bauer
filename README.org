@@ -108,6 +108,7 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]]:
 (add-to-list 'load-path (expand-file-name "site-lisp" bauer-dir))
 (unless (file-exists-p (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
+    (autoload 'org-babel-tangle-file "ob-tangle")
     (org-babel-tangle-file bauer-org "README.el" "emacs-lisp")))
 (load (expand-file-name "README.el" bauer-dir) t)
 #+END_SRC
