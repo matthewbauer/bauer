@@ -754,8 +754,8 @@ Emacs keybinds, documentation on why should be provided.
    ("s-1" . other-frame)
    ("<s-return>" . toggle-frame-fullscreen)
 
-   ("s-C-<left>" . shrink-window-horizontally)
-   ("s-C-<right>" . enlarge-window-horizontally)
+   ("s-C-<left>" . enlarge-window-horizontally)
+   ("s-C-<right>" . shrink-window-horizontally)
    ("s-C-<down>" . shrink-window)
    ("s-C-<up>" . enlarge-window)
 
@@ -1102,58 +1102,63 @@ info.
 **** Emacs shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package eshell
-  :ensure nil
-  :bind (("C-c M-t" . eshell)
-         ("C-c x" . eshell)
-         ("C-c e" . eshell))
-  :hook ((eshell-mode . eshell-read-history))
-  :preface
-  (defun pcomplete/sudo ()
-    (let ((prec (pcomplete-arg 'last -1)))
-      (cond ((string= "sudo" prec)
-             (while (pcomplete-here*
-                     (funcall pcomplete-command-completion-function)
-                     (pcomplete-arg 'last) t))))))
-  :config
-  (use-package em-rebind
+  (use-package eshell
     :ensure nil
-    :demand
+    :bind (("C-c M-t" . eshell)
+           ("C-c x" . eshell)
+           ("C-c e" . eshell))
+    :hook ((eshell-mode . eshell-read-history))
+    :preface
+    (defun pcomplete/sudo ()
+      (let ((prec (pcomplete-arg 'last -1)))
+        (cond ((string= "sudo" prec)
+               (while (pcomplete-here*
+                       (funcall pcomplete-command-completion-function)
+                       (pcomplete-arg 'last) t))))))
     :config
-    (setq eshell-rebind-keys-alist
-          '(([(control 97)] . eshell-bol)
-            ([home] . eshell-bol)
-            ([(control 100)] . eshell-delchar-or-maybe-eof)
-            ([backspace] . eshell-delete-backward-char)
-            ([delete] . eshell-delete-backward-char)
-            ([(control 119)] . backward-kill-word)
-            ([(control 117)] . eshell-kill-input)
-            ([tab] . completion-at-point)
-            ([(control 101)] . (lambda () (interactive) (end-of-line)))))
-  (setq eshell-modules-list
-        '(eshell-alias
-          eshell-banner
-          eshell-basic
-          eshell-cmpl
-          eshell-dirs
-          eshell-glob
-          eshell-hist
-          eshell-ls
-          eshell-pred
-          eshell-prompt
-          eshell-rebind
-          eshell-script
-          eshell-smart
-          eshell-term
-          eshell-tramp
-          eshell-unix
-          eshell-xtra))))
+    (use-package em-rebind
+      :ensure nil
+      :demand
+      :config
+      ;; TODO move this back to customize
+      (setq eshell-rebind-keys-alist
+            '(([(control 97)] . eshell-bol)
+              ([home] . eshell-bol)
+              ([(control 100)] . eshell-delchar-or-maybe-eof)
+              ([backspace] . eshell-delete-backward-char)
+              ([delete] . eshell-delete-backward-char)
+              ([(control 119)] . backward-kill-word)
+              ([(control 117)] . eshell-kill-input)
+              ([tab] . completion-at-point)
+              ([(control 101)] . (lambda () (interactive) (end-of-line)))))
 
-(use-package esh-autosuggest
-  :commands esh-autosuggest
-  :init
-  (add-to-list 'company-backends
-               '(esh-autosuggest :with company-capf company-files)))
+    ;; TODO move this back to customize
+    (setq eshell-modules-list
+          '(eshell-alias
+            eshell-banner
+            eshell-basic
+            eshell-cmpl
+            eshell-dirs
+            eshell-glob
+            eshell-hist
+            eshell-ls
+            eshell-pred
+            eshell-prompt
+            eshell-rebind
+            eshell-script
+            eshell-smart
+            eshell-term
+            eshell-tramp
+            eshell-unix
+            eshell-xtra))))
+
+  (use-package esh-autosuggest
+    :commands esh-autosuggest
+    :hook (eshell-mode . (lambda ()
+                           (add-to-list 'company-backends
+                                        '(company-capf
+                                          company-files
+                                          esh-autosuggest)))))
 #+END_SRC
 
 ***** esh-help
@@ -1971,6 +1976,8 @@ setup.
          exec-path)
     :hook ((text-mode . flyspell-mode)
            (prog-mode . flyspell-prog-mode))
+    :bind (:map flyspell-mode-map
+           ("C-M-i" . nil))
     ;; :init
     ;; (define-key flyspell-mode-map [(control ?\.)] nil)
     )
