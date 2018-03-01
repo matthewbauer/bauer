@@ -2,6 +2,8 @@
 
 ;;; Commentary:
 
+;; TODO: rewrite set-defaults, set-envs, and set-paths as macros
+
 ;;; Code:
 
 ;; install advice to prevent custom-declare-variable from overwriting defaults
