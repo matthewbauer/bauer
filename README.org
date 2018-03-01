@@ -37,41 +37,28 @@ issues on [[https://github.com/matthewbauer/bauer][the GitHub repo]].
 :header-args: :tangle no
 :END:
 
-** Demo
-
-If you already have Nix installed, you can demo this out easily. Just run the
-following,
-
-#+BEGIN_SRC shell
-url="https://github.com/matthewbauer/bauer/archive/master.tar.gz"; \
-expr="import (builtins.fetchTarball $url) {}"; \
-   nix-shell -p nix-bundle --run "nix-run '$expr'"
-#+END_SRC
-
-If you don’t have Nix installed, you won’t be able to run the demo.
-
 ** Installing/upgrading
 
-Once you’ve demo’d it, you can setup a permanent install. This is the script
-that I use to setup all of my new machines but anyone can also use it (provided
-you’re on a Unixy system).
+This is the script that I use to setup all of my new machines but it's portable
+enough for anyone to use.
 
-Run this command from your shell,
+To install, just run this command from your shell:
 
 #+BEGIN_SRC shell
 curl https://matthewbauer.us/bootstrap.sh | sh
 #+END_SRC
 
-Alternatively, you can accomplish the same thing from Emacs by downloading
-[[https://raw.githubusercontent.com/matthewbauer/bauer/master/lisp/installer.el][installer.el]], loading it (=M‑x load‑file<RET>=) and running ‘install’
-(=M‑x install<RET>=). This process will take a little bit of time as everything
-is downloaded. After you restart Emacs, you’re environment should be
-successfully loaded.
-
-Once it’s installed, you can open Emacs at any time with this shortcut command,
+Once it’s installed, you can open Emacs at any time with this command:
 
 #+BEGIN_SRC shell
 $HOME/.nix-profile/bin/run
+#+END_SRC
+
+If you don't like it, it's also very easy to uninstall. Just run:
+
+#+BEGIN_SRC shell
+nix-env -e bauer
+nix-collect-garbage -d
 #+END_SRC
 
 ** Developing
@@ -87,13 +74,14 @@ nix-build
 #+END_SRC
 
 The last line will spawn an Emacs frame in the Git repo. Anything in that file
-can be change. Once you’ve made a change, just run ‘M-x dev-restart’ to rebuild
+can be change. Once you’ve made a change, just run =M-x dev-restart= to rebuild
 the configuration and restart Emacs. Make any changes you want to [[./README.org][the README.org
-file]] or any of the files in [[./lisp][the lisp folder]]. Make sure you commit your changes
-afterward by typing =C-c p v=, then =c-ac=. If you have forked this repo on
-GitHub, you can add it by typing =Mg= then your GitHub username within Magit. To
-push to it, just type =Pr= then find your username in the list and press enter.
-Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHub]]!
+file]] or any of the files in [[./site-lisplisp][the site-lisp folder]]. Make sure you commit your
+changes afterward by typing =C-c p v=, then =c-ac=. If you have already forked
+[[https://github.com/matthewbauer/bauer][this repo on GitHub]], you can add it as a remote by typing =Mg= followed by your
+GitHub username within Magit. To push to it, just type =Pr= then find your
+username in the list and press enter. Pull requests are always welcome through
+GitHub!
 
 ** w/o Nix
 :PROPERTIES:
@@ -101,16 +89,16 @@ Pull requests are welcome through [[https://github.com/matthewbauer/bauer][GitHu
 :header-args: :tangle no
 :END:
 
-You can use this configuration without Nix. This just gives you the unintegrated
-Emacs configuration. All of the binaries you will have to provide yourself. To
-get started, run the following.
+You can also use this configuration without Nix. This just gives you the Emacs
+configuration without any of the Nix integrations. All of the binaries will have
+to be provided externally. To get started, run the following:
 
 #+BEGIN_SRC shell
 mkdir -p ~/.emacs.d
 git clone https://github.com/matthewbauer/bauer ~/.emacs.d/bauer
 #+END_SRC
 
-Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
+Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]]:
 
 #+BEGIN_SRC emacs-lisp :tangle init.el
 (load (expand-file-name "settings.el" user-emacs-directory) t)
@@ -120,6 +108,7 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 (add-to-list 'load-path (expand-file-name "site-lisp" bauer-dir))
 (unless (file-exists-p (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
+    (autoload 'org-babel-tangle-file "ob-tangle")
     (org-babel-tangle-file bauer-org "README.el" "emacs-lisp")))
 (load (expand-file-name "README.el" bauer-dir) t)
 #+END_SRC
@@ -130,33 +119,6 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]],
 
 This is the main part of the IDE. It is written in Emacs lisp and will be loaded
 every time Emacs is started.
-
-** Verify Emacs version ≥ 25                                      :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-Emacs 24 is unsupported currently. This will check to make sure Emacs 25+ is
-available.
-
-#+BEGIN_SRC emacs-lisp
-(unless (>= emacs-major-version 25) (error "Need Emacs 25+ to work properly"))
-#+END_SRC
-
-*** EXPERIMENTAL Emacs 24 support
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-If Nix is unavailable and only Emacs 24 is installed for you, then you can try
-the experimental v24 branch. From the Git root of this repository, just run:
-
-#+BEGIN_SRC shell
-git checkout v24
-#+END_SRC
-
-and make sure you have setup the Nix-less version in your [[~/.emacs.d/init.el][init.el]] file (see [[#nonix][w/o
-Nix usage directions]]).
 
 ** Increase GC
 
@@ -179,24 +141,27 @@ this.
 
 ** Autoloads & Misc.
 
-These are some autoloads and other defines that aren’t getting setup
-normally. Eventually this section should be removed but it leads to errors
-currently. FIXME!
+Setup some initial aliases for Emacs. These give us an easy way to use these
+functions without actually require'ing them. Ideally, Emacs should pick these up
+through the automatic autoloading method, but that sometimes conflicts with the
+compiling phases used later.
 
 #+BEGIN_SRC emacs-lisp
-  (autoload 'package-installed-p "package")
-  (define-obsolete-function-alias 'org-define-error 'define-error)
-
-  ;; (when (and (eq window-system 'mac)
-  ;;            (require 'mac-win nil t))
-  ;;   (mac-set-frame-tab-group-property nil :tab-bar-visible-p nil))
-
   (eval-and-compile
+    (autoload 'package-installed-p "package")
     (autoload 'use-package-autoload-keymap "use-package")
-
     (autoload 'pcomplete-arg   "pcomplete")
     (autoload 'pcomplete--here "pcomplete"))
+#+END_SRC
 
+Now we are going to setup some basic Emacs GUI elements. Under normal
+circumstances, we want GUI elements hidden from the user so that we only see the
+text buffer. This gives us a minimalist look that works well with the theme. We
+will end up disabling =tool-bar-mode=, =scroll-bar-mode=, =blink-cursor-mode=,
+and =menu-bar-mode= here. The one exception to this is when we are running macOS
+where the system provides a builtin menubar system that Emacs can use.
+
+#+BEGIN_SRC  emacs-lisp
   (when window-system
     (tool-bar-mode -1)
     (scroll-bar-mode -1)
@@ -204,7 +169,12 @@ currently. FIXME!
 
   (when (not (memq window-system '(mac ns)))
     (menu-bar-mode -1))
+#+END_SRC
 
+When we are within a terminal we want to be able to use the mouse, so
+=xterm-mouse-mode= is enabled here.
+
+#+BEGIN_SRC  emacs-lisp
   (when (not window-system)
     (xterm-mouse-mode 1))
 #+END_SRC
@@ -223,14 +193,12 @@ in other Emacs distributions.
 (require 'set-defaults)
 #+END_SRC
 
-Occasionally this block will error in cases where =./site-lisp= hasn’t been added
-correctly. Currently trying to find a way to handle this. FIXME
-
 *** Better defaults
 
 These are some *better* defaults for Emacs. They shouldn’t require any packages
 to be installed to work (those go in use-package). In addition, they should take
 almost no time to run (meaning they probably shouldn’t have custom init hooks).
+The format of arguments to =set-defaults= is identical to the one used by =custom-set-variables=.
 
 #+BEGIN_SRC emacs-lisp
   (set-defaults
@@ -558,14 +526,14 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 
 *** Site paths
 
-Now, pull in generated paths from =site-paths.el=. Nix will generate this
-file automatically for us and different Emacs variables will be set to their
-Nix store derivations. Everything should work fine if you don’t have this
-available, though. If you are in Emacs and already have the IDE install you
-can inspect this file by typing =M-: (find-file (locate-library
-"site-paths"))=. It will look similar to a =settings.el= file where each line
-corresponds to a customizable variable. Unlike =settings.el=, each entry is
-path in the Nix store and we verify it exists before setting it.
+Now, pull in generated paths from =site-paths.el=. Nix will generate this file
+automatically for us and different Emacs variables will be set to their Nix
+store derivation paths. Everything should work fine if you don’t have this
+available, though. If you are in Emacs and already have the IDE installed you
+can inspect this file by typing =C-h C-l site-paths=. It will look similar to a
+=settings.el= file where each line corresponds to a customizable variable.
+Unlike =settings.el=, each entry is path in the Nix store and we verify it
+exists before setting it.
 
 #+BEGIN_SRC emacs-lisp
 (load "site-paths" t)
@@ -580,7 +548,6 @@ set in the Emacs process.
 
 #+BEGIN_SRC emacs-lisp
   (set-envs
-   ;; '("EDITOR" "emacsclient -nw")
    '("EDITOR" "emacsclient")
    '("LANG" "en_US.UTF-8")
    '("LC_ALL" "en_US.UTF-8")
@@ -601,8 +568,9 @@ can use custom as you normally would in vanilla Emacs.
 
 ** Setup use-package
 
-[[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley to easily configure other Emacs
-packages. It’s quite useful and it will be used extensively in this project.
+[[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley allowing users to easily
+configure other Emacs packages. It’s quite useful and it will be used
+extensively in this project.
 
 Now to get =use-package= we will require =package.el= and initialize it if
 site-paths is not setup (meaning we’re outside the Nix expression). Because
@@ -623,7 +591,9 @@ we want to just assume everything is available.
                                           use-package-list--is-running)))))
 #+END_SRC
 
-First handle using =package.el=.
+First handle using =package.el=. We will do all of the work of bootstrapping
+here including running =package-initialize= and ensuring =use-package= and
+=delight= are installed.
 
 #+BEGIN_SRC emacs-lisp
 (when needs-package-init
@@ -641,8 +611,8 @@ Actually require =use-package=,
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
-    (require 'delight)
     (require 'use-package)
+    (require 'delight)
     (require 'bind-key)
 
     ;; remove once PR jwiegley/use-package#633 is merged
@@ -693,7 +663,7 @@ Actually require =use-package=,
 #+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
-Bascially, we’ll prevent use-package from running ‘ensure’ on anything.
+Basically, we’ll prevent use-package from running ‘ensure’ on anything.
 
 #+BEGIN_SRC emacs-lisp
 (eval-and-compile
@@ -716,150 +686,159 @@ What is overwritten can be seen with =M-x describe-personal-keybindings=. The
 goal is to overwrite as little as possible. When it is necessary to overwrite
 Emacs keybinds, documentation on why should be provided.
 
+First we include a library that provides some nice helper functions that will be
+used as key bindings.
+
 #+BEGIN_SRC emacs-lisp
-  (require 'bauer)
+(require 'bauer)
+#+END_SRC
 
-  (bind-keys
-   ("C-c C-u" . rename-uniquely)
-   ("C-x ~" . (lambda () (interactive) (find-file "~")))
-   ("C-x /" . (lambda () (interactive) (find-file "/")))
-   ("C-c C-o" . browse-url-at-point)
-   ("H-l" . browse-url-at-point)
-   ("C-x 5 3" . iconify-frame)
-   ("C-x 5 4" . toggle-frame-fullscreen)
-   ("s-SPC" . cycle-spacing)
-   ("C-c w w" . whitespace-mode)
-   ("<C-return>" . other-window)
-   ("s-o" . other-window)
-   ("C-z" . delete-other-windows)
-   ("M-g l" . goto-line)
-   ("<C-M-backspace>" . backward-kill-sexp)
-   ("C-x t" . toggle-truncate-lines)
-   ("C-x v H" . vc-region-history)
-   ("C-c SPC" . just-one-space)
-   ("C-c f" . flush-lines)
-   ("C-c o" . customize-option)
-   ("C-c O" . customize-group)
-   ("C-c F" . customize-face)
-   ("C-c q" . fill-region)
-   ("C-c s" . replace-string)
-   ("C-c u" . rename-uniquely)
-   ("C-c z" . clean-buffer-list)
-   ("C-c =" . count-matches)
-   ("C-c ;" . comment-or-uncomment-region)
-   ("M-+" . text-scale-increase)
-   ("M-_" . text-scale-decrease)
+Now we will call =bind-keys= and give it keys to bind and what function to run
+when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
+with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]].
 
-   ("H-c" . compile)
-   ("s-1" . other-frame)
-   ("<s-return>" . toggle-frame-fullscreen)
+#+BEGIN_SRC emacs-lisp
+    (bind-keys
+     ("C-c C-u" . rename-uniquely)
+     ("C-x ~" . (lambda () (interactive) (find-file "~")))
+     ("C-x /" . (lambda () (interactive) (find-file "/")))
+     ("C-c C-o" . browse-url-at-point)
+     ("H-l" . browse-url-at-point)
+     ("C-x 5 3" . iconify-frame)
+     ("C-x 5 4" . toggle-frame-fullscreen)
+     ("s-SPC" . cycle-spacing)
+     ("C-c w w" . whitespace-mode)
+     ("<C-return>" . other-window)
+     ("s-o" . other-window)
+     ("C-z" . delete-other-windows)
+     ("M-g l" . goto-line)
+     ("<C-M-backspace>" . backward-kill-sexp)
+     ("C-x t" . toggle-truncate-lines)
+     ("C-x v H" . vc-region-history)
+     ("C-c SPC" . just-one-space)
+     ("C-c f" . flush-lines)
+     ("C-c o" . customize-option)
+     ("C-c O" . customize-group)
+     ("C-c F" . customize-face)
+     ("C-c q" . fill-region)
+     ("C-c s" . replace-string)
+     ("C-c u" . rename-uniquely)
+     ("C-c z" . clean-buffer-list)
+     ("C-c =" . count-matches)
+     ("C-c ;" . comment-or-uncomment-region)
+     ("M-+" . text-scale-increase)
+     ("M-_" . text-scale-decrease)
 
-   ("s-C-<left>" . enlarge-window-horizontally)
-   ("s-C-<right>" . shrink-window-horizontally)
-   ("s-C-<down>" . shrink-window)
-   ("s-C-<up>" . enlarge-window)
+     ("H-c" . compile)
+     ("s-1" . other-frame)
+     ("<s-return>" . toggle-frame-fullscreen)
 
-   ("<S-s-up>" . shrink-window)
-   ("<S-s-down>" . enlarge-window)
+     ("s-C-<left>" . enlarge-window-horizontally)
+     ("s-C-<right>" . shrink-window-horizontally)
+     ("s-C-<down>" . shrink-window)
+     ("s-C-<up>" . enlarge-window)
 
-   ("<s-down>" . windmove-down)
-   ("<s-up>" . windmove-up)
-   ("<s-left>" . windmove-left)
-   ("<s-right>" . windmove-right)
+     ("<S-s-up>" . shrink-window)
+     ("<S-s-down>" . enlarge-window)
 
-   ("C-c [" . align-regexp)
-   ("M-s d" . find-grep-dired)
-   ("M-s F" . find-grep)
-   ("M-s G" . grep)
-   ("s-/" . comment-or-uncomment-region)
+     ("<s-down>" . windmove-down)
+     ("<s-up>" . windmove-up)
+     ("<s-left>" . windmove-left)
+     ("<s-right>" . windmove-right)
 
-   ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
-                                                    (quit-window))))
+     ("C-c [" . align-regexp)
+     ("M-s d" . find-grep-dired)
+     ("M-s F" . find-grep)
+     ("M-s G" . grep)
+     ("s-/" . comment-or-uncomment-region)
 
-   ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
-   ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
-   ("C-M-0" . (lambda () (interactive) (update-font-size 12 nil)))
+     ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
+                                                      (quit-window))))
 
-   ("M-n" . next-error)
-   ("M-p" . previous-error)
+     ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
+     ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
+     ("C-M-0" . (lambda () (interactive) (update-font-size 12 nil)))
 
-;;   ("s-r" . revert-buffer)
-;;   ("s-u" . revert-buffer)
+     ("M-n" . next-error)
+     ("M-p" . previous-error)
 
-;;   ("s-c m" . man)
-;;   ("s-c i" . imenu)
-;;   ("s-i" . imenu)
+  ;;   ("s-r" . revert-buffer)
+  ;;   ("s-u" . revert-buffer)
 
-   ("C-c m b" . eval-buffer)
-   ("C-c m e" . eval-last-sexp)
-   ("C-c m i" . eval-expression)
-   ("C-c m d" . eval-defun)
-   ("C-c m n" . eval-print-last-sexp)
-   ("C-c m r" . eval-region))
+    ("s-c m" . man)
+    ("s-c i" . imenu)
+    ("s-i" . imenu)
 
- (bind-keys
-   :package view
-   :map view-mode-map
-   ("n" . next-line)
-   ("p" . previous-line)
-   ("j" . next-line)
-   ("k" . previous-line)
-   ("l" . forward-char)
-   ("f" . forward-char)
-   ("b" . backward-char)
-   ("e" . end-of-line)
-   ("a" . beginning-of-line))
+     ("C-c m b" . eval-buffer)
+     ("C-c m e" . eval-last-sexp)
+     ("C-c m i" . eval-expression)
+     ("C-c m d" . eval-defun)
+     ("C-c m n" . eval-print-last-sexp)
+     ("C-c m r" . eval-region))
 
-  ;;(bind-keys
-   ;; :package help
-   ;; :map help-map
-   ;; ("C-v" . find-variable)
-   ;; ("C-k" . find-function-on-key)
-   ;; ("C-f" . find-function)
-   ;; ("C-l" . find-library)
-  ;;)
+   (bind-keys
+     :package view
+     :map view-mode-map
+     ("n" . next-line)
+     ("p" . previous-line)
+     ("j" . next-line)
+     ("k" . previous-line)
+     ("l" . forward-char)
+     ("f" . forward-char)
+     ("b" . backward-char)
+     ("e" . end-of-line)
+     ("a" . beginning-of-line))
 
-  (bind-keys
-   :package iso-transl
-   :map iso-transl-ctl-x-8-map
-   ("' /" . "′")
-   ("\" /" . "″")
-   ("\" (" . "“")
-   ("\" )" . "”")
-   ("' (" . "‘" )
-   ("' )" . "’" )
-   ("4 < -" . "←")
-   ("4 - >" . "→")
-   ("4 b" . "←")
-   ("4 f" . "→")
-   ("4 p" . "↑")
-   ("4 n" . "↓")
-   ("<down>" . "⇓")
-   ("<S-down>" . "↓")
-   ("<left>" . "⇐")
-   ("<S-left>" . "←")
-   ("<right>" . "⇒")
-   ("<S-right>" . "→")
-   ("<up>" . "⇑")
-   ("<S-up>" .  "↑")
-   ("," .  "…"))
+    ;;(bind-keys
+     ;; :package help
+     ;; :map help-map
+     ;; ("C-v" . find-variable)
+     ;; ("C-k" . find-function-on-key)
+     ;; ("C-f" . find-function)
+     ;; ("C-l" . find-library)
+    ;;)
 
-  (bind-keys
-   :prefix-map bauer-git
-   :prefix "s-g"
-   ("l" . magit-clone)
+    (bind-keys
+     :package iso-transl
+     :map iso-transl-ctl-x-8-map
+     ("' /" . "′")
+     ("\" /" . "″")
+     ("\" (" . "“")
+     ("\" )" . "”")
+     ("' (" . "‘" )
+     ("' )" . "’" )
+     ("4 < -" . "←")
+     ("4 - >" . "→")
+     ("4 b" . "←")
+     ("4 f" . "→")
+     ("4 p" . "↑")
+     ("4 n" . "↓")
+     ("<down>" . "⇓")
+     ("<S-down>" . "↓")
+     ("<left>" . "⇐")
+     ("<S-left>" . "←")
+     ("<right>" . "⇒")
+     ("<S-right>" . "→")
+     ("<up>" . "⇑")
+     ("<S-up>" .  "↑")
+     ("," .  "…"))
 
-   :prefix-map bauer-help
-   :prefix "s-h"
-   ("k" . describe-personal-keybindings)
-   ("p" . ffap))
+    (bind-keys
+     :prefix-map bauer-git
+     :prefix "s-g"
+     ("l" . magit-clone)
+
+     :prefix-map bauer-help
+     :prefix "s-h"
+     ("k" . describe-personal-keybindings)
+     ("p" . ffap))
 #+END_SRC
 
 ** Setup installer
 
-Provides installation and upgrading functionality. You can upgrade the IDE at
-any time by typing =M-x upgrade= from within Emacs. You may have to restart
-Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
+Installer provides installation and upgrading functionality. You can upgrade the
+IDE at any time by typing =M-x upgrade= from within Emacs. You may have to
+restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
 
 #+BEGIN_SRC emacs-lisp
 (require 'installer nil t)
@@ -867,14 +846,17 @@ Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] f
 
 ** Packages
 
-Alphabetical listing of all Emacs packages needed by the IDE.
+Each of these entries are =use-package= calls that will both install and load
+the package for us. The most important are listed first in “Essentials”.
+“Built-in" Emacs packages are also configured. Next comes the “Programming
+Language” modes. Finally, we list some miscellaneous modes.
 
-To resort, go to one of the package group headings and type =C-c ^ a=.
+This is an alphabetized listing of all Emacs packages needed by the IDE. To
+resort, go to one of the package group headings and type =C-c ^ a=.
 
 *** Essentials
 
-Some of these are included in Emacs, others aren’t. All of them are
-necessary for using Emacs as a full featured IDE.
+These are the best and most useful modes available to us in Emacs world.
 
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
@@ -896,7 +878,8 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 
 [[https://github.com/waymondo/apropospriate-theme][GitHub]]
 
-This is the theme I use. This cannot be deferred.
+This is the theme I use and it works well for this configuration. It is dark
+with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
 (use-package apropospriate-theme
@@ -907,9 +890,9 @@ This is the theme I use. This cannot be deferred.
 
 **** Company
 
-[[https://github.com/company-mode/company-mode][GitHub]]
-
 [[http://company-mode.github.io][Website]]
+
+Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 
 #+BEGIN_SRC emacs-lisp
 (load "company-autoloads" t t)
@@ -1004,6 +987,8 @@ This is the theme I use. This cannot be deferred.
 
 [[https://github.com/abo-abo/swiper][GitHub]]
 
+Counsel provides a better selection experience to the default Emacs.
+
 Counsel is only enabled on non-Windows systems. This is due to an issue in
 counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
 info.
@@ -1068,14 +1053,12 @@ info.
         )
   :commands (ivy-completing-read ivy-completion-in-region))
 #+END_SRC
-**** delight
-
-#+BEGIN_SRC emacs-lisp
-(use-package delight)
-#+END_SRC
 **** diff-hl
 
 [[https://github.com/dgutov/diff-hl][GitHub]]
+
+This mode provides indicators at the right fringe of the Emacs buffer. These
+indications show where a file has been edited from the last Git commit.
 
 #+BEGIN_SRC emacs-lisp
 (use-package diff-hl
@@ -1093,6 +1076,8 @@ info.
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
 
+This mode will try to 
+
 #+BEGIN_SRC emacs-lisp
 (use-package dtrt-indent
   :delight
@@ -1100,6 +1085,8 @@ info.
 #+END_SRC
 
 **** Emacs shell
+
+Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
@@ -1185,46 +1172,6 @@ info.
   (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-**** Emacs speaks statistics
-
-[[https://ess.r-project.org][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package ess-site
-  :ensure ess
-  :no-require
-  :interpreter (("Rscript" . r-mode)
-                ("r" . r-mode))
-  :mode (("\\.sp\\'"          . S-mode)
-         ("/R/.*\\.q\\'"      . R-mode)
-         ("\\.[qsS]\\'"       . S-mode)
-         ("\\.ssc\\'"         . S-mode)
-         ("\\.SSC\\'"         . S-mode)
-         ("\\.[rR]\\'"        . R-mode)
-         ("\\.[rR]nw\\'"      . Rnw-mode)
-         ("\\.[sS]nw\\'"      . Snw-mode)
-         ("\\.[rR]profile\\'" . R-mode)
-         ("NAMESPACE\\'"      . R-mode)
-         ("CITATION\\'"       . R-mode)
-         ("\\.omg\\'"         . omegahat-mode)
-         ("\\.hat\\'"         . omegahat-mode)
-         ("\\.lsp\\'"         . XLS-mode)
-         ("\\.do\\'"          . STA-mode)
-         ("\\.ado\\'"         . STA-mode)
-         ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-         ("\\.[Ss]t\\'"       . S-transcript-mode)
-         ("\\.Sout"           . S-transcript-mode)
-         ("\\.[Rr]out"        . R-transcript-mode)
-         ("\\.Rd\\'"          . Rd-mode)
-         ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
-         ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
-         ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-         ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-         ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-         ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
-         ))
-#+END_SRC
-
 **** ESUP
 
 [[https://github.com/jschaf/esup][GitHub]]
@@ -1252,9 +1199,10 @@ apropospriate, and flycheck are the biggest offenders.
 
 **** Flycheck
 
-[[https://github.com/flycheck/flycheck][Github]]
-
 [[http://www.flycheck.org/][Website]]
+
+Flycheck will annotate code with errors from the compiler or interpreter. It
+supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
@@ -1264,6 +1212,8 @@ apropospriate, and flycheck are the biggest offenders.
 **** Gnus
 
 [[http://www.gnus.org][Website]]
+
+Gnus is an infamous email client and news reader.
 
 #+BEGIN_SRC emacs-lisp
 (use-package gnus
@@ -1277,14 +1227,21 @@ apropospriate, and flycheck are the biggest offenders.
 
 [[https://github.com/chrisdone/god-mode][GitHub]]
 
+God Mode makes it easier to type Emacs shortcuts involving lots of modifier
+keys. Activate it by pressing Escape (Notice “God” at the bottom of the screen).
+You no longer have to press and hold the control key!
+
 Note that god-mode overwrites escape key. This can cause some issues for
 certain Emacs keybinds.
+
 #+BEGIN_SRC emacs-lisp
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)))
 #+END_SRC
 
 **** Hippie Expand
+
+Hippie provides dynamic expansions. Try it out by pressing =M-/=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package hippie-exp
@@ -1301,9 +1258,10 @@ certain Emacs keybinds.
 
 **** Magit
 
-[[https://github.com/magit/magit][GitHub]]
-
 [[https://magit.vc][Website]]
+
+Magit is a Git porcelain for Emacs. All of the features from the Git command
+line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
 (use-package git-commit
@@ -1363,6 +1321,8 @@ This is currently disabled.
 
 [[https://github.com/purcell/mmm-mode][GitHub]]
 
+MMM mode lets you edit multiple languages within one buffer.
+
 #+BEGIN_SRC emacs-lisp
 (use-package mmm-mode
   :commands mmm-mode
@@ -1373,6 +1333,8 @@ This is currently disabled.
 
 **** multiple-cursors
 [[https://github.com/magnars/multiple-cursors.el][GitHub]]
+
+Multiple cursors give you more cursors. It is bound to =C->= and =C-<=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
@@ -1390,6 +1352,9 @@ This is currently disabled.
 **** Org
 
 [[https://orgmode.org][Website]]
+
+Org mode is an impressive suite of text editing solutions. It gives you an
+outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
@@ -1514,22 +1479,11 @@ easymenu to make the "Projectile" modeline clickable.
     )
 #+END_SRC
 
-**** Proof General
-
-[[https://proofgeneral.github.io][Website]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package proof-site
-  :disabled (< emacs-major-version 25)
-  :ensure proofgeneral
-  :no-require
-  :if (not needs-package-init)
-  :commands (proofgeneral proof-mode proof-shell-mode))
-#+END_SRC
-
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
+
+Smart hungry delete automatically delete lots of whitespace in a row.
 
 #+BEGIN_SRC emacs-lisp
 (use-package smart-hungry-delete
@@ -1546,6 +1500,8 @@ easymenu to make the "Projectile" modeline clickable.
 **** Smartparens
 
 [[https://github.com/Fuco1/smartparens][Website]]
+
+Smartparens is helpful in closing parenthesis when editing Lisp code.
 
 #+BEGIN_SRC emacs-lisp
 (eval-and-compile
@@ -1667,12 +1623,19 @@ easymenu to make the "Projectile" modeline clickable.
 
 [[https://github.com/nflath/sudo-edit][GitHub]]
 
+Sudo-edit lets you open a file using sudo (it actually goes through TRAMP to
+achieve this).
+
 #+BEGIN_SRC emacs-lisp
 (use-package sudo-edit
   :bind (("C-c C-r" . sudo-edit)))
 #+END_SRC
 
 **** which-key
+
+Which-key will tell you what key bindings are available give a prefix. Test it
+out by pressing =C-x= and waiting a few seconds. Each key listed is bound to a
+function.
 
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
@@ -1889,6 +1852,7 @@ Setup these modes:
   :ensure nil
   :disabled (< emacs-major-version 25)
   :hook ((prog-mode . electric-quote-mode)
+         (text-mode . electric-quote-mode)
          (prog-mode . electric-indent-mode)
          (prog-mode . electric-layout-mode)))
 #+END_SRC
@@ -2223,6 +2187,59 @@ setup.
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
+
+**** Emacs speaks statistics
+
+[[https://ess.r-project.org][Website]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package ess-site
+  :ensure ess
+  :no-require
+  :interpreter (("Rscript" . r-mode)
+                ("r" . r-mode))
+  :mode (("\\.sp\\'"          . S-mode)
+         ("/R/.*\\.q\\'"      . R-mode)
+         ("\\.[qsS]\\'"       . S-mode)
+         ("\\.ssc\\'"         . S-mode)
+         ("\\.SSC\\'"         . S-mode)
+         ("\\.[rR]\\'"        . R-mode)
+         ("\\.[rR]nw\\'"      . Rnw-mode)
+         ("\\.[sS]nw\\'"      . Snw-mode)
+         ("\\.[rR]profile\\'" . R-mode)
+         ("NAMESPACE\\'"      . R-mode)
+         ("CITATION\\'"       . R-mode)
+         ("\\.omg\\'"         . omegahat-mode)
+         ("\\.hat\\'"         . omegahat-mode)
+         ("\\.lsp\\'"         . XLS-mode)
+         ("\\.do\\'"          . STA-mode)
+         ("\\.ado\\'"         . STA-mode)
+         ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
+         ("\\.[Ss]t\\'"       . S-transcript-mode)
+         ("\\.Sout"           . S-transcript-mode)
+         ("\\.[Rr]out"        . R-transcript-mode)
+         ("\\.Rd\\'"          . Rd-mode)
+         ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
+         ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
+         ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
+         ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+         ))
+#+END_SRC
+
+**** Proof General
+
+[[https://proofgeneral.github.io][Website]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package proof-site
+  :disabled (< emacs-major-version 25)
+  :ensure proofgeneral
+  :no-require
+  :if (not needs-package-init)
+  :commands (proofgeneral proof-mode proof-shell-mode))
+#+END_SRC
 
 **** TODO Agda
 **** C/C++
@@ -2663,6 +2680,13 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
+**** delight
+
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package delight)
+#+END_SRC
 **** browse-at-remote
 #+BEGIN_SRC emacs-lisp
 (use-package browse-at-remote
@@ -3319,9 +3343,9 @@ Some basic gitignore paths.
 :header-args: :tangle site-paths.el.in
 :END:
 
-This file provides site-specific paths. However, it must be substituted in
-Nix before we can actually run it in Emacs. To prevent Emacs from trying to
-run this, I’ve set the syntax to =text=.
+This file provides site-specific paths. However, it must be substituted in Nix
+before we can actually run it in Emacs. To prevent Emacs from trying to run
+this, I’ve set the syntax to =text=.
 
 #+BEGIN_SRC emacs-lisp
 (require 'set-defaults)
