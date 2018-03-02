@@ -19,7 +19,7 @@
 #+STARTUP: hideblocks indent align entitiespretty
 #+EXPORT_FILE_NAME: index
 #+KEYWORDS: dotfiles config ide emacs nix bauer
-#+HTML_HEAD: <link rel=stylesheet href="https://matthewbauer.us/style.css" />
+#+HTML_HEAD: <link rel="stylesheet" href="https://matthewbauer.us/style.css" />
 #+LINK_HOME: http://matthewbauer.us
 #+LINK_UP: http://matthewbauer.us/bauer/
 
@@ -769,9 +769,6 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c m n" . eval-print-last-sexp)
    ("C-c m r" . eval-region))
 
-  (defvar view-mode-map nil)
-  (defvar iso-transl-ctl-x-8-map nil)
-
   (bind-keys
    :package view
    :map view-mode-map
@@ -1378,20 +1375,13 @@ outliner but also much much more.
       :ensure nil
       :demand)
     (use-package org-static-blog
-      :demand)
-    (org-babel-do-load-languages 'org-babel-load-languages
-				 '((shell . t)
-				   (emacs-lisp . t)
-				   (dot . t)
-				   (latex . t))))
-
-  (use-package org-cliplink
-    :disabled
-    :bind (:map org-mode-map ("C-c M-l" . org-cliplink)))
-
-  (use-package toc-org
-    :disabled
-    :hook (org-mode . toc-org-enable))
+      :commands (org-static-blog-publish org-static-blog-publish-file))
+    ;; (org-babel-do-load-languages 'org-babel-load-languages
+    ;;			       '((shell . t)
+    ;;				 (emacs-lisp . t)
+    ;;				 (dot . t)
+    ;;				 (latex . t)))
+    )
 #+END_SRC
 **** Projectile
 [[https://github.com/bbatsov/projectile][GitHub]]
@@ -1838,9 +1828,9 @@ Setup these modes:
   (use-package electric
     :ensure nil
     :disabled (< emacs-major-version 25)
-    :hook ((prog-mode . electric-quote-mode)
-	   (text-mode . electric-quote-mode)
-	   (prog-mode . electric-indent-mode)
+    :hook ((prog-mode . electric-quote-local-mode)
+	   (text-mode . electric-quote-local-mode)
+	   (prog-mode . electric-indent-local-mode)
 	   (prog-mode . electric-layout-mode)))
 #+END_SRC
 
@@ -1852,8 +1842,8 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package elec-pair
     :ensure nil
-    :hook ((prog-mode . electric-pair-mode)
-	   (smartparens-mode . (lambda () (electric-pair-mode -1)))))
+    :hook ((prog-mode . electric-pair-local-mode)
+           (smartparens-mode . (lambda () (electric-pair-local-mode -1)))))
 #+END_SRC
 
 **** eww
@@ -2902,7 +2892,6 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO twittering-mode
-**** TODO undo-tree
 **** TODO undo-tree
 **** vkill
 
