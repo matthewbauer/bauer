@@ -1207,6 +1207,13 @@ Gnus is an infamous email client and news reader.
 	   (dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
 
+**** notmuch
+
+#+BEGIN_SRC emacs-lisp
+  (use-package notmuch
+    :bind ("s-m" . notmuch))
+#+END_SRC
+
 **** God Mode
 
 [[https://github.com/chrisdone/god-mode][GitHub]]
@@ -1238,6 +1245,16 @@ Hippie provides dynamic expansions. Try it out by pressing =M-/=.
 			 (append '(try-complete-lisp-symbol-partially
 				   try-complete-lisp-symbol)
 				 hippie-expand-try-functions-list)))))
+#+END_SRC
+
+**** helpful
+
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :disabled (< emacs-major-version 25)
+    :bind (([remap describe-function] . helpful-callable)
+	   ([remap describe-variable] . helpful-variable)
+	   ([remap describe-key] . helpful-key)))
 #+END_SRC
 
 **** Magit
@@ -1474,6 +1491,12 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 	   (text-mode . smart-hungry-delete-default-text-mode-hook)))
 #+END_SRC
 
+**** github-clone
+#+BEGIN_SRC emacs-lisp
+  (use-package github-clone
+    :if (locate-file "git" exec-path)
+    :bind ("C-c g c" . github-clone))
+#+END_SRC
 **** Smartparens
 
 [[https://github.com/Fuco1/smartparens][Website]]
@@ -1606,6 +1629,14 @@ achieve this).
 #+BEGIN_SRC emacs-lisp
   (use-package sudo-edit
     :bind (("C-c C-r" . sudo-edit)))
+#+END_SRC
+
+**** try
+[[https://github.com/larstvei/Try][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package try
+    :commands try)
 #+END_SRC
 
 **** which-key
@@ -2442,6 +2473,32 @@ Auctex provides some helpful tools for working with LaTeX.
 	   ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
+**** git-modes
+#+BEGIN_SRC emacs-lisp
+  (use-package gitattributes-mode
+    :mode (("/\\.gitattributes\\'" . gitattributes-mode)
+	   ("/info/attributes\\'" . gitattributes-mode)
+	   ("/git/attributes\\'" . gitattributes-mode)))
+  (use-package gitconfig-mode
+    :mode (("/\\.gitconfig\\'" . gitconfig-mode)
+	   ("/\\.git/config\\'" . gitconfig-mode)
+	   ("/modules/.*/config\\'" . gitconfig-mode)
+	   ("/git/config\\'" . gitconfig-mode)
+	   ("/\\.gitmodules\\'" . gitconfig-mode)
+	   ("/etc/gitconfig\\'" . gitconfig-mode)))
+  (use-package gitignore-mode
+    :mode (("/\\.gitignore\\'" . gitignore-mode)
+	   ("/info/exclude\\'" . gitignore-mode)
+	   ("/git/ignore\\'" . gitignore-mode)))
+#+END_SRC
+**** restclient
+
+#+BEGIN_SRC emacs-lisp
+  (use-package restclient
+    :mode (("\\.rest\\'" . restclient-mode)
+	   ("\\.restclient\\'" . restclient-mode)))
+#+END_SRC
+
 **** Nix
 
 #+BEGIN_SRC emacs-lisp
@@ -2475,6 +2532,16 @@ Auctex provides some helpful tools for working with LaTeX.
   :disabled
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
+	   ([remap move-end-of-line] . mwim-end-of-code-or-line)))
+#+END_SRC
+
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -2727,41 +2794,7 @@ Most of these are available in MELPA.
     (defalias 'caddr 'cl-caddr)
     :hook ((find-file . git-attr-linguist)))
 #+END_SRC
-**** git-modes
-#+BEGIN_SRC emacs-lisp
-  (use-package gitattributes-mode
-    :mode (("/\\.gitattributes\\'" . gitattributes-mode)
-	   ("/info/attributes\\'" . gitattributes-mode)
-	   ("/git/attributes\\'" . gitattributes-mode)))
-  (use-package gitconfig-mode
-    :mode (("/\\.gitconfig\\'" . gitconfig-mode)
-	   ("/\\.git/config\\'" . gitconfig-mode)
-	   ("/modules/.*/config\\'" . gitconfig-mode)
-	   ("/git/config\\'" . gitconfig-mode)
-	   ("/\\.gitmodules\\'" . gitconfig-mode)
-	   ("/etc/gitconfig\\'" . gitconfig-mode)))
-  (use-package gitignore-mode
-    :mode (("/\\.gitignore\\'" . gitignore-mode)
-	   ("/info/exclude\\'" . gitignore-mode)
-	   ("/git/ignore\\'" . gitignore-mode)))
-#+END_SRC
-**** github-clone
-#+BEGIN_SRC emacs-lisp
-  (use-package github-clone
-    :if (locate-file "git" exec-path)
-    :bind ("C-c g c" . github-clone))
-#+END_SRC
 **** TODO hackernews
-**** helpful
-
-#+BEGIN_SRC emacs-lisp
-  (use-package helpful
-    :disabled (< emacs-major-version 25)
-    :bind (([remap describe-function] . helpful-callable)
-	   ([remap describe-variable] . helpful-variable)
-	   ([remap describe-key] . helpful-key)))
-#+END_SRC
-
 **** hl-todo
 
 #+BEGIN_SRC emacs-lisp
@@ -2776,31 +2809,6 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO iedit
-**** multi-term
-
-#+BEGIN_SRC emacs-lisp
-  (use-package multi-term
-    :bind (("C-. t" . multi-term-next)
-	   ("C-. T" . multi-term)))
-#+END_SRC
-
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mwim
-    :bind (([remap move-beginning-of-line] . mwim-beginning-of-code-or-line)
-	   ([remap move-end-of-line] . mwim-end-of-code-or-line)))
-#+END_SRC
-
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package notmuch
-    :bind ("s-m" . notmuch))
-#+END_SRC
-
 **** page-break-lines
 
 #+BEGIN_SRC emacs-lisp
@@ -2854,14 +2862,6 @@ Most of these are available in MELPA.
 	    css-mode) . rainbow-mode))
 #+END_SRC
 
-**** restclient
-
-#+BEGIN_SRC emacs-lisp
-  (use-package restclient
-    :mode (("\\.rest\\'" . restclient-mode)
-	   ("\\.restclient\\'" . restclient-mode)))
-#+END_SRC
-
 **** shrink-whitespace
 
 #+BEGIN_SRC emacs-lisp
@@ -2883,14 +2883,6 @@ Most of these are available in MELPA.
 #+END_SRC
 
 **** TODO sx
-**** try
-[[https://github.com/larstvei/Try][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package try
-    :commands try)
-#+END_SRC
-
 **** TODO twittering-mode
 **** TODO undo-tree
 **** vkill
