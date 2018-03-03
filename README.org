@@ -1873,6 +1873,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package elec-pair
     :ensure nil
+    :disabled (< emacs-major-version 25)
     :hook ((prog-mode . electric-pair-local-mode)
            (smartparens-mode . (lambda () (electric-pair-local-mode -1)))))
 #+END_SRC
@@ -2772,6 +2773,7 @@ Most of these are available in MELPA.
 **** dumb-jump
 #+BEGIN_SRC emacs-lisp
 (use-package dumb-jump
+  :disabled (< emacs-major-version 25)
   :hook ((prog-mode . dumb-jump-mode)))
 #+END_SRC
 **** TODO emacs-gif-screencast
