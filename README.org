@@ -932,10 +932,10 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   (use-package company-jedi
     :commands company-jedi
     :hook (python-mode . (lambda ()
-			   (add-to-list 'company-backends 'company-jedi))))
+			   (add-to-list 'company-backends 'company-jedi nil t))))
   (use-package company-tern
-    :commands company-jedi
-    :init (add-to-list 'company-backends 'company-jedi))
+    :commands company-tern
+    :init (add-to-list 'company-backends 'company-tern))
   (use-package company-ghc
     :commands company-ghc
     :init (add-to-list 'company-backends 'company-ghc))
@@ -1129,7 +1129,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 			   (add-to-list 'company-backends
 					'(company-capf
 					  company-files
-					  esh-autosuggest)))))
+					  esh-autosuggest)) nil t)))
 #+END_SRC
 
 ***** esh-help
