@@ -12,7 +12,8 @@
 
 (defcustom nethack-executable "nethack"
   "Executable to use to run nethack."
-  :group 'nethack)
+  :group 'nethack
+  :type 'string)
 
 (defun nethack ()
   "Start nethack in terminal."
