@@ -513,6 +513,7 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
      (concat "\\(\\(\\`"
 	     "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
 	     "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
+   '(vc-make-backup-files t)
    '(view-read-only t)
    '(view-inhibit-help-message t)
    '(visible-bell t)
@@ -767,7 +768,32 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c m i" . eval-expression)
    ("C-c m d" . eval-defun)
    ("C-c m n" . eval-print-last-sexp)
-   ("C-c m r" . eval-region))
+   ("C-c m r" . eval-region)
+
+   ("C-x r q" . save-buffers-kill-terminal)
+   ("C-x C-c" . delete-frame)
+   ("C-c n" . cleanup-buffer)
+   ("C-c C-n" . cleanup-buffer)
+   ("C-c C-<return>" . delete-blank-lines)
+   ("C-<f10>" . menu-bar-mode)
+   ("C-x M-g" . browse-url-at-point)
+
+   ("C-s" . isearch-forward-use-region)
+   ("C-r" . isearch-backward-use-region)
+   ("C-S-s" . isearch-forward)
+   ("C-S-r" . isearch-backward)
+
+   ("C-c d" . crux-duplicate-current-line-or-region)
+   ("C-\"" . toggle-quotes)
+   ("M-s l" . sort-lines)
+   ("C-+" . change-number-at-point)
+   ("C-?" . substract-number-at-point)
+   ("C-x C-y" . browse-kill-ring)
+   ("C-x M-j" . (lambda () (interactive) (dired-jump 1)))
+
+   ("M-s m" . multi-occur)
+   ("M-s M" . multi-occur-in-matching-buffers)
+   ("M-s f" . find-name-dired))
 
   (bind-keys
    :package view
@@ -816,6 +842,11 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    :prefix "s-h"
    ("k" . describe-personal-keybindings)
    ("p" . ffap))
+
+  (bind-keys
+   :package isearch
+   :map isearch-mode-map
+   ("C-o" . isearch-mode-map))
 #+END_SRC
 
 ** Setup installer
@@ -1006,6 +1037,7 @@ info.
 	    ("C-x l" . counsel-locate)
 	    ("M-y" . counsel-yank-pop)
 	    ("C-c i 8" . counsel-unicode-char)
+	    ("C-x M-f" . counsel-find-file)
 
 	    :map help-map
 	    ("C-v" . counsel-find-symbol)
@@ -2039,6 +2071,7 @@ setup.
     :hook ((java-mode . subword-mode)))
 #+END_SRC
 
+**** TODO server
 **** term
 
 #+BEGIN_SRC emacs-lisp
@@ -2055,7 +2088,7 @@ setup.
     (autoload 'tramp-dissect-file-name "tramp")
     (defun my-term (&optional path name)
       (interactive)
-      (set-buffer (make-term "my-term" "zsh"))
+      (set-buffer (make-term "my-term" explicit-shell-file-name))
       (term-mode)
       (term-char-mode)
       (term-set-escape-char ?\C-x)
