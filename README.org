@@ -1454,75 +1454,76 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
     (autoload 'sp-local-pair "smartparens")
     (autoload 'sp-local-tag  "smartparens"))
   (use-package smartparens
-    :bind (:package smartparens
-		    :map smartparens-mode-map
-		    ("C-M-k" . sp-kill-sexp)
-		    ("C-M-f" . sp-forward-sexp)
-		    ("C-M-b" . sp-backward-sexp)
-		    ("C-M-n" . sp-up-sexp)
-		    ("C-M-d" . sp-down-sexp)
-		    ("C-M-u" . sp-backward-up-sexp)
-		    ("C-M-p" . sp-backward-down-sexp)
-		    ("C-M-w" . sp-copy-sexp)
-		    ("M-s" . sp-splice-sexp)
-		    ("C-}" . sp-forward-barf-sexp)
-		    ("C-{" . sp-backward-barf-sexp)
-		    ("M-S" . sp-split-sexp)
-		    ("M-J" . sp-join-sexp)
-		    ("C-M-t" . sp-transpose-sexp)
-		    ("C-M-<right>" . sp-forward-sexp)
-		    ("C-M-<left>" . sp-backward-sexp)
-		    ("M-F" . sp-forward-sexp)
-		    ("M-B" . sp-backward-sexp)
-		    ("C-M-a" . sp-backward-down-sexp)
-		    ("C-S-d" . sp-beginning-of-sexp)
-		    ("C-S-a" . sp-end-of-sexp)
-		    ("C-M-e" . sp-up-sexp)
-		    ("C-(" . sp-forward-barf-sexp)
-		    ("C-)" . sp-forward-slurp-sexp)
-		    ("M-(" . sp-forward-barf-sexp)
-		    ("M-)" . sp-forward-slurp-sexp)
-		    ("M-D" . sp-splice-sexp)
-		    ("C-<down>" . sp-down-sexp)
-		    ("C-<up>"	. sp-up-sexp)
-		    ("M-<down>" . sp-splice-sexp-killing-forward)
-		    ("M-<up>"	. sp-splice-sexp-killing-backward)
-		    ("C-<right>" . sp-forward-slurp-sexp)
-		    ("M-<right>" . sp-forward-barf-sexp)
-		    ("C-<left>"	 . sp-backward-slurp-sexp)
-		    ("M-<left>"	 . sp-backward-barf-sexp)
-		    ("C-k"   . sp-kill-hybrid-sexp)
-		    ("M-k"   . sp-backward-kill-sexp)
-		    ("M-<backspace>" . backward-kill-word)
-		    ("C-<backspace>" . sp-backward-kill-word)
-		    ([remap sp-backward-kill-word] . backward-kill-word)
-		    ("M-[" . sp-backward-unwrap-sexp)
-		    ("M-]" . sp-unwrap-sexp)
-		    ("C-x C-t" . sp-transpose-hybrid-sexp)
-		    :package smartparens
-		    :map smartparens-strict-mode-map
-		    ([remap c-electric-backspace] . sp-backward-delete-char)
-		    :map emacs-lisp-mode-map
-		    (";" . sp-comment))
+    ;; :bind (:package smartparens
+    ;;		  :map smartparens-mode-map
+    ;;		  ("C-M-k" . sp-kill-sexp)
+    ;;		  ("C-M-f" . sp-forward-sexp)
+    ;;		  ("C-M-b" . sp-backward-sexp)
+    ;;		  ("C-M-n" . sp-up-sexp)
+    ;;		  ("C-M-d" . sp-down-sexp)
+    ;;		  ("C-M-u" . sp-backward-up-sexp)
+    ;;		  ("C-M-p" . sp-backward-down-sexp)
+    ;;		  ("C-M-w" . sp-copy-sexp)
+    ;;		  ("M-s" . sp-splice-sexp)
+    ;;		  ("C-}" . sp-forward-barf-sexp)
+    ;;		  ("C-{" . sp-backward-barf-sexp)
+    ;;		  ("M-S" . sp-split-sexp)
+    ;;		  ("M-J" . sp-join-sexp)
+    ;;		  ("C-M-t" . sp-transpose-sexp)
+    ;;		  ("C-M-<right>" . sp-forward-sexp)
+    ;;		  ("C-M-<left>" . sp-backward-sexp)
+    ;;		  ("M-F" . sp-forward-sexp)
+    ;;		  ("M-B" . sp-backward-sexp)
+    ;;		  ("C-M-a" . sp-backward-down-sexp)
+    ;;		  ("C-S-d" . sp-beginning-of-sexp)
+    ;;		  ("C-S-a" . sp-end-of-sexp)
+    ;;		  ("C-M-e" . sp-up-sexp)
+    ;;		  ("C-(" . sp-forward-barf-sexp)
+    ;;		  ("C-)" . sp-forward-slurp-sexp)
+    ;;		  ("M-(" . sp-forward-barf-sexp)
+    ;;		  ("M-)" . sp-forward-slurp-sexp)
+    ;;		  ("M-D" . sp-splice-sexp)
+    ;;		  ("C-<down>" . sp-down-sexp)
+    ;;		  ("C-<up>"	. sp-up-sexp)
+    ;;		  ("M-<down>" . sp-splice-sexp-killing-forward)
+    ;;		  ("M-<up>"	. sp-splice-sexp-killing-backward)
+    ;;		  ("C-<right>" . sp-forward-slurp-sexp)
+    ;;		  ("M-<right>" . sp-forward-barf-sexp)
+    ;;		  ("C-<left>"	 . sp-backward-slurp-sexp)
+    ;;		  ("M-<left>"	 . sp-backward-barf-sexp)
+    ;;		  ("C-k"   . sp-kill-hybrid-sexp)
+    ;;		  ("M-k"   . sp-backward-kill-sexp)
+    ;;		  ("M-<backspace>" . backward-kill-word)
+    ;;		  ("C-<backspace>" . sp-backward-kill-word)
+    ;;		  ([remap sp-backward-kill-word] . backward-kill-word)
+    ;;		  ("M-[" . sp-backward-unwrap-sexp)
+    ;;		  ("M-]" . sp-unwrap-sexp)
+    ;;		  ("C-x C-t" . sp-transpose-hybrid-sexp)
+    ;;		  :package smartparens
+    ;;		  :map smartparens-strict-mode-map
+    ;;		  ([remap c-electric-backspace] . sp-backward-delete-char)
+    ;;		  :map emacs-lisp-mode-map
+    ;;		  (";" . sp-comment))
     :hook (((emacs-lisp-mode
-	     inferior-emacs-lisp-mode
-	     ielm-mode
-	     lisp-mode
-	     inferior-lisp-mode
-	     lisp-interaction-mode
-	     slime-repl-mode
-	     eval-expression-minibuffer-setup) . smartparens-strict-mode)
-	   ((emacs-lisp-mode
-	     inferior-emacs-lisp-mode
-	     ielm-mode
-	     lisp-mode
-	     inferior-lisp-mode
-	     lisp-interaction-mode
-	     slime-repl-mode
-	     org-mode) . show-smartparens-mode)
-	   ((web-mode
-	     nxml-mode
-	     html-mode) . smartparens-mode))
+             inferior-emacs-lisp-mode
+             ielm-mode
+             lisp-mode
+             inferior-lisp-mode
+             lisp-interaction-mode
+             slime-repl-mode
+             eval-expression-minibuffer-setup) . smartparens-strict-mode)
+           ((emacs-lisp-mode
+             inferior-emacs-lisp-mode
+             ielm-mode
+             lisp-mode
+             inferior-lisp-mode
+             lisp-interaction-mode
+             slime-repl-mode
+             org-mode) . show-smartparens-mode)
+           ((web-mode
+             nxml-mode
+             html-mode) . smartparens-mode)
+           (smartparens-mode . sp-use-paredit-bindings))
     :config
     (use-package smartparens-html
       :ensure nil)
@@ -1531,22 +1532,22 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
 
     (sp-with-modes 'org-mode
       (sp-local-pair "*" "*"
-		     :actions '(insert wrap)
-		     :unless '(sp-point-after-word-p sp-point-at-bol-p)
-		     :wrap "C-*" :skip-match 'sp--org-skip-asterisk)
+                     :actions '(insert wrap)
+                     :unless '(sp-point-after-word-p sp-point-at-bol-p)
+                     :wrap "C-*" :skip-match 'sp--org-skip-asterisk)
       (sp-local-pair "_" "_" :unless '(sp-point-after-word-p) :wrap "C-_")
       (sp-local-pair "/" "/" :unless '(sp-point-after-word-p)
-		     :post-handlers '(("[d1]" "SPC")))
+                     :post-handlers '(("[d1]" "SPC")))
       (sp-local-pair "~" "~" :unless '(sp-point-after-word-p)
-		     :post-handlers '(("[d1]" "SPC")))
+                     :post-handlers '(("[d1]" "SPC")))
       (sp-local-pair "=" "=" :unless '(sp-point-after-word-p)
-		     :post-handlers '(("[d1]" "SPC")))
+                     :post-handlers '(("[d1]" "SPC")))
       (sp-local-pair "«" "»"))
 
     (sp-with-modes '(java-mode c++-mode)
       (sp-local-pair "{" nil :post-handlers '(("||\n[i]" "RET")))
       (sp-local-pair "/*" "*/" :post-handlers '((" | " "SPC")
-						("* ||\n[i]" "RET"))))
+                                                ("* ||\n[i]" "RET"))))
 
     (sp-with-modes '(markdown-mode gfm-mode rst-mode)
       (sp-local-pair "*" "*" :bind "C-*")
