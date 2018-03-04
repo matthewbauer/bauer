@@ -19,10 +19,12 @@
 
 (defcustom dired-column-direction 'right
   "Direction to open columns toward."
+  :type '(choice (const right) (const left) (const above) (const below))
   :group 'dired-column)
 
 (defcustom dired-column-width 40
   "Width of each dired column."
+  :type 'integer
   :group 'dired-column)
 
 (defun dired-column-get-furthest-dir-window (direction window)
