@@ -31,16 +31,19 @@
 
 (defcustom installer-repo-url "https://github.com/matthewbauer/bauer"
   "URL to clone with git."
-  :group 'installer)
+  :group 'installer
+  :type 'string)
 
 (defcustom installer-nix-url "https://nixos.org/nix/install"
   "URL to download Nix installer from."
-  :group 'installer)
+  :group 'installer
+  :type 'string)
 
 (defcustom installer-repo-dir
   (expand-file-name ".local/share/bauer" (getenv "HOME"))
   "Location of repo config."
-  :group 'installer)
+  :group 'installer
+  :type 'string)
 
 (defcustom installer-auto-restart nil
   "Whether to auto restart Emacs on successful install."
