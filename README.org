@@ -8,7 +8,7 @@
 #+OPTIONS: arch:nil author:t broken-links:nil
 #+OPTIONS: creator:t date:t email:t inline:nil num:nil pri:t
 #+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
-#+PROPERTY: header-args :cache yes
+#+PROPERTY: header-args :cache yes :comments link
 #+PROPERTY: header-args:emacs-lisp :results output silent
 #+LATEX_HEADER: \usepackage{parskip}
 #+LATEX_HEADER: \usepackage{inconsolata}
@@ -1999,39 +1999,35 @@ setup.
     :hook (after-init . save-place-mode))
 #+END_SRC
 
+**** simple
+#+BEGIN_SRC
+(use-package simple
+   :ensure nil
+   :demand
+   :commands (column-number-mode auto-fill-mode)
+   :bind
+   (("C-`" . list-processes)
+    :map minibuffer-local-map
+    ("<escape>"  . abort-recursive-edit)
+    ("M-TAB"     . previous-complete-history-element)
+    ("<M-S-tab>" . next-complete-history-element))
+   :hook ((text-mode . visual-line-mode))
+   :config (column-number-mode))
+#+END_SRC
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package sh-script
-    :ensure nil
-    :commands shell-command
-    :mode (("\\.*shellrc$" . sh-mode)
-	   ("\\.*shell_profile" . sh-mode)
-	   ("\\.zsh\\'" . sh-mode))
-    :bind (:package sh-script
-		    :map sh-mode-map
-		    ("C-x C-e" . shell-command-at-point)))
-#+END_SRC
-
-**** simple
-
-#+BEGIN_SRC emacs-lisp
-  (use-package sh-script
-    :ensure nil
-    :commands shell-command
-    :preface
-    (defun shell-command-at-point ()
-      (interactive)
-      (let ((start-point (save-excursion
-			   (beginning-of-line)
-			   (point))))
-	(shell-command (buffer-substring start-point (point)))))
-    :mode (("\\.*shellrc$" . sh-mode)
-	   ("\\.*shell_profile" . sh-mode)
-	   ("\\.zsh\\'" . sh-mode))
-    :bind (:package sh-script
-		    :map sh-mode-map
-		    ("C-x C-e" . shell-command-at-point)))
+(use-package shell
+   :ensure nil
+   :bind ("C-c C-s" . shell)
+   :hook ((shell-mode . ansi-color-for-comint-mode-on)
+          (shell-mode . dirtrack-mode)
+          (shell-mode . pcomplete-shell-setup)
+          ;; (shell-mode . use-histfile)
+          )
+   :preface
+   (defun use-histfile ()
+     (turn-on-comint-history (getenv "HISTFILE"))))
 #+END_SRC
 
 **** subword
@@ -4235,5 +4231,4 @@ update.sh linguist-generated=true
 # Local Variables:
 # mode: org
 # fill-column: 80
-# indent-tabs-mode: nil
 # End:
