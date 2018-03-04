@@ -1359,10 +1359,7 @@ outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    ;; just use builtin org-mode for now
-    ;; versions are mismatched so can cause a conflict
     :ensure org-plus-contrib
-    ;; :ensure nil
     :hook ((message-mode . turn-on-orgstruct++)
 	   (org-mode . (lambda ()
 			 (add-hook 'completion-at-point-functions
@@ -1390,17 +1387,10 @@ outliner but also much much more.
       :demand)
     (use-package ox-md
       :ensure nil
-      :demand)
-    (use-package org-static-blog
-      :commands (org-static-blog-publish org-static-blog-publish-file))
-    ;; (org-babel-do-load-languages 'org-babel-load-languages
-    ;;			       '((shell . t)
-    ;;				 (emacs-lisp . t)
-    ;;				 (dot . t)
-    ;;				 (latex . t)))
-    )
+      :demand))
 #+END_SRC
 **** Projectile
+
 [[https://github.com/bbatsov/projectile][GitHub]]
 
 Setup projectile and link it with some other packages. This also adds an
@@ -1425,52 +1415,7 @@ easymenu to make the "Projectile" modeline clickable.
       (counsel-rg "" (projectile-project-root)))
     :demand
     :config
-    ;; projectile is global
-    ;; needed to recognize project files
-    (projectile-mode)
-
-    (easy-menu-define projectile-menu projectile-mode-map "Projectile"
-      '("Projectile"
-	:active nil
-	["Find file" projectile-find-file]
-	["Find file in known projects" projectile-find-file-in-known-projects]
-	["Find test file" projectile-find-test-file]
-	["Find directory" projectile-find-dir]
-	["Find file in directory" projectile-find-file-in-directory]
-	["Find other file" projectile-find-other-file]
-	["Switch to buffer" projectile-switch-to-buffer]
-	["Jump between implementation file and test file"
-	 projectile-toggle-between-implementation-and-test]
-	["Kill project buffers" projectile-kill-buffers]
-	["Recent files" projectile-recentf]
-	["Edit .dir-locals.el" projectile-edit-dir-locals]
-	"--"
-	["Open project in dired" projectile-dired]
-	["Switch to project" projectile-switch-project]
-	["Switch to open project" projectile-switch-open-project]
-	["Discover projects in directory"
-	 projectile-discover-projects-in-directory]
-	["Search in project (grep)" projectile-grep]
-	["Search in project (ag)" projectile-ag]
-	["Replace in project" projectile-replace]
-	["Multi-occur in project" projectile-multi-occur]
-	["Browse dirty projects" projectile-browse-dirty-projects]
-	"--"
-	["Run shell" projectile-run-shell]
-	["Run eshell" projectile-run-eshell]
-	["Run term" projectile-run-term]
-	"--"
-	["Cache current file" projectile-cache-current-file]
-	["Invalidate cache" projectile-invalidate-cache]
-	["Regenerate [e|g]tags" projectile-regenerate-tags]
-	"--"
-	["Compile project" projectile-compile-project]
-	["Test project" projectile-test-project]
-	["Run project" projectile-run-project]
-	"--"
-	["Project info" projectile-project-info]
-	["About" projectile-version]))
-    )
+    (projectile-mode))
 #+END_SRC
 
 **** smart-hungry-delete
@@ -1666,6 +1611,7 @@ Get color/ansi codes in compilation mode.
     :ensure nil
     :hook (compilation-filter . colorize-compilation-buffer)
     :preface
+    (autoload 'ansi-color-apply-on-region "ansi-color")
     (defun colorize-compilation-buffer ()
       (let ((inhibit-read-only t))
 	(ansi-color-apply-on-region (point-min) (point-max)))))
@@ -1708,15 +1654,9 @@ Get color/ansi codes in compilation mode.
 #+BEGIN_SRC emacs-lisp
   (use-package comint
     :ensure nil
-    ;; :bind
-    ;; (:map comint-mode-map
-    ;;       ("C-r"       . comint-history-isearch-backward-regexp)
-    ;;       ("s-k"       . comint-clear-buffer)
-    ;;       ("M-TAB"     . comint-previous-matching-input-from-input)
-    ;;       ("<M-S-tab>" . comint-next-matching-input-from-input))
-    ;; :hook ((kill-buffer . comint-write-input-ring)
-    ;;     (kill-buffer . save-history))
     :preface
+    (autoload 'comint-write-input-ring "comint")
+    (autoload 'comint-read-input-ring "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
       (comint-read-input-ring 'silent))
@@ -1734,6 +1674,7 @@ Get color/ansi codes in compilation mode.
 	   :map compilation-mode-map
 	   ("o" . compile-goto-error))
     :preface
+    (autoload 'ansi-color-process-output "ansi-color")
     (defun show-compilation ()
       (interactive)
       (let ((compile-buf
@@ -1768,6 +1709,7 @@ Get color/ansi codes in compilation mode.
   (use-package dired
     :ensure nil
     :preface
+    (autoload 'dired-get-filename "dired")
     (defun dired-run-command (&optional filename)
       "Run file at point in a new buffer."
       (interactive)
@@ -1875,7 +1817,7 @@ setup.
     :ensure nil
     :disabled (< emacs-major-version 25)
     :hook ((prog-mode . electric-pair-local-mode)
-           (smartparens-mode . (lambda () (electric-pair-local-mode -1)))))
+	   (smartparens-mode . (lambda () (electric-pair-local-mode -1)))))
 #+END_SRC
 
 **** eww
@@ -2060,17 +2002,15 @@ setup.
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package shell
+  (use-package sh-script
     :ensure nil
-    :bind ("C-c C-s" . shell)
-    :hook ((shell-mode . ansi-color-for-comint-mode-on)
-	   (shell-mode . dirtrack-mode)
-	   (shell-mode . pcomplete-shell-setup)
-	   ;; (shell-mode . use-histfile)
-	   )
-    :preface
-    (defun use-histfile ()
-      (turn-on-comint-history (getenv "HISTFILE"))))
+    :commands shell-command
+    :mode (("\\.*shellrc$" . sh-mode)
+	   ("\\.*shell_profile" . sh-mode)
+	   ("\\.zsh\\'" . sh-mode))
+    :bind (:package sh-script
+		    :map sh-mode-map
+		    ("C-x C-e" . shell-command-at-point)))
 #+END_SRC
 
 **** simple
@@ -2220,6 +2160,7 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package irony
     :preface
+    (autoload 'file-remote-p "files")
     (defun irony-mode-disable-remote ()
       "Disabled irony in remote buffers."
       (when (and buffer-file-name (file-remote-p buffer-file-name))
@@ -2772,9 +2713,9 @@ Most of these are available in MELPA.
 #+END_SRC
 **** dumb-jump
 #+BEGIN_SRC emacs-lisp
-(use-package dumb-jump
-  :disabled (< emacs-major-version 25)
-  :hook ((prog-mode . dumb-jump-mode)))
+  (use-package dumb-jump
+    :disabled (< emacs-major-version 25)
+    :hook ((prog-mode . dumb-jump-mode)))
 #+END_SRC
 **** TODO emacs-gif-screencast
 **** TODO epresent
@@ -3319,7 +3260,7 @@ Some basic gitignore paths.
 * Bootstrapping
 ** =site-paths.el.in=
 :PROPERTIES:
-:header-args: :tangle site-paths.el.in
+:header-args: :tangle site-paths.el.in :comments link
 :END:
 
 This file provides site-specific paths. However, it must be substituted in Nix
