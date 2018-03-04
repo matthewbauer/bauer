@@ -9,7 +9,7 @@ import (runCommand "README" { buildInputs = [ emacs ]; } ''
   cp -r ${./site-lisp} site-lisp
   cp ${./README.org} README.org
   emacs --batch --quick \
-        -l ob-tangle \
-        --eval "(org-babel-tangle-file \"README.org\")"
+	-l ob-tangle \
+	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
 '') {inherit nixpkgs';}

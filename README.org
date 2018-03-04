@@ -457,11 +457,11 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
    ;; '(same-window-buffer-names '("*eshell*"
-   ;;                              "*shell*"
-   ;;                              "*mail*"
-   ;;                              "*inferior-lisp*"
-   ;;                              "*ielm*"
-   ;;                              "*scheme*"))
+   ;;				   "*shell*"
+   ;;				   "*mail*"
+   ;;				   "*inferior-lisp*"
+   ;;				   "*ielm*"
+   ;;				   "*scheme*"))
    '(save-abbrevs 'silently)
    '(save-interprogram-paste-before-kill t)
    '(savehist-additional-variables '(search-ring
@@ -630,13 +630,13 @@ Actually require =use-package=,
 	      (setq args* (nconc args* (list x)))
 	      (setq arg (cdr arg)))
 	     ;; KEYWORD
-	     ;;   :map KEYMAP
-	     ;;   :prefix-docstring STRING
-	     ;;   :prefix-map SYMBOL
-	     ;;   :prefix STRING
-	     ;;   :filter SEXP
-	     ;;   :menu-name STRING
-	     ;;   :package SYMBOL
+	     ;;	  :map KEYMAP
+	     ;;	  :prefix-docstring STRING
+	     ;;	  :prefix-map SYMBOL
+	     ;;	  :prefix STRING
+	     ;;	  :filter SEXP
+	     ;;	  :menu-name STRING
+	     ;;	  :package SYMBOL
 	     ((or (and (eq x :map) (symbolp (cadr arg)))
 		  (and (eq x :prefix) (stringp (cadr arg)))
 		  (and (eq x :prefix-map) (symbolp (cadr arg)))
@@ -804,7 +804,7 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("<right>" . "⇒")
    ("<S-right>" . "→")
    ("<up>" . "⇑")
-   ("<S-up>" .  "↑")
+   ("<S-up>" .	"↑")
    ("," .  "…"))
 
   (bind-keys
@@ -991,7 +991,7 @@ info.
 	    ([remap find-library] . counsel-find-library)
 	    ;; ([remap describe-function] . counsel-describe-function)
 	    ;; ([remap describe-variable] . counsel-describe-variable)
-	    ([remap describe-bindings]  . counsel-descbinds)
+	    ([remap describe-bindings]	. counsel-descbinds)
 	    ([remap describe-face]  . counsel-describe-faces)
 	    ([remap list-faces-display] . counsel-faces)
 	    ([remap imenu] . counsel-imenu)
@@ -1306,7 +1306,7 @@ line are available in an intuitive Emacs buffer.
 	   ("C-o" . magit-dired-other-window)))
 #+END_SRC
 
-***** magithub                                                 :noexport:
+***** magithub						       :noexport:
 :PROPERTIES:
 :header-args: :tangle no
 :END:
@@ -1345,8 +1345,8 @@ Multiple cursors give you more cursors. It is bound to =C->= and =C-<=.
      ("C->" . mc/mark-next-like-this)
      ("C-<" . mc/mark-previous-like-this)
      ("M-<mouse-1>" . mc/add-cursor-on-click)
-     ("C-c C-<"     . mc/mark-all-like-this)
-     ("C-!"         . mc/mark-next-symbol-like-this)
+     ("C-c C-<"	    . mc/mark-all-like-this)
+     ("C-!"	    . mc/mark-next-symbol-like-this)
      ("C-S-c C-S-c" . mc/edit-lines)))
 #+END_SRC
 
@@ -1484,13 +1484,13 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
 		    ("M-)" . sp-forward-slurp-sexp)
 		    ("M-D" . sp-splice-sexp)
 		    ("C-<down>" . sp-down-sexp)
-		    ("C-<up>"   . sp-up-sexp)
+		    ("C-<up>"	. sp-up-sexp)
 		    ("M-<down>" . sp-splice-sexp-killing-forward)
-		    ("M-<up>"   . sp-splice-sexp-killing-backward)
+		    ("M-<up>"	. sp-splice-sexp-killing-backward)
 		    ("C-<right>" . sp-forward-slurp-sexp)
 		    ("M-<right>" . sp-forward-barf-sexp)
-		    ("C-<left>"  . sp-backward-slurp-sexp)
-		    ("M-<left>"  . sp-backward-barf-sexp)
+		    ("C-<left>"	 . sp-backward-slurp-sexp)
+		    ("M-<left>"	 . sp-backward-barf-sexp)
 		    ("C-k"   . sp-kill-hybrid-sexp)
 		    ("M-k"   . sp-backward-kill-sexp)
 		    ("M-<backspace>" . backward-kill-word)
@@ -1552,7 +1552,7 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
       (sp-local-pair "*" "*" :bind "C-*")
       (sp-local-tag "2" "**" "**")
       (sp-local-tag "s" "```scheme" "```")
-      (sp-local-tag "<"  "<_>" "</_>" :transform 'sp-match-sgml-tags))
+      (sp-local-tag "<"	 "<_>" "</_>" :transform 'sp-match-sgml-tags))
 
     (sp-local-pair 'emacs-lisp-mode "`" nil :when '(sp-in-string-p))
     (sp-local-pair 'clojure-mode "`" "`" :when '(sp-in-string-p))
@@ -2008,8 +2008,8 @@ setup.
    :bind
    (("C-`" . list-processes)
     :map minibuffer-local-map
-    ("<escape>"  . abort-recursive-edit)
-    ("M-TAB"     . previous-complete-history-element)
+    ("<escape>"	 . abort-recursive-edit)
+    ("M-TAB"	 . previous-complete-history-element)
     ("<M-S-tab>" . next-complete-history-element))
    :hook ((text-mode . visual-line-mode))
    :config (column-number-mode))
@@ -2021,10 +2021,10 @@ setup.
    :ensure nil
    :bind ("C-c C-s" . shell)
    :hook ((shell-mode . ansi-color-for-comint-mode-on)
-          (shell-mode . dirtrack-mode)
-          (shell-mode . pcomplete-shell-setup)
-          ;; (shell-mode . use-histfile)
-          )
+	  (shell-mode . dirtrack-mode)
+	  (shell-mode . pcomplete-shell-setup)
+	  ;; (shell-mode . use-histfile)
+	  )
    :preface
    (defun use-histfile ()
      (turn-on-comint-history (getenv "HISTFILE"))))
@@ -2222,33 +2222,33 @@ packages (for completion, syntax checking, etc.)
     :no-require
     :interpreter (("Rscript" . r-mode)
 		  ("r" . r-mode))
-    :mode (("\\.sp\\'"          . S-mode)
-	   ("/R/.*\\.q\\'"      . R-mode)
-	   ("\\.[qsS]\\'"       . S-mode)
-	   ("\\.ssc\\'"         . S-mode)
-	   ("\\.SSC\\'"         . S-mode)
-	   ("\\.[rR]\\'"        . R-mode)
-	   ("\\.[rR]nw\\'"      . Rnw-mode)
-	   ("\\.[sS]nw\\'"      . Snw-mode)
+    :mode (("\\.sp\\'"		. S-mode)
+	   ("/R/.*\\.q\\'"	. R-mode)
+	   ("\\.[qsS]\\'"	. S-mode)
+	   ("\\.ssc\\'"		. S-mode)
+	   ("\\.SSC\\'"		. S-mode)
+	   ("\\.[rR]\\'"	. R-mode)
+	   ("\\.[rR]nw\\'"	. Rnw-mode)
+	   ("\\.[sS]nw\\'"	. Snw-mode)
 	   ("\\.[rR]profile\\'" . R-mode)
-	   ("NAMESPACE\\'"      . R-mode)
-	   ("CITATION\\'"       . R-mode)
-	   ("\\.omg\\'"         . omegahat-mode)
-	   ("\\.hat\\'"         . omegahat-mode)
-	   ("\\.lsp\\'"         . XLS-mode)
-	   ("\\.do\\'"          . STA-mode)
-	   ("\\.ado\\'"         . STA-mode)
-	   ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-	   ("\\.[Ss]t\\'"       . S-transcript-mode)
-	   ("\\.Sout"           . S-transcript-mode)
-	   ("\\.[Rr]out"        . R-transcript-mode)
-	   ("\\.Rd\\'"          . Rd-mode)
-	   ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
-	   ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
-	   ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-	   ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-	   ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-	   ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
+	   ("NAMESPACE\\'"	. R-mode)
+	   ("CITATION\\'"	. R-mode)
+	   ("\\.omg\\'"		. omegahat-mode)
+	   ("\\.hat\\'"		. omegahat-mode)
+	   ("\\.lsp\\'"		. XLS-mode)
+	   ("\\.do\\'"		. STA-mode)
+	   ("\\.ado\\'"		. STA-mode)
+	   ("\\.[Ss][Aa][Ss]\\'"	. SAS-mode)
+	   ("\\.[Ss]t\\'"	. S-transcript-mode)
+	   ("\\.Sout"		. S-transcript-mode)
+	   ("\\.[Rr]out"	. R-transcript-mode)
+	   ("\\.Rd\\'"		. Rd-mode)
+	   ("\\.[Bb][Uu][Gg]\\'"	 . ess-bugs-mode)
+	   ("\\.[Bb][Oo][Gg]\\'"	 . ess-bugs-mode)
+	   ("\\.[Bb][Mm][Dd]\\'"	 . ess-bugs-mode)
+	   ("\\.[Jj][Aa][Gg]\\'"	 . ess-jags-mode)
+	   ("\\.[Jj][Oo][Gg]\\'"	 . ess-jags-mode)
+	   ("\\.[Jj][Mm][Dd]\\'"	 . ess-jags-mode)
 	   ))
 #+END_SRC
 
@@ -2580,15 +2580,15 @@ Auctex provides some helpful tools for working with LaTeX.
   (defun shell-command-at-point ()
     (interactive)
     (let ((start-point (save-excursion
-                         (beginning-of-line)
-                         (point))))
+			 (beginning-of-line)
+			 (point))))
       (shell-command (buffer-substring start-point (point)))))
   :mode (("\\.*shellrc$" . sh-mode)
-         ("\\.*shell_profile" . sh-mode)
-         ("\\.zsh\\'" . sh-mode))
+	 ("\\.*shell_profile" . sh-mode)
+	 ("\\.zsh\\'" . sh-mode))
   :bind (:package sh-script
-         :map sh-mode-map
-              ("C-x C-e" . shell-command-at-point)))
+	 :map sh-mode-map
+	      ("C-x C-e" . shell-command-at-point)))
 #+END_SRC
 
 **** texinfo
@@ -2901,7 +2901,7 @@ Configure INSIDE_EMACS.
 #+BEGIN_SRC shell
 if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
-           COLORTERM=1
+	   COLORTERM=1
 fi
 #+END_SRC
 
@@ -2939,9 +2939,9 @@ When TERM=dumb, just do a simple prompt.
 #+BEGIN_SRC shell
 case "$TERM" in
     dumb)
-        PS1="\W > "
-        return
-        ;;
+	PS1="\W > "
+	return
+	;;
 esac
 #+END_SRC
 
@@ -2949,18 +2949,18 @@ Setup some bash-specific features.
 
 #+BEGIN_SRC shell
 shopt -s cdspell \
-         cdable_vars \
-         checkhash \
-         checkwinsize \
-         cmdhist \
-         dotglob \
-         extglob \
-         histappend \
-         histreedit \
-         histverify \
-         nocaseglob \
-         no_empty_cmd_completion \
-         sourcepath
+	 cdable_vars \
+	 checkhash \
+	 checkwinsize \
+	 cmdhist \
+	 dotglob \
+	 extglob \
+	 histappend \
+	 histreedit \
+	 histverify \
+	 nocaseglob \
+	 no_empty_cmd_completion \
+	 sourcepath
 #+END_SRC
 
 Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
@@ -3032,18 +3032,18 @@ Handle dumb options.
 #+BEGIN_SRC shell
 case "$TERM" in
     dumb)
-        unsetopt zle \
-                 prompt_cr \
-                 prompt_subst
-        if whence -w precmd >/dev/null; then
-            unfunction precmd
-        fi
-        if whence -w preexec >/dev/null; then
-            unfunction preexec
-        fi
-        PS1='$ '
-        return
-        ;;
+	unsetopt zle \
+		 prompt_cr \
+		 prompt_subst
+	if whence -w precmd >/dev/null; then
+	    unfunction precmd
+	fi
+	if whence -w preexec >/dev/null; then
+	    unfunction preexec
+	fi
+	PS1='$ '
+	return
+	;;
 esac
 #+END_SRC
 
@@ -3178,9 +3178,9 @@ fi
 if [ -n "$INSIDE_EMACS" ]; then
     # function to set the dired and host for ansiterm
     set_eterm_dir() {
-        print -P "\033AnSiTu %n"
-        print -P "\033AnSiTh" "$(hostname -f)"
-        print -P "\033AnSiTc %d"
+	print -P "\033AnSiTu %n"
+	print -P "\033AnSiTh" "$(hostname -f)"
+	print -P "\033AnSiTc %d"
     }
 
     # call prmptcmd whenever prompt is redrawn
@@ -3229,29 +3229,29 @@ Some basic gitignore paths.
 
 #+BEGIN_SRC gitconfig :padline no
 [core]
-        editor = emacsclient
-        excludesfile = @gitignore@
+	editor = emacsclient
+	excludesfile = @gitignore@
 
 [commit]
-        gpgSign = true
+	gpgSign = true
 
 [gpg]
-        program = "@gnupg@/bin/gpg"
+	program = "@gnupg@/bin/gpg"
 
 [push]
-        default = simple
+	default = simple
 
 [pull]
-        rebase = true
+	rebase = true
 
 [alias]
-        amend = commit --amend
+	amend = commit --amend
 
 [help]
-        autcorrect = 1
+	autcorrect = 1
 
 [color]
-        ui = true
+	ui = true
 #+END_SRC
 * Bootstrapping
 ** =site-paths.el.in=
@@ -3280,17 +3280,17 @@ Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
 (setq exec-path (append `(,(expand-file-name "bin" output-directory)
-                          "/usr/sbin" "/usr/bin" "/sbin" "/bin")
-                        exec-path))
+			  "/usr/sbin" "/usr/bin" "/sbin" "/bin")
+			exec-path))
 #+END_SRC
 
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
 (defvar man-path `("/usr/share/man"
-                   "/usr/local/share/man"
-                   "@manpages@/share/man"
-                   ,(expand-file-name "share/man" output-directory)))
+		   "/usr/local/share/man"
+		   "@manpages@/share/man"
+		   ,(expand-file-name "share/man" output-directory)))
 #+END_SRC
 
 This will setup cacert-file var,
@@ -3429,122 +3429,122 @@ Set some defaults that depend on the path variables below,
      (concat dvips-command " -Pwww %d -o %m/preview.ps"))
    '(preview-dvipng-command
      (concat dvipng-command
-             " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
+	     " -picky -noghostscript %d -o \"%m/prev%%03d.png\""))
    '(TeX-engine-alist `((xetex "XeTeX" xetex-command xelatex-command
-                               xetex-command)
-                        (luatex "LuaTeX" luatex-command
-                                ,(concat luatex-command " --jobname=%s")
-                                luatex-command)))
+			       xetex-command)
+			(luatex "LuaTeX" luatex-command
+				,(concat luatex-command " --jobname=%s")
+				luatex-command)))
    '(TeX-command-list
      `(("TeX"
-        "%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
-        TeX-run-TeX nil
-        (plain-tex-mode ams-tex-mode texinfo-mode)
-        :help "Run plain TeX")
+	"%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
+	TeX-run-TeX nil
+	(plain-tex-mode ams-tex-mode texinfo-mode)
+	:help "Run plain TeX")
        ("LaTeX" "%`%l%(mode)%' %t" TeX-run-TeX nil
-        (latex-mode doctex-mode)
-        :help "Run LaTeX")
+	(latex-mode doctex-mode)
+	:help "Run LaTeX")
        ("Makeinfo" ,(concat makeinfo-command " %(extraopts) %t")
-        TeX-run-compile nil
-        (texinfo-mode)
-        :help "Run Makeinfo with Info output")
+	TeX-run-compile nil
+	(texinfo-mode)
+	:help "Run Makeinfo with Info output")
        ("Makeinfo HTML" ,(concat makeinfo-command " %(extraopts) --html %t")
-        TeX-run-compile nil
-        (texinfo-mode)
-        :help "Run Makeinfo with HTML output")
+	TeX-run-compile nil
+	(texinfo-mode)
+	:help "Run Makeinfo with HTML output")
        ("AmSTeX"
-        ,(concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
-        TeX-run-TeX nil
-        (ams-tex-mode)
-        :help "Run AMSTeX")
+	,(concat pdftex-command " %(PDFout) %(extraopts) %`%S%(mode)%' %t")
+	TeX-run-TeX nil
+	(ams-tex-mode)
+	:help "Run AMSTeX")
        ("ConTeXt"
-        ,(concat context-command " --once --texutil %(extraopts) %(execopts)%t")
-        TeX-run-TeX nil
-        (context-mode)
-        :help "Run ConTeXt once")
+	,(concat context-command " --once --texutil %(extraopts) %(execopts)%t")
+	TeX-run-TeX nil
+	(context-mode)
+	:help "Run ConTeXt once")
        ("ConTeXt Full" ,(concat context-command " %(extraopts) %(execopts)%t")
-        TeX-run-TeX nil
-        (context-mode)
-        :help "Run ConTeXt until completion")
+	TeX-run-TeX nil
+	(context-mode)
+	:help "Run ConTeXt until completion")
        ("BibTeX" ,(concat bibtex-command " %s")
-        TeX-run-BibTeX nil t :help "Run BibTeX")
+	TeX-run-BibTeX nil t :help "Run BibTeX")
        ("Biber" "biber %s" TeX-run-Biber nil t :help "Run Biber")
        ("View" "%V" TeX-run-discard-or-function t t :help "Run Viewer")
        ("Print" "%p" TeX-run-command t t :help "Print the file")
        ("Queue" "%q" TeX-run-background nil t
-        :help "View the printer queue" :visible TeX-queue-command)
+	:help "View the printer queue" :visible TeX-queue-command)
        ("File" ,(concat dvips-command " %d -o %f ")
-        TeX-run-dvips t t :help "Generate PostScript file")
+	TeX-run-dvips t t :help "Generate PostScript file")
        ("Dvips" ,(concat dvips-command " %d -o %f ")
-        TeX-run-dvips nil t :help "Convert DVI file to PostScript")
+	TeX-run-dvips nil t :help "Convert DVI file to PostScript")
        ("Dvipdfmx" ,(concat dvipdfmx-command " %d")
-        TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
+	TeX-run-dvipdfmx nil t :help "Convert DVI file to PDF with dvipdfmx")
        ("Ps2pdf" ,(concat ps2pdf-command " %f")
-        TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
+	TeX-run-ps2pdf nil t :help "Convert PostScript file to PDF")
        ("Index" ,(concat makeindex-command " %s")
-        TeX-run-index nil t :help "Run makeindex to create index file")
+	TeX-run-index nil t :help "Run makeindex to create index file")
        ("upMendex" "upmendex %s"
-        TeX-run-index t t :help "Run mendex to create index file")
+	TeX-run-index t t :help "Run mendex to create index file")
        ("Xindy" "xindy %s"
-        TeX-run-command nil t :help "Run xindy to create index file")
+	TeX-run-command nil t :help "Run xindy to create index file")
        ("Check" ,(concat lacheck-command " %s") TeX-run-compile nil
-        (latex-mode)
-        :help "Check LaTeX file for correctness")
+	(latex-mode)
+	:help "Check LaTeX file for correctness")
        ("ChkTeX" ,(concat chktex-command " -v6 %s") TeX-run-compile nil
-        (latex-mode)
-        :help "Check LaTeX file for common mistakes")
+	(latex-mode)
+	:help "Check LaTeX file for common mistakes")
        ("Spell" "(TeX-ispell-document \"\")"
-        TeX-run-function nil t :help "Spell-check the document")
+	TeX-run-function nil t :help "Spell-check the document")
        ("Clean" "TeX-clean"
-        TeX-run-function nil t :help "Delete generated intermediate files")
+	TeX-run-function nil t :help "Delete generated intermediate files")
        ("Clean All" "(TeX-clean t)" TeX-run-function nil t
-        :help "Delete generated intermediate and output files")
+	:help "Delete generated intermediate and output files")
        ("Other" "" TeX-run-command t t :help "Run an arbitrary command")))
    '(counsel-grep-base-command
      (concat ripgrep-executable
-             " -i -M 120 --no-heading --line-number --color never '%s' %s"))
+	     " -i -M 120 --no-heading --line-number --color never '%s' %s"))
    '(counsel-rg-base-command
      (concat ripgrep-executable " -i --no-heading --line-number %s ."))
    '(counsel-ag-base-command (concat ag-executable " --nocolor --nogroup %s"))
    '(org-preview-latex-process-alist
      `((dvipng :programs ("latex" "dvipng")
-               :description "dvi > png"
-               :message ""
-               :image-input-type "dvi"
-               :image-output-type "png"
-               :image-size-adjust (1.0 . 1.0)
-               :latex-compiler
-               (,(concat LaTeX-command
-                         " -interaction nonstopmode -output-directory %o %f"))
-               :image-converter
-               (,(concat dvipng-command
-                         " -fg %F -bg %B -D %D -T tight -o %O %f")))))
+	       :description "dvi > png"
+	       :message ""
+	       :image-input-type "dvi"
+	       :image-output-type "png"
+	       :image-size-adjust (1.0 . 1.0)
+	       :latex-compiler
+	       (,(concat LaTeX-command
+			 " -interaction nonstopmode -output-directory %o %f"))
+	       :image-converter
+	       (,(concat dvipng-command
+			 " -fg %F -bg %B -D %D -T tight -o %O %f")))))
    '(Info-directory-list `(,(expand-file-name "share/info" output-directory)))
    '(tramp-remote-path `(tramp-own-remote-path
-                         "/run/current-system/sw/bin"
-                         tramp-default-remote-path
-                         "/bin"
-                         "/usr/bin"
-                         "/sbin"
-                         "/usr/sbin"
-                         "/usr/local/bin"
-                         "/usr/local/sbin"
-                         "/opt/bin"
-                         "/opt/sbin"
-                         ,(expand-file-name "bin" output-directory)
-                         ))
+			 "/run/current-system/sw/bin"
+			 tramp-default-remote-path
+			 "/bin"
+			 "/usr/bin"
+			 "/sbin"
+			 "/usr/sbin"
+			 "/usr/local/bin"
+			 "/usr/local/sbin"
+			 "/opt/bin"
+			 "/opt/sbin"
+			 ,(expand-file-name "bin" output-directory)
+			 ))
    '(woman-manpath man-path)
    '(Man-header-file-path
      `("@sysheaders@/include" "/usr/include" "/usr/local/include"))
    '(ffap-c-path '("@sysheaders@/include" "/usr/include" "/usr/local/include"))
    '(rng-schema-locating-files `("schemas.xml"
-                                 "@schemas@"
-                                 ,(expand-file-name
-                                   "schema/schemas.xml" data-directory)
-                                 ))
+				 "@schemas@"
+				 ,(expand-file-name
+				   "schema/schemas.xml" data-directory)
+				 ))
    '(irony-additional-clang-options '("-I@sysheaders@/include"
-                                      "-I@sysheaders@/include/c++/v1"
-                                      "-F@sysframeworks@/Library/Frameworks"))
+				      "-I@sysheaders@/include/c++/v1"
+				      "-F@sysframeworks@/Library/Frameworks"))
    )
 #+END_SRC
 
@@ -3601,10 +3601,10 @@ Cross-platform script to execute app.
 #+BEGIN_SRC shell :padline no
 case $(uname) in
     Darwin)
-        open @out@/Applications/Emacs.app
+	open @out@/Applications/Emacs.app
     ;;
     *)
-        @out@/bin/emacs
+	@out@/bin/emacs
     ;;
 esac
 #+END_SRC
@@ -3630,8 +3630,8 @@ import (runCommand "README" { buildInputs = [ emacs ]; } ''
   cp -r ${./site-lisp} site-lisp
   cp ${./README.org} README.org
   emacs --batch --quick \
-        -l ob-tangle \
-        --eval "(org-babel-tangle-file \"README.org\")"
+	-l ob-tangle \
+	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
 '') {inherit nixpkgs';}
 #+END_SRC
@@ -3773,10 +3773,10 @@ package-list =
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-        -L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-        -L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-        -L ${./site-lisp} -l use-package-list \
-        --eval "(use-package-list \"${./README.el}\")" > $out
+	-L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+	-L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+	-L ${./site-lisp} -l use-package-list \
+	--eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
 
 #+BEGIN_SRC nix
@@ -3830,10 +3830,10 @@ cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
       --eval "(let ((default-directory \"${emacsWrapper
-                ((requiredPackages customEmacsPackages myPackages) ++
-                  (with customEmacsPackages.melpaPackages;
-                   with customEmacsPackages.elpaPackages;
-                        [use-package delight]))
+		((requiredPackages customEmacsPackages myPackages) ++
+		  (with customEmacsPackages.melpaPackages;
+		   with customEmacsPackages.elpaPackages;
+			[use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
 #+END_SRC
@@ -3856,23 +3856,23 @@ emacs --batch --quick \
       local varSlice="$var[*]"
       # ''${..-} to hack around old bash empty array problem
       case "''${!varSlice-}" in
-          ,*" $pkg "*) return 0 ;;
+	  ,*" $pkg "*) return 0 ;;
       esac
       unset -v varSlice
       eval "$var"'+=("$pkg")'
       if ! [ -e "$pkg" ]; then
-          echo "build input $pkg does not exist" >&2
-          exit 1
+	  echo "build input $pkg does not exist" >&2
+	  exit 1
       fi
       local file
       for file in "''${propagatedBuildInputsFiles[@]}"; do
-          file="$pkg/nix-support/$file"
-          [[ -f "$file" ]] || continue
-          local pkgNext
-          for pkgNext in $(< "$file"); do
-              findInputsOld "$pkgNext" "$var" \
-                            "''${propagatedBuildInputsFiles[@]}"
-          done
+	  file="$pkg/nix-support/$file"
+	  [[ -f "$file" ]] || continue
+	  local pkgNext
+	  for pkgNext in $(< "$file"); do
+	      findInputsOld "$pkgNext" "$var" \
+			    "''${propagatedBuildInputsFiles[@]}"
+	  done
       done
   }
   mkdir -p $out/bin
@@ -4038,10 +4038,10 @@ Finally, we can actually build the environment.
     --replace @cacert@ ${cacert}
       '')]
       ++ [bashInteractive zsh coreutils git wget
-          gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
+	  gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
       # info pages
       ++ [ed lzip libmpc flex autoconf bison
-          which bc gnum4 time gnutls aspell]
+	  which bc gnum4 time gnutls aspell]
       ++ [nix nix-index nix-zsh-completions nix-bash-completions]
       # ++ [gitAndTools.hub nox]
       ++ [nodePackages.tern isync notmuch graphviz]
