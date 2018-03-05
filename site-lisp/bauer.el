@@ -39,6 +39,7 @@
                           user-full-name user-mail-address
                           gnus-secondary-select-methods)
   "Symbols that the user should customize for themselves."
+  :type '(repeat symbol)
   :group 'bauer)
 
 (defun user-customize ()

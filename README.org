@@ -754,7 +754,7 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("s-/" . comment-or-uncomment-region)
 
    ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
-						    (quit-window))))
+                                                    (quit-window))))
 
    ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
    ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
@@ -771,9 +771,9 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c m r" . eval-region)
 
    ("C-x r q" . save-buffers-kill-terminal)
-   ("C-x C-c" . delete-frame)
-   ("C-c n" . cleanup-buffer)
-   ("C-c C-n" . cleanup-buffer)
+   ;; ("C-x C-c" . delete-frame)
+   ;; ("C-c n" . cleanup-buffer)
+   ;; ("C-c C-n" . cleanup-buffer)
    ("C-c C-<return>" . delete-blank-lines)
    ("C-<f10>" . menu-bar-mode)
    ("C-x M-g" . browse-url-at-point)
@@ -784,13 +784,13 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-S-r" . isearch-backward)
 
    ;; unsupported
-   ("C-c d" . crux-duplicate-current-line-or-region)
-   ("C-\"" . toggle-quotes)
+   ;; ("C-c d" . crux-duplicate-current-line-or-region)
+   ;; ("C-\"" . toggle-quotes)
    ("M-s l" . sort-lines)
-   ("C-+" . change-number-at-point)
-   ("C-?" . substract-number-at-point)
-   ("C-x C-y" . browse-kill-ring)
-   ("C-x M-j" . (lambda () (interactive) (dired-jump 1)))
+   ;; ("C-+" . change-number-at-point)
+   ;; ("C-?" . substract-number-at-point)
+   ;; ("C-x C-y" . browse-kill-ring)
+   ;; ("C-x M-j" . (lambda () (interactive) (dired-jump 1)))
 
    ("M-s m" . multi-occur)
    ("M-s M" . multi-occur-in-matching-buffers)
@@ -843,11 +843,6 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    :prefix "s-h"
    ("k" . describe-personal-keybindings)
    ("p" . ffap))
-
-  (bind-keys
-   :package isearch
-   :map isearch-mode-map
-   ("C-o" . isearch-mode-map))
 #+END_SRC
 
 ** Setup installer
@@ -899,9 +894,11 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
   (use-package apropospriate-theme
-    :demand
     :if window-system
-    :config (load-theme 'apropospriate-dark t))
+    :init
+    (add-to-list 'custom-theme-load-path
+                 (file-name-directory (locate-library "apropospriate-theme")))
+    (load-theme 'apropospriate-dark t))
 #+END_SRC
 
 **** Company
@@ -922,28 +919,28 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
       (interactive)
       (company-complete-common-or-cycle -1))
     :bind (:map company-mode-map
-		("C-M-i" . company-complete-common-or-cycle)
-		:map company-active-map
-		("RET" . company-complete-selection)
-		([return] . company-complete-selection)
-		("C-j" . company-complete-selection)
+                ("C-M-i" . company-complete-common-or-cycle)
+                :map company-active-map
+                ("RET" . company-complete-selection)
+                ([return] . company-complete-selection)
+                ("C-j" . company-complete-selection)
 
-		("TAB" . company-complete-common-or-cycle)
-		("<tab>" . company-complete-common-or-cycle)
-		("S-TAB" . company-complete-common-or-cycle-backward)
-		("<backtab>" . company-complete-common-or-cycle-backward)
-		("C-n" . company-select-next)
-		("C-p" . company-select-previous)
+                ("TAB" . company-complete-common-or-cycle)
+                ("<tab>" . company-complete-common-or-cycle)
+                ("S-TAB" . company-complete-common-or-cycle-backward)
+                ("<backtab>" . company-complete-common-or-cycle-backward)
+                ("C-n" . company-select-next)
+                ("C-p" . company-select-previous)
 
-		("C-/" . company-search-candidates)
-		("C-M-/" . company-filter-candidates)
-		("C-d" . company-show-doc-buffer)
-		)
+                ("C-/" . company-search-candidates)
+                ("C-M-/" . company-filter-candidates)
+                ("C-d" . company-show-doc-buffer)
+                )
     :hook ((minibuffer-setup . company-mode)
-	   (minibuffer-setup . (lambda ()
-				 (setq-local company-frontends
-					     '(company-preview-frontend))))
-	   (after-init . global-company-mode))
+           (minibuffer-setup . (lambda ()
+                                 (setq-local company-frontends
+                                             '(company-preview-frontend))))
+           (after-init . global-company-mode))
     :config
     (advice-add 'completion-at-point :override 'company-complete-common-or-cycle)
     (global-company-mode))
@@ -964,7 +961,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   (use-package company-jedi
     :commands company-jedi
     :hook (python-mode . (lambda ()
-			   (add-to-list 'company-backends 'company-jedi nil t))))
+                           (add-to-list 'company-backends 'company-jedi nil t))))
   (use-package company-tern
     :commands company-tern
     :init (add-to-list 'company-backends 'company-tern))
@@ -973,31 +970,32 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :init (add-to-list 'company-backends 'company-ghc))
   (use-package company-auctex
     :commands (company-auctex company-auctext-labels
-			      company-auctest-bibs company-auctex-macros
-			      company-auctext-symbols
-			      company-auctext-environments)
+                              company-auctest-bibs company-auctex-macros
+                              company-auctext-symbols
+                              company-auctext-environments)
     :init
     (add-to-list 'company-backends 'company-auctex-labels)
     (add-to-list 'company-backends 'company-auctex-bibs)
     (add-to-list 'company-backends
-		 '(company-auctex-macros
-		   company-auctex-symbols
-		   company-auctex-environments)))
-  (autoload 'company-web-html "company-web-html")
-  (autoload 'company-web-jade "company-web-jade")
-  (autoload 'company-web-slim "company-web-slim")
+                 '(company-auctex-macros
+                   company-auctex-symbols
+                   company-auctex-environments)))
   (use-package company-web
+    :preface
+    (autoload 'company-web-html "company-web-html")
+    (autoload 'company-web-jade "company-web-jade")
+    (autoload 'company-web-slim "company-web-slim")
     :init
     (add-to-list 'company-backends 'company-web-html)
     (add-to-list 'company-backends 'company-web-jade)
     (add-to-list 'company-backends 'company-web-slim))
   (use-package company-math
     :hook (TeX-mode . (lambda ()
-			(setq-local
-			 company-backends
-			 (append
-			  '((company-math-symbols-latex company-latex-commands))
-			  company-backends)))))
+                        (setq-local
+                         company-backends
+                         (append
+                          '((company-math-symbols-latex company-latex-commands))
+                          company-backends)))))
 #+END_SRC
 **** Counsel
 
@@ -1300,43 +1298,42 @@ line are available in an intuitive Emacs buffer.
 #+BEGIN_SRC emacs-lisp
   (use-package git-commit
     :hook ((git-commit-mode . flyspell-mode)
-	   (git-commit-mode . git-commit-save-message)
-	   (git-commit-mode . turn-on-auto-fill)))
-  (eval-and-compile
+           (git-commit-mode . git-commit-save-message)
+           (git-commit-mode . turn-on-auto-fill)))
+  (use-package magit
+    :preface
     (autoload 'magit-toplevel "magit")
     (autoload 'magit-read-string-ns "magit")
     (autoload 'magit-get "magit")
     (autoload 'magit-define-popup-action "magit")
-    (autoload 'magit-remote-arguments "magit"))
-  (use-package magit
-    :preface
+    (autoload 'magit-remote-arguments "magit")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
 
     (defun magit-remote-github (username &optional args)
       (interactive (list (magit-read-string-ns "User name")
-			 (magit-remote-arguments)))
+                         (magit-remote-arguments)))
       (let* ((url (magit-get "remote.origin.url"))
-	     (match (string-match "^https?://github\.com/[^/]*/\\(.*\\)" url)))
-	(unless match
-	  (error "Not a github remote"))
-	(let ((repo (match-string 1 url)))
-	  (apply 'magit-remote-add username (format "https://github.com/%s/%s"
-						    username repo) args))))
+             (match (string-match "^https?://github\.com/[^/]*/\\(.*\\)" url)))
+        (unless match
+          (error "Not a github remote"))
+        (let ((repo (match-string 1 url)))
+          (apply 'magit-remote-add username (format "https://github.com/%s/%s"
+                                                    username repo) args))))
 
     (defun magit-github-hook ()
       "Add to remote popup to add from github username."
       (magit-define-popup-action 'magit-remote-popup
-				 ?g "Add remote from github user name" #'magit-remote-github))
+                                 ?g "Add remote from github user name" #'magit-remote-github))
     :hook (magit-mode . magit-github-hook)
     :commands magit-clone
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
-	   ("C-x G" . magit-dispatch-popup)
-	   :package magit
-	   :map magit-mode-map
-	   ("C-o" . magit-dired-other-window)))
+           ("C-x G" . magit-dispatch-popup)
+           :package magit
+           :map magit-mode-map
+           ("C-o" . magit-dired-other-window)))
 #+END_SRC
 
 ***** magithub						       :noexport:
@@ -1430,10 +1427,6 @@ Setup projectile and link it with some other packages. This also adds an
 easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
-  (eval-and-compile
-    (autoload 'projectile-project-vcs "projectile")
-    (autoload 'projectile-project-root "projectile")
-    (autoload 'easy-menu-define "easymenu" "" nil 'macro))
   (use-package projectile
     :commands projectile-mode
     :bind-keymap* (("C-c p" . projectile-command-map)
@@ -1442,6 +1435,9 @@ easymenu to make the "Projectile" modeline clickable.
 	   :map projectile-command-map
 	   ("s r" . projectile-rg))
     :preface
+    (autoload 'projectile-project-vcs "projectile")
+    (autoload 'projectile-project-root "projectile")
+    (autoload 'easy-menu-define "easymenu" "" nil 'macro)
     (defun projectile-rg ()
       "Run ripgrep in projectile."
       (interactive)
@@ -1482,11 +1478,11 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 Smartparens is helpful in closing parenthesis when editing Lisp code.
 
 #+BEGIN_SRC emacs-lisp
-  (eval-and-compile
+  (use-package smartparens
+    :preface
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
     (autoload 'sp-local-pair "smartparens")
-    (autoload 'sp-local-tag  "smartparens"))
-  (use-package smartparens
+    (autoload 'sp-local-tag  "smartparens")
     ;; :bind (:package smartparens
     ;;		  :map smartparens-mode-map
     ;;		  ("C-M-k" . sp-kill-sexp)
@@ -1626,7 +1622,7 @@ function.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
-    :demand
+    :defer 2
     :commands which-key-mode
     :config (which-key-mode))
 #+END_SRC
@@ -1744,6 +1740,7 @@ Get color/ansi codes in compilation mode.
     :ensure nil
     :preface
     (autoload 'dired-get-filename "dired")
+    (autoload 'term-set-escape-char "term")
     (defun dired-run-command (&optional filename)
       "Run file at point in a new buffer."
       (interactive)
@@ -1919,6 +1916,7 @@ setup.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
+    :disabled
     :ensure nil
     :if (locate-file
 	 (if (boundp 'ispell-program-name) ispell-program-name "ispell")
@@ -2034,7 +2032,7 @@ setup.
 #+END_SRC
 
 **** simple
-#+BEGIN_SRC
+#+BEGIN_SRC emacs-lisp
 (use-package simple
    :ensure nil
    :demand
@@ -3695,7 +3693,7 @@ last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
 soon be released.
 
 #+BEGIN_SRC nix
-nix = nixStable;
+nix = nixUnstable;
 #+END_SRC
 
 Next we start defining some packages. R is one of the simpler ones right now,
@@ -4270,4 +4268,8 @@ update.sh linguist-generated=true
 # Local Variables:
 # mode: org
 # fill-column: 80
+# tab-width: 8
+# sentence-end-double-space: nil
+# bug-reference-url-format: "https://github.com/matthewbauer/bauer/issues/%s"
+# compile-command: "nix-build"
 # End:
