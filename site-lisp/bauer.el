@@ -50,6 +50,62 @@ Run this to input your personal settings."
                                   `(,x custom-variable)) user-symbols)
                         "*User customize*"))
 
+;; http://endlessparentheses.com/fill-and-unfill-paragraphs-with-a-single-key.html
+(defun endless/fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'endless/fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+
+(defun increment-number-at-point (&optional num)
+  "Increment number at point by 1.
+Works with numerical arguments, too.
+With a negative argument (just M--), uses -1.
+With a universal argument (just C-u), ask by how much."
+  (interactive "P")
+  (save-excursion
+    (when (zerop (skip-chars-backward "-0123456789."))
+      (skip-syntax-forward "-"))
+    (or (looking-at "-?[0123456789.]+")
+	(error "No number at point"))
+    (cond ((null num)
+	   (setq num 1))
+	  ((eq num '-)
+	   (setq num -1))
+	  ((listp num)
+	   (setq num (read-number "Increment by how much? " 1))))
+    (replace-match (number-to-string (+ num (string-to-number (match-string 0)))))))
+
+(defun increment-numbers-in-region (start end)
+  (interactive "r")
+  (goto-char start)
+  (while (re-search-forward "" end t)
+    (replace-match (number-to-string (1+ (string-to-number (match-string 0)))))))
+
+(defcustom bauer-dir (expand-file-name ".nixpkgs" (getenv "HOME"))
+  "Directory of installation."
+  :group 'bauer
+  :type 'string)
+(defcustom bauer-org (expand-file-name "README.org" bauer-dir)
+  "Org file."
+  :group 'bauer
+  :type 'path)
+
+;; (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
+
+(defun bauer-find-config ()
+  "Edit README.org"
+  (interactive)
+  (find-file bauer-org))
+
+(defun autofun (sym file)
+  (autoload sym file)
+  sym)
+
 (provide 'bauer)
 
 ;;; bauer.el ends here
