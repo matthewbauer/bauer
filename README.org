@@ -19,7 +19,7 @@
 #+STARTUP: hideblocks indent align entitiespretty
 #+EXPORT_FILE_NAME: index
 #+KEYWORDS: dotfiles config ide emacs nix bauer
-#+HTML_HEAD: <link rel="stylesheet" href="https://matthewbauer.us/style.css" />
+#+HTML_HEAD: <link rel=stylesheet href=https://matthewbauer.us/style.css />
 #+LINK_HOME: http://matthewbauer.us
 #+LINK_UP: http://matthewbauer.us/bauer/
 
@@ -83,7 +83,7 @@ GitHub username within Magit. To push to it, just type =Pr= then find your
 username in the list and press enter. Pull requests are always welcome through
 GitHub!
 
-** w/o Nix
+** Without Nix
 :PROPERTIES:
 :CUSTOM_ID: nonix
 :header-args: :tangle no
@@ -131,12 +131,20 @@ that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/
 this.
 
 #+BEGIN_SRC emacs-lisp
-  (setq gc-cons-threshold most-positive-fixnum)
+  (defvar file-name-handler-alist-backup file-name-handler-alist)
+  (setq gc-cons-threshold most-positive-fixnum
+        file-name-handler-alist nil
+        ;; load-path `(,(expand-file-name "site-lisp" user-emacs-directory)
+        ;;             )
+        )
   (add-hook 'after-init-hook
-	    (lambda ()
-	      (garbage-collect)
-	      (setq gc-cons-threshold
-		    (car (get 'gc-cons-threshold 'standard-value)))))
+            (lambda ()
+              (garbage-collect)
+              (setq gc-cons-threshold
+                    (car (get 'gc-cons-threshold 'standard-value))
+                    file-name-handler-alist (append
+                                             file-name-handler-alist-backup
+                                             file-name-handler-alist))))
 #+END_SRC
 
 ** Autoloads & Misc.
@@ -151,7 +159,10 @@ compiling phases used later.
     (autoload 'package-installed-p "package")
     (autoload 'use-package-autoload-keymap "use-package")
     (autoload 'pcomplete-arg   "pcomplete")
-    (autoload 'pcomplete--here "pcomplete"))
+    (autoload 'pcomplete--here "pcomplete")
+    (autoload 'term-set-escape-char "term")
+    (autoload 'tramp-tramp-file-p "tramp")
+    (autoload 'tramp-dissect-file-name "tramp"))
 #+END_SRC
 
 Now we are going to setup some basic Emacs GUI elements. Under normal
@@ -322,7 +333,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(expand-region-contract-fast-key "j")
    '(explicit-shell-args
      '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
-   '(explicit-shell-file-name "/bin/bash")
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
    '(flycheck-display-errors-function
@@ -611,55 +621,9 @@ Actually require =use-package=,
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
-    (require 'use-package)
     (require 'delight)
     (require 'bind-key)
-
-    ;; remove once PR jwiegley/use-package#633 is merged
-    (defun use-package-normalize-binder-override (name keyword args)
-      (let ((arg args)
-	    args*)
-	(while arg
-	  (let ((x (car arg)))
-	    (cond
-	     ;; (KEY . COMMAND)
-	     ((and (consp x)
-		   (or (stringp (car x))
-		       (vectorp (car x)))
-		   (or (use-package-recognize-function (cdr x) t #'stringp)))
-	      (setq args* (nconc args* (list x)))
-	      (setq arg (cdr arg)))
-	     ;; KEYWORD
-	     ;;	  :map KEYMAP
-	     ;;	  :prefix-docstring STRING
-	     ;;	  :prefix-map SYMBOL
-	     ;;	  :prefix STRING
-	     ;;	  :filter SEXP
-	     ;;	  :menu-name STRING
-	     ;;	  :package SYMBOL
-	     ((or (and (eq x :map) (symbolp (cadr arg)))
-		  (and (eq x :prefix) (stringp (cadr arg)))
-		  (and (eq x :prefix-map) (symbolp (cadr arg)))
-		  (and (eq x :prefix-docstring) (stringp (cadr arg)))
-		  (eq x :filter)
-		  (and (eq x :menu-name) (stringp (cadr arg)))
-		  (and (eq x :package) (symbolp (cadr arg))))
-	      (setq args* (nconc args* (list x (cadr arg))))
-	      (setq arg (cddr arg)))
-	     ((listp x)
-	      (setq args*
-		    (nconc args* (use-package-normalize-binder name keyword x)))
-	      (setq arg (cdr arg)))
-	     (t
-	      ;; Error!
-	      (use-package-error
-	       (concat (symbol-name name)
-		       " wants arguments acceptable to the `bind-keys' macro,"
-		       " or a list of such values"))))))
-	args*))
-
-    (advice-add 'use-package-normalize-binder
-		:override 'use-package-normalize-binder-override))
+    (require 'use-package))
 #+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
@@ -671,7 +635,8 @@ Basically, we’ll prevent use-package from running ‘ensure’ on anything.
     ;; (setq use-package-expand-minimally (not needs-package-init))
     (when (not needs-package-init)
       (setq use-package-ensure-function 'ignore
-	    package-enable-at-startup nil)))
+            package-enable-at-startup nil
+            package--init-file-ensured t)))
 #+END_SRC
 
 ** Key bindings
@@ -783,7 +748,6 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-S-r" . isearch-backward)
 
    ;; unsupported
-   ;; ("C-c d" . crux-duplicate-current-line-or-region)
    ;; ("C-\"" . toggle-quotes)
    ("M-s l" . sort-lines)
    ;; ("C-+" . change-number-at-point)
@@ -793,7 +757,9 @@ with how Emacs key binding works, you should read through [[https://www.masterin
 
    ("M-s m" . multi-occur)
    ("M-s M" . multi-occur-in-matching-buffers)
-   ("M-s f" . find-name-dired))
+   ("M-s f" . find-name-dired)
+   ("C-c i i" . imenu)
+   ("C-c I" . bauer-find-config))
 
   (bind-keys
    :package view
@@ -945,56 +911,57 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (global-company-mode))
   (use-package readline-complete
     :commands company-readline
-    :hook (rlc-no-readline . (lambda () (company-mode -1)))
-    :init (push 'company-readline company-backends))
+    :hook (shell-mode . (lambda () (setq-local company-backends 'company-readline))))
   (use-package company-irony
     :commands company-irony
-    :init (add-to-list 'company-backends 'company-irony))
+    :hook (irony-mode . (lambda () (setq-local company-backends 'company-irony))))
   (use-package company-restclient
     :commands company-restclient
-    :init (add-to-list 'company-backends 'company-restclient))
+    :hook (restclient-mode . (lambda () (setq-local company-backends 'company-restclient))))
   (use-package company-anaconda
     :commands company-anaconda
-    :init
-    (add-to-list 'company-backends '(company-anaconda :with company-capf)))
+    :hook (anaconda-mode . (lambda () (setq-local company-backends '(company-anaconda :with company-capf)))))
   (use-package company-jedi
     :commands company-jedi
-    :hook (python-mode . (lambda ()
-                           (add-to-list 'company-backends 'company-jedi nil t))))
+    :hook (python-mode . (lambda () (setq-local company-backends 'company-jedi))))
   (use-package company-tern
     :commands company-tern
-    :init (add-to-list 'company-backends 'company-tern))
+    :hook (tern-mode . (lambda () (setq-local company-backends 'company-tern))))
   (use-package company-ghc
     :commands company-ghc
-    :init (add-to-list 'company-backends 'company-ghc))
+    :hook (haskell-mode . (lambda () (setq-local company-backends 'company-ghc))))
   (use-package company-auctex
     :commands (company-auctex company-auctext-labels
                               company-auctest-bibs company-auctex-macros
                               company-auctext-symbols
                               company-auctext-environments)
-    :init
-    (add-to-list 'company-backends 'company-auctex-labels)
-    (add-to-list 'company-backends 'company-auctex-bibs)
-    (add-to-list 'company-backends
-                 '(company-auctex-macros
-                   company-auctex-symbols
-                   company-auctex-environments)))
+    :hook (tex-mode . (lambda ()
+                         (setq-local company-backends nil)
+                         (add-to-list 'company-backends 'company-auctex-labels)
+                         (add-to-list 'company-backends 'company-auctex-bibs)
+                         (add-to-list 'company-backends
+                                      '(company-auctex-macros
+                                        company-auctex-symbols
+                                        company-auctex-environments)))))
   (use-package company-web
     :preface
     (autoload 'company-web-html "company-web-html")
     (autoload 'company-web-jade "company-web-jade")
     (autoload 'company-web-slim "company-web-slim")
-    :init
-    (add-to-list 'company-backends 'company-web-html)
-    (add-to-list 'company-backends 'company-web-jade)
-    (add-to-list 'company-backends 'company-web-slim))
+    :hook ((web-mode . (lambda ()
+      (setq-local company-backends nil)
+      (add-to-list 'company-backends 'company-web-html)
+      (add-to-list 'company-backends 'company-web-jade)
+      (add-to-list 'company-backends 'company-web-slim)))))
   (use-package company-math
-    :hook (TeX-mode . (lambda ()
-                        (setq-local
-                         company-backends
-                         (append
-                          '((company-math-symbols-latex company-latex-commands))
-                          company-backends)))))
+    :preface
+    (autoload 'company-math-symbols-latex "company-math")
+    (autoload 'company-latex-commands "company-math")
+    :hook (TeX-mode . (lambda () (setq-local company-backends
+                                         '(company-math-symbols-latex
+                                           company-latex-commands)))))
+  (use-package company-coq
+    :hook (coq-mode . company-coq-mode))
 #+END_SRC
 **** Counsel
 
@@ -1008,6 +975,7 @@ info.
 
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
+    :disabled
     :commands (counsel-mode counsel-descbinds counsel-grep-or-swiper)
 
     ;; counsel doesn’t work well with windows drives
@@ -1031,7 +999,6 @@ info.
 	    ([remap pop-to-mark-command] . counsel-mark-ring)
 	    ([remap bookmark-jump] . counsel-bookmark)
 	    ("C-c j" . counsel-git-grep)
-	    ("C-c k" . counsel-rg)
 	    ("C-x l" . counsel-locate)
 	    ("M-y" . counsel-yank-pop)
 	    ("C-c i 8" . counsel-unicode-char)
@@ -1156,10 +1123,10 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
   (use-package esh-autosuggest
     :commands esh-autosuggest
     :hook (eshell-mode . (lambda ()
-			   (add-to-list 'company-backends
+			   (setq-local company-backends
 					'(company-capf
 					  company-files
-					  esh-autosuggest)) nil t)))
+					  esh-autosuggest)))))
 #+END_SRC
 
 ***** esh-help
@@ -1223,6 +1190,12 @@ supports many languages and give us a lot of features right out of the box.
     :hook (prog-mode . flycheck-mode))
 #+END_SRC
 
+**** github-clone
+#+BEGIN_SRC emacs-lisp
+  (use-package github-clone
+    :if (locate-file "git" exec-path)
+    :bind ("C-c g c" . github-clone))
+#+END_SRC
 **** Gnus
 
 [[http://www.gnus.org][Website]]
@@ -1235,13 +1208,6 @@ Gnus is an infamous email client and news reader.
     :commands gnus
     :hook ((gnus-group-mode . gnus-topic-mode)
 	   (dired-mode . turn-on-gnus-dired-mode)))
-#+END_SRC
-
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package notmuch
-    :bind ("s-m" . notmuch))
 #+END_SRC
 
 **** God Mode
@@ -1260,6 +1226,17 @@ certain Emacs keybinds.
     :bind (("<escape>" . god-local-mode)))
 #+END_SRC
 
+**** helpful
+
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :disabled (< emacs-major-version 25)
+    :bind (([remap describe-function] . helpful-callable)
+	   ([remap describe-variable] . helpful-variable)
+	   ([remap describe-key] . helpful-key))
+           ("H-h" . helpful-at-point))
+#+END_SRC
+
 **** Hippie Expand
 
 Hippie provides dynamic expansions. Try it out by pressing =M-/=.
@@ -1275,16 +1252,6 @@ Hippie provides dynamic expansions. Try it out by pressing =M-/=.
 			 (append '(try-complete-lisp-symbol-partially
 				   try-complete-lisp-symbol)
 				 hippie-expand-try-functions-list)))))
-#+END_SRC
-
-**** helpful
-
-#+BEGIN_SRC emacs-lisp
-  (use-package helpful
-    :disabled (< emacs-major-version 25)
-    :bind (([remap describe-function] . helpful-callable)
-	   ([remap describe-variable] . helpful-variable)
-	   ([remap describe-key] . helpful-key)))
 #+END_SRC
 
 **** Magit
@@ -1320,12 +1287,10 @@ line are available in an intuitive Emacs buffer.
         (let ((repo (match-string 1 url)))
           (apply 'magit-remote-add username (format "https://github.com/%s/%s"
                                                     username repo) args))))
-
-    (defun magit-github-hook ()
-      "Add to remote popup to add from github username."
-      (magit-define-popup-action 'magit-remote-popup
-                                 ?g "Add remote from github user name" #'magit-remote-github))
-    :hook (magit-mode . magit-github-hook)
+    :hook (magit-mode . (lambda ()
+                          (magit-define-popup-action 'magit-remote-popup
+                            ?g "Add remote from github user name"
+                            'magit-remote-github)))
     :commands magit-clone
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
@@ -1335,16 +1300,31 @@ line are available in an intuitive Emacs buffer.
            ("C-o" . magit-dired-other-window)))
 #+END_SRC
 
-***** magithub						       :noexport:
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-This is currently disabled.
+***** magithub
 
 #+BEGIN_SRC emacs-lisp
-(use-package magithub
-  :hook (magit-mode . magithub-feature-autoinject))
+  (use-package magithub
+    :commands (magithub-browse magithub-create magithub-fork magithub-clone)
+    :preface
+    (autoload 'magithub-dispatch-popup "magithub" nil t)
+    :bind (:package magit
+                    :map magit-commit-section-map
+                    ("w" . magithub-commit-browse)
+                    :map magit-status-mode-map
+                    ("H" . magithub-dispatch-popup))
+    :hook ((magit-mode . (lambda ()
+                           (magit-define-popup-action 'magit-dispatch-popup
+                             ?H "Magithub" #'magithub-dispatch-popup ?!)))
+           (magit-mode . (lambda ()
+                           (magit-define-popup-action 'magit-am-popup
+                             ?P "Apply patches from pull request"
+                             'magithub-pull-request-merge)))
+           (magit-status-headers . magithub-maybe-insert-ci-status-header)
+           (git-commit-setup . magithub-edit-mode-hook)
+           (magithub-edit-mode . magithub-edit-mode-hook)
+           (magit-status-sections . magithub-issue--insert-pr-section)
+           (magit-status-sections . magithub-issue--insert-issue-section)
+           ))
 #+END_SRC
 
 **** MMM Mode
@@ -1377,6 +1357,14 @@ Multiple cursors give you more cursors. It is bound to =C->= and =C-<=.
      ("C-c C-<"	    . mc/mark-all-like-this)
      ("C-!"	    . mc/mark-next-symbol-like-this)
      ("C-S-c C-S-c" . mc/edit-lines)))
+#+END_SRC
+
+**** notmuch
+
+#+BEGIN_SRC emacs-lisp
+  (use-package notmuch
+    :bind (("s-m" . notmuch)
+           ("H-m" . notmuch)))
 #+END_SRC
 
 **** Org
@@ -1430,17 +1418,11 @@ easymenu to make the "Projectile" modeline clickable.
     :commands projectile-mode
     :bind-keymap* (("C-c p" . projectile-command-map)
 		   ("s-p" . projectile-command-map))
-    :bind (("C-c C-f" . projectile-find-file)
-	   :map projectile-command-map
-	   ("s r" . projectile-rg))
+    :bind (("C-c C-f" . projectile-find-file))
     :preface
     (autoload 'projectile-project-vcs "projectile")
     (autoload 'projectile-project-root "projectile")
     (autoload 'easy-menu-define "easymenu" "" nil 'macro)
-    (defun projectile-rg ()
-      "Run ripgrep in projectile."
-      (interactive)
-      (counsel-rg "" (projectile-project-root)))
     :demand
     :config
     (projectile-mode))
@@ -1464,12 +1446,6 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 	   (text-mode . smart-hungry-delete-default-text-mode-hook)))
 #+END_SRC
 
-**** github-clone
-#+BEGIN_SRC emacs-lisp
-  (use-package github-clone
-    :if (locate-file "git" exec-path)
-    :bind ("C-c g c" . github-clone))
-#+END_SRC
 **** Smartparens
 
 [[https://github.com/Fuco1/smartparens][Website]]
@@ -1553,10 +1529,9 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
              html-mode) . smartparens-mode)
            (smartparens-mode . sp-use-paredit-bindings))
     :config
-    (use-package smartparens-html
-      :ensure nil)
     (use-package smartparens-config
-      :ensure nil)
+      :ensure nil
+      :demand)
 
     (sp-with-modes 'org-mode
       (sp-local-pair "*" "*"
@@ -1590,7 +1565,8 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
     (sp-with-modes 'nix-mode
       (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p))
       (sp-local-pair "\"" "\"")
-      (sp-local-pair "''" "''" :unless '(sp-in-comment-p sp-in-string-quotes-p))))
+      (sp-local-pair "''" "''"
+                     :unless '(sp-in-comment-p sp-in-string-quotes-p))))
 #+END_SRC
 
 **** sudo-edit
@@ -1732,6 +1708,7 @@ Get color/ansi codes in compilation mode.
     :config (delete-selection-mode t))
 #+END_SRC
 
+**** TODO desktop
 **** dired
 
 #+BEGIN_SRC emacs-lisp
@@ -1786,6 +1763,7 @@ Get color/ansi codes in compilation mode.
     :bind (:package dired
 		    :map dired-mode-map
 		    ("<tab>" . dired-subtree-toggle)
+		    ("TAB" . dired-subtree-toggle)
 		    ("<backtab>" . dired-subtree-cycle)))
 #+END_SRC
 
@@ -1833,6 +1811,8 @@ Setup these modes:
     :disabled (< emacs-major-version 25)
     :hook ((prog-mode . electric-quote-local-mode)
 	   (text-mode . electric-quote-local-mode)
+	   (org-mode . electric-quote-local-mode)
+           (message-mode . electric-quote-local-mode)
 	   (prog-mode . electric-indent-local-mode)
 	   (prog-mode . electric-layout-mode)))
 #+END_SRC
@@ -2030,6 +2010,24 @@ setup.
     :hook (after-init . save-place-mode))
 #+END_SRC
 
+**** TODO server
+**** Shell
+
+#+BEGIN_SRC emacs-lisp
+(use-package shell
+   :ensure nil
+   :bind (("C-c C-s" . shell)
+          ("H-s" . shell))
+   :hook ((shell-mode . ansi-color-for-comint-mode-on)
+	  (shell-mode . dirtrack-mode)
+	  (shell-mode . pcomplete-shell-setup)
+	  ;; (shell-mode . use-histfile)
+	  )
+   :preface
+   (defun use-histfile ()
+     (turn-on-comint-history (getenv "HISTFILE"))))
+#+END_SRC
+
 **** simple
 #+BEGIN_SRC emacs-lisp
 (use-package simple
@@ -2045,22 +2043,6 @@ setup.
    :hook ((text-mode . visual-line-mode))
    :config (column-number-mode))
 #+END_SRC
-**** Shell
-
-#+BEGIN_SRC emacs-lisp
-(use-package shell
-   :ensure nil
-   :bind ("C-c C-s" . shell)
-   :hook ((shell-mode . ansi-color-for-comint-mode-on)
-	  (shell-mode . dirtrack-mode)
-	  (shell-mode . pcomplete-shell-setup)
-	  ;; (shell-mode . use-histfile)
-	  )
-   :preface
-   (defun use-histfile ()
-     (turn-on-comint-history (getenv "HISTFILE"))))
-#+END_SRC
-
 **** subword
 
 #+BEGIN_SRC emacs-lisp
@@ -2069,24 +2051,25 @@ setup.
     :hook ((java-mode . subword-mode)))
 #+END_SRC
 
-**** TODO server
 **** term
 
 #+BEGIN_SRC emacs-lisp
   (use-package term
     :ensure nil
     :commands (term-mode term-char-mode)
-    :hook (term-mode . (lambda ()
-			 (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
-			 (setq-local transient-mark-mode nil)
-			 (auto-fill-mode -1)))
+    :hook ((term-mode . (lambda ()
+                         (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")
+                         (setq-local transient-mark-mode nil)
+                         (auto-fill-mode -1))))
+    ;; :config
+    ;; (add-hook 'term-input-filter-functions 'shell-directory-tracker)
     :preface
     (autoload 'term-set-escape-char "term")
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp")
     (defun my-term (&optional path name)
       (interactive)
-      (set-buffer (make-term "my-term" explicit-shell-file-name))
+      (set-buffer (make-term "my-term" zsh-command))
       (term-mode)
       (term-char-mode)
       (term-set-escape-char ?\C-x)
@@ -2100,24 +2083,27 @@ setup.
       (unless name (setq name "ansi-term"))
       (ansi-term "/bin/bash" name)
       (let ((path (replace-regexp-in-string "^file:" "" path))
-	    (cd-str
-	     "fn=%s; if test ! -d $fn; then fn=$(dirname $fn); fi; cd $fn;")
-	    (bufname (concat "*" name "*" )))
-	(if (tramp-tramp-file-p path)
-	    (let ((tstruct (tramp-dissect-file-name path)))
-	      (cond
-	       ((equal (tramp-file-name-method tstruct) "ssh")
-		(process-send-string bufname (format
-					      (concat  "ssh -t %s '"
-						       cd-str
-						       "exec bash'; exec bash; clear\n")
-					      (tramp-file-name-host tstruct)
-					      (tramp-file-name-localname tstruct))))
-	       (t (error "not implemented for method %s"
-			 (tramp-file-name-method tstruct)))))
-	  (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
-					       path)))))
-    :bind ("C-c t" . my-term))
+            (cd-str
+             "fn=%s; if test ! -d $fn; then fn=$(dirname $fn); fi; cd $fn;")
+            (bufname (concat "*" name "*" )))
+        (if (tramp-tramp-file-p path)
+            (let ((tstruct (tramp-dissect-file-name path)))
+              (cond
+               ((equal (tramp-file-name-method tstruct) "ssh")
+                (process-send-string bufname (format
+                                              (concat  "ssh -t %s '"
+                                                       cd-str
+                                                       "exec bash'; exec bash; clear\n")
+                                              (tramp-file-name-host tstruct)
+                                              (tramp-file-name-localname tstruct))))
+               (t (error "not implemented for method %s"
+                         (tramp-file-name-method tstruct)))))
+          (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
+                                               path)))))
+    :bind (("C-c t" . my-term)
+           :package term
+           :map term-raw-map
+           ("C-y" . term-paste)))
 
   (use-package tramp-term
     :commands tramp-term)
@@ -2137,6 +2123,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package time
     :demand
+    :ensure nil
     :config (display-time-mode))
 #+END_SRC
 
@@ -2308,6 +2295,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghc
+    :disabled
     :if (locate-file "ghc-mod" exec-path)
     :hook ((haskell-mode . ghc-init)
 	   (haskell-mode . ghc-comp-init)))
@@ -2408,6 +2396,9 @@ Auctex provides some helpful tools for working with LaTeX.
     :ensure auctex
     :no-require
     :mode ("\\.tex\\'" . TeX-latex-mode))
+  (use-package tex-mode
+    :ensure nil
+    :hook (TeX-mode . latex-electric-env-pair-mode))
 #+END_SRC
 
 **** Lisp
@@ -2442,8 +2433,9 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
-    :mode (("\\.md\\'" . gfm-mode)
-	   ("\\.markdown\\'" . gfm-mode)))
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
 **** git-modes
@@ -2528,11 +2520,9 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package proof-site
-    :disabled (< emacs-major-version 25)
     :ensure proofgeneral
-    :no-require
-    :if (not needs-package-init)
-    :commands (proofgeneral proof-mode proof-shell-mode))
+    :demand
+    :if (not needs-package-init))
 #+END_SRC
 
 **** Python
@@ -2557,6 +2547,7 @@ Auctex provides some helpful tools for working with LaTeX.
 ***** jedi
 #+BEGIN_SRC emacs-lisp
   (use-package jedi
+    :disabled
     :hook ((python-mode . jedi:setup))
     :config
     (setq jedi:complete-on-dot t))
@@ -2630,6 +2621,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package texinfo
+    :ensure nil
     :mode ("\\.texi\\'" . texinfo-mode))
 #+END_SRC
 
@@ -2645,7 +2637,7 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
   (use-package tide
     :hook ((typescript-mode . tide-setup)
-	   (typescript-mode . tipe-hl-identifier-mode)))
+	   (typescript-mode . tide-hl-identifier-mode)))
 #+END_SRC
 
 **** Web
@@ -2732,6 +2724,7 @@ Most of these are available in MELPA.
   (use-package crux
     :bind (("C-c D" . crux-delete-file-and-buffer)
 	   ("C-c C-e" . crux-eval-and-replace)
+           ("C-c d" . crux-duplicate-current-line-or-region)
 	   ([shift return] . crux-smart-open-line)))
 #+END_SRC
 
@@ -2763,9 +2756,6 @@ Most of these are available in MELPA.
   (use-package git-attr-linguist
     :disabled
     :ensure git-attr
-    :preface
-    (require 'cl-lib)
-    (defalias 'caddr 'cl-caddr)
     :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 **** TODO hackernews
@@ -2782,6 +2772,7 @@ Most of these are available in MELPA.
   (use-package htmlize :no-require)
 #+END_SRC
 
+**** TODO idle-highlight-mode
 **** TODO iedit
 **** page-break-lines
 
@@ -2859,6 +2850,7 @@ Most of these are available in MELPA.
 **** TODO sx
 **** TODO twittering-mode
 **** TODO undo-tree
+**** TODO unfill
 **** vkill
 
 #+BEGIN_SRC emacs-lisp
@@ -2876,8 +2868,7 @@ Most of these are available in MELPA.
     :demand)
 #+END_SRC
 **** TODO yasnippet
-**** TODO unfill
-**** TODO desktop
+**** TODO git-timemachine
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
@@ -3311,6 +3302,7 @@ means that we don’t know this until too late.
 
 #+BEGIN_SRC emacs-lisp
 (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
+(defvar zsh-command (expand-file-name "bin/zsh" output-directory))
 #+END_SRC
 
 Setup =exec-path=.
@@ -3399,7 +3391,7 @@ Set paths provided by Nix,
    '(irony-cmake-executable "@cmake@/bin/cmake")
    '(jka-compr-info-compress-program "@ncompress@/bin/compress")
    '(jka-compr-info-uncompress-program "@ncompress@/bin/uncompress")
-   '(irony-server-install-prefix "@irony@")
+   ;; '(irony-server-install-prefix "@irony@")
    '(jka-compr-dd-program "@coreutils@/bin/dd")
    '(magit-git-executable "@git@/bin/git")
    '(markdown-command "@markdown2@/bin/markdown2")
@@ -3450,6 +3442,10 @@ Set paths provided by Nix,
    '(notmuch-command "@notmuch@/bin/notmuch")
    '(dumb-jump-rg-cmd "@ripgrep@/bin/rg")
    '(dumb-jump-ag-cmd "@ag@/bin/ag")
+   '(gud-gdb-command-name "@gdb@/bin/gdb")
+   '(coq-prog-name "@coq@/bin/coqtop")
+   '(coq-dependency-analyzer "@coq@/bin/coqdep")
+   '(coq-compiler "@coq@/bin/coqc")
    )
 #+END_SRC
 
@@ -3662,7 +3658,7 @@ esac
 Now let's tangle README.org...
 
 #+BEGIN_SRC nix
-import (runCommand "README" { buildInputs = [ emacs ]; } ''
+import (runCommand "README" { buildInputs = [ emacs git ]; } ''
   mkdir -p $out
   cd $out
   cp -r ${./site-lisp} site-lisp
@@ -3760,38 +3756,39 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-  site-paths = runCommand "site-paths.el" {
-    inherit rtags ripgrep ag ant nethack fortune gnutls
-      coreutils findutils openssh git bash
-      zsh perl perlcritic
-      asciidoc lessc stack
-      lua gcc bashInteractive diffutils
-      pandoc clang cmake ghostscript
-      gnugrep man gawk gnused
-      sqliteInteractive freetds
-      parallel unixODBC ncompress
-      texinfoInteractive cacert notmuch gnuplot;
-      # mariadb go golint
-    inherit (customEmacsPackages) emacs;
-    inherit (pythonPackages) flake8;
-    inherit (nodePackages) jshint eslint;
-    inherit (haskellPackages) hoogle hlint hasktags;
-    inherit manpages sysheaders sysframeworks schemas;
-    stylish = haskellPackages.stylish-haskell;
-    # intero = haskellPackages.intero-nix-shim;
-    texlive = myTex;
-    markdown2 = pythonPackages.markdown2;
-    tidy = html-tidy;
-    irony = irony-server;
-    libxml2 = libxml2.bin;
-    gpg = gnupg1compat;
-    # jdeeserver = jdee-server;
-    aspell = myAspell;
-    # orginit = ./org-init.el;
-  } ''
-cp ${./site-paths.el.in} $out
-substituteAllInPlace $out
-  '';
+    site-paths = runCommand "site-paths.el" {
+      inherit rtags ripgrep ag ant nethack fortune gnutls
+        coreutils findutils openssh git bash
+        zsh perl perlcritic
+        asciidoc lessc stack
+        lua gcc bashInteractive diffutils
+        pandoc clang cmake ghostscript
+        gnugrep man gawk gnused
+        sqliteInteractive freetds
+        parallel unixODBC ncompress
+        texinfoInteractive cacert notmuch gnuplot
+        gdb coq;
+        # mariadb go golint
+      inherit (customEmacsPackages) emacs;
+      inherit (pythonPackages) flake8;
+      inherit (nodePackages) jshint eslint;
+      inherit (haskellPackages) hoogle hlint hasktags;
+      inherit manpages sysheaders sysframeworks schemas;
+      stylish = haskellPackages.stylish-haskell;
+      # intero = haskellPackages.intero-nix-shim;
+      texlive = myTex;
+      markdown2 = pythonPackages.markdown2;
+      tidy = html-tidy;
+      # irony = irony-server;
+      libxml2 = libxml2.bin;
+      gpg = gnupg1compat;
+      # jdeeserver = jdee-server;
+      aspell = myAspell;
+      # orginit = ./org-init.el;f
+    } ''
+  cp ${./site-paths.el.in} $out
+  substituteAllInPlace $out
+    '';
 #+END_SRC
 
 Emacs building can be divided into phases. Each phase will run through the
@@ -3813,6 +3810,7 @@ package-list =
   emacs --batch --quick \
 	-L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
 	-L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+	-L ${customEmacsPackages.melpaPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
 	-L ${./site-lisp} -l use-package-list \
 	--eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
@@ -3853,8 +3851,6 @@ myPackages = builtins.fromJSON (builtins.readFile package-list);
     $out/share/emacs/site-lisp/use-package-list.el
   cp ${./site-lisp/bauer.el} \
     $out/share/emacs/site-lisp/bauer.el
-  cp ${./site-lisp/bind-key.el} \
-    $out/share/emacs/site-lisp/bind-key.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
@@ -3874,6 +3870,7 @@ emacs --batch --quick \
 			[use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
+rm -rf $HOME/.emacs.d
 #+END_SRC
 
 #+BEGIN_SRC nix
@@ -3947,12 +3944,13 @@ requiredPackages is a function that takes two arguments.
 requiredPackages = epkgs: map (x:
   if builtins.hasAttr x epkgs.melpaPackages
     then builtins.getAttr x epkgs.melpaPackages
-    else if builtins.hasAttr x epkgs then builtins.getAttr x epkgs
-    else if builtins.hasAttr x emacsPackages
-    then builtins.getAttr x emacsPackages
-    else if builtins.hasAttr x epkgs.elpaPackages
+  else if builtins.hasAttr x epkgs.elpaPackages
     then builtins.getAttr x epkgs.elpaPackages
-    else builtins.getAttr x pkgs);
+  else if builtins.hasAttr x epkgs
+    then builtins.getAttr x epkgs
+  else if builtins.hasAttr x emacsPackages
+    then builtins.getAttr x emacsPackages
+  else abort "no attribute found for use-package ${x}");
 #+END_SRC
 
 Now we build our Emacs distribution.
@@ -3999,6 +3997,8 @@ Finally, we can actually build the environment.
 #+END_SRC
 
 #+BEGIN_SRC nix
+  # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
+
   myEnv = buildEnv {
     buildInputs = [ makeWrapper ];
     postBuild = ''
@@ -4077,14 +4077,14 @@ Finally, we can actually build the environment.
     --replace @cacert@ ${cacert}
       '')]
       ++ [bashInteractive zsh coreutils git wget
-	  gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
+          gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
       # info pages
       ++ [ed lzip libmpc flex autoconf bison
-	  which bc gnum4 time gnutls aspell]
+          which bc gnum4 time gnutls aspell]
       ++ [nix nix-index nix-zsh-completions nix-bash-completions]
       # ++ [gitAndTools.hub nox]
       ++ [nodePackages.tern isync notmuch graphviz]
-      ++ [stack ghc]
+      ++ [stack] # ghc
   #   ++ (with haskellPackages; [ghc-mod])
       ;
   };
@@ -4270,9 +4270,9 @@ update.sh linguist-generated=true
 * COMMENT Footer
 # Local Variables:
 # mode: org
-# fill-column: 80
-# tab-width: 8
-# sentence-end-double-space: nil
 # bug-reference-url-format: "https://github.com/matthewbauer/bauer/issues/%s"
 # compile-command: "nix-build"
+# fill-column: 80
+# sentence-end-double-space: nil
+# tab-width: 8
 # End:
