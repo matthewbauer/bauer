@@ -911,25 +911,25 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (global-company-mode))
   (use-package readline-complete
     :commands company-readline
-    :hook (shell-mode . (lambda () (setq-local company-backends 'company-readline))))
+    :hook (shell-mode . (lambda () (setq-local company-backends '(company-readline)))))
   (use-package company-irony
     :commands company-irony
-    :hook (irony-mode . (lambda () (setq-local company-backends 'company-irony))))
+    :hook (irony-mode . (lambda () (setq-local company-backends '(company-irony)))))
   (use-package company-restclient
     :commands company-restclient
-    :hook (restclient-mode . (lambda () (setq-local company-backends 'company-restclient))))
+    :hook (restclient-mode . (lambda () (setq-local company-backends '(company-restclient)))))
   (use-package company-anaconda
     :commands company-anaconda
     :hook (anaconda-mode . (lambda () (setq-local company-backends '(company-anaconda :with company-capf)))))
   (use-package company-jedi
     :commands company-jedi
-    :hook (python-mode . (lambda () (setq-local company-backends 'company-jedi))))
+    :hook (python-mode . (lambda () (setq-local company-backends '(company-jedi)))))
   (use-package company-tern
     :commands company-tern
-    :hook (tern-mode . (lambda () (setq-local company-backends 'company-tern))))
+    :hook (tern-mode . (lambda () (setq-local company-backends '(company-tern)))))
   (use-package company-ghc
     :commands company-ghc
-    :hook (haskell-mode . (lambda () (setq-local company-backends 'company-ghc))))
+    :hook (haskell-mode . (lambda () (setq-local company-backends '(company-ghc)))))
   (use-package company-auctex
     :commands (company-auctex company-auctext-labels
                               company-auctest-bibs company-auctex-macros
@@ -2174,6 +2174,9 @@ packages (for completion, syntax checking, etc.)
 #+END_SRC
 
 ***** Irony
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
@@ -3808,9 +3811,9 @@ package-list =
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-	-L ${customEmacsPackages.melpaPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-	-L ${customEmacsPackages.elpaPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-	-L ${customEmacsPackages.melpaPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+	-L ${customEmacsPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+	-L ${customEmacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+	-L ${customEmacsPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
 	-L ${./site-lisp} -l use-package-list \
 	--eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
@@ -3865,8 +3868,7 @@ export HOME=$PWD
 emacs --batch --quick \
       --eval "(let ((default-directory \"${emacsWrapper
 		((requiredPackages customEmacsPackages myPackages) ++
-		  (with customEmacsPackages.melpaPackages;
-		   with customEmacsPackages.elpaPackages;
+		  (with customEmacsPackages;
 			[use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
@@ -3942,11 +3944,7 @@ requiredPackages is a function that takes two arguments.
 
 #+BEGIN_SRC nix
 requiredPackages = epkgs: map (x:
-  if builtins.hasAttr x epkgs.melpaPackages
-    then builtins.getAttr x epkgs.melpaPackages
-  else if builtins.hasAttr x epkgs.elpaPackages
-    then builtins.getAttr x epkgs.elpaPackages
-  else if builtins.hasAttr x epkgs
+  if builtins.hasAttr x epkgs
     then builtins.getAttr x epkgs
   else if builtins.hasAttr x emacsPackages
     then builtins.getAttr x emacsPackages
@@ -3958,7 +3956,7 @@ Now we build our Emacs distribution.
 #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myPackages)
-    ++ [default epkgs.melpaPackages.use-package]
+    ++ [default epkgs.use-package]
   );
 #+END_SRC
 
@@ -4007,6 +4005,14 @@ Finally, we can actually build the environment.
     for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
       ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
     done
+  fi
+
+  if [ -w $out/share/applications ]; then
+    ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
+  fi
+
+  if [ -w $out/share/mime ]; then
+    XDG_DATA_DIRS=$out/share ${shared-mime-info}/bin/update-mime-database -V $out/share/mime
   fi
 
   mkdir -p $out/etc
