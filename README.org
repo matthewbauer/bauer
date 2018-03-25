@@ -3740,8 +3740,9 @@ Emacs 26 is provided courtesy of @jwiegley's nix-config repo.
   inherit (import ((fetchFromGitHub {
     owner = "jwiegley";
     repo = "nix-config";
-    rev = "e5649602dc89f944e0444a88d8526b19b965bccb";
-    sha256 = "1i6bj41ddvlfwyi32gp917lapq1pb9zpa5z5qskwngd5s4j9vv5b";
+    rev = "0a33b5bdc8be5841100e27233cf371336ab20241";
+    sha256 = "0h40k597zfl57zw1l5bdak7rv9bwkrgvypjgf47p1ag3kmpjrkdy";
+    # date = 2018-03-24T13:13:51-07:00;
   }) + "/overlays/10-emacs.nix") self pkgs) emacs26;
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     emacs = emacs26;
