@@ -718,7 +718,7 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("s-/" . comment-or-uncomment-region)
 
    ("C-x M-p" . (lambda () (interactive) (save-excursion (other-window 1)
-                                                    (quit-window))))
+                                                         (quit-window))))
 
    ("C-M--" . (lambda () (interactive) (update-font-size -1 t)))
    ("C-M-=" . (lambda () (interactive) (update-font-size 1 t)))
@@ -808,6 +808,24 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    :prefix "s-h"
    ("k" . describe-personal-keybindings)
    ("p" . ffap))
+
+  (unless window-system
+    (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
+    (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
+
+    (when (string-equal system-type "darwin")
+
+      (defun pbpaste ()
+        (shell-command-to-string "pbpaste"))
+
+      (defun pcopy (text &optional push)
+        (let ((process-connection-type nil))
+          (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+            (process-send-string proc text)
+            (process-send-eof proc))))
+
+      (setq interprogram-cut-function 'pbcopy)
+      (setq interprogram-paste-function 'pbpaste)))
 #+END_SRC
 
 ** Setup installer
@@ -1206,8 +1224,7 @@ Gnus is an infamous email client and news reader.
   (use-package gnus
     :ensure nil
     :commands gnus
-    :hook ((gnus-group-mode . gnus-topic-mode)
-	   (dired-mode . turn-on-gnus-dired-mode)))
+    :hook ((dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
 
 **** God Mode
@@ -1223,7 +1240,8 @@ certain Emacs keybinds.
 
 #+BEGIN_SRC emacs-lisp
   (use-package god-mode
-    :bind (("<escape>" . god-local-mode)))
+    :bind (("<escape>" . god-local-mode)
+           ("ESC" . god-local-mode)))
 #+END_SRC
 
 **** helpful
@@ -1834,7 +1852,8 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package eww
     :ensure nil
-    :if (not window-system)
+    :if (and (not window-system)
+             (not (string-equal (getenv "TERM_PROGRAM") "Apple_Terminal")))
     :commands eww-browse-url
     :init
     (setq browse-url-browser-function 'eww-browse-url))
@@ -2904,8 +2923,8 @@ export LANG=en_US.UTF-8 \
        GREP_COLOR='3;33' \
        LC_COLLATE=C \
        HISTFILE=$HOME/.history \
-       HISTSIZE=2000 \
-       SAVEHIST=2000 \
+       HISTSIZE=20000000 \
+       SAVEHIST=20000000 \
        HISTFILESIZE=2000 \
        HISTTIMEFORMAT="[%F %T] " \
        HISTCONTROL=ignoreboth \
@@ -3026,6 +3045,7 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
     PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
     update_terminal_cwd
 fi
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 #+END_SRC
 
 #+BEGIN_SRC shell
@@ -3682,18 +3702,17 @@ import (runCommand "README" { buildInputs = [ emacs git ]; } ''
 will be =nixpkgs= instantiated.
 
 #+BEGIN_SRC nix
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
-, nixpkgs ? builtins.fetchTarball nixpkgs-url
-, nixpkgs' ? import nixpkgs {}
-}: with nixpkgs'; let
+  { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
+  , nixpkgs ? builtins.fetchTarball nixpkgs-url
+  , nixpkgs' ? import nixpkgs {}
+  }: with nixpkgs'; let
 #+END_SRC
 
 We start out by defining the Nix version to use. nixStable corresponds to the
-last released version, 1.11. nixUnstable is currently at Nix 2.0 which should
-soon be released.
+last released version, 2.0.
 
 #+BEGIN_SRC nix
-nix = nixUnstable;
+  nix = nixStable;
 #+END_SRC
 
 Next we start defining some packages. R is one of the simpler ones right now,
@@ -3759,6 +3778,14 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
+    # gdb = buildEnv {
+    #   name = "gdb-signed";
+    #   paths = [ pkgs.gdb ];
+    #   postBuild = ''
+    #     codesign -v
+    #     codesign $out/bin/gdb
+    #   '';
+    # };
     site-paths = runCommand "site-paths.el" {
       inherit rtags ripgrep ag ant nethack fortune gnutls
         coreutils findutils openssh git bash
@@ -4011,8 +4038,9 @@ Finally, we can actually build the environment.
     ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
   fi
 
-  if [ -w $out/share/mime ]; then
-    XDG_DATA_DIRS=$out/share ${shared-mime-info}/bin/update-mime-database -V $out/share/mime
+  if [ -w $out/share/mime ] && [ -w $out/share/mime/packages ]; then
+    XDG_DATA_DIRS=$out/share ${shared-mime-info}/bin/update-mime-database \
+      -V $out/share/mime
   fi
 
   mkdir -p $out/etc
@@ -4087,7 +4115,8 @@ Finally, we can actually build the environment.
       # info pages
       ++ [ed lzip libmpc flex autoconf bison
           which bc gnum4 time gnutls aspell]
-      ++ [nix nix-index nix-zsh-completions nix-bash-completions]
+      ++ [nix nix-index nix-zsh-completions nix-bash-completions
+          nix-prefetch-git]
       # ++ [gitAndTools.hub nox]
       ++ [nodePackages.tern isync notmuch graphviz]
       ++ [stack] # ghc
