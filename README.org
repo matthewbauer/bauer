@@ -2918,7 +2918,7 @@ export MAN_PATH
 
 export LANG=en_US.UTF-8 \
        LC_ALL=en_US.UTF-8 \
-       INFOPATH=$PREFIX/share/info \
+       INFOPATH=@infoPages@/share/info \
        DICPATH=$PREFIX/share/hunspell \
        CLICOLOR=1 \
        GREP_COLOR='3;33' \
@@ -3577,7 +3577,7 @@ Set some defaults that depend on the path variables below,
 	       :image-converter
 	       (,(concat dvipng-command
 			 " -fg %F -bg %B -D %D -T tight -o %O %f")))))
-   '(Info-directory-list `(,(expand-file-name "share/info" output-directory)))
+   '(Info-directory-list '("@infoPages@/share/info"))
    '(tramp-remote-path `(tramp-own-remote-path
 			 "/run/current-system/sw/bin"
 			 tramp-default-remote-path
@@ -3799,13 +3799,14 @@ substitution of all the attributes set.
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive cacert notmuch gnuplot
-        gdb coq;
+        gdb coq
+        manpages sysheaders sysframeworks schemas infoPages
         # mariadb go golint
+      ;
       inherit (customEmacsPackages) emacs;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
       inherit (haskellPackages) hoogle hlint hasktags;
-      inherit manpages sysheaders sysframeworks schemas;
       stylish = haskellPackages.stylish-haskell;
       # intero = haskellPackages.intero-nix-shim;
       texlive = myTex;
@@ -3828,8 +3829,8 @@ Elisp once.
 
 **** Phase 1: picking up dependencies
 
-myPackages gets a listing of all of the packages that are needed by the Emacs
-configuration. use-package-list generates this list automatically.
+myEmacsPackages gets a listing of all of the packages that are needed by the
+Emacs configuration. use-package-list generates this list automatically.
 
 #+BEGIN_SRC nix
 package-list =
@@ -3852,7 +3853,7 @@ package-list =
 #+END_SRC
 
 #+BEGIN_SRC nix
-myPackages = builtins.fromJSON (builtins.readFile package-list);
+myEmacsPackages = builtins.fromJSON (builtins.readFile package-list);
 #+END_SRC
 
 **** Phase 2: byte compiling
@@ -3896,7 +3897,7 @@ cd $out/share/emacs/site-lisp
 export HOME=$PWD
 emacs --batch --quick \
       --eval "(let ((default-directory \"${emacsWrapper
-		((requiredPackages customEmacsPackages myPackages) ++
+		((requiredPackages customEmacsPackages myEmacsPackages) ++
 		  (with customEmacsPackages;
 			[use-package delight]))
 }/share/emacs/site-lisp\")) (normal-top-level-add-subdirs-to-load-path))" \
@@ -3984,7 +3985,7 @@ Now we build our Emacs distribution.
 
 #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-    (requiredPackages epkgs myPackages)
+    (requiredPackages epkgs myEmacsPackages)
     ++ [default epkgs.use-package]
   );
 #+END_SRC
@@ -3994,11 +3995,27 @@ Now we build our Emacs distribution.
 Finally, we can actually build the environment.
 
 #+BEGIN_SRC nix
+  infoPages = buildEnv {
+    name = "info-pages";
+    paths = packages ++ [customEmacsPackages.emacs];
+    extraOutputsToInstall = [ "info" "doc" "devdoc" ];
+    pathsToLink = [ "/share/info" ];
+    postBuild = ''
+      shopt -s nullglob
+      for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
+        ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
+      done
+    '';
+  };
+
   manpages = buildEnv {
     name = "man-pages";
-    paths = [posix_man_pages] # stdmanpages
+    paths = packages ++ [posix_man_pages
+                         customEmacsPackages.emacs] # stdmanpages
       ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
+    extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
+    pathsToLink = [ "/share/man" ];
   };
 
   sysheaders = buildEnv {
@@ -4026,16 +4043,23 @@ Finally, we can actually build the environment.
 #+BEGIN_SRC nix
   # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
 
+  packages = [
+    myTex
+    # rEnv
+    bashInteractive zsh coreutils git wget
+    gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
+    nix nix-index nix-zsh-completions nix-bash-completions
+    nix-prefetch-git
+    gdb
+    # gitAndTools.hub nox
+    nodePackages.tern isync notmuch graphviz
+    stack # ghc
+  #   ++ (with haskellPackages; [ghc-mod])
+  ];
+
   myEnv = buildEnv {
     buildInputs = [ makeWrapper ];
     postBuild = ''
-  if [ -w $out/share/info ]; then
-    shopt -s nullglob
-    for i in $out/share/info/*.info $out/share/info/*.info.gz; do # */
-      ${texinfoInteractive}/bin/install-info $i $out/share/info/dir
-    done
-  fi
-
   if [ -w $out/share/applications ]; then
     ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
   fi
@@ -4068,6 +4092,7 @@ Finally, we can actually build the environment.
   cp ${./etc-profile.sh} $out/etc/profile
   substituteInPlace $out/etc/profile \
     --replace @manpages@ ${manpages} \
+    --replace @infoPages@ ${infoPages} \
     --replace @out@ $out
 
   wrapProgram $out/bin/bash \
@@ -4089,42 +4114,24 @@ Finally, we can actually build the environment.
       "/Applications"
       "/share/applications"
       "/share/doc"
-      "/share/man"
-      "/share/info"
       "/share/zsh"
       "/share/bash-completion"
       "/share/mime"
     ];
 
-    extraOutputsToInstall = [ "man" "info" "doc" "devdoc" "devman" ];
     name = "bauer";
 
-    paths = [
+    paths = packages ++ [
       myEmacs
-      myTex
-      # rEnv
       (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-  mkdir -p $out/etc/profile.d
-  cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
-  substituteInPlace $out/etc/profile.d/my-profile.sh \
-    --replace @emacs@ ${myEmacs} \
-    --replace @fortune@ ${fortune} \
-    --replace @manpages@ ${manpages} \
-    --replace @cacert@ ${cacert}
-      '')]
-      ++ [bashInteractive zsh coreutils git wget
-          gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot]
-      # info pages
-      ++ [ed lzip libmpc flex autoconf bison
-          which bc gnum4 time gnutls aspell]
-      ++ [nix nix-index nix-zsh-completions nix-bash-completions
-          nix-prefetch-git]
-      ++ [gdb]
-      # ++ [gitAndTools.hub nox]
-      ++ [nodePackages.tern isync notmuch graphviz]
-      ++ [stack] # ghc
-  #   ++ (with haskellPackages; [ghc-mod])
-      ;
+        mkdir -p $out/etc/profile.d
+        cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
+        substituteInPlace $out/etc/profile.d/my-profile.sh \
+          --replace @emacs@ ${myEmacs} \
+          --replace @fortune@ ${fortune} \
+          --replace @manpages@ ${manpages} \
+          --replace @cacert@ ${cacert}
+      '')];
   };
 #+END_SRC
 
