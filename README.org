@@ -813,19 +813,20 @@ with how Emacs key binding works, you should read through [[https://www.masterin
     (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
     (global-set-key (kbd "<mouse-5>") 'scroll-up-line)
 
-    (when (string-equal system-type "darwin")
+    ;; (when (string-equal system-type "darwin")
 
-      (defun pbpaste ()
-        (shell-command-to-string "pbpaste"))
+    ;;   (defun pbpaste ()
+    ;;     (shell-command-to-string "pbpaste"))
 
-      (defun pcopy (text &optional push)
-        (let ((process-connection-type nil))
-          (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
-            (process-send-string proc text)
-            (process-send-eof proc))))
+    ;;   (defun pcopy (text &optional push)
+    ;;     (let ((process-connection-type nil))
+    ;;       (let ((proc (start-process "pbcopy" "*Messages*" "pbcopy")))
+    ;;         (process-send-string proc text)
+    ;;         (process-send-eof proc))))
 
-      (setq interprogram-cut-function 'pbcopy)
-      (setq interprogram-paste-function 'pbpaste)))
+    ;;   (setq interprogram-cut-function 'pbcopy)
+    ;;   (setq interprogram-paste-function 'pbpaste))
+    )
 #+END_SRC
 
 ** Setup installer
