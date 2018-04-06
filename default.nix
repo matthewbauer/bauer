@@ -3,7 +3,7 @@
 , nixpkgs' ? import nixpkgs {}
 }: with nixpkgs';
 
-import (runCommand "README" { buildInputs = [ emacs ]; } ''
+import (runCommand "README" { buildInputs = [ emacs git ]; } ''
   mkdir -p $out
   cd $out
   cp -r ${./site-lisp} site-lisp
