@@ -930,25 +930,32 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (global-company-mode))
   (use-package readline-complete
     :commands company-readline
-    :hook (shell-mode . (lambda () (setq-local company-backends '(company-readline)))))
+    :hook (shell-mode . (lambda () (setq-local company-backends
+                                          '(company-readline)))))
   (use-package company-irony
     :commands company-irony
-    :hook (irony-mode . (lambda () (setq-local company-backends '(company-irony)))))
+    :hook (irony-mode . (lambda () (setq-local company-backends
+                                          '(company-irony)))))
   (use-package company-restclient
     :commands company-restclient
-    :hook (restclient-mode . (lambda () (setq-local company-backends '(company-restclient)))))
+    :hook (restclient-mode . (lambda () (setq-local company-backends
+                                               '(company-restclient)))))
   (use-package company-anaconda
     :commands company-anaconda
-    :hook (anaconda-mode . (lambda () (setq-local company-backends '(company-anaconda :with company-capf)))))
+    :hook (anaconda-mode . (lambda () (setq-local company-backends
+                                             '(company-anaconda
+                                               :with company-capf)))))
   (use-package company-jedi
     :commands company-jedi
-    :hook (python-mode . (lambda () (setq-local company-backends '(company-jedi)))))
+    :hook (python-mode . (lambda () (setq-local company-backends
+                                           '(company-jedi)))))
   (use-package company-tern
     :commands company-tern
     :hook (tern-mode . (lambda () (setq-local company-backends '(company-tern)))))
   (use-package company-ghc
     :commands company-ghc
-    :hook (haskell-mode . (lambda () (setq-local company-backends '(company-ghc)))))
+    :hook (haskell-mode . (lambda () (setq-local company-backends
+                                            '(company-ghc)))))
   (use-package company-auctex
     :commands (company-auctex company-auctext-labels
                               company-auctest-bibs company-auctex-macros
