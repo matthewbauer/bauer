@@ -19,7 +19,7 @@
 #+STARTUP: hideblocks indent align entitiespretty
 #+EXPORT_FILE_NAME: index
 #+KEYWORDS: dotfiles config ide emacs nix bauer
-#+HTML_HEAD: <link rel=stylesheet href=https://matthewbauer.us/style.css />
+#+HTML_HEAD: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name="viewport" content="width=device-width, initial-scale=1.0">
 #+LINK_HOME: http://matthewbauer.us
 #+LINK_UP: http://matthewbauer.us/bauer/
 
@@ -4190,19 +4190,8 @@ Setup some values for =NIXPKGS= variables.
 env:
   - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
   - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
-#+END_SRC
-
-Configure the matrix...
-
-#+BEGIN_SRC yaml
-matrix:
-  exclude:
-    - os: linux
-      env: NIXPKGS=nixos.org/channels/nixpkgs-17.09-darwin/nixexprs.tar.xz
-    - os: osx
-      env: NIXPKGS=nixos.org/channels/nixos-17.09/nixexprs.tar.xz
-    - os: osx
-      env: NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+  - NIXPKGS=nixos.org/channels/nixos-18.03/nixexprs.tar.xz
+  - NIXPKGS=nixos.org/channels/nixpkgs-18.03-darwin/nixexprs.tar.xz
 #+END_SRC
 
 Setup the cache.
