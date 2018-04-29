@@ -1,27 +1,27 @@
-#+TITLE: bauer: an Emacs+Nix IDE
-#+AUTHOR: Matthew Bauer
-#+EMAIL: mjbauer95@gmail.com
-#+SUBTITLE: Bauer’s Automated Unified Emacs Realm
-#+DESCRIPTION: My Emacs configuration
-#+LANGUAGE: en
-#+OPTIONS: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
-#+OPTIONS: arch:nil author:t broken-links:nil
-#+OPTIONS: creator:t date:t email:t inline:nil num:nil pri:t
-#+OPTIONS: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
-#+PROPERTY: header-args :cache yes :comments link
-#+PROPERTY: header-args:emacs-lisp :results output silent
-#+LATEX_HEADER: \usepackage{parskip}
-#+LATEX_HEADER: \usepackage{inconsolata}
-#+LATEX_HEADER: \usepackage[utf8]{inputenc}
-#+LATEX_HEADER: \usepackage{alltt}
-#+LATEX_HEADER: \usepackage{upquote}
-#+TAGS: noexport notangle
-#+STARTUP: hideblocks indent align entitiespretty
-#+EXPORT_FILE_NAME: index
-#+KEYWORDS: dotfiles config ide emacs nix bauer
-#+HTML_HEAD: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#+LINK_HOME: http://matthewbauer.us
-#+LINK_UP: http://matthewbauer.us/bauer/
+#+title: bauer: an Emacs+Nix IDE
+#+author: Matthew Bauer
+#+email: mjbauer95@gmail.com
+#+subtitle: Bauer’s Automated Unified Emacs Realm
+#+description: My Emacs configuration
+#+language: en
+#+options: c:nil d:t e:t f:t H:3 p:nil ':t *:t -:t ::t <:t \n:nil ^:{} |:t
+#+options: arch:nil author:t broken-links:nil
+#+options: creator:t date:t email:t inline:nil num:nil pri:t
+#+options: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
+#+property: header-args :cache yes :comments link
+#+property: header-args:emacs-lisp :results output silent
+#+latex_header: \usepackage{parskip}
+#+latex_header: \usepackage{inconsolata}
+#+latex_header: \usepackage[utf8]{inputenc}
+#+latex_header: \usepackage{alltt}
+#+latex_header: \usepackage{upquote}
+#+tags: noexport notangle
+#+startup: hideblocks indent align entitiespretty
+#+export_file_name: index
+#+keywords: dotfiles config ide emacs nix bauer
+#+html_head: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+link_home: http://matthewbauer.us
+#+link_up: http://matthewbauer.us/bauer/
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -133,10 +133,7 @@ this.
 #+BEGIN_SRC emacs-lisp
   (defvar file-name-handler-alist-backup file-name-handler-alist)
   (setq gc-cons-threshold most-positive-fixnum
-        file-name-handler-alist nil
-        ;; load-path `(,(expand-file-name "site-lisp" user-emacs-directory)
-        ;;             )
-        )
+        file-name-handler-alist nil)
   (add-hook 'after-init-hook
             (lambda ()
               (garbage-collect)
@@ -389,7 +386,7 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(ispell-quietly t)
    '(ispell-silently-savep t)
-   '(jit-lock-defer-time 0.01)
+   '(jit-lock-defer-time 0.25)
    '(js2-mode-show-parse-errors nil)
    '(js2-mode-show-strict-warnings nil)
    '(js2-strict-missing-semi-warning nil)
@@ -404,8 +401,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(mac-option-modifier 'super)
    '(mac-right-option-modifier nil)
    '(mac-system-move-file-to-trash-use-finder t)
-   '(magit-clone-set-remote\.pushDefault t)
-   '(magit-diff-options nil)
    '(magit-ediff-dwim-show-on-hunks t)
    '(magit-highlight-trailing-whitespace nil)
    '(magit-highlight-whitespace nil)
@@ -414,7 +409,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
    '(magit-process-popup-time 15)
-   '(magit-push-always-verify nil)
    '(magit-save-repository-buffers 'dontask)
    '(magit-stage-all-confirm nil)
    '(magit-unstage-all-confirm nil)
@@ -435,7 +429,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(org-export-with-toc nil)
    '(org-html-htmlize-output-type (quote css))
    '(org-latex-listings (quote minted))
-   ;; '(org-list-allow-alphabetical t)
    '(org-log-done 'time)
    '(org-special-ctrl-a/e t)
    '(org-support-shift-select t)
@@ -465,12 +458,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(resize-mini-windows t)
    '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
-   ;; '(same-window-buffer-names '("*eshell*"
-   ;;				   "*shell*"
-   ;;				   "*mail*"
-   ;;				   "*inferior-lisp*"
-   ;;				   "*ielm*"
-   ;;				   "*scheme*"))
    '(save-abbrevs 'silently)
    '(save-interprogram-paste-before-kill t)
    '(savehist-additional-variables '(search-ring
@@ -481,7 +468,6 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
 				     sr-history-registry
 				     file-name-history
 				     tablist-name-filter))
-   '(savehist-autosave-interval 60)
    '(savehist-ignored-variables '(load-history
 				  flyspell-auto-correct-ring kill-ring))
    '(scroll-preserve-screen-position 'always)
@@ -503,16 +489,13 @@ The format of arguments to =set-defaults= is identical to the one used by =custo
    '(tramp-default-proxies-alist '(((regexp-quote (system-name)) nil nil)
 				   (nil "\\`root\\'" "/ssh:%h:")
 				   (".*" "\\`root\\'" "/ssh:%h:")))
-   ;; '(truncate-lines nil)
    '(tls-checktrust t)
-   '(undo-limit 800000)
    '(uniquify-buffer-name-style 'forward)
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
    '(use-dialog-box nil)
    '(use-file-dialog nil)
    '(use-package-always-defer t)
-   ;; '(use-package-enable-imenu-support t)
    '(version-control t)
    '(vc-allow-async-revert t)
    '(vc-command-messages t)
@@ -1145,14 +1128,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 	      eshell-tramp
 	      eshell-unix
 	      eshell-xtra))))
-
-  (use-package esh-autosuggest
-    :commands esh-autosuggest
-    :hook (eshell-mode . (lambda ()
-			   (setq-local company-backends
-					'(company-capf
-					  company-files
-					  esh-autosuggest)))))
 #+END_SRC
 
 ***** esh-help
@@ -1257,7 +1232,7 @@ certain Emacs keybinds.
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :bind (([remap describe-function] . helpful-callable)
 	   ([remap describe-variable] . helpful-variable)
 	   ([remap describe-key] . helpful-key))
@@ -1330,29 +1305,11 @@ line are available in an intuitive Emacs buffer.
 ***** magithub
 
 #+BEGIN_SRC emacs-lisp
-  (use-package magithub
-    :disabled
-    :commands (magithub-browse magithub-create magithub-fork magithub-clone)
-    :preface
-    (autoload 'magithub-dispatch-popup "magithub" nil t)
-    :bind (:package magit
-                    :map magit-commit-section-map
-                    ("w" . magithub-commit-browse)
-                    :map magit-status-mode-map
-                    ("H" . magithub-dispatch-popup))
-    :hook ((magit-mode . (lambda ()
-                           (magit-define-popup-action 'magit-dispatch-popup
-                             ?H "Magithub" #'magithub-dispatch-popup ?!)))
-           (magit-mode . (lambda ()
-                           (magit-define-popup-action 'magit-am-popup
-                             ?P "Apply patches from pull request"
-                             'magithub-pull-request-merge)))
-           (magit-status-headers . magithub-maybe-insert-ci-status-header)
-           (git-commit-setup . magithub-edit-mode-hook)
-           (magithub-edit-mode . magithub-edit-mode-hook)
-           (magit-status-sections . magithub-issue--insert-pr-section)
-           (magit-status-sections . magithub-issue--insert-issue-section)
-           ))
+(use-package magithub
+  :after magit
+  :config
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/github"))
 #+END_SRC
 
 **** MMM Mode
@@ -1464,7 +1421,7 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 
 #+BEGIN_SRC emacs-lisp
   (use-package smart-hungry-delete
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :bind (:map prog-mode-map
 		("<backspace>" . smart-hungry-delete-backward-char)
 		("C-d" . smart-hungry-delete-forward-char))
@@ -1836,7 +1793,7 @@ Setup these modes:
 #+BEGIN_SRC emacs-lisp
   (use-package electric
     :ensure nil
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :hook ((prog-mode . electric-quote-local-mode)
 	   (text-mode . electric-quote-local-mode)
 	   (org-mode . electric-quote-local-mode)
@@ -1853,7 +1810,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package elec-pair
     :ensure nil
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :hook ((prog-mode . electric-pair-local-mode)
 	   (smartparens-mode . (lambda () (electric-pair-local-mode -1)))))
 #+END_SRC
@@ -1924,7 +1881,6 @@ setup.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
-    :disabled
     :ensure nil
     :if (locate-file
 	 (if (boundp 'ispell-program-name) ispell-program-name "ispell")
@@ -1944,7 +1900,8 @@ setup.
   (use-package goto-addr
     :ensure nil
     :hook ((prog-mode . goto-address-prog-mode)
-	   (git-commit-mode . goto-address-mode)))
+	   (git-commit-mode . goto-address-mode)
+           (shell-mode . goto-address-mode)))
 #+END_SRC
 
 **** hl-line
@@ -2035,7 +1992,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :ensure nil
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :hook (after-init . save-place-mode))
 #+END_SRC
 
@@ -2321,12 +2278,14 @@ packages (for completion, syntax checking, etc.)
 
 **** Haskell
 ***** ghc
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghc
-    :disabled
     :if (locate-file "ghc-mod" exec-path)
     :hook ((haskell-mode . ghc-init)
 	   (haskell-mode . ghc-comp-init)))
@@ -2374,7 +2333,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
 
@@ -2525,7 +2484,6 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update-el
-  :disabled
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** mwim
@@ -2553,7 +2511,7 @@ Auctex provides some helpful tools for working with LaTeX.
   (use-package proof-site
     :ensure proofgeneral
     :demand
-    :disabled needs-package-init)
+    :if (not needs-package-init))
 #+END_SRC
 
 **** Python
@@ -2576,9 +2534,11 @@ Auctex provides some helpful tools for working with LaTeX.
 #+END_SRC
 
 ***** jedi
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package jedi
-    :disabled
     :hook ((python-mode . jedi:setup))
     :config
     (setq jedi:complete-on-dot t))
@@ -2769,7 +2729,7 @@ Most of these are available in MELPA.
 **** dumb-jump
 #+BEGIN_SRC emacs-lisp
   (use-package dumb-jump
-    :disabled (< emacs-major-version 25)
+    :if (>= emacs-major-version 25)
     :hook ((prog-mode . dumb-jump-mode)))
 #+END_SRC
 **** TODO emacs-gif-screencast
@@ -2783,9 +2743,11 @@ Most of these are available in MELPA.
 
 **** TODO eyebrowse
 **** git-attr
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package git-attr-linguist
-    :disabled
     :ensure git-attr
     :hook ((find-file . git-attr-linguist)))
 #+END_SRC
@@ -2882,17 +2844,12 @@ Most of these are available in MELPA.
 **** TODO twittering-mode
 **** TODO undo-tree
 **** TODO unfill
-**** vkill
-
-#+BEGIN_SRC emacs-lisp
-  (use-package vkill
-    :bind ("C-x L" . vkill))
-#+END_SRC
-
 **** volatile-highlights
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package volatile-highlights
-    :disabled
     :commands volatile-highlights-mode
     :config (volatile-highlights-mode t)
     :delight
@@ -2900,6 +2857,22 @@ Most of these are available in MELPA.
 #+END_SRC
 **** TODO yasnippet
 **** TODO git-timemachine
+**** with-editor
+#+BEGIN_SRC emacs-lisp
+  (use-package with-editor
+    :hook
+    ((shell-mode eshell-mode) . with-editor-export-editor))
+#+END_SRC
+**** unfill
+#+BEGIN_SRC emacs-lisp
+(use-package unfill
+  ;; fill-paragraph is nice, but emacs weirdly lacks a convenient way to
+  ;; unfill paragraphs once they're filled.  This package adds that
+  ;; functionality.
+  :bind
+  ([remap fill-paragraph] . unfill-toggle))
+#+END_SRC
+
 * Profiles
 
 All of these files live outside of Emacs but are necessary for a usable
@@ -3439,7 +3412,7 @@ Set paths provided by Nix,
    '(rtags-path "@rtags@/bin")
    '(sql-ingres-program "@parallel@/bin/sql")
    '(sql-interbase-program "@unixODBC@/bin/isql")
-  ;; '(sql-mysql-program "@mariadb@/bin/mysql")
+   ;; '(sql-mysql-program "@mariadb@/bin/mysql")
    '(sql-ms-program "@freetds@/bin/osql")
    '(sql-postgres-program "@freetds@/bin/osql")
    '(sql-sqlite-program "@sqliteInteractive@/bin/sqlite3")
@@ -3749,9 +3722,9 @@ Emacs 26 is provided courtesy of @jwiegley's nix-config repo.
   inherit (import ((fetchFromGitHub {
     owner = "jwiegley";
     repo = "nix-config";
-    rev = "0a33b5bdc8be5841100e27233cf371336ab20241";
-    sha256 = "0h40k597zfl57zw1l5bdak7rv9bwkrgvypjgf47p1ag3kmpjrkdy";
-    # date = 2018-03-24T13:13:51-07:00;
+    rev = "c37023f661d6b2aa1c5b386170960e8d7a13c8ab";
+    sha256 = "12rxz01x7dvwrfxg7k3w59sa0jr2cp69aijl05i73mwhigb0nwdx";
+    # date = 2018-04-26T23:40:37-07:00;
   }) + "/overlays/10-emacs.nix") self pkgs) emacs26;
   customEmacsPackages = emacsPackagesNg.overrideScope (super: self: {
     emacs = emacs26;
@@ -4005,7 +3978,7 @@ Finally, we can actually build the environment.
 #+BEGIN_SRC nix
   infoPages = buildEnv {
     name = "info-pages";
-    paths = packages ++ [customEmacsPackages.emacs];
+    paths = userPackages ++ [customEmacsPackages.emacs];
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
     pathsToLink = [ "/share/info" ];
     postBuild = ''
@@ -4018,7 +3991,7 @@ Finally, we can actually build the environment.
 
   manpages = buildEnv {
     name = "man-pages";
-    paths = packages ++ [posix_man_pages
+    paths = userPackages ++ [posix_man_pages
                          customEmacsPackages.emacs] # stdmanpages
       ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
@@ -4051,9 +4024,9 @@ Finally, we can actually build the environment.
 #+BEGIN_SRC nix
   # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
 
-  packages = [
+  userPackages = [
     myTex
-    # rEnv
+    rEnv
     bashInteractive zsh coreutils git wget
     gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
     nix nix-index nix-zsh-completions nix-bash-completions
@@ -4061,8 +4034,8 @@ Finally, we can actually build the environment.
     gdb
     # gitAndTools.hub nox
     nodePackages.tern isync notmuch graphviz
-    stack # ghc
-  #   ++ (with haskellPackages; [ghc-mod])
+    stack ghc
+  # ++ (with haskellPackages; [ghc-mod])
   ];
 
   myEnv = buildEnv {
@@ -4129,7 +4102,7 @@ Finally, we can actually build the environment.
 
     name = "bauer";
 
-    paths = packages ++ [
+    paths = userPackages ++ [
       myEmacs
       (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
         mkdir -p $out/etc/profile.d
@@ -4277,23 +4250,6 @@ site-paths.el.in
 init.el
 org-init.el
 org-src-*
-#+END_SRC
-** =config.nix=
-:PROPERTIES:
-:header-args: :tangle config.nix
-:END:
-
-This file is just for convenience if you wanted to build with the Nixpkgs in
-your channel. Having this file available means you can place this repo in
-\tilde/.nixpkgs and Nixpkgs will have the package ~userPackages~ available.
-
-#+BEGIN_SRC nix :padline no
-{
-  packageOverrides = pkgs: with pkgs; rec {
-    bauer = import ./default.nix { nixpkgs' = pkgs; };
-    userPackages = bauer;
-  };
-}
 #+END_SRC
 ** =.gitattributes=
 :PROPERTIES:
