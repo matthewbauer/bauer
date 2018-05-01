@@ -1229,6 +1229,9 @@ certain Emacs keybinds.
 #+END_SRC
 
 **** helpful
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
@@ -1303,6 +1306,9 @@ line are available in an intuitive Emacs buffer.
 #+END_SRC
 
 ***** magithub
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package magithub
@@ -2330,6 +2336,9 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 **** JavaScript
 ***** indium
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
@@ -2504,6 +2513,9 @@ Auctex provides some helpful tools for working with LaTeX.
 #+END_SRC
 
 **** Proof General
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 [[https://proofgeneral.github.io][Website]]
 
@@ -2891,28 +2903,24 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
+Run fortune,
+
+#+BEGIN_SRC shell
+if [ -z "$FORTUNE" ]; then
+  @fortune@/bin/fortune
+  export FORTUNE=1
+fi
+#+END_SRC
+
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-MAN_PATH=/usr/share/man:/usr/local/share/man:@manpages@:$PREFIX/share/man:
-export MAN_PATH
-
-export LANG=en_US.UTF-8 \
-       LC_ALL=en_US.UTF-8 \
-       INFOPATH=@infoPages@/share/info \
-       DICPATH=$PREFIX/share/hunspell \
-       CLICOLOR=1 \
-       GREP_COLOR='3;33' \
-       LC_COLLATE=C \
-       HISTFILE=$HOME/.history \
-       HISTSIZE=20000000 \
-       SAVEHIST=20000000 \
-       HISTFILESIZE=2000 \
-       HISTTIMEFORMAT="[%F %T] " \
-       HISTCONTROL=ignoreboth \
-       SHELL_SESSION_HISTORY=1
-
-export XDG_DATA_DIRS=$PREFIX/share/:/usr/local/share/:/usr/share/
+  export LANG=en_US.UTF-8 \
+         LC_ALL=en_US.UTF-8 \
+         PATH=@PATH@:$PREFIX/bin
+         INFOPATH=@INFOPATH@ \
+         MANPATH=@MANPATH@ \
+         XDG_DATA_DIRS=@XDG_DATA_DIRS@
 #+END_SRC
 
 Then setup aliases.
@@ -2947,112 +2955,12 @@ update_terminal_cwd () {
     printf '\e]7;%s\a' "$PWD_URL"
 }
 #+END_SRC
-** =.bashrc=
-:PROPERTIES:
-:header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
-:END:
-
-This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
-=~/.bash_profile= file. Here is an example,
-
-#+BEGIN_SRC shell :tangle no
-bootstrap=$HOME/.nix-profile/etc/bashrc
-[ -f $bootstrap ] && source $bootstrap
-#+END_SRC
-
-Source profile found above.
-
-#+BEGIN_SRC shell :padline no
-source @out@/etc/profile
-#+END_SRC
-
-When TERM=dumb, just do a simple prompt.
-
-#+BEGIN_SRC shell
-case "$TERM" in
-    dumb)
-	PS1="\W > "
-	return
-	;;
-esac
-#+END_SRC
-
-Setup some bash-specific features.
-
-#+BEGIN_SRC shell
-shopt -s cdspell \
-	 cdable_vars \
-	 checkhash \
-	 checkwinsize \
-	 cmdhist \
-	 dotglob \
-	 extglob \
-	 histappend \
-	 histreedit \
-	 histverify \
-	 nocaseglob \
-	 no_empty_cmd_completion \
-	 sourcepath
-#+END_SRC
-
-Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
-
-#+BEGIN_SRC shell
-set -o notify \
-    -o noclobber \
-    -o ignoreeof \
-    -o emacs
-#+END_SRC
-
-Setup prompt.
-
-#+BEGIN_SRC shell
-PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
-#+END_SRC
-
-Bind keys when we’re interactive.
-
-#+BEGIN_SRC shell
-if [[ $- == *i* ]]; then
-    bind '"\e/": dabbrev-expand'
-    bind '"\ee": edit-and-execute-command'
-fi
-#+END_SRC
-
-Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
-give us the working directory in the title window.
-
-#+BEGIN_SRC shell
-if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
-    PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
-    update_terminal_cwd
-fi
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
-#+END_SRC
-
-#+BEGIN_SRC shell
-function set-eterm-dir {
-    echo -e "\033AnSiTc" "$(pwd)"
-    echo -e "\033AnSiTh" "$(hostname -f)"
-    echo -e "\033AnSiTu" "$LOGNAME"
-}
-if [ "$TERM" = "eterm-color" ]; then
-    PROMPT_COMMAND=set-eterm-dir
-fi
-   #+END_src
-
 ** =.zshrc=
 :PROPERTIES:
 :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
 :END:
 
-This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
-use this, you must create a short ~/.zshrc file. Here is an example,
-
-#+BEGIN_SRC shell :tangle no
-bootstrap=$HOME/.nix-profile/etc/zshrc
-[ -f $bootstrap ] && source $bootstrap
-#+END_SRC
+This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]].
 
 Setup ZSH profile. First, we just source the global profile.
 
@@ -3083,13 +2991,7 @@ esac
 Load up site-functions in ZSH.
 
 #+BEGIN_SRC shell
-fpath+=(@out@/share/zsh/site-functions)
-#+END_SRC
-
-Setup ZSH auto suggestions.
-
-#+BEGIN_SRC shell
-. @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fpath+=(@completions@/share/zsh/site-functions)
 #+END_SRC
 
 Turn on colors.
@@ -3263,13 +3165,9 @@ Some basic gitignore paths.
 #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
-	excludesfile = @gitignore@
 
 [commit]
 	gpgSign = true
-
-[gpg]
-	program = "@gnupg@/bin/gpg"
 
 [push]
 	default = simple
@@ -3313,18 +3211,15 @@ means that we don’t know this until too late.
 Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
-(setq exec-path (append `(,(expand-file-name "bin" output-directory)
-			  "/usr/sbin" "/usr/bin" "/sbin" "/bin")
-			exec-path))
+(setq exec-path (append '("@bins@/bin") exec-path))
 #+END_SRC
 
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path `("/usr/share/man"
-		   "/usr/local/share/man"
-		   "@manpages@/share/man"
-		   ,(expand-file-name "share/man" output-directory)))
+(defvar man-path '("@manpages@/share/man"
+                   "/usr/local/share/man"
+                   "/usr/share/man"))
 #+END_SRC
 
 This will setup cacert-file var,
@@ -3558,7 +3453,7 @@ Set some defaults that depend on the path variables below,
 	       :image-converter
 	       (,(concat dvipng-command
 			 " -fg %F -bg %B -D %D -T tight -o %O %f")))))
-   '(Info-directory-list '("@infoPages@/share/info"))
+   '(Info-directory-list '("@infopages@"))
    '(tramp-remote-path `(tramp-own-remote-path
 			 "/run/current-system/sw/bin"
 			 tramp-default-remote-path
@@ -3767,14 +3662,15 @@ substitution of all the attributes set.
         coreutils findutils openssh git bash
         zsh perl perlcritic
         asciidoc lessc stack
-        lua gcc bashInteractive diffutils
+        lua gcc diffutils
         pandoc clang cmake ghostscript
         gnugrep man gawk gnused
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive cacert notmuch gnuplot
         gdb coq
-        manpages sysheaders sysframeworks schemas infoPages
+        manpages sysheaders sysframeworks
+        schemas bins infopages
         # mariadb go golint
       ;
       inherit (customEmacsPackages) emacs;
@@ -3970,8 +3866,10 @@ TODO use dump-emacs here to speed up config.
 
 Finally, we can actually build the environment.
 
+First build the info pages...
+
 #+BEGIN_SRC nix
-  infoPages = buildEnv {
+  infopages = buildEnv {
     name = "info-pages";
     paths = userPackages ++ [customEmacsPackages.emacs];
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
@@ -3983,31 +3881,85 @@ Finally, we can actually build the environment.
       done
     '';
   };
+#+END_SRC
 
+Setup man pages...
+
+#+BEGIN_SRC nix
   manpages = buildEnv {
     name = "man-pages";
     paths = userPackages ++ [posix_man_pages
-                             customEmacsPackages.emacs
-                             llvmPackages.llvm-manpages
-                             llvmPackages.clang-manpages]
+                             customEmacsPackages.emacs]
                              # stdmanpages
-      # ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
+      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
+#+END_SRC
 
+Setup XDG data directory..
+
+#+BEGIN_SRC nix
+  xdg-data = buildEnv {
+    name = "xdg-data-dirs";
+    paths = userPackages;
+    pathsToLink = [ "/share/applications" "/share/mime" ];
+    postBuild = ''
+      export XDG_DATA_DIRS=$out/share
+
+      if [ -w $out/share/applications ]; then
+        ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
+      fi
+
+      if [ -w $out/share/mime ] && [ -w $out/share/mime/packages ]; then
+        ${shared-mime-info}/bin/update-mime-database -V $out/share/mime
+      fi
+    '';
+  };
+#+END_SRC
+
+#+BEGIN_SRC nix
+  zsh-completions = buildEnv {
+    name = "zsh-completions";
+    paths = userPackages;
+    pathsToLink = [ "/share/zsh/site-functions" ];
+  };
+#+END_SRC
+
+Setup binaries
+
+#+BEGIN_SRC nix
+  bins = buildEnv {
+    name = "bins";
+    paths = userPackages;
+    extraOutputsToInstall = [ "bin" ];
+    pathsToLink = [ "/bin" ];
+  };
+#+END_SRC
+
+Setup system headers...
+
+#+BEGIN_SRC nix
   sysheaders = buildEnv {
     name = "headers";
     paths = [ libcxx ]
       ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
   };
+#+END_SRC
 
+Setup some Apple frameworks.
+
+#+BEGIN_SRC nix
   sysframeworks = buildEnv {
     name = "frameworks";
     paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
   };
+#+END_SRC
 
+Setup schemas...
+
+#+BEGIN_SRC nix
   schemas = writeText "schemas.xml" ''
   <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
     <documentElement localName="section" typeId="DocBook"/>
@@ -4019,25 +3971,28 @@ Finally, we can actually build the environment.
   '';
 #+END_SRC
 
-#+BEGIN_SRC nix
-  # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
+Full list of packages that will be made available.
 
+#+BEGIN_SRC nix
   userPackages = [
     # Wrappers
     myTex rEnv myAspell
 
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
-    gzip bzip2 gnumake bashInteractive patch xz
+    gzip bzip2 gnumake bash patch xz
 
     # Nix tools
     nix nix-index
-    nix-zsh-completions nix-bash-completions
+    nix-zsh-completions
     nix-prefetch-git
 
     # Other GNU tools
     binutils.bintools gnuplot gnupg1compat gdb libtool flex
-    bison hello gnum4 gcc ] ++
+    bison hello gnum4 gcc
+
+    # (proofgeneral.override {enableDoc = true;})
+    ] ++
 
     # Useful tools
   [ curl zsh wget cacert isync notmuch graphviz indent
@@ -4054,87 +4009,67 @@ Finally, we can actually build the environment.
     ++ (with haskellPackages; [ stack ghc ]) # ghc-mod
     ++ (with unixtools; [ utillinux nettools procps ])
   ;
-
-  myEnv = buildEnv {
-    buildInputs = [ makeWrapper ];
-    postBuild = ''
-  if [ -w $out/share/applications ]; then
-    ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
-  fi
-
-  if [ -w $out/share/mime ] && [ -w $out/share/mime/packages ]; then
-    XDG_DATA_DIRS=$out/share ${shared-mime-info}/bin/update-mime-database \
-      -V $out/share/mime
-  fi
-
-  mkdir -p $out/etc
-
-  cp ${./gitconfig} $out/etc/gitconfig
-  substituteInPlace $out/etc/gitconfig \
-    --replace @gitignore@ ${./gitignore} \
-    --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-    --replace @out@ $out
-
-  cp ${./bashrc.sh} $out/etc/bashrc
-  substituteInPlace $out/etc/bashrc \
-    --replace @fortune@ ${fortune} \
-    --replace @out@ $out
-
-  cp ${./zshrc.sh} $out/etc/.zshrc
-  substituteInPlace $out/etc/.zshrc \
-    --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-    --replace @fortune@ ${fortune} \
-    --replace @out@ $out
-  cp $out/etc/.zshrc $out/etc/zshrc
-
-  cp ${./etc-profile.sh} $out/etc/profile
-  substituteInPlace $out/etc/profile \
-    --replace @manpages@ ${manpages} \
-    --replace @infoPages@ ${infoPages} \
-    --replace @out@ $out
-
-  wrapProgram $out/bin/bash \
-    --add-flags "--rcfile $out/etc/bashrc"
-
-  wrapProgram $out/bin/zsh \
-    --set ZDOTDIR $out/etc
-
-  cp ${./runemacs.sh} $out/bin/run
-  substituteInPlace $out/bin/run \
-    --replace @out@ $out
-  ln -s $out/bin/run $out/bin/bauer
-    '';
-    pathsToLink = [
-      "/bin"
-      "/etc/profile.d"
-      "/etc/bash_completion.d"
-      "/etc/ssl"
-      "/Applications"
-      "/share/applications"
-      "/share/doc"
-      "/share/zsh"
-      "/share/bash-completion"
-      "/share/mime"
-    ];
-
-    name = "bauer";
-
-    paths = userPackages ++ [
-      myEmacs
-      (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-        mkdir -p $out/etc/profile.d
-        cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
-        substituteInPlace $out/etc/profile.d/my-profile.sh \
-          --replace @emacs@ ${myEmacs} \
-          --replace @fortune@ ${fortune} \
-          --replace @manpages@ ${manpages} \
-          --replace @cacert@ ${cacert}
-      '')];
-  };
 #+END_SRC
 
+Setup global environment variables and directories.
+
 #+BEGIN_SRC nix
-in myEnv
+  global-dirs = [ "~/.local" "/usr/local" "/usr" "" ];
+
+  PATH = "${lib.makeSearchPath "bin" ([ bins myEmacs ] ++ global-dirs)}:${lib.makeSearchPath "sbin" [ "/usr" "" ]}";
+  MANPATH = lib.makeSearchPath "share/man" ([ manpages ] ++ global-dirs);
+  INFOPATH = "${infopages}/share/info";
+  XDG_DATA_DIRS = lib.makeSearchPath "share" ([ xdg-data ] ++ global-dirs);
+#+END_SRC
+
+The actual environment.
+
+#+BEGIN_SRC nix
+in buildEnv {
+  name = "bauer";
+  buildInputs = [ makeWrapper ];
+  postBuild = ''
+    mkdir -p $out/etc
+    cp ${./gitconfig} $out/etc/gitconfig
+    substituteAllInPlace $out/etc/gitconfig
+
+    cp ${./zshrc.sh} $out/etc/.zshrc
+    substituteAllInPlace $out/etc/.zshrc
+    substituteInPlace $out/etc/.zshrc \
+      --replace @completions@ ${zsh-completions}
+    ln -s $out/etc/.zshrc $out/etc/zshrc
+    wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
+
+    cp ${./etc-profile.sh} $out/etc/profile
+    substituteAllInPlace $out/etc/profile
+
+    cp ${./runemacs.sh} $out/bin/run
+    substituteAllInPlace $out/bin/run
+    ln -s $out/bin/run $out/bin/bauer
+  '';
+  pathsToLink = [
+    "/bin"
+    "/Applications"
+    "/etc/profile.d"
+  ];
+  paths = [
+    myEmacs zsh
+    (runCommand "my-profile" {
+      buildInputs = [makeWrapper];
+      emacs = myEmacs;
+      inherit fortune cacert;
+    } ''
+      mkdir -p $out/etc/profile.d
+      cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
+      substituteAllInPlace $out/etc/profile.d/my-profile.sh
+      substituteInPlace $out/etc/profile.d/my-profile.sh \
+        --replace @PATH@ ${PATH} \
+        --replace @INFOPATH@ ${INFOPATH} \
+        --replace @MANPATH@ ${MANPATH} \
+        --replace @XDG_DATA_DIRS@ ${XDG_DATA_DIRS}
+    '')
+  ];
+}
 #+END_SRC
 
 ** Invoking it
@@ -4254,7 +4189,6 @@ These are all tangled by [[./README.org][README.org]].
 
 #+BEGIN_SRC gitignore
 README.el
-bashrc.sh
 bauer.nix
 zshrc.sh
 etc-profile.sh
