@@ -3390,7 +3390,7 @@ Set paths provided by Nix,
    '(haskell-check-command "@hlint@/bin/hlint")
    '(haskell-hoogle-command "@hoogle@/bin/hoogle")
    '(haskell-hasktags-path "@hasktags@/bin/hasktags")
-   '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
+   ;; '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
    '(ispell-program-name "@aspell@/bin/aspell")
    '(ispell-grep-command "@gnugrep@/bin/grep")
    '(irony-cmake-executable "@cmake@/bin/cmake")
@@ -3781,7 +3781,7 @@ substitution of all the attributes set.
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
       inherit (haskellPackages) hoogle hlint hasktags;
-      stylish = haskellPackages.stylish-haskell;
+      # stylish = haskellPackages.stylish-haskell;
       # intero = haskellPackages.intero-nix-shim;
       texlive = myTex;
       markdown2 = pythonPackages.markdown2;
@@ -3957,6 +3957,8 @@ requiredPackages = epkgs: map (x:
 
 Now we build our Emacs distribution.
 
+TODO use dump-emacs here to speed up config.
+
 #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages)
@@ -3985,8 +3987,11 @@ Finally, we can actually build the environment.
   manpages = buildEnv {
     name = "man-pages";
     paths = userPackages ++ [posix_man_pages
-                         customEmacsPackages.emacs] # stdmanpages
-      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
+                             customEmacsPackages.emacs
+                             llvmPackages.llvm-manpages
+                             llvmPackages.clang-manpages]
+                             # stdmanpages
+      # ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
@@ -4018,18 +4023,37 @@ Finally, we can actually build the environment.
   # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
 
   userPackages = [
-    myTex
-    rEnv
-    bashInteractive zsh coreutils git wget
-    gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
-    nix nix-index nix-zsh-completions nix-bash-completions
+    # Wrappers
+    myTex rEnv myAspell
+
+    # From common-path.nix
+    coreutils findutils diffutils gnused gnugrep gawk gnutar
+    gzip bzip2 gnumake bashInteractive patch xz
+
+    # Nix tools
+    nix nix-index
+    nix-zsh-completions nix-bash-completions
     nix-prefetch-git
-    gdb
-    # gitAndTools.hub nox
-    nodePackages.tern isync notmuch graphviz
-    stack ghc
-  # ++ (with haskellPackages; [ghc-mod])
-  ];
+
+    # Other GNU tools
+    binutils.bintools gnuplot gnupg1compat gdb libtool flex
+    bison hello gnum4 gcc ] ++
+
+    # Useful tools
+  [ curl zsh wget cacert isync notmuch graphviz indent
+    automake lzip ed bison cvs autoconf gmp cpio texinfo
+    graphviz gss gperf imagemagick sqlite perl python lua
+    nano calc zlib coq ocaml less ncurses fortune gstreamer
+    ag ripgrep subversion sslscan pstree clang file
+    pkgconfig man unzip openssh which bazaar vim rsync
+    openjdk lsof nodejs
+    # gcal ocrad mailutils dirmngr jwhois inetutils moe
+  ] ++ (with netbsd; [ getent getconf ]) # games
+    ++ (with nodePackages; [ tern ])
+    ++ (with gitAndTools; [ hub gitFull ])
+    ++ (with haskellPackages; [ stack ghc ]) # ghc-mod
+    ++ (with unixtools; [ utillinux nettools procps ])
+  ;
 
   myEnv = buildEnv {
     buildInputs = [ makeWrapper ];
