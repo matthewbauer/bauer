@@ -1397,6 +1397,8 @@ outliner but also much much more.
     (use-package ox-md
       :ensure nil
       :demand))
+  (use-package org-download
+    :hook (dired-mode . org-download-enable))
 #+END_SRC
 **** Projectile
 
@@ -2480,12 +2482,10 @@ Auctex provides some helpful tools for working with LaTeX.
     :hook (after-change-major-mode . turn-on-nix-buffer))
 #+END_SRC
 ***** nix-update
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
 #+BEGIN_SRC emacs-lisp
-(use-package nix-update-el
+(use-package nix-update
+  :commands nix-update-fetch
+  :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** mwim
