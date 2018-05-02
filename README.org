@@ -3885,7 +3885,7 @@ Setup man pages...
   manpages = buildEnv {
     name = "man-pages";
     ignoreCollisions = true;
-    paths = userPackages ++ [posix_man_pages customEmacsPackages.emacs]
+    paths = userPackages ++ [posix_man_pages]
       ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
