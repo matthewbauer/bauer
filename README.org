@@ -3204,13 +3204,16 @@ means that we don’t know this until too late.
 Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
-(setq exec-path (append '("@bins@/bin") exec-path))
+(setq exec-path (append `("@bins@/bin"
+                          ,(expand-file-name "bin" output-directory))
+                         exec-path))
 #+END_SRC
 
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path '("@manpages@/share/man"
+(defvar man-path `("@manpages@/share/man"
+                   ,(expand-file-name "share/man" output-directory)
                    "/usr/local/share/man"
                    "/usr/share/man"))
 #+END_SRC
@@ -4006,7 +4009,7 @@ Full list of packages that will be made available.
 Setup global environment variables and directories.
 
 #+BEGIN_SRC nix
-  global-dirs = [ "~/.local" "/usr/local" "/usr" "" ];
+  global-dirs = [ "~/.nix-profile" "~/.local" "/usr/local" "/usr" "" ];
 
   PATH = "${lib.makeSearchPath "bin" ([ bins myEmacs ] ++ global-dirs)}:${lib.makeSearchPath "sbin" [ "/usr" "" ]}";
   MANPATH = lib.makeSearchPath "share/man" ([ manpages ] ++ global-dirs);
