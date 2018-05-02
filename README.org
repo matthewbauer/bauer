@@ -3645,15 +3645,8 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-    # gdb = buildEnv {
-    #   name = "gdb-signed";
-    #   paths = [ pkgs.gdb ];
-    #   postBuild = ''
-    #     codesign -v
-    #     codesign $out/bin/gdb
-    #   '';
-    # };
     site-paths = runCommand "site-paths.el" {
+      # random packages needed in site-paths
       inherit rtags ripgrep ag ant nethack fortune gnutls
         coreutils findutils openssh git bash
         zsh perl perlcritic
@@ -3665,9 +3658,11 @@ substitution of all the attributes set.
         parallel unixODBC ncompress
         texinfoInteractive cacert notmuch gnuplot
         gdb coq
+        # mariadb go golint
+
+        # Nix paths
         manpages sysheaders sysframeworks
         schemas bins infopages
-        # mariadb go golint
       ;
       inherit (customEmacsPackages) emacs;
       inherit (pythonPackages) flake8;
@@ -3685,13 +3680,13 @@ substitution of all the attributes set.
       aspell = myAspell;
       # orginit = ./org-init.el;f
     } ''
-  cp ${./site-paths.el.in} $out
-  substituteAllInPlace $out
+      cp ${./site-paths.el.in} $out
+      substituteAllInPlace $out
     '';
 #+END_SRC
 
-Emacs building can be divided into phases. Each phase will run through the
-Elisp once.
+Emacs building can be divided into phases. Each phase will run through the Elisp
+once.
 
 **** Phase 1: picking up dependencies
 
@@ -3727,28 +3722,29 @@ myEmacsPackages = builtins.fromJSON (builtins.readFile package-list);
 #+BEGIN_SRC nix
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
-  } ''
+  } ((if isSmall then ''
+  mkdir -p $out/share/emacs/site-lisp
+  echo "(provide 'site-paths)" > $out/share/emacs/site-lisp/site-paths.el
+'' else ''
+  install -D ${site-paths} $out/share/emacs/site-lisp/site-paths.el
+'') + ''
 #+END_SRC
 
 #+BEGIN_SRC nix
-  mkdir -p $out/share/emacs/site-lisp
-
-  cp ${./README.el} $out/share/emacs/site-lisp/default.el
-  cp ${site-paths} $out/share/emacs/site-lisp/site-paths.el
-
-  cp ${./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
-  cp ${./site-lisp/dired-column.el} \
+  install -D ${./README.el} $out/share/emacs/site-lisp/default.el
+  install -D ${./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
+  install -D ${./site-lisp/dired-column.el} \
     $out/share/emacs/site-lisp/dired-column.el
-  cp ${./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-  cp ${./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
-  cp ${./site-lisp/set-defaults.el} \
+  install -D ${./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+  install -D ${./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
+  install -D ${./site-lisp/set-defaults.el} \
     $out/share/emacs/site-lisp/set-defaults.el
-  cp ${./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
-  cp ${./site-lisp/restart-emacs.el} \
+  install -D ${./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
+  install -D ${./site-lisp/restart-emacs.el} \
     $out/share/emacs/site-lisp/restart-emacs.el
-  cp ${./site-lisp/use-package-list.el} \
+  install -D ${./site-lisp/use-package-list.el} \
     $out/share/emacs/site-lisp/use-package-list.el
-  cp ${./site-lisp/bauer.el} \
+  install -D ${./site-lisp/bauer.el} \
     $out/share/emacs/site-lisp/bauer.el
 #+END_SRC
 
@@ -3772,7 +3768,7 @@ rm -rf $HOME/.emacs.d
 #+END_SRC
 
 #+BEGIN_SRC nix
-  '';
+  '');
 #+END_SRC
 
 **** Phase 3: wrapping into Emacs
@@ -3862,6 +3858,15 @@ TODO use dump-emacs here to speed up config.
 
 Finally, we can actually build the environment.
 
+The normal version has a huge closure totalling in at over 5GB. This is
+extremely useful for developers, but not always ideal. If you want to, you can
+enable the “small” version with ‘nixpkgs.config.bauer.small = true’.
+
+#+BEGIN_SRC nix
+isSmall = config.bauer.small or false;
+isBig = !isSmall;
+#+END_SRC
+
 First build the info pages...
 
 #+BEGIN_SRC nix
@@ -3884,9 +3889,9 @@ Setup man pages...
 #+BEGIN_SRC nix
   manpages = buildEnv {
     name = "man-pages";
-    ignoreCollisions = true;
+    ignoreCollisions = (!(config.bauer.small or false));
     paths = userPackages ++ [posix_man_pages]
-      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
+      ++ stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
@@ -3970,12 +3975,12 @@ Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
   userPackages = [
-    # Wrappers
-    myTex rEnv myAspell
-
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
     gzip bzip2 gnumake bash patch xz
+
+    # Helpful core tools
+    curl zsh
 
     # Nix tools
     nix nix-index
@@ -3985,12 +3990,14 @@ Full list of packages that will be made available.
     # Other GNU tools
     binutils.bintools gnuplot gnupg1compat gdb libtool flex
     bison hello gnum4 gcc
+  ] ++ lib.optional isBig ([
+    # Wrappers
+    myTex rEnv myAspell
 
     # (proofgeneral.override {enableDoc = true;})
-    ] ++
 
     # Useful tools
-  [ curl zsh wget cacert isync notmuch graphviz indent
+    wget cacert isync notmuch graphviz indent
     automake lzip ed bison cvs autoconf gmp cpio texinfo
     graphviz gss gperf imagemagick sqlite perl python lua
     nano calc zlib coq ocaml less ncurses fortune gstreamer
@@ -4003,7 +4010,7 @@ Full list of packages that will be made available.
     ++ (with gitAndTools; [ hub gitFull ])
     ++ (with haskellPackages; [ stack ghc ]) # ghc-mod
     ++ (with unixtools; [ utillinux nettools procps ])
-  ;
+  );
 #+END_SRC
 
 Setup global environment variables and directories.
