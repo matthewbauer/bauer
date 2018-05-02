@@ -2061,13 +2061,6 @@ setup.
     (autoload 'term-set-escape-char "term")
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp")
-    (defun my-term (&optional path name)
-      (interactive)
-      (set-buffer (make-term "my-term" zsh-command))
-      (term-mode)
-      (term-char-mode)
-      (term-set-escape-char ?\C-x)
-      (switch-to-buffer "*my-term*"))
     (defun term-remote (&optional path name)
       "Opens an ansi terminal at PATH. If no PATH is given, it uses
   the value of `default-directory'. PATH may be a tramp remote path.
@@ -2094,7 +2087,7 @@ setup.
                          (tramp-file-name-method tstruct)))))
           (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
                                                path)))))
-    :bind (("C-c t" . my-term)
+    :bind (("C-c t" . term)
            :package term
            :map term-raw-map
            ("C-y" . term-paste)))
