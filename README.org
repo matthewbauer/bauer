@@ -35,9 +35,13 @@ issues on [[https://github.com/matthewbauer/bauer][the GitHub repo]]. You can ac
 * Usage
 :PROPERTIES:
 :header-args: :tangle no
+:CUSTOM_ID: usage
 :END:
 
 ** Installing/upgrading
+:PROPERTIES:
+:CUSTOM_ID: install
+:END:
 
 This is the script that I use to setup all of my new machines but it's portable
 enough for anyone to use.
@@ -62,6 +66,9 @@ nix-collect-garbage -d
 #+END_SRC
 
 ** Developing
+:PROPERTIES:
+:CUSTOM_ID: develop
+:END:
 
 After you’ve installed it, it’s easy to make changes. By default, the
 configuration lives in =~/.local/share/bauer=. To make changes just follow this
@@ -115,6 +122,7 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]]:
 * Emacs Init file
 :PROPERTIES:
 :header-args: :tangle yes :comments link
+:CUSTOM_ID: emacs
 :END:
 
 This is the main part of the IDE. It is written in Emacs lisp and will be loaded
@@ -826,6 +834,9 @@ restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installe
 #+END_SRC
 
 ** Packages
+:PROPERTIES:
+:CUSTOM_ID: packages
+:END:
 
 Each of these entries are =use-package= calls that will both install and load
 the package for us. The most important are listed first in “Essentials”.
@@ -2881,6 +2892,9 @@ Most of these are available in MELPA.
 #+END_SRC
 
 * Profiles
+:PROPERTIES:
+:CUSTOM_ID: profiles
+:END:
 
 All of these files live outside of Emacs but are necessary for a usable
 developer environment. They are basic shell profile and some git configuration
@@ -2953,6 +2967,7 @@ update_terminal_cwd () {
 ** =.zshrc=
 :PROPERTIES:
 :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
+:CUSTOM_ID: zshrc
 :END:
 
 This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]].
@@ -3180,9 +3195,14 @@ Some basic gitignore paths.
 	ui = true
 #+END_SRC
 * Bootstrapping
+:PROPERTIES:
+:CUSTOM_ID: bootstrap
+:END:
+
 ** =site-paths.el.in=
 :PROPERTIES:
 :header-args: :tangle site-paths.el.in :comments link
+:CUSTOM_ID: site-paths
 :END:
 
 This file provides site-specific paths. However, it must be substituted in Nix
@@ -3526,6 +3546,7 @@ nix-env -if .
 ** =runemacs.sh=
 :PROPERTIES:
 :header-args: :tangle runemacs.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
+:CUSTOM_ID: runemacs
 :END:
 
 Cross-platform script to execute app.
@@ -3541,6 +3562,10 @@ case $(uname) in
 esac
 #+END_SRC
 * Building
+:PROPERTIES:
+:CUSTOM_ID: build
+:END:
+
 ** =default.nix=: the tangler
 :PROPERTIES:
 :header-args: :tangle default.nix
@@ -4096,6 +4121,9 @@ nix-build
 ./result/bin/run
 #+END_SRC
 * Continuous integration
+:PROPERTIES:
+:CUSTOM_ID: ci
+:END:
 
 #+BEGIN_EXPORT html
 <a href="https://travis-ci.org/matthewbauer/bauer">
@@ -4108,6 +4136,7 @@ We'll set up Travis support here. We start by configuring =.travis.yml=.
 ** =.travis.yml=
 :PROPERTIES:
 :header-args: :tangle .travis.yml
+:CUSTOM_ID: travis
 :END:
 
 #+BEGIN_SRC yaml :padline no
@@ -4157,6 +4186,10 @@ notifications:
   email: false
 #+END_SRC
 * Extra
+:PROPERTIES:
+:CUSTOM_ID: extra
+:END:
+
 ** =update.sh=
 :PROPERTIES:
 :header-args: :tangle update.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
