@@ -3945,7 +3945,7 @@ Setup system headers...
   sysheaders = buildEnv {
     name = "headers";
     paths = [ libcxx ]
-      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+      ++ stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk;
   };
 #+END_SRC
 
@@ -3954,7 +3954,7 @@ Setup some Apple frameworks.
 #+BEGIN_SRC nix
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+    paths = stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk;
   };
 #+END_SRC
 
@@ -3985,15 +3985,12 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    git
+    git gnuplot gnupg
 
     # Nix tools
     nix nix-index
     nix-zsh-completions
     nix-prefetch-git
-
-    # Other GNU tools
-    gnuplot gnupg gdb gcc
   ] ++ lib.optionals isBig ([
     # Useful tools
     isync notmuch graphviz indent
@@ -4002,9 +3999,9 @@ Full list of packages that will be made available.
     # Old version control
     subversion bazaar cvs
 
-    # Programming interpreter
+    # Programming interpreters/compilers
     myTex rEnv perl python lua coq ocaml
-    openjdk nodejs
+    openjdk nodejs gcc gdb
 
     # Disabled
     # gcal ocrad mailutils dirmngr jwhois inetutils moe
