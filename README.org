@@ -19,7 +19,7 @@
 #+startup: hideblocks indent align entitiespretty
 #+export_file_name: index
 #+keywords: dotfiles config ide emacs nix bauer
-#+html_head: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+html_head: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name=viewport content="width=device-width, initial-scale=1.0">
 #+link_home: http://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
 
@@ -70,7 +70,7 @@ process,
 #+BEGIN_SRC shell
 cd ~/.local/share/bauer
 nix-build
-./result/run ./README.org
+./result/run README.org
 #+END_SRC
 
 The last line will spawn an Emacs frame in the Git repo. Anything in that file
@@ -157,7 +157,6 @@ compiling phases used later.
     (autoload 'use-package-autoload-keymap "use-package")
     (autoload 'pcomplete-arg   "pcomplete")
     (autoload 'pcomplete--here "pcomplete")
-    (autoload 'term-set-escape-char "term")
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp"))
 #+END_SRC
@@ -790,7 +789,9 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    :prefix-map bauer-help
    :prefix "s-h"
    ("k" . describe-personal-keybindings)
-   ("p" . ffap))
+   ("p" . ffap)
+   ("m" . man)
+   ("w" . woman))
 
   (unless window-system
     (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
@@ -1229,6 +1230,9 @@ certain Emacs keybinds.
 #+END_SRC
 
 **** helpful
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
@@ -1303,6 +1307,9 @@ line are available in an intuitive Emacs buffer.
 #+END_SRC
 
 ***** magithub
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
 (use-package magithub
@@ -1390,6 +1397,8 @@ outliner but also much much more.
     (use-package ox-md
       :ensure nil
       :demand))
+  (use-package org-download
+    :hook (dired-mode . org-download-enable))
 #+END_SRC
 **** Projectile
 
@@ -2050,16 +2059,8 @@ setup.
     ;; :config
     ;; (add-hook 'term-input-filter-functions 'shell-directory-tracker)
     :preface
-    (autoload 'term-set-escape-char "term")
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp")
-    (defun my-term (&optional path name)
-      (interactive)
-      (set-buffer (make-term "my-term" zsh-command))
-      (term-mode)
-      (term-char-mode)
-      (term-set-escape-char ?\C-x)
-      (switch-to-buffer "*my-term*"))
     (defun term-remote (&optional path name)
       "Opens an ansi terminal at PATH. If no PATH is given, it uses
   the value of `default-directory'. PATH may be a tramp remote path.
@@ -2086,7 +2087,7 @@ setup.
                          (tramp-file-name-method tstruct)))))
           (process-send-string bufname (format (concat cd-str " exec bash;clear\n")
                                                path)))))
-    :bind (("C-c t" . my-term)
+    :bind (("C-c t" . term)
            :package term
            :map term-raw-map
            ("C-y" . term-paste)))
@@ -2330,6 +2331,9 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 **** JavaScript
 ***** indium
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
@@ -2478,12 +2482,10 @@ Auctex provides some helpful tools for working with LaTeX.
     :hook (after-change-major-mode . turn-on-nix-buffer))
 #+END_SRC
 ***** nix-update
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
 #+BEGIN_SRC emacs-lisp
-(use-package nix-update-el
+(use-package nix-update
+  :commands nix-update-fetch
+  :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** mwim
@@ -2504,6 +2506,9 @@ Auctex provides some helpful tools for working with LaTeX.
 #+END_SRC
 
 **** Proof General
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 [[https://proofgeneral.github.io][Website]]
 
@@ -2891,28 +2896,24 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
+Run fortune,
+
+#+BEGIN_SRC shell
+if [ -z "$FORTUNE" ]; then
+  @fortune@/bin/fortune
+  export FORTUNE=1
+fi
+#+END_SRC
+
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-MAN_PATH=/usr/share/man:/usr/local/share/man:@manpages@:$PREFIX/share/man:
-export MAN_PATH
-
-export LANG=en_US.UTF-8 \
-       LC_ALL=en_US.UTF-8 \
-       INFOPATH=@infoPages@/share/info \
-       DICPATH=$PREFIX/share/hunspell \
-       CLICOLOR=1 \
-       GREP_COLOR='3;33' \
-       LC_COLLATE=C \
-       HISTFILE=$HOME/.history \
-       HISTSIZE=20000000 \
-       SAVEHIST=20000000 \
-       HISTFILESIZE=2000 \
-       HISTTIMEFORMAT="[%F %T] " \
-       HISTCONTROL=ignoreboth \
-       SHELL_SESSION_HISTORY=1
-
-export XDG_DATA_DIRS=$PREFIX/share/:/usr/local/share/:/usr/share/
+  export LANG=en_US.UTF-8 \
+         LC_ALL=en_US.UTF-8 \
+         PATH=@PATH@:$PREFIX/bin
+         INFOPATH=@INFOPATH@ \
+         MANPATH=@MANPATH@ \
+         XDG_DATA_DIRS=@XDG_DATA_DIRS@
 #+END_SRC
 
 Then setup aliases.
@@ -2947,112 +2948,12 @@ update_terminal_cwd () {
     printf '\e]7;%s\a' "$PWD_URL"
 }
 #+END_SRC
-** =.bashrc=
-:PROPERTIES:
-:header-args: :tangle bashrc.sh :tangle-mode (identity #o755)
-:END:
-
-This is a profile for use with [[https://www.gnu.org/software/bash/][GNU Bash]]. To use this, you must create a short
-=~/.bash_profile= file. Here is an example,
-
-#+BEGIN_SRC shell :tangle no
-bootstrap=$HOME/.nix-profile/etc/bashrc
-[ -f $bootstrap ] && source $bootstrap
-#+END_SRC
-
-Source profile found above.
-
-#+BEGIN_SRC shell :padline no
-source @out@/etc/profile
-#+END_SRC
-
-When TERM=dumb, just do a simple prompt.
-
-#+BEGIN_SRC shell
-case "$TERM" in
-    dumb)
-	PS1="\W > "
-	return
-	;;
-esac
-#+END_SRC
-
-Setup some bash-specific features.
-
-#+BEGIN_SRC shell
-shopt -s cdspell \
-	 cdable_vars \
-	 checkhash \
-	 checkwinsize \
-	 cmdhist \
-	 dotglob \
-	 extglob \
-	 histappend \
-	 histreedit \
-	 histverify \
-	 nocaseglob \
-	 no_empty_cmd_completion \
-	 sourcepath
-#+END_SRC
-
-Turn on notify, noclobber, ignoreeof, emacs. These are bash-specific.
-
-#+BEGIN_SRC shell
-set -o notify \
-    -o noclobber \
-    -o ignoreeof \
-    -o emacs
-#+END_SRC
-
-Setup prompt.
-
-#+BEGIN_SRC shell
-PS1='\e[0;34m\u@\h:\e[0;36m\w \e[0;33m$ \e[0m'
-#+END_SRC
-
-Bind keys when we’re interactive.
-
-#+BEGIN_SRC shell
-if [[ $- == *i* ]]; then
-    bind '"\e/": dabbrev-expand'
-    bind '"\ee": edit-and-execute-command'
-fi
-#+END_SRC
-
-Run the =update_terminal_cwd= command when we’re in Apple_Terminal. This will
-give us the working directory in the title window.
-
-#+BEGIN_SRC shell
-if [ "$TERM_PROGRAM" = Apple_Terminal ] && [ -z "$INSIDE_EMACS" ]; then
-    PROMPT_COMMAND="update_terminal_cwd;$PROMPT_COMMAND"
-    update_terminal_cwd
-fi
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
-#+END_SRC
-
-#+BEGIN_SRC shell
-function set-eterm-dir {
-    echo -e "\033AnSiTc" "$(pwd)"
-    echo -e "\033AnSiTh" "$(hostname -f)"
-    echo -e "\033AnSiTu" "$LOGNAME"
-}
-if [ "$TERM" = "eterm-color" ]; then
-    PROMPT_COMMAND=set-eterm-dir
-fi
-   #+END_src
-
 ** =.zshrc=
 :PROPERTIES:
 :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
 :END:
 
-This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]]. To
-use this, you must create a short ~/.zshrc file. Here is an example,
-
-#+BEGIN_SRC shell :tangle no
-bootstrap=$HOME/.nix-profile/etc/zshrc
-[ -f $bootstrap ] && source $bootstrap
-#+END_SRC
+This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]].
 
 Setup ZSH profile. First, we just source the global profile.
 
@@ -3083,13 +2984,7 @@ esac
 Load up site-functions in ZSH.
 
 #+BEGIN_SRC shell
-fpath+=(@out@/share/zsh/site-functions)
-#+END_SRC
-
-Setup ZSH auto suggestions.
-
-#+BEGIN_SRC shell
-. @zsh-autosuggestions@/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fpath+=(@completions@/share/zsh/site-functions)
 #+END_SRC
 
 Turn on colors.
@@ -3263,13 +3158,9 @@ Some basic gitignore paths.
 #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
-	excludesfile = @gitignore@
 
 [commit]
 	gpgSign = true
-
-[gpg]
-	program = "@gnupg@/bin/gpg"
 
 [push]
 	default = simple
@@ -3313,18 +3204,18 @@ means that we don’t know this until too late.
 Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
-(setq exec-path (append `(,(expand-file-name "bin" output-directory)
-			  "/usr/sbin" "/usr/bin" "/sbin" "/bin")
-			exec-path))
+(setq exec-path (append `("@bins@/bin"
+                          ,(expand-file-name "bin" output-directory))
+                         exec-path))
 #+END_SRC
 
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path `("/usr/share/man"
-		   "/usr/local/share/man"
-		   "@manpages@/share/man"
-		   ,(expand-file-name "share/man" output-directory)))
+(defvar man-path `("@manpages@/share/man"
+                   ,(expand-file-name "share/man" output-directory)
+                   "/usr/local/share/man"
+                   "/usr/share/man"))
 #+END_SRC
 
 This will setup cacert-file var,
@@ -3390,7 +3281,7 @@ Set paths provided by Nix,
    '(haskell-check-command "@hlint@/bin/hlint")
    '(haskell-hoogle-command "@hoogle@/bin/hoogle")
    '(haskell-hasktags-path "@hasktags@/bin/hasktags")
-   '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
+   ;; '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
    '(ispell-program-name "@aspell@/bin/aspell")
    '(ispell-grep-command "@gnugrep@/bin/grep")
    '(irony-cmake-executable "@cmake@/bin/cmake")
@@ -3558,7 +3449,7 @@ Set some defaults that depend on the path variables below,
 	       :image-converter
 	       (,(concat dvipng-command
 			 " -fg %F -bg %B -D %D -T tight -o %O %f")))))
-   '(Info-directory-list '("@infoPages@/share/info"))
+   '(Info-directory-list '("@infopages@/share/info"))
    '(tramp-remote-path `(tramp-own-remote-path
 			 "/run/current-system/sw/bin"
 			 tramp-default-remote-path
@@ -3654,25 +3545,30 @@ esac
 :END:
 
 #+BEGIN_SRC nix :padline no
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
-, nixpkgs ? builtins.fetchTarball nixpkgs-url
-, nixpkgs' ? import nixpkgs {}
-}: with nixpkgs';
+{ channel ? (if builtins.currentSystem == "x86_64-darwin"
+             then "nixpkgs-unstable"
+             else "nixos-unstable")
+, nixpkgs-url ? "nixos.org/channels/${channel}/nixexprs.tar.xz"
+, nixpkgs ? import (builtins.fetchTarball nixpkgs-url) {}
+}: with nixpkgs;
 #+END_SRC
 
 Now let's tangle README.org...
 
 #+BEGIN_SRC nix
-import (runCommand "README" { buildInputs = [ emacs git ]; } ''
-  mkdir -p $out
+let ensure = f: if builtins.pathExists f then f
+            else builtins.fetchurl "https://matthewbauer.us/bauer/${f}";
+in import (runCommand "README" { buildInputs = [ emacs git ]; } (''
+  install -D ${ensure ./README.org} $out/README.org
   cd $out
+'' + lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
-  cp ${./README.org} README.org
+'' + ''
   emacs --batch --quick \
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'') {inherit nixpkgs';}
+'')) { inherit nixpkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3680,21 +3576,8 @@ import (runCommand "README" { buildInputs = [ emacs git ]; } ''
 :header-args: :tangle bauer.nix
 :END:
 
-=nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
-will be =nixpkgs= instantiated.
-
 #+BEGIN_SRC nix
-  { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
-  , nixpkgs ? builtins.fetchTarball nixpkgs-url
-  , nixpkgs' ? import nixpkgs {}
-  }: with nixpkgs'; let
-#+END_SRC
-
-We start out by defining the Nix version to use. nixStable corresponds to the
-last released version, 2.0.
-
-#+BEGIN_SRC nix
-  nix = nixStable;
+  { nixpkgs ? import <nixpkgs> {} }: with nixpkgs; let
 #+END_SRC
 
 Next we start defining some packages. R is one of the simpler ones right now,
@@ -3761,34 +3644,30 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-    # gdb = buildEnv {
-    #   name = "gdb-signed";
-    #   paths = [ pkgs.gdb ];
-    #   postBuild = ''
-    #     codesign -v
-    #     codesign $out/bin/gdb
-    #   '';
-    # };
     site-paths = runCommand "site-paths.el" {
+      # random packages needed in site-paths
       inherit rtags ripgrep ag ant nethack fortune gnutls
         coreutils findutils openssh git bash
         zsh perl perlcritic
         asciidoc lessc stack
-        lua gcc bashInteractive diffutils
+        lua gcc diffutils
         pandoc clang cmake ghostscript
         gnugrep man gawk gnused
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive cacert notmuch gnuplot
         gdb coq
-        manpages sysheaders sysframeworks schemas infoPages
         # mariadb go golint
+
+        # Nix paths
+        manpages sysheaders sysframeworks
+        schemas bins infopages
       ;
       inherit (customEmacsPackages) emacs;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
       inherit (haskellPackages) hoogle hlint hasktags;
-      stylish = haskellPackages.stylish-haskell;
+      # stylish = haskellPackages.stylish-haskell;
       # intero = haskellPackages.intero-nix-shim;
       texlive = myTex;
       markdown2 = pythonPackages.markdown2;
@@ -3800,13 +3679,13 @@ substitution of all the attributes set.
       aspell = myAspell;
       # orginit = ./org-init.el;f
     } ''
-  cp ${./site-paths.el.in} $out
-  substituteAllInPlace $out
+      cp ${./site-paths.el.in} $out
+      substituteAllInPlace $out
     '';
 #+END_SRC
 
-Emacs building can be divided into phases. Each phase will run through the
-Elisp once.
+Emacs building can be divided into phases. Each phase will run through the Elisp
+once.
 
 **** Phase 1: picking up dependencies
 
@@ -3822,10 +3701,12 @@ package-list =
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-	-L ${customEmacsPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-	-L ${customEmacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-	-L ${customEmacsPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-	-L ${./site-lisp} -l use-package-list \
+        -L ${customEmacsPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+        -L ${customEmacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+        -L ${customEmacsPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+        -l ${ensure ./site-lisp/set-defaults.el} \
+        -l ${ensure ./site-lisp/bauer.el} \
+        -l ${ensure ./site-lisp/use-package-list.el} \
 	--eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
 
@@ -3840,30 +3721,33 @@ myEmacsPackages = builtins.fromJSON (builtins.readFile package-list);
 **** Phase 2: byte compiling
 
 #+BEGIN_SRC nix
+  ensure = f: if builtins.pathExists f then f
+              else builtins.fetchurl "https://matthewbauer.us/bauer/${f}";
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
-  } ''
+  } ((if isSmall then ''
+  mkdir -p $out/share/emacs/site-lisp
+  echo "(provide 'site-paths)" > $out/share/emacs/site-lisp/site-paths.el
+'' else ''
+  install -D ${site-paths} $out/share/emacs/site-lisp/site-paths.el
+'') + ''
 #+END_SRC
 
 #+BEGIN_SRC nix
-  mkdir -p $out/share/emacs/site-lisp
-
-  cp ${./README.el} $out/share/emacs/site-lisp/default.el
-  cp ${site-paths} $out/share/emacs/site-lisp/site-paths.el
-
-  cp ${./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
-  cp ${./site-lisp/dired-column.el} \
+  install -D ${./README.el} $out/share/emacs/site-lisp/default.el
+  install -D ${ensure ./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
+  install -D ${ensure ./site-lisp/dired-column.el} \
     $out/share/emacs/site-lisp/dired-column.el
-  cp ${./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-  cp ${./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
-  cp ${./site-lisp/set-defaults.el} \
+  install -D ${ensure ./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+  install -D ${ensure ./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
+  install -D ${ensure ./site-lisp/set-defaults.el} \
     $out/share/emacs/site-lisp/set-defaults.el
-  cp ${./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
-  cp ${./site-lisp/restart-emacs.el} \
+  install -D ${ensure ./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
+  install -D ${./site-lisp/restart-emacs.el} \
     $out/share/emacs/site-lisp/restart-emacs.el
-  cp ${./site-lisp/use-package-list.el} \
+  install -D ${ensure ./site-lisp/use-package-list.el} \
     $out/share/emacs/site-lisp/use-package-list.el
-  cp ${./site-lisp/bauer.el} \
+  install -D ${ensure ./site-lisp/bauer.el} \
     $out/share/emacs/site-lisp/bauer.el
 #+END_SRC
 
@@ -3887,7 +3771,7 @@ rm -rf $HOME/.emacs.d
 #+END_SRC
 
 #+BEGIN_SRC nix
-  '';
+  '');
 #+END_SRC
 
 **** Phase 3: wrapping into Emacs
@@ -3964,6 +3848,8 @@ requiredPackages = epkgs: map (x:
 
 Now we build our Emacs distribution.
 
+TODO use dump-emacs here to speed up config.
+
 #+BEGIN_SRC nix
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages)
@@ -3975,8 +3861,19 @@ Now we build our Emacs distribution.
 
 Finally, we can actually build the environment.
 
+The normal version has a huge closure totalling in at over 5GB. This is
+extremely useful for developers, but not always ideal. If you want to, you can
+enable the “small” version with ‘nixpkgs.config.bauer.small = true’.
+
 #+BEGIN_SRC nix
-  infoPages = buildEnv {
+isSmall = config.bauer.small or false;
+isBig = !isSmall;
+#+END_SRC
+
+First build the info pages...
+
+#+BEGIN_SRC nix
+  infopages = buildEnv {
     name = "info-pages";
     paths = userPackages ++ [customEmacsPackages.emacs];
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
@@ -3988,28 +3885,84 @@ Finally, we can actually build the environment.
       done
     '';
   };
+#+END_SRC
 
+Setup man pages...
+
+#+BEGIN_SRC nix
   manpages = buildEnv {
     name = "man-pages";
-    paths = userPackages ++ [posix_man_pages
-                         customEmacsPackages.emacs] # stdmanpages
-      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk
+    ignoreCollisions = (!(config.bauer.small or false));
+    paths = userPackages ++ [posix_man_pages]
+      ++ stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
+#+END_SRC
 
+Setup XDG data directory..
+
+#+BEGIN_SRC nix
+  xdg-data = buildEnv {
+    name = "xdg-data-dirs";
+    paths = userPackages;
+    pathsToLink = [ "/share/applications" "/share/mime" ];
+    postBuild = ''
+      export XDG_DATA_DIRS=$out/share
+
+      if [ -w $out/share/applications ]; then
+        ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
+      fi
+
+      if [ -w $out/share/mime ] && [ -w $out/share/mime/packages ]; then
+        ${shared-mime-info}/bin/update-mime-database -V $out/share/mime
+      fi
+    '';
+  };
+#+END_SRC
+
+#+BEGIN_SRC nix
+  zsh-completions = buildEnv {
+    name = "zsh-completions";
+    paths = userPackages;
+    pathsToLink = [ "/share/zsh/site-functions" ];
+  };
+#+END_SRC
+
+Setup binaries
+
+#+BEGIN_SRC nix
+  bins = buildEnv {
+    name = "bins";
+    paths = userPackages;
+    extraOutputsToInstall = [ "bin" ];
+    pathsToLink = [ "/bin" ];
+  };
+#+END_SRC
+
+Setup system headers...
+
+#+BEGIN_SRC nix
   sysheaders = buildEnv {
     name = "headers";
     paths = [ libcxx ]
-      ++ stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+      ++ stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk;
   };
+#+END_SRC
 
+Setup some Apple frameworks.
+
+#+BEGIN_SRC nix
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optional stdenv.isDarwin darwin.apple_sdk.sdk;
+    paths = stdenv.lib.optional (stdenv.isDarwin && isBig) darwin.apple_sdk.sdk;
   };
+#+END_SRC
 
+Setup schemas...
+
+#+BEGIN_SRC nix
   schemas = writeText "schemas.xml" ''
   <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
     <documentElement localName="section" typeId="DocBook"/>
@@ -4021,103 +3974,118 @@ Finally, we can actually build the environment.
   '';
 #+END_SRC
 
+Full list of packages that will be made available.
+
 #+BEGIN_SRC nix
-  # pkgs.proofgeneral = proofgeneral.override {enableDoc = true;};
-
   userPackages = [
-    myTex
-    rEnv
-    bashInteractive zsh coreutils git wget
-    gawk gnused gzip gnutar gnupg1compat xz cacert gnuplot
-    nix nix-index nix-zsh-completions nix-bash-completions
+    myAspell
+
+    # From common-path.nix
+    coreutils findutils diffutils gnused gnugrep gawk gnutar
+    gzip bzip2 gnumake bash patch xz
+
+    # Helpful core tools
+    curl zsh cacert file lsof pstree which rsync
+    unzip man openssh less calc ag ripgrep sqlite
+    git gnuplot gnupg
+
+    # Nix tools
+    nix nix-index
+    nix-zsh-completions
     nix-prefetch-git
-    gdb
-    # gitAndTools.hub nox
-    nodePackages.tern isync notmuch graphviz
-    stack ghc
-  # ++ (with haskellPackages; [ghc-mod])
-  ];
+  ] ++ lib.optionals isBig ([
+    # Useful tools
+    isync notmuch graphviz indent
+    graphviz imagemagick
 
-  myEnv = buildEnv {
-    buildInputs = [ makeWrapper ];
-    postBuild = ''
-  if [ -w $out/share/applications ]; then
-    ${desktop-file-utils}/bin/update-desktop-database $out/share/applications
-  fi
+    # Old version control
+    subversion bazaar cvs
 
-  if [ -w $out/share/mime ] && [ -w $out/share/mime/packages ]; then
-    XDG_DATA_DIRS=$out/share ${shared-mime-info}/bin/update-mime-database \
-      -V $out/share/mime
-  fi
+    # Programming interpreters/compilers
+    myTex rEnv perl python lua coq ocaml
+    openjdk nodejs gcc gdb
 
-  mkdir -p $out/etc
-
-  cp ${./gitconfig} $out/etc/gitconfig
-  substituteInPlace $out/etc/gitconfig \
-    --replace @gitignore@ ${./gitignore} \
-    --replace @gnupg@ ${gnupg1compat}/bin/gpg \
-    --replace @out@ $out
-
-  cp ${./bashrc.sh} $out/etc/bashrc
-  substituteInPlace $out/etc/bashrc \
-    --replace @fortune@ ${fortune} \
-    --replace @out@ $out
-
-  cp ${./zshrc.sh} $out/etc/.zshrc
-  substituteInPlace $out/etc/.zshrc \
-    --replace @zsh-autosuggestions@ ${zsh-autosuggestions} \
-    --replace @fortune@ ${fortune} \
-    --replace @out@ $out
-  cp $out/etc/.zshrc $out/etc/zshrc
-
-  cp ${./etc-profile.sh} $out/etc/profile
-  substituteInPlace $out/etc/profile \
-    --replace @manpages@ ${manpages} \
-    --replace @infoPages@ ${infoPages} \
-    --replace @out@ $out
-
-  wrapProgram $out/bin/bash \
-    --add-flags "--rcfile $out/etc/bashrc"
-
-  wrapProgram $out/bin/zsh \
-    --set ZDOTDIR $out/etc
-
-  cp ${./runemacs.sh} $out/bin/run
-  substituteInPlace $out/bin/run \
-    --replace @out@ $out
-  ln -s $out/bin/run $out/bin/bauer
-    '';
-    pathsToLink = [
-      "/bin"
-      "/etc/profile.d"
-      "/etc/bash_completion.d"
-      "/etc/ssl"
-      "/Applications"
-      "/share/applications"
-      "/share/doc"
-      "/share/zsh"
-      "/share/bash-completion"
-      "/share/mime"
-    ];
-
-    name = "bauer";
-
-    paths = userPackages ++ [
-      myEmacs
-      (runCommand "my-profile" { buildInputs = [makeWrapper]; } ''
-        mkdir -p $out/etc/profile.d
-        cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
-        substituteInPlace $out/etc/profile.d/my-profile.sh \
-          --replace @emacs@ ${myEmacs} \
-          --replace @fortune@ ${fortune} \
-          --replace @manpages@ ${manpages} \
-          --replace @cacert@ ${cacert}
-      '')];
-  };
+    # Disabled
+    # gcal ocrad mailutils dirmngr jwhois inetutils moe
+  ] ++ (with netbsd; [ getent getconf ]) # games
+    ++ (with nodePackages; [ tern ])
+    ++ (with gitAndTools; [ hub ])
+    ++ (with haskellPackages; [ stack ghc jq ]) # ghc-mod
+    ++ (with unixtools; [ utillinux nettools procps ])
+  );
 #+END_SRC
 
+Setup global environment variables and directories.
+
 #+BEGIN_SRC nix
-in myEnv
+  global-dirs = [ "~/.nix-profile"
+                  "~/.local"
+                  "/nix/var/nix/profiles/default/bin"
+                  "/run/current-system/sw/bin"
+                  "/usr/local"
+                  "/usr"
+                  "" ];
+
+  PATH = "${lib.makeSearchPath "bin" ([ bins myEmacs ] ++ global-dirs)}:${lib.makeSearchPath "sbin" [ "/usr" "" ]}";
+  MANPATH = lib.makeSearchPath "share/man" ([ manpages ] ++ global-dirs);
+  INFOPATH = "${infopages}/share/info";
+  XDG_DATA_DIRS = lib.makeSearchPath "share" ([ xdg-data ] ++ global-dirs);
+#+END_SRC
+
+The actual environment.
+
+#+BEGIN_SRC nix
+in buildEnv {
+  name = "bauer";
+  buildInputs = [ makeWrapper ];
+  postBuild = ''
+    mkdir -p $out/etc
+    cp ${./gitconfig} $out/etc/gitconfig
+    substituteAllInPlace $out/etc/gitconfig
+
+    cp ${./zshrc.sh} $out/etc/.zshrc
+    substituteAllInPlace $out/etc/.zshrc
+    substituteInPlace $out/etc/.zshrc \
+      --replace @completions@ ${zsh-completions}
+    ln -s $out/etc/.zshrc $out/etc/zshrc
+    wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
+
+    cp ${./etc-profile.sh} $out/etc/profile
+    substituteAllInPlace $out/etc/profile
+
+    cp ${./runemacs.sh} $out/bin/run
+    substituteAllInPlace $out/bin/run
+    ln -s $out/bin/run $out/bin/bauer
+  '';
+  pathsToLink = [
+    "/bin"
+    "/Applications"
+    "/etc/profile.d"
+  ];
+  meta = {
+    description = "Bauer’s automated unified Emacs realm";
+    maintainers = with lib.maintainers; [ matthewbauer ];
+    platforms = lib.platforms.all;
+  };
+  passthru = { shellPath = "/bin/zsh"; };
+  paths = [
+    myEmacs zsh
+    (runCommand "my-profile" {
+      buildInputs = [makeWrapper];
+      emacs = myEmacs;
+      inherit fortune cacert;
+    } ''
+      mkdir -p $out/etc/profile.d
+      cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
+      substituteAllInPlace $out/etc/profile.d/my-profile.sh
+      substituteInPlace $out/etc/profile.d/my-profile.sh \
+        --replace @PATH@ ${PATH} \
+        --replace @INFOPATH@ ${INFOPATH} \
+        --replace @MANPATH@ ${MANPATH} \
+        --replace @XDG_DATA_DIRS@ ${XDG_DATA_DIRS}
+    '')
+  ];
+}
 #+END_SRC
 
 ** Invoking it
@@ -4237,7 +4205,6 @@ These are all tangled by [[./README.org][README.org]].
 
 #+BEGIN_SRC gitignore
 README.el
-bashrc.sh
 bauer.nix
 zshrc.sh
 etc-profile.sh
