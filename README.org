@@ -645,6 +645,8 @@ when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]].
 
 #+BEGIN_SRC emacs-lisp
+  (global-set-key [M-s-drag-n-drop] 'ns-drag-n-drop-as-text)
+
   (bind-keys
    ("C-c C-u" . rename-uniquely)
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
