@@ -70,7 +70,7 @@ process,
 #+BEGIN_SRC shell
 cd ~/.local/share/bauer
 nix-build
-./result/run ./README.org
+./result/run README.org
 #+END_SRC
 
 The last line will spawn an Emacs frame in the Git repo. Anything in that file
@@ -3545,25 +3545,28 @@ esac
 :END:
 
 #+BEGIN_SRC nix :padline no
-{ nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
-, nixpkgs ? builtins.fetchTarball nixpkgs-url
-, nixpkgs' ? import nixpkgs {}
-}: with nixpkgs';
+{ channel ? (if builtins.currentSystem == "x86_64-darwin"
+             then "nixpkgs-unstable"
+             else "nixos-unstable")
+, nixpkgs-url ? "nixos.org/channels/${channel}/nixexprs.tar.xz"
+, nixpkgs ? import (builtins.fetchTarball nixpkgs-url) {}
+}: with nixpkgs;
 #+END_SRC
 
 Now let's tangle README.org...
 
 #+BEGIN_SRC nix
-import (runCommand "README" { buildInputs = [ emacs git ]; } ''
-  mkdir -p $out
+import (runCommand "README" { buildInputs = [ emacs git ]; } (''
+  install -D ${./README.org} $out/README.org
   cd $out
+'' + lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
-  cp ${./README.org} README.org
+'' + ''
   emacs --batch --quick \
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'') {inherit nixpkgs';}
+'')) { inherit nixpkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3571,14 +3574,8 @@ import (runCommand "README" { buildInputs = [ emacs git ]; } ''
 :header-args: :tangle bauer.nix
 :END:
 
-=nixpkgs= should just be a Nix path to the Nixpkgs package set. =nixpkgs'=
-will be =nixpkgs= instantiated.
-
 #+BEGIN_SRC nix
-  { nixpkgs-url ? "nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
-  , nixpkgs ? builtins.fetchTarball nixpkgs-url
-  , nixpkgs' ? import nixpkgs {}
-  }: with nixpkgs'; let
+  { nixpkgs ? import <nixpkgs> {} }: with nixpkgs; let
 #+END_SRC
 
 Next we start defining some packages. R is one of the simpler ones right now,
@@ -3702,10 +3699,12 @@ package-list =
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-	-L ${customEmacsPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
-	-L ${customEmacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
-	-L ${customEmacsPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
-	-L ${./site-lisp} -l use-package-list \
+        -L ${customEmacsPackages.use-package}/share/emacs/site-lisp/elpa/use-package-* \
+        -L ${customEmacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
+        -L ${customEmacsPackages.bind-key}/share/emacs/site-lisp/elpa/bind-key-* \
+        -l ${ensure ./site-lisp/set-defaults.el} \
+        -l ${ensure ./site-lisp/bauer.el} \
+        -l ${ensure ./site-lisp/use-package-list.el} \
 	--eval "(use-package-list \"${./README.el}\")" > $out
 #+END_SRC
 
@@ -3720,6 +3719,8 @@ myEmacsPackages = builtins.fromJSON (builtins.readFile package-list);
 **** Phase 2: byte compiling
 
 #+BEGIN_SRC nix
+  ensure = f: if builtins.pathExists f then f
+              else builtins.fetchurl "https://matthewbauer.us/bauer/${f}";
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
   } ((if isSmall then ''
@@ -3732,19 +3733,19 @@ myEmacsPackages = builtins.fromJSON (builtins.readFile package-list);
 
 #+BEGIN_SRC nix
   install -D ${./README.el} $out/share/emacs/site-lisp/default.el
-  install -D ${./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
-  install -D ${./site-lisp/dired-column.el} \
+  install -D ${ensure ./site-lisp/em-dired.el} $out/share/emacs/site-lisp/em-dired.el
+  install -D ${ensure ./site-lisp/dired-column.el} \
     $out/share/emacs/site-lisp/dired-column.el
-  install -D ${./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
-  install -D ${./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
-  install -D ${./site-lisp/set-defaults.el} \
+  install -D ${ensure ./site-lisp/macho-mode.el} $out/share/emacs/site-lisp/macho-mode.el
+  install -D ${ensure ./site-lisp/nethack.el} $out/share/emacs/site-lisp/nethack.el
+  install -D ${ensure ./site-lisp/set-defaults.el} \
     $out/share/emacs/site-lisp/set-defaults.el
-  install -D ${./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
+  install -D ${ensure ./site-lisp/installer.el} $out/share/emacs/site-lisp/installer.el
   install -D ${./site-lisp/restart-emacs.el} \
     $out/share/emacs/site-lisp/restart-emacs.el
-  install -D ${./site-lisp/use-package-list.el} \
+  install -D ${ensure ./site-lisp/use-package-list.el} \
     $out/share/emacs/site-lisp/use-package-list.el
-  install -D ${./site-lisp/bauer.el} \
+  install -D ${ensure ./site-lisp/bauer.el} \
     $out/share/emacs/site-lisp/bauer.el
 #+END_SRC
 
