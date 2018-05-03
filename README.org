@@ -3556,8 +3556,10 @@ esac
 Now let's tangle README.org...
 
 #+BEGIN_SRC nix
-import (runCommand "README" { buildInputs = [ emacs git ]; } (''
-  install -D ${./README.org} $out/README.org
+let ensure = f: if builtins.pathExists f then f
+            else builtins.fetchurl "https://matthewbauer.us/bauer/${f}";
+in import (runCommand "README" { buildInputs = [ emacs git ]; } (''
+  install -D ${ensure ./README.org} $out/README.org
   cd $out
 '' + lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
@@ -4060,6 +4062,12 @@ in buildEnv {
     "/Applications"
     "/etc/profile.d"
   ];
+  meta = {
+    description = "Bauer’s automated unified Emacs realm";
+    maintainers = with lib.maintainers; [ matthewbauer ];
+    platforms = lib.platforms.all;
+  };
+  passthru = { shellPath = "/bin/zsh"; };
   paths = [
     myEmacs zsh
     (runCommand "my-profile" {

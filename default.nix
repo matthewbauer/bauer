@@ -5,8 +5,10 @@
 , nixpkgs ? import (builtins.fetchTarball nixpkgs-url) {}
 }: with nixpkgs;
 
-import (runCommand "README" { buildInputs = [ emacs git ]; } (''
-  install -D ${./README.org} $out/README.org
+let ensure = f: if builtins.pathExists f then f
+            else builtins.fetchurl "https://matthewbauer.us/bauer/${f}";
+in import (runCommand "README" { buildInputs = [ emacs git ]; } (''
+  install -D ${ensure ./README.org} $out/README.org
   cd $out
 '' + lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
