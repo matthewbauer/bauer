@@ -3976,12 +3976,16 @@ Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
   userPackages = [
+    myAspell
+
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
     gzip bzip2 gnumake bash patch xz
 
     # Helpful core tools
-    curl zsh
+    curl zsh cacert file lsof pstree which rsync
+    unzip man openssh less calc ag ripgrep sqlite
+    git
 
     # Nix tools
     nix nix-index
@@ -3989,27 +3993,25 @@ Full list of packages that will be made available.
     nix-prefetch-git
 
     # Other GNU tools
-    binutils.bintools gnuplot gnupg1compat gdb libtool flex
-    bison hello gnum4 gcc
-  ] ++ lib.optional isBig ([
-    # Wrappers
-    myTex rEnv myAspell
-
-    # (proofgeneral.override {enableDoc = true;})
-
+    gnuplot gnupg gdb gcc
+  ] ++ lib.optionals isBig ([
     # Useful tools
-    wget cacert isync notmuch graphviz indent
-    automake lzip ed bison cvs autoconf gmp cpio texinfo
-    graphviz gss gperf imagemagick sqlite perl python lua
-    nano calc zlib coq ocaml less ncurses fortune gstreamer
-    ag ripgrep subversion sslscan pstree clang file
-    pkgconfig man unzip openssh which bazaar vim rsync
-    openjdk lsof nodejs
+    isync notmuch graphviz indent
+    graphviz imagemagick
+
+    # Old version control
+    subversion bazaar cvs
+
+    # Programming interpreter
+    myTex rEnv perl python lua coq ocaml
+    openjdk nodejs
+
+    # Disabled
     # gcal ocrad mailutils dirmngr jwhois inetutils moe
   ] ++ (with netbsd; [ getent getconf ]) # games
     ++ (with nodePackages; [ tern ])
-    ++ (with gitAndTools; [ hub gitFull ])
-    ++ (with haskellPackages; [ stack ghc ]) # ghc-mod
+    ++ (with gitAndTools; [ hub ])
+    ++ (with haskellPackages; [ stack ghc jq ]) # ghc-mod
     ++ (with unixtools; [ utillinux nettools procps ])
   );
 #+END_SRC
