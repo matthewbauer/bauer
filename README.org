@@ -3674,7 +3674,9 @@ Emacs 26 is provided courtesy of @jwiegley's nix-config repo.
     # date = 2018-04-26T23:40:37-07:00;
   }) + "/overlays/10-emacs.nix") self pkgs) emacs26;
   customEmacsPackages = emacsPackagesNg.overrideScope
-    (super: self: { emacs = emacs26; });
+    (super: self: {
+      emacs = if stdenv.isDarwin then emacsMacport else emacs;
+    });
 #+END_SRC
 
 Next, we define aspell with the English language. This is used by Emacs
