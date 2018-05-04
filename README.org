@@ -4071,7 +4071,7 @@ in buildEnv {
     cp ${./zshrc.sh} $out/etc/.zshrc
     substituteAllInPlace $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
-      --replace @completions@ ${zsh-completions}
+      --subs-var-by completions ${zsh-completions}
     ln -s $out/etc/.zshrc $out/etc/zshrc
     wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
 
