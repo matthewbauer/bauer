@@ -1,4 +1,11 @@
-;;; macho-mode.el --- Show symbols in Mach-O files -*- lexical-binding: t -*-
+;;; macho-mode.el --- Show symbols in Mach-O files
+
+;; Copyright (C) 2018 Matthew Bauer
+
+;; Author: Matthew Bauer <mjbauer95@gmail.com>
+;; Homepage: https://github.com/matthewbauer/bauer
+;; Version: 1.0
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -16,6 +23,8 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Provides a simple viewer for Mach-O executables using objdump.
 
 ;;; Code:
 

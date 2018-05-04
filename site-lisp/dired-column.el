@@ -1,11 +1,14 @@
 ;;; dired-column.el --- Open dired in columns.
 
-;; Git: https://github.com/matthewbauer/dired-column
-;; Version: 0.01
-;; Created: 2017-06-05
-;; Keywords: dired, columns
+;; Copyright (C) 2018 Matthew Bauer
+
+;; Maintainer: Matthew Bauer <mjbauer95@gmail.com>
+;; Homepage: https://github.com/matthewbauer/bauer
+;; Version: 1.0
 
 ;; This file is NOT part of GNU Emacs.
+
+;; This file is free software.
 
 ;;; Commentary:
 

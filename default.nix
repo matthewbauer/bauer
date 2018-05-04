@@ -1,3 +1,4 @@
+# -*- mode: nix; coding: utf-8; -*-
 { channel ? (if builtins.currentSystem == "x86_64-darwin"
              then "nixpkgs-unstable"
              else "nixos-unstable")
