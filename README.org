@@ -19,7 +19,7 @@
 #+startup: hideblocks indent align entitiespretty
 #+export_file_name: index
 #+keywords: dotfiles config ide emacs nix bauer
-#+html_head: <link rel=stylesheet href=https://matthewbauer.us/style.css /> <meta name=viewport content="width=device-width, initial-scale=1.0">
+#+html_head: <link rel="stylesheet" href="https://matthewbauer.us/style.css" /> <meta name="viewport" content="width=device-width, initial-scale=1.0">
 #+link_home: http://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
 
@@ -3287,7 +3287,6 @@ Set paths provided by Nix,
    ;; '(flycheck-go-test-executable "@go@/bin/go")
    '(flycheck-lua-executable "@lua@/bin/luac")
    '(flycheck-xml-xmllint-executable "@libxml2@/bin/xmllint")
-   '(flycheck-perl-perlcritic-executable "@perlcritic@/bin/perlcritic")
    '(flycheck-html-tidy-executable "@tidy@/bin/tidy")
    '(fortune-dir "@fortune@/share/games/fortunes")
    '(fortune-file "@fortune@/share/games/fortunes/food")
@@ -3295,7 +3294,6 @@ Set paths provided by Nix,
    '(haskell-check-command "@hlint@/bin/hlint")
    '(haskell-hoogle-command "@hoogle@/bin/hoogle")
    '(haskell-hasktags-path "@hasktags@/bin/hasktags")
-   ;; '(haskell-mode-stylish-haskell-path "@stylish@/bin/stylish-haskell")
    '(ispell-program-name "@aspell@/bin/aspell")
    '(ispell-grep-command "@gnugrep@/bin/grep")
    '(irony-cmake-executable "@cmake@/bin/cmake")
@@ -3384,7 +3382,8 @@ Set some defaults that depend on the path variables below,
         luatex-command)))
    '(TeX-command-list
      `(("TeX"
-	"%(PDF)%(tex) %(file-line-error) %(extraopts) %`%S%(PDFout)%(mode)%' %t"
+	,(concat "%(PDF)%(tex) %(file-line-error) "
+	         "%(extraopts) %`%S%(PDFout)%(mode)%' %t")
 	TeX-run-TeX nil
 	(plain-tex-mode ams-tex-mode texinfo-mode)
 	:help "Run plain TeX")
@@ -4216,7 +4215,7 @@ nix-build
 
 #+BEGIN_EXPORT html
 <a href="https://travis-ci.org/matthewbauer/bauer">
-  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master"></img>
+  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master" alt="travis status"></img>
 </a>
 #+END_EXPORT
 
