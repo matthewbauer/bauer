@@ -2,10 +2,11 @@
 
 ;; Copyright (C) 2017 Matthew Bauer
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
-;; Git: https://github.com/matthewbauer/em-dired
 ;; Version: 0.01
 ;; Created: 2017-06-05
-;; Keywords: eshell, prompt, dired
+;; Keywords: convenience tools terminals
+;; Package-Requires: ((emacs "24.4"))
+;; Homepage: https://github.com/matthewbauer/bauer
 
 ;; This file is NOT part of GNU Emacs.
 

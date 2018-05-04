@@ -1,6 +1,7 @@
 ;;; use-package-list.el --- List use-package declarations in config file
 
 ;; Copyright (C) 2017 Matthew Bauer
+
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
