@@ -139,6 +139,8 @@ that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/
 this.
 
 #+BEGIN_SRC emacs-lisp
+  ;; -*- mode: emacs-lisp; coding: utf-8; -*-
+
   (defvar file-name-handler-alist-backup file-name-handler-alist)
   (setq gc-cons-threshold most-positive-fixnum
         file-name-handler-alist nil)
@@ -3572,6 +3574,7 @@ esac
 :END:
 
 #+BEGIN_SRC nix :padline no
+# -*- mode: nix; coding: utf-8; -*-
 { channel ? (if builtins.currentSystem == "x86_64-darwin"
              then "nixpkgs-unstable"
              else "nixos-unstable")
@@ -3604,6 +3607,7 @@ in import (runCommand "README" { buildInputs = [ emacs git ]; } (''
 :END:
 
 #+BEGIN_SRC nix
+  # -*- mode: nix; coding: utf-8; -*-
   { nixpkgs ? import <nixpkgs> {}, ensure ? (f: n: f) }: with nixpkgs; let
 #+END_SRC
 
