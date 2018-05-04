@@ -4040,21 +4040,21 @@ Full list of packages that will be made available.
   );
 #+END_SRC
 
-Setup global environment variables and directories.
+Setup global environment variables and directories. Most of the global directories will not exist, but the way search paths work, means that is okay. We aim to support all directories in a common system, prioritizing ones that the user has the most direct access to.
 
 #+BEGIN_SRC nix
   global-dirs = [ "~/.nix-profile"
                   "~/.local"
-                  "/nix/var/nix/profiles/default/bin"
-                  "/run/current-system/sw/bin"
+                  "/nix/var/nix/profiles/default"
+                  "/run/current-system/sw"
                   "/usr/local"
                   "/usr"
                   "" ];
 
-  PATH = "${lib.makeSearchPath "bin" ([ bins myEmacs ] ++ global-dirs)}:${lib.makeSearchPath "sbin" [ "/usr" "" ]}";
-  MANPATH = lib.makeSearchPath "share/man" ([ manpages ] ++ global-dirs);
+  PATH = "${lib.makeBinPath ([ bins myEmacs zsh ] ++ global-dirs)}:${lib.makeSearchPath "sbin" [ "/usr" "" ]}";
+  MANPATH = lib.makeSearchPathOutput "man" "share/man" ([ manpages myEmacs zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
-  XDG_DATA_DIRS = lib.makeSearchPath "share" ([ xdg-data ] ++ global-dirs);
+  XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share" ([ xdg-data myEmacs zsh ] ++ global-dirs);
 #+END_SRC
 
 The actual environment.
