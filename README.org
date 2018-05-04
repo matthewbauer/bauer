@@ -3122,14 +3122,14 @@ fi
 #+BEGIN_SRC shell
 if [ -n "$INSIDE_EMACS" ]; then
     # function to set the dired and host for ansiterm
-    set_eterm_dir() {
-	print -P "\033AnSiTu %n"
-	print -P "\033AnSiTh" "$(hostname -f)"
-	print -P "\033AnSiTc %d"
-    }
+    # set_eterm_dir() {
+    #   print -P "\033AnSiTu %n"
+    #   print -P "\033AnSiTh" "$(hostname -f)"
+    #   print -P "\033AnSiTc %d"
+    # }
 
     # call prmptcmd whenever prompt is redrawn
-    precmd_functions=($precmd_functions set_eterm_dir)
+    # precmd_functions=($precmd_functions set_eterm_dir)
 fi
 #+END_SRC
 ** =etc-profile.sh=
@@ -4104,10 +4104,10 @@ in buildEnv {
       cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
       substituteAllInPlace $out/etc/profile.d/my-profile.sh
       substituteInPlace $out/etc/profile.d/my-profile.sh \
-        --replace @PATH@ ${PATH} \
-        --replace @INFOPATH@ ${INFOPATH} \
-        --replace @MANPATH@ ${MANPATH} \
-        --replace @XDG_DATA_DIRS@ ${XDG_DATA_DIRS}
+        --subst-var-by PATH ${PATH} \
+        --subst-var-by INFOPATH ${INFOPATH} \
+        --subst-var-by MANPATH ${MANPATH} \
+        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
     '')
   ];
 }
@@ -4257,13 +4257,13 @@ org-src-*
 :END:
 
 #+BEGIN_SRC gitattributes :padline no
-config.nix linguist-generated=true
-default.nix linguist-generated=true
-bootstrap.sh linguist-generated=true
-update.sh linguist-generated=true
-.travis.yml linguist-generated=true
+config.nix     linguist-generated=true
+default.nix    linguist-generated=true
+bootstrap.sh   linguist-generated=true
+update.sh      linguist-generated=true
+.travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
-.gitignore linguist-generated=true
+.gitignore     linguist-generated=true
 #+END_SRC
 * COMMENT Footer
 # Local Variables:
