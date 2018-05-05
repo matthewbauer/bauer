@@ -4186,7 +4186,11 @@ in buildEnv {
     maintainers = with lib.maintainers; [ matthewbauer ];
     platforms = lib.platforms.all;
   };
-  passthru = { shellPath = "/bin/zsh"; };
+  passthru = {
+    shellPath = "/bin/zsh";
+    run = "/bin/run";
+    inherit PATH INFOPATH MANPATH XDG_DATA_DIRS;
+  };
   paths = [
     myEmacs zsh
     (runCommand "my-profile" {
