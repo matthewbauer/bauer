@@ -4005,7 +4005,7 @@ Setup XDG data directory..
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
-    paths = userPackages;
+    paths = userPackages ++ [ myEmacs zsh ];
     pathsToLink = [ "/share/applications" "/share/mime" ];
     postBuild = ''
       export XDG_DATA_DIRS=$out/share
@@ -4134,21 +4134,22 @@ user has the most direct access to.
   global-dirs = [ "~/.nix-profile"
                   "~/.local"
                   "/nix/var/nix/profiles/default"
-		  "/run/wrappers"
+                  "/run/wrappers"
                   "/run/current-system/sw"
                   "/usr/local"
                   "/usr"
                   "" ];
 
   PATH = lib.concatStringsSep ":" [
-           (lib.makeBinPath ([ bins myEmacs zsh ] ++ global-dirs))
+           (lib.makeBinPath ([ bins myEmacs zsh ]
+                             ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
   MANPATH = lib.makeSearchPathOutput "man" "share/man"
     ([ manpages myEmacs zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
-    ([ xdg-data myEmacs zsh ] ++ global-dirs);
+    ([ xdg-data ] ++ global-dirs);
 #+END_SRC
 
 The actual environment.
@@ -4189,7 +4190,7 @@ in buildEnv {
   passthru = {
     shellPath = "/bin/zsh";
     run = "/bin/run";
-    inherit PATH INFOPATH MANPATH XDG_DATA_DIRS;
+    inherit xdg-data manpages infopages bins;
   };
   paths = [
     myEmacs zsh
