@@ -588,6 +588,13 @@ set in the Emacs process.
    )
 #+END_SRC
 
+Fix broken Git on Windows.
+
+#+BEGIN_SRC
+(when (eq window-system 'w32)
+  (setenv "GIT_ASKPASS" "git-gui--askpass"))
+#+END_SRC
+
 *** Load custom file
 
 This file allows users to override the above defaults. This will mean you
@@ -4157,7 +4164,7 @@ in buildEnv {
     cp ${./zshrc.sh} $out/etc/.zshrc
     substituteAllInPlace $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
-      --subs-var-by completions ${zsh-completions}
+      --subst-var-by completions ${zsh-completions}
     ln -s $out/etc/.zshrc $out/etc/zshrc
     wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
 
@@ -4233,7 +4240,7 @@ Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
 #+BEGIN_SRC yaml
 script:
-  - nix-build -Q --argstr channel $NIXPKGS
+  - nix-build -Q --argstr channel $CHANNEL
 #+END_SRC
 
 Setup the OSs. Sadly no Windows support yet.
