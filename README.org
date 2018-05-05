@@ -3640,8 +3640,15 @@ in import (runCommand "README" {
 #+BEGIN_SRC nix
   # -*- mode: nix; coding: utf-8; -*-
   { nixpkgs ? import <nixpkgs> {}
-  , ensure ? (f: n: f) }: with nixpkgs; let
+  , ensure ? (f: n: f)
+  , isSmall ? (nixpkgs.config.bauer.small or true) }:
+  with nixpkgs; let isBig = !isSmall;
 #+END_SRC
+
+The normal version has a huge closure totalling in at over 5GB. This is
+extremely useful for developers, but not always ideal. If you want to, you can
+enable the “small” version with ‘nixpkgs.config.bauer.small = true’. Alternatively,
+if you need it, you should set ‘nixpkgs.config.bauer.small = false’.
 
 Next we start defining some packages. R is one of the simpler ones right now,
 so let's start with that.
@@ -3952,15 +3959,6 @@ TODO use dump-emacs here to speed up config.
 
 Finally, we can actually build the environment.
 
-The normal version has a huge closure totalling in at over 5GB. This is
-extremely useful for developers, but not always ideal. If you want to, you can
-enable the “small” version with ‘nixpkgs.config.bauer.small = true’.
-
-#+BEGIN_SRC nix
-isSmall = config.bauer.small or false;
-isBig = !isSmall;
-#+END_SRC
-
 First build the info pages...
 
 #+BEGIN_SRC nix
@@ -4235,7 +4233,7 @@ Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
 
 #+BEGIN_SRC yaml
 script:
-  - nix-build -Q --argstr nixpkgs-url $NIXPKGS
+  - nix-build -Q --argstr channel $NIXPKGS
 #+END_SRC
 
 Setup the OSs. Sadly no Windows support yet.
@@ -4253,10 +4251,8 @@ Setup some values for =NIXPKGS= variables.
 
 #+BEGIN_SRC yaml
 env:
-  - NIXPKGS=nixos.org/channels/nixos-unstable/nixexprs.tar.xz
-  - NIXPKGS=nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
-  - NIXPKGS=nixos.org/channels/nixos-18.03/nixexprs.tar.xz
-  - NIXPKGS=nixos.org/channels/nixpkgs-18.03-darwin/nixexprs.tar.xz
+  - CHANNEL=nixos-unstable
+  - CHANNEL=nixpkgs-unstable
 #+END_SRC
 
 Setup the cache.
