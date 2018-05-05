@@ -588,6 +588,13 @@ set in the Emacs process.
    )
 #+END_SRC
 
+Fix broken Git on Windows.
+
+#+BEGIN_SRC
+(when (eq window-system 'w32)
+  (setenv "GIT_ASKPASS" "git-gui--askpass"))
+#+END_SRC
+
 *** Load custom file
 
 This file allows users to override the above defaults. This will mean you
