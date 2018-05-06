@@ -15,7 +15,7 @@ in import (pkgs.runCommand "README" {
   install -D ${ensure ./README.org "README.org"} \
           $out/README.org
   cd $out
-'' + nixpkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
+'' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
 '' + ''
   emacs --batch --quick \
