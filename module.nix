@@ -1,11 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }: with lib;
 
-with lib;
-
-let
-  bauer = import ./bauer.nix {
-    nixpkgs = pkgs;
-  };
+let bauer = import ./bauer.nix { inherit pkgs; };
 in {
   options = {
     programs.bauer = {
