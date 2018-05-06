@@ -4332,6 +4332,7 @@ init.el
 org-init.el
 org-src-*
 #+END_SRC
+
 ** =.gitattributes=
 :PROPERTIES:
 :header-args: :tangle .gitattributes
@@ -4345,16 +4346,23 @@ update.sh      linguist-generated=true
 .travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
 .gitignore     linguist-generated=true
+module.nix     linguist-generated=true
 #+END_SRC
 ** NixOS module
 :PROPERTIES:
 :header-args: :tangle module.nix
 :END:
 
-#+BEGIN_SRC nix
+#+BEGIN_SRC nix :padline no
 { config, lib, pkgs, ... }: with lib;
 
-let bauer = import ./bauer.nix { inherit pkgs; };
+let
+ensure = f: n: if builtins.pathExists f then f
+               else builtins.fetchurl
+               "https://matthewbauer.us/bauer/${n}";
+bauer = import (ensure ./default.nix "default.nix") {
+  inherit pkgs;
+};
 in {
   options = {
     programs.bauer = {

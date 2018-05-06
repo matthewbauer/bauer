@@ -1,6 +1,14 @@
+
 { config, lib, pkgs, ... }: with lib;
 
-let bauer = import ./bauer.nix { inherit pkgs; };
+let
+ensure = f: n: if builtins.pathExists f then f
+               else builtins.fetchurl
+               "https://matthewbauer.us/bauer/${n}";
+bauer = import (ensure ./default.nix "default.nix") {
+  inherit pkgs;
+};
+
 in {
   options = {
     programs.bauer = {
