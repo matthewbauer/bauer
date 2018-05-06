@@ -1,4 +1,3 @@
-
 { config, lib, pkgs, ... }: with lib;
 
 let
@@ -8,7 +7,6 @@ ensure = f: n: if builtins.pathExists f then f
 bauer = import (ensure ./default.nix "default.nix") {
   inherit pkgs;
 };
-
 in {
   options = {
     programs.bauer = {
