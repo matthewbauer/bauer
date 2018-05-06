@@ -2984,6 +2984,11 @@ case "$TERM" in
 	PS1='$ '
 	return
 	;;
+    xterm-256color)
+    bindkey "^[[H" beginning-of-line
+    bindkey "^[[F" end-of-line
+    bindkey "^[[3~" delete-char
+    ;;
 esac
 #+END_SRC
 
@@ -3035,7 +3040,8 @@ setopt always_to_end \
 Setup completions.
 
 #+BEGIN_SRC shell
-autoload -U compaudit compinit && compinit
+ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
+autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
 #+END_SRC
 
@@ -3094,16 +3100,6 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
-ZSH key bindings.
-
-#+BEGIN_SRC shell
-if [ "$TERM" = xterm-256color ]; then
-    bindkey "^[[H" beginning-of-line
-    bindkey "^[[F" end-of-line
-    bindkey "^[[3~" delete-char
-fi
-#+END_SRC
-
 Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
@@ -3115,19 +3111,6 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] \
 fi
 #+END_SRC
 
-#+BEGIN_SRC shell
-if [ -n "$INSIDE_EMACS" ]; then
-    # function to set the dired and host for ansiterm
-    # set_eterm_dir() {
-    #   print -P "\033AnSiTu %n"
-    #   print -P "\033AnSiTh" "$(hostname -f)"
-    #   print -P "\033AnSiTc %d"
-    # }
-
-    # call prmptcmd whenever prompt is redrawn
-    # precmd_functions=($precmd_functions set_eterm_dir)
-fi
-#+END_SRC
 ** =etc-profile.sh=
 :PROPERTIES:
 :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
@@ -3613,7 +3596,7 @@ esac
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , nixpkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-}: with nixpkgs;
+}:
 #+END_SRC
 
 Now let's tangle README.org...
@@ -3623,20 +3606,20 @@ let
 ensure = f: n: if builtins.pathExists f then f
                else builtins.fetchurl
                "https://matthewbauer.us/bauer/${n}";
-in import (runCommand "README" {
-  buildInputs = [ emacs git ];
+in import (nixpkgs.runCommand "README" {
+  buildInputs = with nixpkgs; [ emacs git ];
 } (''
   install -D ${ensure ./README.org "README.org"} \
           $out/README.org
   cd $out
-'' + lib.optionalString (builtins.pathExists ./site-lisp) ''
+'' + nixpkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
 '' + ''
   emacs --batch --quick \
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) { inherit nixpkgs ensure; }
+'')) { inherit ensure; pkgs = nixpkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3646,10 +3629,10 @@ in import (runCommand "README" {
 
 #+BEGIN_SRC nix
   # -*- mode: nix; coding: utf-8; -*-
-  { nixpkgs ? import <nixpkgs> {}
+  { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
-  , isSmall ? (nixpkgs.config.bauer.small or true) }:
-  with nixpkgs; let isBig = !isSmall;
+  , isSmall ? (pkgs.config.bauer.small or true) }:
+  with pkgs; let isBig = !isSmall;
 #+END_SRC
 
 The normal version has a huge closure totalling in at over 5GB. This is
@@ -4368,7 +4351,7 @@ update.sh      linguist-generated=true
 :header-args: :tangle module.nix
 :END:
 
-#+BEGIN_SRC
+#+BEGIN_SRC nix
 { config, lib, pkgs, ... }:
 
 with lib;
@@ -4388,17 +4371,15 @@ in {
   };
 
   config = mkIf config.programs.bauer.enable {
-    # services.sshd.enable = true;
     environment = {
       systemPackages = [ bauer ];
-      shells = [ "${bauer}/bin/zsh" ];
       variables = {
+        PATH = [ "${bauer.bins}/bin" ];
         XDG_DATA_DIRS = [ "${bauer.xdg-data}/share" ];
         MANPATH = [ "${bauer.manpages}/share/man" ];
         INFOPATH = [ "${bauer.infopages}/share/info" ];
       };
     };
-    users.defaultUserShell = mkDefault "${bauer}/bin/zsh";
   };
 }
 #+END_SRC
