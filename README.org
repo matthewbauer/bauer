@@ -2984,6 +2984,11 @@ case "$TERM" in
 	PS1='$ '
 	return
 	;;
+    xterm-256color)
+    bindkey "^[[H" beginning-of-line
+    bindkey "^[[F" end-of-line
+    bindkey "^[[3~" delete-char
+    ;;
 esac
 #+END_SRC
 
@@ -3035,7 +3040,8 @@ setopt always_to_end \
 Setup completions.
 
 #+BEGIN_SRC shell
-autoload -U compaudit compinit && compinit
+ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
+autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
 zmodload -i zsh/complist
 #+END_SRC
 
@@ -3094,16 +3100,6 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
-ZSH key bindings.
-
-#+BEGIN_SRC shell
-if [ "$TERM" = xterm-256color ]; then
-    bindkey "^[[H" beginning-of-line
-    bindkey "^[[F" end-of-line
-    bindkey "^[[3~" delete-char
-fi
-#+END_SRC
-
 Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
@@ -3115,19 +3111,6 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] \
 fi
 #+END_SRC
 
-#+BEGIN_SRC shell
-if [ -n "$INSIDE_EMACS" ]; then
-    # function to set the dired and host for ansiterm
-    # set_eterm_dir() {
-    #   print -P "\033AnSiTu %n"
-    #   print -P "\033AnSiTh" "$(hostname -f)"
-    #   print -P "\033AnSiTc %d"
-    # }
-
-    # call prmptcmd whenever prompt is redrawn
-    # precmd_functions=($precmd_functions set_eterm_dir)
-fi
-#+END_SRC
 ** =etc-profile.sh=
 :PROPERTIES:
 :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
@@ -3612,8 +3595,8 @@ esac
 { channel ? "nixpkgs-unstable"
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
-, nixpkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-}: with nixpkgs;
+, pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
+}:
 #+END_SRC
 
 Now let's tangle README.org...
@@ -3623,20 +3606,20 @@ let
 ensure = f: n: if builtins.pathExists f then f
                else builtins.fetchurl
                "https://matthewbauer.us/bauer/${n}";
-in import (runCommand "README" {
-  buildInputs = [ emacs git ];
+in import (pkgs.runCommand "README" {
+  buildInputs = with pkgs; [ emacs git ];
 } (''
   install -D ${ensure ./README.org "README.org"} \
           $out/README.org
   cd $out
-'' + lib.optionalString (builtins.pathExists ./site-lisp) ''
+'' + nixpkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
 '' + ''
   emacs --batch --quick \
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) { inherit nixpkgs ensure; }
+'')) { inherit ensure pkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3646,10 +3629,10 @@ in import (runCommand "README" {
 
 #+BEGIN_SRC nix
   # -*- mode: nix; coding: utf-8; -*-
-  { nixpkgs ? import <nixpkgs> {}
+  { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
-  , isSmall ? (nixpkgs.config.bauer.small or true) }:
-  with nixpkgs; let isBig = !isSmall;
+  , isSmall ? (pkgs.config.bauer.small or true) }:
+  with pkgs; let isBig = !isSmall;
 #+END_SRC
 
 The normal version has a huge closure totalling in at over 5GB. This is
@@ -4005,7 +3988,7 @@ Setup XDG data directory..
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
-    paths = userPackages;
+    paths = userPackages ++ [ myEmacs zsh ];
     pathsToLink = [ "/share/applications" "/share/mime" ];
     postBuild = ''
       export XDG_DATA_DIRS=$out/share
@@ -4134,20 +4117,22 @@ user has the most direct access to.
   global-dirs = [ "~/.nix-profile"
                   "~/.local"
                   "/nix/var/nix/profiles/default"
+                  "/run/wrappers"
                   "/run/current-system/sw"
                   "/usr/local"
                   "/usr"
                   "" ];
 
   PATH = lib.concatStringsSep ":" [
-           (lib.makeBinPath ([ bins myEmacs zsh ] ++ global-dirs))
+           (lib.makeBinPath ([ bins myEmacs zsh ]
+                             ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
   MANPATH = lib.makeSearchPathOutput "man" "share/man"
     ([ manpages myEmacs zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
-    ([ xdg-data myEmacs zsh ] ++ global-dirs);
+    ([ xdg-data ] ++ global-dirs);
 #+END_SRC
 
 The actual environment.
@@ -4185,7 +4170,11 @@ in buildEnv {
     maintainers = with lib.maintainers; [ matthewbauer ];
     platforms = lib.platforms.all;
   };
-  passthru = { shellPath = "/bin/zsh"; };
+  passthru = {
+    shellPath = "/bin/zsh";
+    run = "/bin/run";
+    inherit xdg-data manpages infopages bins;
+  };
   paths = [
     myEmacs zsh
     (runCommand "my-profile" {
@@ -4343,6 +4332,7 @@ init.el
 org-init.el
 org-src-*
 #+END_SRC
+
 ** =.gitattributes=
 :PROPERTIES:
 :header-args: :tangle .gitattributes
@@ -4356,7 +4346,47 @@ update.sh      linguist-generated=true
 .travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
 .gitignore     linguist-generated=true
+module.nix     linguist-generated=true
 #+END_SRC
+** NixOS module
+:PROPERTIES:
+:header-args: :tangle module.nix
+:END:
+
+#+BEGIN_SRC nix :padline no
+{ config, lib, pkgs, ... }: with lib;
+
+let
+ensure = f: n: if builtins.pathExists f then f
+               else builtins.fetchurl
+               "https://matthewbauer.us/bauer/${n}";
+bauer = import (ensure ./default.nix "default.nix") {
+  inherit pkgs;
+};
+in {
+  options = {
+    programs.bauer = {
+      enable = mkOption {
+        default = false;
+        type = types.bool;
+      };
+    };
+  };
+
+  config = mkIf config.programs.bauer.enable {
+    environment = {
+      systemPackages = [ bauer ];
+      variables = {
+        PATH = [ "${bauer.bins}/bin" ];
+        XDG_DATA_DIRS = [ "${bauer.xdg-data}/share" ];
+        MANPATH = [ "${bauer.manpages}/share/man" ];
+        INFOPATH = [ "${bauer.infopages}/share/info" ];
+      };
+    };
+  };
+}
+#+END_SRC
+** TODO VirtualBox & more images
 * COMMENT Footer
 # Local Variables:
 # mode: org
