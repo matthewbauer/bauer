@@ -79,9 +79,8 @@ ARGS are a list in the form of (SYMBOL VALUE)."
 verifies path exists"
   (dolist (entry args)
     (let ((path (nth 1 entry)))
-      (unless (file-exists-p path)
-        (error "Path %s not found" path))))
-  (apply 'set-defaults args))
+      (when (file-exists-p path)
+        (set-defaults entry)))))
 
 (provide 'set-defaults)
 ;;; set-defaults.el ends here

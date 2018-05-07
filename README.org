@@ -146,7 +146,7 @@ temporarily to a large number so we only garbage collect once on startup. After
 that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for more info on
 this.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :padline no
   ;; -*- mode: emacs-lisp; coding: utf-8; -*-
 
   (defvar file-name-handler-alist-backup
@@ -3627,7 +3627,7 @@ in import (pkgs.runCommand "README" {
 :header-args: :tangle bauer.nix
 :END:
 
-#+BEGIN_SRC nix
+#+BEGIN_SRC nix :padline no
   # -*- mode: nix; coding: utf-8; -*-
   { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
@@ -3792,20 +3792,15 @@ myEmacsPackages = builtins.fromJSON
 #+BEGIN_SRC nix
   default = runCommand "default.el" {
     buildInputs = [customEmacsPackages.emacs];
-  } ((if isSmall then ''
-  mkdir -p $out/share/emacs/site-lisp
-  echo "(provide 'site-paths)" \
-       > $out/share/emacs/site-lisp/site-paths.el
-'' else ''
-  install -D ${site-paths} \
-          $out/share/emacs/site-lisp/site-paths.el
-'') + ''
+  } ''
 #+END_SRC
 
 Install our lisp files. Many of these should be released into MELPA but don’t
 have the time to do it currently.
 
 #+BEGIN_SRC nix
+  install -D ${site-paths} \
+          $out/share/emacs/site-lisp/site-paths.el
   install -D ${./README.el} \
           $out/share/emacs/site-lisp/default.el
   install -D ${ensure ./site-lisp/em-dired.el
@@ -3858,7 +3853,7 @@ rm -rf $HOME/.emacs.d
 #+END_SRC
 
 #+BEGIN_SRC nix
-  '');
+  '';
 #+END_SRC
 
 **** Phase 3: wrapping into Emacs
