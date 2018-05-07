@@ -2984,24 +2984,13 @@ case "$TERM" in
 	PS1='$ '
 	return
 	;;
-    xterm-256color)
-    bindkey "^[[H" beginning-of-line
-    bindkey "^[[F" end-of-line
-    bindkey "^[[3~" delete-char
-    ;;
 esac
 #+END_SRC
 
 Load up site-functions in ZSH.
 
 #+BEGIN_SRC shell
-fpath+=(@completions@/share/zsh/site-functions)
-#+END_SRC
-
-Turn on colors.
-
-#+BEGIN_SRC shell
-autoload -U colors && colors
+fpath+=@completions@/share/zsh/site-functions
 #+END_SRC
 
 Turn on ZSH-specific options.
@@ -3034,63 +3023,44 @@ setopt always_to_end \
        pushd_ignore_dups \
        pushdminus \
        share_history \
-       transient_rprompt
+       transient_rprompt \
+       menu_complete
 #+END_SRC
 
-Setup completions.
+Setup completions & colors.
 
 #+BEGIN_SRC shell
-ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
-autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
-zmodload -i zsh/complist
+autoload -U colors && colors
+autoload -U compinit && compinit
+#+END_SRC
+
+Bind to emacs...
+
+#+BEGIN_SRC
+bindkey -e
 #+END_SRC
 
 Zstyle completions.
 
 #+BEGIN_SRC shell
-zstyle ':vcs_info:*' actionformats \
-       '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
-zstyle ':vcs_info:*' formats \
-       '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
-zstyle ':vcs_info:*' enable git
-
-zstyle ':completion:*' matcher-list \
-       'r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' matcher-list \
-       'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=*'
-zstyle ':completion:*' list-colors ''
-zstyle ':completion:*:*:kill:*:processes' list-colors \
-       '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
-zstyle ':completion:*:*:*:*:processes' command \
-       "ps -u $USER -o pid,user,comm -w -w"
-zstyle ':completion:*:cd:*' tag-order \
-       local-directories directory-stack path-directories
-zstyle ':completion::complete:*' use-cache 1
-zstyle ':completion::complete:*' cache-path ~/.zsh/cache/$HOST
-zstyle ':completion:*' select-prompt \
-       '%SScrolling active: current selection at %p%s'
 zstyle ':completion:*::::' completer \
-       expand _complete _ignored _approximate
+       _expand _complete _ignored _approximate
 zstyle ':completion:*' menu select=1 \
        _complete _ignored _approximate
-zstyle ':completion:*:*:-subscript-:*' \
-       tag-order indexes parameters
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
-zstyle ':completion:*:messages' format '%d'
-zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*:functions' ignored-patterns '_*'
-zstyle ':completion:*:scp:*' tag-order files users \
-       'hosts:-host hosts:-domain:domain hosts:-ipaddr"IP\ Address *'
+zstyle ':completion:*' matcher-list \
+       'm:{a-zA-Z-_}={A-Za-z_-}' \
+       'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' select-prompt \
+       '%SScrolling active: current selection at %p%s'
+zstyle ':completion:*' \
+       ignored-patterns '*~' '_*' '*\\\#*\\\#'
 zstyle ':completion:*:scp:*' group-order files \
        all-files users hosts-domain \
        hosts-host hosts-ipaddr
-zstyle ':completion:*:ssh:*' tag-order users \
-       'hosts:-host hosts:-domain:domain hosts:-ipaddr"IP\ Address *'
 zstyle ':completion:*:ssh:*' group-order hosts-domain \
        hosts-host users hosts-ipaddr
+zstyle ':vcs_info:*' enable git
 zstyle '*' single-ignored show
 #+END_SRC
 
