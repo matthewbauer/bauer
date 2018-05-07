@@ -26,9 +26,9 @@
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
 Nix store paths. This provides a kind of functional Emacs configuration. The
-integration between Emacs and Nix comes with lots of useful side effects. The
-raw Org file can always be downloaded [[https://matthewbauer.us/bauer/README.org][here]] and you can create pull requests and
-issues on [[https://github.com/matthewbauer/bauer][the GitHub repo]]. You can access my website at https://matthewbauer.us.
+integration between Emacs & Nix comes with lots of useful side effects. The raw
+Org file can always be downloaded [[https://matthewbauer.us/bauer/README.org][here]]. You can create pull requests & issues on
+[[https://github.com/matthewbauer/bauer][the GitHub repo]]. You can access my website at https://matthewbauer.us.
 
 #+TOC: headlines 2
 
@@ -82,12 +82,12 @@ nix-build
 
 The last line will spawn an Emacs frame in the Git repo. Anything in that file
 can be change. Once you’ve made a change, just run =M-x dev-restart= to rebuild
-the configuration and restart Emacs. Make any changes you want to [[./README.org][the README.org
+the configuration & restart Emacs. Make any changes you want to [[./README.org][the README.org
 file]] or any of the files in [[./site-lisp][the site-lisp folder]]. Make sure you commit your
 changes afterward by typing =C-c p v=, then =c-ac=. If you have already forked
 [[https://github.com/matthewbauer/bauer][this repo on GitHub]], you can add it as a remote by typing =Mg= followed by your
 GitHub username within Magit. To push to it, just type =Pr= then find your
-username in the list and press enter. Pull requests are always welcome through
+username in the list & press enter. Pull requests are always welcome through
 GitHub!
 
 ** Without Nix
@@ -133,7 +133,7 @@ Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]]:
 :CUSTOM_ID: emacs
 :END:
 
-This is the main part of the IDE. It is written in Emacs lisp and will be loaded
+This is the main part of the IDE. It is written in Emacs lisp & will be loaded
 every time Emacs is started.
 
 ** Increase GC
@@ -186,7 +186,7 @@ Now we are going to setup some basic Emacs GUI elements. Under normal
 circumstances, we want GUI elements hidden from the user so that we only see the
 text buffer. This gives us a minimalist look that works well with the theme. We
 will end up disabling =tool-bar-mode=, =scroll-bar-mode=, =blink-cursor-mode=,
-and =menu-bar-mode= here. The one exception to this is when we are running macOS
+& =menu-bar-mode= here. The one exception to this is when we are running macOS
 where the system provides a builtin menubar system that Emacs can use.
 
 #+BEGIN_SRC  emacs-lisp
@@ -558,12 +558,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 *** Site paths
 
 Now, pull in generated paths from =site-paths.el=. Nix will generate this file
-automatically for us and different Emacs variables will be set to their Nix
+automatically for us & different Emacs variables will be set to their Nix
 store derivation paths. Everything should work fine if you don’t have this
-available, though. If you are in Emacs and already have the IDE installed you
+available, though. If you are in Emacs & already have the IDE installed you
 can inspect this file by typing =C-h C-l site-paths=. It will look similar to a
 =settings.el= file where each line corresponds to a customizable variable.
-Unlike =settings.el=, each entry is path in the Nix store and we verify it
+Unlike =settings.el=, each entry is path in the Nix store & we verify it
 exists before setting it.
 
 #+BEGIN_SRC emacs-lisp
@@ -607,19 +607,19 @@ can use custom as you normally would in vanilla Emacs.
 ** Setup use-package
 
 [[https://github.com/jwiegley/use-package][use-package]] is an Emacs package by John Weigley allowing users to easily
-configure other Emacs packages. It’s quite useful and it will be used
+configure other Emacs packages. It’s quite useful & it will be used
 extensively in this project.
 
-Now to get =use-package= we will require =package.el= and initialize it if
+Now to get =use-package= we will require =package.el= & initialize it if
 site-paths is not setup (meaning we’re outside the Nix expression). Because
 site-paths should be available (unless you don’t have Nix), we can skip this
 step. All of this is marked ‘eval-and-compile’ to make sure the compiler picks
 it up on build phase.
 
 So, there are basically two modes for using this configuration. One when
-packages are installed externally (through Nix) and another where they are
+packages are installed externally (through Nix) & another where they are
 installed internally. This is captured in the variable ‘needs-package-init’
-which will be t when we want to use the builtin package.el and will be nli when
+which will be t when we want to use the builtin package.el & will be nil when
 we want to just assume everything is available.
 
 #+BEGIN_SRC emacs-lisp
@@ -632,8 +632,8 @@ we want to just assume everything is available.
 #+END_SRC
 
 First handle using =package.el=. We will do all of the work of bootstrapping
-here including running =package-initialize= and ensuring =use-package= and
-=delight= are installed.
+here including running =package-initialize=, ensuring =use-package=, & =delight=
+are installed.
 
 #+BEGIN_SRC emacs-lisp
   (when needs-package-init
@@ -687,7 +687,7 @@ used as key bindings.
   (require 'bauer)
 #+END_SRC
 
-Now we will call =bind-keys= and give it keys to bind and what function to run
+Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]].
 
@@ -846,7 +846,7 @@ with how Emacs key binding works, you should read through [[https://www.masterin
 
 ** Setup installer
 
-Installer provides installation and upgrading functionality. You can upgrade the
+Installer provides installation & upgrading functionality. You can upgrade the
 IDE at any time by typing =M-x upgrade= from within Emacs. You may have to
 restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
 
@@ -859,17 +859,17 @@ restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installe
 :CUSTOM_ID: packages
 :END:
 
-Each of these entries are =use-package= calls that will both install and load
+Each of these entries are =use-package= calls that will both install & load
 the package for us. The most important are listed first in “Essentials”.
 “Built-in" Emacs packages are also configured. Next comes the “Programming
 Language” modes. Finally, we list some miscellaneous modes.
 
 This is an alphabetized listing of all Emacs packages needed by the IDE. To
-resort, go to one of the package group headings and type =C-c ^ a=.
+resort, go to one of the package group headings & type =C-c ^ a=.
 
 *** Essentials
 
-These are the best and most useful modes available to us in Emacs world.
+These are the best & most useful modes available to us in Emacs world.
 
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
@@ -891,7 +891,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 
 [[https://github.com/waymondo/apropospriate-theme][GitHub]]
 
-This is the theme I use and it works well for this configuration. It is dark
+This is the theme I use & it works well for this configuration. It is dark
 with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
@@ -1201,14 +1201,14 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 emacs-init-time gives good readings for Emacs startup time. Currently my
 emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
 but I aim to never let it go above 5. This is good but it includes some
-things we don’t have control over (window system and Emacs C internals).
+things we don’t have control over (window system & Emacs C internals).
 
 ESUP provides good info on what is taking a long time during startup. ESUP is a
 startup profiler for Emacs. I’ve provided "startup-profile" so that you can just
-profile what is in "default.el" (this script) and not any other miscellaneous
+profile what is in "default.el" (this script) & not any other miscellaneous
 scripts you have around. This will be part of our effort to get quick startup
 times. Slowdowns happen for various reasons but right now autorevert,
-apropospriate, and flycheck are the biggest offenders.
+apropospriate, & flycheck are the biggest offenders.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esup
@@ -1241,7 +1241,7 @@ supports many languages and give us a lot of features right out of the box.
 
 [[http://www.gnus.org][Website]]
 
-Gnus is an infamous email client and news reader.
+Gnus is an infamous email client & news reader.
 
 #+BEGIN_SRC emacs-lisp
   (use-package gnus
@@ -1256,7 +1256,7 @@ Gnus is an infamous email client and news reader.
 
 God Mode makes it easier to type Emacs shortcuts involving lots of modifier
 keys. Activate it by pressing Escape (Notice “God” at the bottom of the screen).
-You no longer have to press and hold the control key!
+You no longer have to press & hold the control key!
 
 Note that god-mode overwrites escape key. This can cause some issues for
 certain Emacs keybinds.
@@ -1381,7 +1381,7 @@ MMM mode lets you edit multiple languages within one buffer.
 **** multiple-cursors
 [[https://github.com/magnars/multiple-cursors.el][GitHub]]
 
-Multiple cursors give you more cursors. It is bound to =C->= and =C-<=.
+Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
@@ -1450,7 +1450,7 @@ outliner but also much much more.
 
 [[https://github.com/bbatsov/projectile][GitHub]]
 
-Setup projectile and link it with some other packages. This also adds an
+Setup projectile & link it with some other packages. This also adds an
 easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
@@ -1599,7 +1599,7 @@ achieve this).
 **** which-key
 
 Which-key will tell you what key bindings are available give a prefix. Test it
-out by pressing =C-x= and waiting a few seconds. Each key listed is bound to a
+out by pressing =C-x= & waiting a few seconds. Each key listed is bound to a
 function.
 
 #+BEGIN_SRC emacs-lisp
@@ -2984,24 +2984,13 @@ case "$TERM" in
 	PS1='$ '
 	return
 	;;
-    xterm-256color)
-    bindkey "^[[H" beginning-of-line
-    bindkey "^[[F" end-of-line
-    bindkey "^[[3~" delete-char
-    ;;
 esac
 #+END_SRC
 
 Load up site-functions in ZSH.
 
 #+BEGIN_SRC shell
-fpath+=(@completions@/share/zsh/site-functions)
-#+END_SRC
-
-Turn on colors.
-
-#+BEGIN_SRC shell
-autoload -U colors && colors
+fpath+=@completions@/share/zsh/site-functions
 #+END_SRC
 
 Turn on ZSH-specific options.
@@ -3034,63 +3023,44 @@ setopt always_to_end \
        pushd_ignore_dups \
        pushdminus \
        share_history \
-       transient_rprompt
+       transient_rprompt \
+       menu_complete
 #+END_SRC
 
-Setup completions.
+Setup completions & colors.
 
 #+BEGIN_SRC shell
-ZSH_COMPDUMP="${HOME}/.zcompdump-${SHORT_HOST}-${ZSH_VERSION}"
-autoload -U compaudit compinit && compinit -d "${ZSH_COMPDUMP}"
-zmodload -i zsh/complist
+autoload -U colors && colors
+autoload -U compinit && compinit
+#+END_SRC
+
+Bind to emacs...
+
+#+BEGIN_SRC
+bindkey -e
 #+END_SRC
 
 Zstyle completions.
 
 #+BEGIN_SRC shell
-zstyle ':vcs_info:*' actionformats \
-       '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
-zstyle ':vcs_info:*' formats \
-       '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
-zstyle ':vcs_info:*' enable git
-
-zstyle ':completion:*' matcher-list \
-       'r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' matcher-list \
-       'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=*'
-zstyle ':completion:*' list-colors ''
-zstyle ':completion:*:*:kill:*:processes' list-colors \
-       '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
-zstyle ':completion:*:*:*:*:processes' command \
-       "ps -u $USER -o pid,user,comm -w -w"
-zstyle ':completion:*:cd:*' tag-order \
-       local-directories directory-stack path-directories
-zstyle ':completion::complete:*' use-cache 1
-zstyle ':completion::complete:*' cache-path ~/.zsh/cache/$HOST
-zstyle ':completion:*' select-prompt \
-       '%SScrolling active: current selection at %p%s'
 zstyle ':completion:*::::' completer \
-       expand _complete _ignored _approximate
+       _expand _complete _ignored _approximate
 zstyle ':completion:*' menu select=1 \
        _complete _ignored _approximate
-zstyle ':completion:*:*:-subscript-:*' \
-       tag-order indexes parameters
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
-zstyle ':completion:*:messages' format '%d'
-zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*:functions' ignored-patterns '_*'
-zstyle ':completion:*:scp:*' tag-order files users \
-       'hosts:-host hosts:-domain:domain hosts:-ipaddr"IP\ Address *'
+zstyle ':completion:*' matcher-list \
+       'm:{a-zA-Z-_}={A-Za-z_-}' \
+       'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' select-prompt \
+       '%SScrolling active: current selection at %p%s'
+zstyle ':completion:*' \
+       ignored-patterns '*~' '_*' '*\\\#*\\\#'
 zstyle ':completion:*:scp:*' group-order files \
        all-files users hosts-domain \
        hosts-host hosts-ipaddr
-zstyle ':completion:*:ssh:*' tag-order users \
-       'hosts:-host hosts:-domain:domain hosts:-ipaddr"IP\ Address *'
 zstyle ':completion:*:ssh:*' group-order hosts-domain \
        hosts-host users hosts-ipaddr
+zstyle ':vcs_info:*' enable git
 zstyle '*' single-ignored show
 #+END_SRC
 
@@ -3522,7 +3492,8 @@ Set some defaults that depend on the path variables below,
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
-IDE. It ensures Nix is installed and that the Git repo is available and up-to-date.
+IDE. It ensures Nix is installed as well as that the Git repo is available &
+up-to-date.
 
 First we install Nix if it isn’t already.
 
@@ -3836,8 +3807,8 @@ have the time to do it currently.
 This is fairly complicated. What happens is we batch compile all of the .el
 files. The problem is the .el files all are going to depend on dependencies
 that we have just found in package-list. The solution is that complex eval
-below where we add all of the paths (and their requisites) to the load
-path. This works but is hacky and I am interested in fixing it.
+below where we add all of the paths (plus their requisites) to the load
+path. This works but is hacky & I am interested in fixing it.
 
 #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
@@ -3985,7 +3956,12 @@ Setup XDG data directory..
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
     paths = userPackages ++ [ myEmacs zsh ];
-    pathsToLink = [ "/share/applications" "/share/mime" ];
+    pathsToLink = [
+      "/share/applications"
+      "/share/mime"
+      "/share/menus"
+      "/share/icons"
+    ];
     postBuild = ''
       export XDG_DATA_DIRS=$out/share
 
@@ -4104,7 +4080,7 @@ Full list of packages that will be made available.
   );
 #+END_SRC
 
-Setup global environment variables and directories. Most of the global
+Setup global environment variables & directories. Most of the global
 directories will not exist, but the way search paths work, means that is okay.
 We aim to support all directories in a common system, prioritizing ones that the
 user has the most direct access to.
@@ -4185,7 +4161,8 @@ in buildEnv {
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
-        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+        ${lib.optionalString stdenv.isLinux
+        "--subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}"}
     '')
   ];
 }
@@ -4221,7 +4198,7 @@ We'll set up Travis support here. We start by configuring =.travis.yml=.
 language: nix
 #+END_SRC
 
-Next we'll set up nix-build and pass the URL of Nixpkgs with the =NIXPKGS=.
+Next we'll set up nix-build & pass the URL of Nixpkgs with the =NIXPKGS=.
 
 #+BEGIN_SRC yaml
 script:
@@ -4285,7 +4262,7 @@ emacs --batch \
 :END:
 
 If you end up with generated files, they’re easy to remove with Git. Just run
-=git clean -xdf= and it will remove all of the files that match the .gitignore
+=git clean -xdf= & it will remove all of the files that match the .gitignore
 rules (which should never be added to the git tree).
 
 These set up some paths for =.gitignore= that we don’t want getting put in
