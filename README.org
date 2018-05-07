@@ -3705,7 +3705,8 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-    site-paths = runCommand "site-paths.el" {
+    site-paths = runCommand "site-paths.el"
+    (lib.optionalAttrs isBig {
       # random packages needed in site-paths
       inherit rtags ripgrep ag ant nethack fortune gnutls
         coreutils findutils openssh git bash
@@ -3739,7 +3740,7 @@ substitution of all the attributes set.
       # jdeeserver = jdee-server;
       aspell = myAspell;
       # orginit = ./org-init.el;f
-    } ''
+    }) ''
       cp ${./site-paths.el.in} $out
       substituteAllInPlace $out
     '';
