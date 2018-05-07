@@ -3946,8 +3946,7 @@ First build the info pages...
     pathsToLink = [ "/share/info" ];
     postBuild = ''
       shopt -s nullglob
-      for i in $out/share/info/*.info \
-               $out/share/info/*.info.gz; do
+      for i in $out/share/info/*; do
         ${texinfoInteractive}/bin/install-info \
                $i $out/share/info/dir
       done
