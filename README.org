@@ -3985,7 +3985,12 @@ Setup XDG data directory..
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
     paths = userPackages ++ [ myEmacs zsh ];
-    pathsToLink = [ "/share/applications" "/share/mime" ];
+    pathsToLink = [
+      "/share/applications"
+      "/share/mime"
+      "/share/menus"
+      "/share/icons"
+    ];
     postBuild = ''
       export XDG_DATA_DIRS=$out/share
 
@@ -4185,7 +4190,8 @@ in buildEnv {
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
-        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+        ${lib.optionalString stdenv.isLinux
+        "--subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}"}
     '')
   ];
 }
