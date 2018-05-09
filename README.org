@@ -2096,11 +2096,7 @@ setup.
                (auto-fill-mode -1))))
     :preface
     (autoload 'tramp-tramp-file-p "tramp")
-    (autoload 'tramp-dissect-file-name "tramp")
-    :bind (("C-c t" . term)
-           :package term
-           :map term-raw-map
-           ("C-y" . term-paste)))
+    (autoload 'tramp-dissect-file-name "tramp"))
 
   (use-package tramp-term
     :commands tramp-term)
@@ -2760,13 +2756,6 @@ Most of these are available in MELPA.
     :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 **** TODO hackernews
-**** hl-todo
-
-#+BEGIN_SRC emacs-lisp
-  (use-package hl-todo
-    :hook (prog-mode . hl-todo-mode))
-#+END_SRC
-
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
@@ -2874,6 +2863,11 @@ Most of these are available in MELPA.
 **** TODO flycheck-pkg-config
 **** TODO dired-rsync
 **** TODO org-brain
+**** comment-tags
+#+BEGIN_SRC emacs-lisp
+(use-package comment-tags
+  :hook (prog-mode . comment-tags-mode))
+#+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
 (use-package unfill
