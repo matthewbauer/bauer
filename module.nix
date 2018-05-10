@@ -20,11 +20,11 @@ in {
   config = mkIf config.programs.bauer.enable {
     environment = {
       systemPackages = [ bauer ];
-      variables = {
-        PATH = [ "${bauer.bins}/bin" ];
-        XDG_DATA_DIRS = [ "${bauer.xdg-data}/share" ];
-        MANPATH = [ "${bauer.manpages}/share/man" ];
-        INFOPATH = [ "${bauer.infopages}/share/info" ];
+      variables = with lib; {
+        PATH = bauer.PATH;
+        XDG_DATA_DIRS = bauer.XDG_DATA_DIRS;
+        MANPATH = bauer.MANPATH;
+        INFOPATH = bauer.INFOPATH;
       };
     };
   };

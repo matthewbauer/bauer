@@ -552,6 +552,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-action '(cleanup auto-cleanup))
    '(whitespace-style '(face trailing lines space-before-tab
                         empty lines-style))
+   '(fortune-always-compile nil)
    )
 #+END_SRC
 
@@ -1082,6 +1083,9 @@ info.
     :commands (ivy-completing-read ivy-completion-in-region))
 #+END_SRC
 **** diff-hl
+:PROPERTIES:
+:header-args: :tangle no
+:END:
 
 [[https://github.com/dgutov/diff-hl][GitHub]]
 
@@ -2096,11 +2100,7 @@ setup.
                (auto-fill-mode -1))))
     :preface
     (autoload 'tramp-tramp-file-p "tramp")
-    (autoload 'tramp-dissect-file-name "tramp")
-    :bind (("C-c t" . term)
-           :package term
-           :map term-raw-map
-           ("C-y" . term-paste)))
+    (autoload 'tramp-dissect-file-name "tramp"))
 
   (use-package tramp-term
     :commands tramp-term)
@@ -2760,13 +2760,6 @@ Most of these are available in MELPA.
     :hook ((find-file . git-attr-linguist)))
 #+END_SRC
 **** TODO hackernews
-**** hl-todo
-
-#+BEGIN_SRC emacs-lisp
-  (use-package hl-todo
-    :hook (prog-mode . hl-todo-mode))
-#+END_SRC
-
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
@@ -2874,6 +2867,11 @@ Most of these are available in MELPA.
 **** TODO flycheck-pkg-config
 **** TODO dired-rsync
 **** TODO org-brain
+**** comment-tags
+#+BEGIN_SRC emacs-lisp
+(use-package comment-tags
+  :hook (prog-mode . comment-tags-mode))
+#+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
 (use-package unfill
@@ -3269,7 +3267,8 @@ Set paths provided by Nix,
    '(flycheck-xml-xmllint-executable "@libxml2@/bin/xmllint")
    '(flycheck-html-tidy-executable "@tidy@/bin/tidy")
    '(fortune-dir "@fortune@/share/games/fortunes")
-   '(fortune-file "@fortune@/share/games/fortunes/food")
+   '(fortune-program "@fortune@/bin/fortune")
+   ’(fortune-file "@fortune@/share/games/fortunes/debian")
    '(grep-program "@gnugrep@/bin/grep")
    '(haskell-check-command "@hlint@/bin/hlint")
    '(haskell-hoogle-command "@hoogle@/bin/hoogle")
@@ -3696,45 +3695,40 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-    site-paths = runCommand "site-paths.el"
-    (lib.optionalAttrs isBig {
+    site-paths = runCommand "site-paths.el" ({
+      inherit (customEmacsPackages) emacs;
+      inherit ripgrep ag fortune gnutls nethack
+              coreutils findutils openssh
+              git bash zsh diffutils man gawk
+              gnugrep gnused cacert
+
+              # Nix paths
+              manpages sysheaders sysframeworks
+              schemas bins infopages;
+      gpg = gnupg1compat;
+      aspell = myAspell;
+    } // (lib.optionalAttrs isBig {
       # random packages needed in site-paths
-      inherit rtags ripgrep ag ant nethack fortune gnutls
-        coreutils findutils openssh git bash
-        zsh perl perlcritic
-        asciidoc lessc stack
-        lua gcc diffutils
+      inherit ant perl perlcritic
+        asciidoc lessc stack lua gcc
         pandoc clang cmake ghostscript
-        gnugrep man gawk gnused
         sqliteInteractive freetds
         parallel unixODBC ncompress
-        texinfoInteractive cacert notmuch gnuplot
-        gdb coq
-        # mariadb go golint
-
-        # Nix paths
-        manpages sysheaders sysframeworks
-        schemas bins infopages
-      ;
-      inherit (customEmacsPackages) emacs;
+        texinfoInteractive notmuch gnuplot
+        gdb coq rtags # mariadb go golint
+        ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
       inherit (haskellPackages) hoogle hlint hasktags;
-      # stylish = haskellPackages.stylish-haskell;
-      # intero = haskellPackages.intero-nix-shim;
       texlive = myTex;
       markdown2 = pythonPackages.markdown2;
       tidy = html-tidy;
-      # irony = irony-server;
       libxml2 = libxml2.bin;
-      gpg = gnupg1compat;
+      # stylish = haskellPackages.stylish-haskell;
+      # intero = haskellPackages.intero-nix-shim;
+      # irony = irony-server;
       # jdeeserver = jdee-server;
-      aspell = myAspell;
-      # orginit = ./org-init.el;f
-    }) ''
-      cp ${./site-paths.el.in} $out
-      substituteAllInPlace $out
-    '';
+    })) "substituteAll ${./site-paths.el.in} $out";
 #+END_SRC
 
 Emacs building can be divided into phases. Each phase will run through the Elisp
@@ -3841,7 +3835,6 @@ emacs --batch --quick \
 }/share/emacs/site-lisp\"))
   (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
-rm -rf $HOME/.emacs.d
 #+END_SRC
 
 #+BEGIN_SRC nix
@@ -3946,8 +3939,7 @@ First build the info pages...
     pathsToLink = [ "/share/info" ];
     postBuild = ''
       shopt -s nullglob
-      for i in $out/share/info/*.info \
-               $out/share/info/*.info.gz; do
+      for i in $out/share/info/*; do
         ${texinfoInteractive}/bin/install-info \
                $i $out/share/info/dir
       done
@@ -4072,7 +4064,7 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    git gnuplot gnupg
+    git gnuplot gnupg tree
 
     # Nix tools
     nix nix-index
@@ -4135,21 +4127,15 @@ in buildEnv {
   buildInputs = [ makeWrapper ];
   postBuild = ''
     mkdir -p $out/etc
-    cp ${./gitconfig} $out/etc/gitconfig
-    substituteAllInPlace $out/etc/gitconfig
-
-    cp ${./zshrc.sh} $out/etc/.zshrc
-    substituteAllInPlace $out/etc/.zshrc
+    substituteAll ${./gitconfig} $out/etc/gitconfig
+    substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
     ln -s $out/etc/.zshrc $out/etc/zshrc
     wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
-
-    cp ${./etc-profile.sh} $out/etc/profile
-    substituteAllInPlace $out/etc/profile
-
-    cp ${./runemacs.sh} $out/bin/run
-    substituteAllInPlace $out/bin/run
+    substituteAll ${./etc-profile.sh} $out/etc/profile
+    substituteAll ${./runemacs.sh} $out/bin/run
+    chmod +x $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
   '';
   pathsToLink = [
@@ -4157,15 +4143,18 @@ in buildEnv {
     "/Applications"
     "/etc/profile.d"
   ];
-  meta = {
+  meta = with lib; {
     description = "Bauer’s automated unified Emacs realm";
-    maintainers = with lib.maintainers; [ matthewbauer ];
-    platforms = lib.platforms.all;
+    maintainers = with maintainers; [ matthewbauer ];
+    platforms = platforms.all;
   };
-  passthru = {
+  passthru = with lib; {
     shellPath = "/bin/zsh";
     run = "/bin/run";
-    inherit xdg-data manpages infopages bins;
+    PATH = makeSearchPath "bin" [bins];
+    MANPATH = makeSearchPath "share/man" [manpages];
+    INFOPATH = makeSearchPath "share/info" [info-pages];
+    XDG_DATA_DIRS = makeSearchPath "share" [xdg-data-dirs];
   };
   paths = [
     myEmacs zsh
@@ -4175,8 +4164,7 @@ in buildEnv {
       inherit fortune cacert;
     } ''
       mkdir -p $out/etc/profile.d
-      cp ${./profile.sh} $out/etc/profile.d/my-profile.sh
-      substituteAllInPlace $out/etc/profile.d/my-profile.sh
+      substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
       substituteInPlace $out/etc/profile.d/my-profile.sh \
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
@@ -4369,11 +4357,11 @@ in {
   config = mkIf config.programs.bauer.enable {
     environment = {
       systemPackages = [ bauer ];
-      variables = {
-        PATH = [ "${bauer.bins}/bin" ];
-        XDG_DATA_DIRS = [ "${bauer.xdg-data}/share" ];
-        MANPATH = [ "${bauer.manpages}/share/man" ];
-        INFOPATH = [ "${bauer.infopages}/share/info" ];
+      variables = with lib; {
+        PATH = bauer.PATH;
+        XDG_DATA_DIRS = bauer.XDG_DATA_DIRS;
+        MANPATH = bauer.MANPATH;
+        INFOPATH = bauer.INFOPATH;
       };
     };
   };
