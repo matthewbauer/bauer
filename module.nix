@@ -21,10 +21,10 @@ in {
     environment = {
       systemPackages = [ bauer ];
       variables = with lib; {
-        PATH = bauer.PATH;
-        XDG_DATA_DIRS = bauer.XDG_DATA_DIRS;
-        MANPATH = bauer.MANPATH;
-        INFOPATH = bauer.INFOPATH;
+        PATH = [bauer.PATH];
+        XDG_DATA_DIRS = [bauer.XDG_DATA_DIRS];
+        MANPATH = [bauer.MANPATH];
+        INFOPATH = [bauer.INFOPATH];
       };
     };
   };
