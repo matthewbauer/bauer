@@ -246,28 +246,28 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auto-window-vscroll nil)
    '(backward-delete-char-untabify-method 'hungry)
    '(backup-directory-alist `(("." .
-      ,(expand-file-name "backup" user-emacs-directory))))
+                               ,(expand-file-name "backup" user-emacs-directory))))
    '(checkdoc-spellcheck-documentation-flag t)
    '(company-auto-complete (lambda ()
-      (and (company-tooltip-visible-p)
-		 (company-explicit-action-p))))
+                             (and (company-tooltip-visible-p)
+                                  (company-explicit-action-p))))
    '(company-continue-commands
      '(not save-buffer
-	   save-some-buffers
-	   save-buffers-kill-terminal
-	   save-buffers-kill-emacs
-	   comint-previous-matching-input-from-input
-	   comint-next-matching-input-from-input))
+           save-some-buffers
+           save-buffers-kill-terminal
+           save-buffers-kill-emacs
+           comint-previous-matching-input-from-input
+           comint-next-matching-input-from-input))
    '(company-require-match nil)
    '(company-selection-wrap-around t)
    '(company-backends '(company-elisp
-			company-css
-			company-nxml
-			company-cmake
-			company-capf
-			(company-files
-			 company-keywords company-dabbrev
-			 company-dabbrev-code)))
+                        company-css
+                        company-nxml
+                        company-cmake
+                        company-capf
+                        (company-files
+                         company-keywords company-dabbrev
+                         company-dabbrev-code)))
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
@@ -288,8 +288,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
    '(custom-file (expand-file-name
-                   "settings.el"
-                   user-emacs-directory))
+                  "settings.el"
+                  user-emacs-directory))
    '(custom-safe-themes t)
    '(custom-search-field nil)
    '(delete-by-moving-to-trash t)
@@ -340,20 +340,49 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-prompt-function
      (lambda ()
        (concat (when (tramp-tramp-file-p default-directory)
-	       (concat
-           (tramp-file-name-user
-             (tramp-dissect-file-name default-directory))
-		 "@"
-		 (tramp-file-name-host
-             (tramp-dissect-file-name default-directory))
-		 " "))
-		 (let ((dir (eshell/pwd)))
-		   (if (string= dir (getenv "HOME")) "~"
-               (let ((dirname (file-name-nondirectory dir)))
-		       (if (string= dirname "") "/" dirname))))
-		         (if (= (user-uid) 0) " # " " $ "))))
-   '(eshell-output-filter-functions 
-     '(eshell-handle-control-codes
+                 (concat
+                  (tramp-file-name-user
+                   (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-host
+                   (tramp-dissect-file-name default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
+   '(eshell-output-filter-functions
+     `(,(lambda () (let* ((selected (selected-window))
+                     (current (current-buffer))
+                     (scroll eshell-scroll-to-bottom-on-output))
+                (unwind-protect
+                    (walk-windows
+                     (function
+                      (lambda (window)
+                        (if (eq (window-buffer window) current)
+                            (progn
+                              (select-window window)
+                              (if (and (< (point) eshell-last-output-end)
+                                       (or (eq scroll t) (eq scroll 'all)
+                                           ;; Maybe user wants point to jump to end.
+                                           (and (eq scroll 'this)
+                                                (eq selected window))
+                                           (and (eq scroll 'others)
+                                                (not (eq selected window)))
+                                           ;; If point was at the end, keep it at end.
+                                           (>= (point) eshell-last-output-start)))
+                                  (goto-char eshell-last-output-end))
+                              ;; Optionally scroll so that the text
+                              ;; ends at the bottom of the window.
+                              (if (and eshell-scroll-show-maximum-output
+                                       (>= (point) eshell-last-output-end))
+                                  (save-excursion
+                                    (goto-char (point-max))
+                                    (recenter -1)))
+                              (select-window selected)))))
+                     nil t))))
+       eshell-handle-control-codes
        eshell-handle-ansi-color
        eshell-watch-for-password-prompt))
    '(eval-expression-print-level nil)
@@ -365,20 +394,20 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(flycheck-display-errors-function
      'flycheck-display-error-messages-unless-error-list)
    '(flycheck-global-modes '(not erc-mode
-				 message-mode
-				 git-commit-mode
-				 view-mode
-				 outline-mode
-				 text-mode
-				 org-mode))
+                                 message-mode
+                                 git-commit-mode
+                                 view-mode
+                                 outline-mode
+                                 text-mode
+                                 org-mode))
    '(flycheck-standard-error-navigation nil)
    '(flyspell-highlight-properties nil)
    '(flyspell-issue-welcome-flag nil)
    '(frame-title-format
      '(:eval
-        (if (buffer-file-name)
-	        (abbreviate-file-name (buffer-file-name))
-		"%b")))
+       (if (buffer-file-name)
+           (abbreviate-file-name (buffer-file-name))
+         "%b")))
    '(gnuplot-inline-image-mode 'dedicated)
    '(haskell-ask-also-kill-buffers nil)
    '(haskell-interactive-mode-scroll-to-bottom t)
@@ -403,8 +432,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(ibuffer-expert t)
    '(ibuffer-formats
      '((mark modified read-only " " (name 16 -1) " "
-	     (size 6 -1 :right) " " (mode 16 16) " " filename)
-	     (mark " " (name 16 -1) " " filename)))
+             (size 6 -1 :right) " " (mode 16 16) " " filename)
+       (mark " " (name 16 -1) " " filename)))
    '(ibuffer-maybe-show-regexps nil)
    '(ibuffer-show-empty-filter-groups nil)
    '(ibuffer-shrink-to-minimum-size t)
@@ -449,8 +478,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(mmm-submode-decoration-level 2)
    '(minibuffer-prompt-properties
      '(read-only t
-       cursor-intangible t
-       face minibuffer-prompt))
+                 cursor-intangible t
+                 face minibuffer-prompt))
    '(next-error-recenter t)
    '(notmuch-show-logo nil)
    '(nrepl-log-messages t)
@@ -469,18 +498,18 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(org-support-shift-select t)
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
-	     ("org" . "http://orgmode.org/elpa/")
-	     ("gnu" . "https://elpa.gnu.org/packages/")))
+       ("org" . "http://orgmode.org/elpa/")
+       ("gnu" . "https://elpa.gnu.org/packages/")))
    '(pcomplete-compare-entries-function 'file-newer-than-file-p)
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
    '(projectile-mode-line
-       '(:eval
-          (if (and (ignore-errors (projectile-project-p))
-                   (not (file-remote-p default-directory)))
-              (format " Projectile[%s]"
-                      (projectile-project-name))
-              "")))
+     '(:eval
+       (if (and (ignore-errors (projectile-project-p))
+                (not (file-remote-p default-directory)))
+           (format " Projectile[%s]"
+                   (projectile-project-name))
+         "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-verbose nil)
    '(proof-auto-action-when-deactivating-scripting 'retract)
@@ -499,13 +528,13 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(save-abbrevs 'silently)
    '(save-interprogram-paste-before-kill t)
    '(savehist-additional-variables '(search-ring
-				     regexp-search-ring
-				     kill-ring
-				     comint-input-ring
-				     kmacro-ring
-				     sr-history-registry
-				     file-name-history
-				     tablist-name-filter))
+                                     regexp-search-ring
+                                     kill-ring
+                                     comint-input-ring
+                                     kmacro-ring
+                                     sr-history-registry
+                                     file-name-history
+                                     tablist-name-filter))
    '(savehist-ignored-variables
      '(load-history flyspell-auto-correct-ring kill-ring))
    '(scroll-preserve-screen-position 'always)
@@ -526,8 +555,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(text-quoting-style 'quote)
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
-        (nil "\\`root\\'" "/ssh:%h:")
-        (".*" "\\`root\\'" "/ssh:%h:")))
+       (nil "\\`root\\'" "/ssh:%h:")
+       (".*" "\\`root\\'" "/ssh:%h:")))
    '(tls-checktrust t)
    '(uniquify-buffer-name-style 'forward)
    '(uniquify-ignore-buffers-re "^\\*")
@@ -542,10 +571,10 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(vc-follow-symlinks nil)
    '(vc-ignore-dir-regexp
      (concat "\\(\\(\\`"
-	     "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/"
-       "\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
-	     "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\"
-       "(\\`/[^/|:][^/|]*:\\)"))
+             "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/"
+             "\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
+             "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\"
+             "(\\`/[^/|:][^/|]*:\\)"))
    '(vc-make-backup-files t)
    '(view-read-only t)
    '(view-inhibit-help-message t)
@@ -555,7 +584,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(which-key-lighter "")
    '(whitespace-action '(cleanup auto-cleanup))
    '(whitespace-style '(face trailing lines space-before-tab
-                        empty lines-style))
+                             empty lines-style))
    '(fortune-always-compile nil)
    )
 #+END_SRC
