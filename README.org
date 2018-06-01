@@ -1235,6 +1235,9 @@ supports many languages and give us a lot of features right out of the box.
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :hook (prog-mode . flycheck-mode))
+  (use-package flycheck-haskell
+    :hook (flycheck-mode . flycheck-haskell-setup)
+    )
 #+END_SRC
 
 **** github-clone
@@ -3124,6 +3127,7 @@ Some basic gitignore paths.
 #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
+	fsmonitor = @out@/etc/fsmonitor
 
 [commit]
 	gpgSign = true
@@ -3648,19 +3652,10 @@ Emacs packages defined in Nixpkgs.
 
 We also define our Emacs version to use. Mitsuharo’s Emacs package is much
 better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
-default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 25.3
+default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 26.1
 currently).
 
-Emacs 26 is provided courtesy of @jwiegley's nix-config repo.
-
 #+BEGIN_SRC nix
-  inherit (import ((fetchFromGitHub {
-    owner = "jwiegley";
-    repo = "nix-config";
-    rev = "c37023f661d6b2aa1c5b386170960e8d7a13c8ab";
-    sha256 = "12rxz01x7dvwrfxg7k3w59sa0jr2cp69aijl05i73mwhigb0nwdx";
-    # date = 2018-04-26T23:40:37-07:00;
-  }) + "/overlays/10-emacs.nix") self pkgs) emacs26;
   customEmacsPackages = emacsPackagesNg.overrideScope
     (super: self: {
       emacs = if stdenv.isDarwin then emacsMacport else emacs;
@@ -4072,6 +4067,8 @@ Full list of packages that will be made available.
     nix nix-index
     nix-zsh-completions
     nix-prefetch-git
+
+    watchman
   ] ++ lib.optionals isBig ([
     # Useful tools
     isync notmuch graphviz indent
@@ -4089,6 +4086,7 @@ Full list of packages that will be made available.
     # retroarch
     # blender chromium wesnoth kodi
     # firefox vlc virtualbox
+    # dwarf-fortress
 
     # Disabled
     # gcal ocrad mailutils dirmngr jwhois inetutils moe
@@ -4132,10 +4130,16 @@ The actual environment.
 #+BEGIN_SRC nix
 in buildEnv {
   name = "bauer";
-  buildInputs = [ makeWrapper ];
+  buildInputs = [ makeWrapper perl ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
+
+    install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
+    substituteInPlace $out/etc/fsmonitor \
+      --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
+    patchShebangs $out/etc/fsmonitor
+
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
