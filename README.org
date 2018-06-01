@@ -352,6 +352,10 @@ The format of arguments to =set-defaults= is identical to the one used by
                (let ((dirname (file-name-nondirectory dir)))
 		       (if (string= dirname "") "/" dirname))))
 		         (if (= (user-uid) 0) " # " " $ "))))
+   '(eshell-output-filter-functions 
+     '(eshell-handle-control-codes
+       eshell-handle-ansi-color
+       eshell-watch-for-password-prompt))
    '(eval-expression-print-level nil)
    '(expand-region-contract-fast-key "j")
    '(explicit-shell-args
