@@ -4042,6 +4042,9 @@ Setup binaries
     paths = userPackages;
     extraOutputsToInstall = [ "bin" ];
     pathsToLink = [ "/bin" ];
+    postBuild = ''
+      find $out/bin -maxdepth 1 -name ".*" -type l -delete
+    '';
   };
 #+END_SRC
 
