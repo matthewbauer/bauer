@@ -2522,13 +2522,14 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
   (use-package nix-buffer
     :commands nix-buffer
-    :preface
-    (defun turn-on-nix-buffer ()
-      (when (and (not noninteractive)
-		 (not (eq (aref (buffer-name) 0) ?\s))
-		 (not (file-remote-p default-directory)))
-	(nix-buffer)))
-    :hook (after-change-major-mode . turn-on-nix-buffer))
+    ;; :preface
+    ;; (defun turn-on-nix-buffer ()
+    ;;   (when (and (not noninteractive)
+    ;;	       (not (eq (aref (buffer-name) 0) ?\s))
+    ;;	       (not (file-remote-p default-directory)))
+    ;;     (nix-buffer)))
+    ;; :hook (after-change-major-mode . turn-on-nix-buffer)
+    )
 #+END_SRC
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
