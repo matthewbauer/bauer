@@ -353,36 +353,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                      (if (string= dirname "") "/" dirname))))
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-output-filter-functions
-     `(,(lambda () (let* ((selected (selected-window))
-                     (current (current-buffer))
-                     (scroll eshell-scroll-to-bottom-on-output))
-                (unwind-protect
-                    (walk-windows
-                     (function
-                      (lambda (window)
-                        (if (eq (window-buffer window) current)
-                            (progn
-                              (select-window window)
-                              (if (and (< (point) eshell-last-output-end)
-                                       (or (eq scroll t) (eq scroll 'all)
-                                           ;; Maybe user wants point to jump to end.
-                                           (and (eq scroll 'this)
-                                                (eq selected window))
-                                           (and (eq scroll 'others)
-                                                (not (eq selected window)))
-                                           ;; If point was at the end, keep it at end.
-                                           (>= (point) eshell-last-output-start)))
-                                  (goto-char eshell-last-output-end))
-                              ;; Optionally scroll so that the text
-                              ;; ends at the bottom of the window.
-                              (if (and eshell-scroll-show-maximum-output
-                                       (>= (point) eshell-last-output-end))
-                                  (save-excursion
-                                    (goto-char (point-max))
-                                    (recenter -1)))
-                              (select-window selected)))))
-                     nil t))))
-       eshell-handle-control-codes
+     '(eshell-handle-control-codes
        eshell-handle-ansi-color
        eshell-watch-for-password-prompt))
    '(eval-expression-print-level nil)
