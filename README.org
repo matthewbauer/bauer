@@ -4074,7 +4074,7 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    git gnuplot gnupg tree
+    git gnuplot gnupg tree cvs subversion
 
     # Nix tools
     nix nix-index
@@ -4087,26 +4087,20 @@ Full list of packages that will be made available.
     isync notmuch graphviz indent
     graphviz imagemagick
 
-    # Old version control
-    subversion bazaar cvs
+    bazaar mercurial
 
     # Programming interpreters/compilers
     myTex rEnv perl python lua coq ocaml
     openjdk nodejs gcc gdb
 
-    # GUI Apps
-    # transmission-gtk inkscape gimp
-    # retroarch
-    # blender chromium wesnoth kodi
-    # firefox vlc virtualbox
-    # dwarf-fortress
+    travis
 
     # Disabled
     # gcal ocrad mailutils dirmngr jwhois inetutils moe
   ] ++ (with netbsd; [ getent getconf ]) # games
     ++ (with nodePackages; [ tern ])
     ++ (with gitAndTools; [ hub ])
-    ++ (with haskellPackages; [ stack ghc jq ]) # ghc-mod
+    ++ (with haskellPackages; [ stack ghc jq nix-diff ]) # ghc-mod
     ++ (with unixtools; [ utillinux nettools procps ])
   );
 #+END_SRC
