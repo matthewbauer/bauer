@@ -3599,7 +3599,9 @@ esac
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-}:
+, isSmall ? false
+, ...
+} @ args:
 #+END_SRC
 
 Now let's tangle README.org...
@@ -3622,7 +3624,7 @@ in import (pkgs.runCommand "README" {
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) { inherit ensure pkgs; }
+'')) args // { inherit ensure; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -3634,7 +3636,8 @@ in import (pkgs.runCommand "README" {
   # -*- mode: nix; coding: utf-8; -*-
   { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
-  , isSmall ? (pkgs.config.bauer.small or true) }:
+  , isSmall ? pkgs.config.bauer.small or true
+  , ... }:
   with pkgs; let isBig = !isSmall;
 #+END_SRC
 

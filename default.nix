@@ -3,7 +3,9 @@
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-}:
+, isSmall ? false
+, ...
+} @ args:
 
 let
 ensure = f: n: if builtins.pathExists f then f
@@ -22,4 +24,4 @@ in import (pkgs.runCommand "README" {
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) { inherit ensure pkgs; }
+'')) args // { inherit ensure; }
