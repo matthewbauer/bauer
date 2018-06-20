@@ -964,17 +964,24 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                 :override 'company-complete-common-or-cycle)
     (global-company-mode))
   (use-package readline-complete
+    :disabled
     :commands company-readline
     :hook (shell-mode . (lambda ()
-      (setq-local company-backends '(company-readline)))))
+                          (setq-local company-backends '(company-readline)))))
   (use-package company-irony
     :commands company-irony
     :hook (irony-mode . (lambda ()
       (setq-local company-backends '(company-irony)))))
   (use-package company-shell
     :commands (company-shell company-fish-shell company-shell-env)
-    :hook ((shell-mode sh-mode fish-mode eshell-mode) . (lambda ()
-      (setq-local company-backends '(company-shell :with company-shell-env company-fish-shell company-capf company-files)))))
+    :hook ((shell-mode sh-mode fish-mode eshell-mode) .
+           (lambda ()
+             (setq-local company-backends
+                         '((company-shell
+                            company-shell-env
+                            company-fish-shell
+                            company-capf
+                            company-files))))))
   (use-package company-restclient
     :commands company-restclient
     :hook (restclient-mode . (lambda ()
@@ -982,8 +989,8 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   (use-package company-anaconda
     :commands company-anaconda
     :hook (anaconda-mode . (lambda ()
-      (setq-local company-backends '(company-anaconda
-                                     :with company-capf)))))
+                             (setq-local company-backends '((company-anaconda
+                                                             company-capf))))))
   (use-package company-jedi
     :commands company-jedi
     :hook (python-mode . (lambda ()
@@ -997,38 +1004,36 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :hook (haskell-mode . (lambda ()
       (setq-local company-backends '(company-ghc)))))
   (use-package company-auctex
-    :commands (company-auctex company-auctext-labels
-                              company-auctest-bibs
-                              company-auctex-macros
-                              company-auctext-symbols
-                              company-auctext-environments)
-    :hook (tex-mode . (lambda ()
-                         (setq-local company-backends nil)
-                         (add-to-list 'company-backends
-                            'company-auctex-labels)
-                         (add-to-list 'company-backends
-                            'company-auctex-bibs)
-                         (add-to-list 'company-backends
-                            '(company-auctex-macros
-                              company-auctex-symbols
-                              company-auctex-environments)))))
+    :commands (company-auctex
+               company-auctext-labels
+               company-auctest-bibs
+               company-auctex-macros
+               company-auctext-symbols
+               company-auctext-environments)
+    :hook
+    (tex-mode . (lambda ()
+                  (setq-local company-backends '((company-auctex-labels
+                                                  company-auctex-bibs
+                                                  company-auctex-macros
+                                                  company-auctex-environments
+                                                  company-auctex-symbols))))))
   (use-package company-web
     :preface
     (autoload 'company-web-html "company-web-html")
     (autoload 'company-web-jade "company-web-jade")
     (autoload 'company-web-slim "company-web-slim")
     :hook ((web-mode . (lambda ()
-      (setq-local company-backends nil)
-      (add-to-list 'company-backends 'company-web-html)
-      (add-to-list 'company-backends 'company-web-jade)
-      (add-to-list 'company-backends 'company-web-slim)))))
+                         (setq-local company-backends '(company-web-html
+                                                        company-web-jade
+                                                        company-web-slim))))))
   (use-package company-math
     :preface
     (autoload 'company-math-symbols-latex "company-math")
     (autoload 'company-latex-commands "company-math")
-    :hook (TeX-mode . (lambda ()
-      (setq-local company-backends '(company-math-symbols-latex
-                                     company-latex-commands)))))
+    :hook
+    (TeX-mode . (lambda ()
+                  (setq-local company-backends '((company-math-symbols-latex
+                                                  company-latex-commands))))))
   (use-package company-coq
     :hook (coq-mode . company-coq-mode))
 #+END_SRC
