@@ -264,10 +264,12 @@ The format of arguments to =set-defaults= is identical to the one used by
                         company-css
                         company-nxml
                         company-cmake
-                        company-capf
-                        (company-files
-                         company-keywords company-dabbrev
-                         company-dabbrev-code)))
+                        (company-capf
+                         company-files
+                         company-keywords
+                         company-dabbrev-code)
+                        ;; company-dabbrev
+                        ))
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
@@ -294,7 +296,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(custom-search-field nil)
    '(delete-by-moving-to-trash t)
    '(delete-old-versions t)
-   '(dired-auto-revert-buffer t)
+   ;; '(dired-auto-revert-buffer t)
    '(dired-dwim-target t)
    '(dired-hide-details-hide-symlink-targets nil)
    '(dired-listing-switches "-alhv")
@@ -332,7 +334,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-default-target-is-dot t)
    '(eshell-destroy-buffer-when-process-dies t)
    '(eshell-hist-ignoredups t)
-   '(eshell-history-size nil)
    '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
@@ -352,6 +353,11 @@ The format of arguments to =set-defaults= is identical to the one used by
                    (let ((dirname (file-name-nondirectory dir)))
                      (if (string= dirname "") "/" dirname))))
                (if (= (user-uid) 0) " # " " $ "))))
+   '(eshell-save-history-on-exit t)
+   '(eshell-stringify nil)
+   '(eshell-term-name "ansi")
+   '(eshell-visual-commands '("vi" "top" "screen" "less" "rlogin" "telnet" "lynx"))
+   '(eshell-history-size 50000)
    '(eshell-output-filter-functions
      '(eshell-handle-control-codes
        eshell-handle-ansi-color
@@ -509,6 +515,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                                      tablist-name-filter))
    '(savehist-ignored-variables
      '(load-history flyspell-auto-correct-ring kill-ring))
+   '(savehist-save-minibuffer-history t)
    '(scroll-preserve-screen-position 'always)
    '(scroll-conservatively 101)
    '(sentence-end-double-space nil)
@@ -964,6 +971,10 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :commands company-irony
     :hook (irony-mode . (lambda ()
       (setq-local company-backends '(company-irony)))))
+  (use-package company-shell
+    :commands (company-shell company-fish-shell company-shell-env)
+    :hook ((shell-mode sh-mode fish-mode eshell-mode) . (lambda ()
+      (setq-local company-backends '(company-shell :with company-shell-env company-fish-shell company-capf company-files)))))
   (use-package company-restclient
     :commands company-restclient
     :hook (restclient-mode . (lambda ()
@@ -1131,10 +1142,39 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
   (use-package eshell
     :ensure nil
     :bind (("C-c M-t" . eshell)
-	   ("C-c x" . eshell)
-	   ("C-c e" . eshell))
-    :hook ((eshell-mode . eshell-read-history))
+           ("C-c x" . eshell)
+           ("C-c e" . eshell))
+    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
+           (eshell-first-time-mode-hook . eshell-initialize))
     :preface
+(defvar eshell-isearch-map
+    (let ((map (copy-keymap isearch-mode-map)))
+      (define-key map [(control ?m)] 'eshell-isearch-return)
+      (define-key map [return]       'eshell-isearch-return)
+      (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+      (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+      (define-key map [(control ?g)] 'eshell-isearch-abort)
+      (define-key map [backspace]    'eshell-isearch-delete-char)
+      (define-key map [delete]       'eshell-isearch-delete-char)
+      map)
+    "Keymap used in isearch in Eshell.")
+    (defun eshell-initialize ()
+    (defun eshell-spawn-external-command (beg end)
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn "))))
+
+    (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)
+(use-package em-unix
+      :defer t
+      :config
+      (unintern 'eshell/su nil)
+      (unintern 'eshell/sudo nil))
+      )
     (defun pcomplete/sudo ()
       (let ((prec (pcomplete-arg 'last -1)))
     (cond ((string= "sudo" prec)
@@ -1148,36 +1188,35 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
       :config
       ;; TODO move this back to customize
       (setq eshell-rebind-keys-alist
-	    '(([(control 97)] . eshell-bol)
-	      ([home] . eshell-bol)
-	      ([(control 100)] . eshell-delchar-or-maybe-eof)
-	      ([backspace] . eshell-delete-backward-char)
-	      ([delete] . eshell-delete-backward-char)
-	      ([(control 119)] . backward-kill-word)
-	      ([(control 117)] . eshell-kill-input)
-	      ([tab] . completion-at-point)
-	      ([(control 101)] . (lambda ()
+            '(([(control 97)] . eshell-bol)
+              ([home] . eshell-bol)
+              ([(control 100)] . eshell-delchar-or-maybe-eof)
+              ([backspace] . eshell-delete-backward-char)
+              ([delete] . eshell-delete-backward-char)
+              ([(control 119)] . backward-kill-word)
+              ([(control 117)] . eshell-kill-input)
+              ([tab] . completion-at-point)
+              ([(control 101)] . (lambda ()
                 (interactive) (end-of-line)))))
 
       ;; TODO move this back to customize
       (setq eshell-modules-list
-	    '(eshell-alias
-	      eshell-banner
-	      eshell-basic
-	      eshell-cmpl
-	      eshell-dirs
-	      eshell-glob
-	      eshell-hist
-	      eshell-ls
-	      eshell-pred
-	      eshell-prompt
-	      eshell-rebind
-	      eshell-script
-	      eshell-smart
-	      eshell-term
-	      eshell-tramp
-	      eshell-unix
-	      eshell-xtra))))
+            '(eshell-alias
+              eshell-basic
+              eshell-cmpl
+              eshell-dirs
+              eshell-glob
+              eshell-hist
+              eshell-ls
+              eshell-pred
+              eshell-prompt
+              eshell-rebind
+              eshell-script
+              eshell-smart
+              eshell-term
+              eshell-tramp
+              eshell-unix
+              eshell-xtra))))
 #+END_SRC
 
 ***** esh-help
@@ -2059,18 +2098,19 @@ setup.
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package shell
-   :ensure nil
-   :bind (("C-c C-s" . shell)
-          ("H-s" . shell))
-   :hook ((shell-mode . ansi-color-for-comint-mode-on)
-	  (shell-mode . dirtrack-mode)
-	  (shell-mode . pcomplete-shell-setup)
-	  ;; (shell-mode . use-histfile)
-	  )
-   :preface
-   (defun use-histfile ()
-     (turn-on-comint-history (getenv "HISTFILE"))))
+  (use-package shell
+    :ensure nil
+    :bind (("C-c C-s" . shell)
+           ("H-s" . shell))
+    :hook ((shell-mode . ansi-color-for-comint-mode-on)
+           (shell-mode . dirtrack-mode)
+           (shell-mode . pcomplete-shell-setup)
+           (shell-mode . use-histfile)
+           )
+    :preface
+    (defun use-histfile ()
+      (turn-on-comint-history
+       (expand-file-name "sh-history" user-emacs-directory))))
 #+END_SRC
 
 **** simple
@@ -2929,7 +2969,8 @@ Here we setup =.profile=. First, setup exports.
          INFOPATH=@INFOPATH@ \
          MANPATH=@MANPATH@ \
          XDG_DATA_DIRS=@XDG_DATA_DIRS@ \
-         CVS_RSH=ssh
+         CVS_RSH=ssh \
+         HISTFILE=$HOME/.history
 #+END_SRC
 
 Then setup aliases.
@@ -3077,7 +3118,7 @@ zstyle '*' single-ignored show
 
 Turn on prompt with colors.
 
-#+BEGIN_SRC shell
+#+begin_SRC shell
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
@@ -3222,6 +3263,7 @@ Set env vars provided by Nix,
  `("NIX_REMOTE" "daemon")
  `("PATH" ,(string-join exec-path ":"))
  `("MANPATH" ,(string-join man-path ":"))
+ `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
  )
 #+END_SRC
 
@@ -3600,7 +3642,7 @@ esac
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-, isSmall ? false
+, small ? false
 , ...
 } @ args:
 #+END_SRC
@@ -3637,9 +3679,9 @@ in import (pkgs.runCommand "README" {
   # -*- mode: nix; coding: utf-8; -*-
   { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
-  , isSmall ? pkgs.config.bauer.small or true
+  , small ? pkgs.config.bauer.small or true
   , ... }:
-  with pkgs; let isBig = !isSmall;
+  with pkgs; let big = !small;
 #+END_SRC
 
 The normal version has a huge closure totalling in at over 5GB. This is
@@ -3707,15 +3749,16 @@ substitution of all the attributes set.
       inherit (customEmacsPackages) emacs;
       inherit ripgrep ag fortune gnutls nethack
               coreutils findutils openssh
-              git bash zsh diffutils man gawk
+              bash zsh diffutils man gawk
               gnugrep gnused cacert
 
               # Nix paths
               manpages sysheaders sysframeworks
               schemas bins infopages;
+      git = gitMinimal;
       gpg = gnupg1compat;
       aspell = myAspell;
-    } // (lib.optionalAttrs isBig {
+    } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       inherit ant perl perlcritic
         asciidoc lessc stack lua gcc
@@ -3961,8 +4004,10 @@ Setup man pages...
   manpages = buildEnv {
     name = "man-pages";
     ignoreCollisions = (!(config.bauer.small or false));
-    paths = userPackages ++ [posix_man_pages]
-      ++ stdenv.lib.optional (stdenv.isDarwin && isBig)
+    paths = userPackages ++ [posix_man_pages
+                             llvmPackages.clang-manpages
+                             llvmPackages.llvm-manpages]
+      ++ stdenv.lib.optional (stdenv.isDarwin && big)
                              darwin.apple_sdk.sdk
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
@@ -4029,7 +4074,7 @@ Setup system headers...
   sysheaders = buildEnv {
     name = "headers";
     paths = [ libcxx ]
-      ++ stdenv.lib.optional (stdenv.isDarwin && isBig)
+      ++ stdenv.lib.optional (stdenv.isDarwin && big)
                               darwin.apple_sdk.sdk;
   };
 #+END_SRC
@@ -4039,7 +4084,7 @@ Setup some Apple frameworks.
 #+BEGIN_SRC nix
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optional (stdenv.isDarwin && isBig)
+    paths = stdenv.lib.optional (stdenv.isDarwin && big)
                                  darwin.apple_sdk.sdk;
   };
 #+END_SRC
@@ -4075,15 +4120,13 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    git gnuplot gnupg tree cvs subversion
+    gitMinimal gnuplot gnupg tree cvs subversion
 
     # Nix tools
-    nix nix-index
-    nix-zsh-completions
-    nix-prefetch-git
+    nix nix-index nix-zsh-completions
 
     watchman
-  ] ++ lib.optionals isBig ([
+  ] ++ lib.optionals big ([
     # Useful tools
     isync notmuch graphviz indent
     graphviz imagemagick
@@ -4101,7 +4144,7 @@ Full list of packages that will be made available.
   ] ++ (with netbsd; [ getent getconf ]) # games
     ++ (with nodePackages; [ tern ])
     ++ (with gitAndTools; [ hub ])
-    ++ (with haskellPackages; [ stack ghc jq nix-diff ]) # ghc-mod
+    ++ (with haskellPackages; [ ghc jq nix-diff ]) # ghc-mod stack
     ++ (with unixtools; [ utillinux nettools procps ])
   );
 #+END_SRC

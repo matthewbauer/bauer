@@ -3,7 +3,7 @@
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-, isSmall ? false
+, small ? false
 , ...
 } @ args:
 
