@@ -24,4 +24,4 @@ in import (pkgs.runCommand "README" {
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) args // { inherit ensure; }
+'')) args // { inherit ensure pkgs; }
