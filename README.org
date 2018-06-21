@@ -3672,7 +3672,7 @@ in import (pkgs.runCommand "README" {
 	-l ob-tangle \
 	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) args // { inherit ensure pkgs; }
+'')) (args // { inherit ensure pkgs; })
 #+END_SRC
 
 ** =bauer.nix=: the build script
