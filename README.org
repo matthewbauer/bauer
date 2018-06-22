@@ -4016,7 +4016,7 @@ Setup man pages...
                              llvmPackages.clang-manpages
                              llvmPackages.llvm-manpages]
       ++ stdenv.lib.optional (stdenv.isDarwin && big)
-                             darwin.apple_sdk.sdk
+                             "${apple_sdk}/usr"
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
@@ -4083,17 +4083,19 @@ Setup system headers...
     name = "headers";
     paths = [ libcxx ]
       ++ stdenv.lib.optional (stdenv.isDarwin && big)
-                              darwin.apple_sdk.sdk;
+                              "${apple_sdk}/usr";
   };
 #+END_SRC
 
 Setup some Apple frameworks.
 
 #+BEGIN_SRC nix
+  apple_sdk = "${darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optional (stdenv.isDarwin && big)
-                                 darwin.apple_sdk.sdk;
+    paths = stdenv.lib.optionals (stdenv.isDarwin && big)
+            [ "${apple_sdk}/System/Library/Frameworks"
+              "${apple_sdk}/System/Library/PrivateFrameworks" ];
   };
 #+END_SRC
 
