@@ -2371,14 +2371,15 @@ Note: this needs ghc-mod to be in PATH to work properly.
 	   ("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
 	   (haskell-mode . flyspell-prog-mode)
-	   (haskell-mode . haskell-indentation-mode)
+	   ;; (haskell-mode . haskell-indentation-mode)
+	   (haskell-mode . haskell-indent-mode)
 	   (haskell-mode . imenu-add-menubar-index)
 	   (haskell-mode .
-           (lambda ()
-	       (autoload 'haskell-doc-current-info
-                       "haskell-doc")
-	       (setq-local eldoc-documentation-function
-	                  'haskell-doc-current-info))))
+			 (lambda ()
+			   (autoload 'haskell-doc-current-info
+			     "haskell-doc")
+			   (setq-local eldoc-documentation-function
+				       'haskell-doc-current-info))))
     :init
     (add-to-list 'completion-ignored-extensions ".hi"))
 #+END_SRC
