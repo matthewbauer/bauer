@@ -4385,6 +4385,7 @@ site-paths.el.in
 init.el
 org-init.el
 org-src-*
+configuration.nix
 #+END_SRC
 
 ** =.gitattributes=
@@ -4403,20 +4404,33 @@ update.sh      linguist-generated=true
 module.nix     linguist-generated=true
 #+END_SRC
 ** NixOS module
-:PROPERTIES:
-:header-args: :tangle module.nix
-:END:
 
-#+BEGIN_SRC nix :padline no
+I’ve provided a module suitable for use with a NixOS configuration. To use it,
+just add something like the following to your configuration.nix file.
+
+#+BEGIN_SRC nix :tangle configuration.nix :padline no
+{ ... }:
+{
+  imports = [
+    (builtins.fetchurl "https://matthewbauer.us/bauer/module.nix")
+  ];
+  program.bauer.enable = true;
+}
+#+END_SRC
+
+The actual module implementation follow here. It will pull in some files needed
+for all of this to work. It should provide ‘bauer’ as a runnable command.
+
+#+BEGIN_SRC nix :tangle module.nix :padline no
 { config, lib, pkgs, ... }: with lib;
 
 let
-ensure = f: n: if builtins.pathExists f then f
-               else builtins.fetchurl
-               "https://matthewbauer.us/bauer/${n}";
-bauer = import (ensure ./default.nix "default.nix") {
-  inherit pkgs;
-};
+  ensure = f: n: if builtins.pathExists f then f
+                 else builtins.fetchurl
+    "https://matthewbauer.us/bauer/${n}";
+  bauer = import (ensure ./default.nix "default.nix") {
+    inherit pkgs;
+  };
 in {
   options = {
     programs.bauer = {
