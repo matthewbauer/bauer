@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2018-06-21 Thu 23:46 -->
+<!-- 2018-06-23 Sat 18:43 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>bauer: an Emacs+Nix IDE</title>
@@ -259,36 +259,36 @@ Org file can always be downloaded <a href="https://matthewbauer.us/bauer/README.
 </li>
 <li><a href="#emacs">Emacs init file</a>
 <ul>
-<li><a href="#orgf5d518e">Increase GC</a></li>
-<li><a href="#orgda150db">Autoloads &amp; Misc.</a></li>
-<li><a href="#orgb8ddabc">Custom config</a></li>
-<li><a href="#orgc176c85">Setup use-package</a></li>
-<li><a href="#org1f6172e">Key bindings</a></li>
-<li><a href="#org853bdab">Setup installer</a></li>
+<li><a href="#orgc8ee7dd">Increase GC</a></li>
+<li><a href="#org835e236">Autoloads &amp; Misc.</a></li>
+<li><a href="#org9cc0a5e">Custom config</a></li>
+<li><a href="#org2a56158">Setup use-package</a></li>
+<li><a href="#org052a17d">Key bindings</a></li>
+<li><a href="#orgfef21f5">Setup installer</a></li>
 <li><a href="#packages">Packages</a></li>
 </ul>
 </li>
 <li><a href="#profiles">Profiles</a>
 <ul>
-<li><a href="#orgb96dc24"><code>.profile</code></a></li>
+<li><a href="#orged05608"><code>.profile</code></a></li>
 <li><a href="#zshrc"><code>.zshrc</code></a></li>
-<li><a href="#orgbd65f9f"><code>etc-profile.sh</code></a></li>
-<li><a href="#org9a8ec17"><code>.gitignore</code></a></li>
-<li><a href="#orgbc31db5"><code>.gitconfig</code></a></li>
+<li><a href="#orge6cd1d9"><code>etc-profile.sh</code></a></li>
+<li><a href="#org9ed8395"><code>.gitignore</code></a></li>
+<li><a href="#org9b40e1e"><code>.gitconfig</code></a></li>
 </ul>
 </li>
 <li><a href="#bootstrap">Bootstrapping</a>
 <ul>
 <li><a href="#site-paths"><code>site-paths.el.in</code></a></li>
-<li><a href="#org256a1b4"><code>bootstrap.sh</code></a></li>
+<li><a href="#org0272f31"><code>bootstrap.sh</code></a></li>
 <li><a href="#runemacs"><code>runemacs.sh</code></a></li>
 </ul>
 </li>
 <li><a href="#build">Building</a>
 <ul>
-<li><a href="#org3b41bb2"><code>default.nix</code>: the tangler</a></li>
-<li><a href="#org3ccb816"><code>bauer.nix</code>: the build script</a></li>
-<li><a href="#org03561ab">Invoking it</a></li>
+<li><a href="#orge722d0e"><code>default.nix</code>: the tangler</a></li>
+<li><a href="#org63239b5"><code>bauer.nix</code>: the build script</a></li>
+<li><a href="#org0bdf057">Invoking it</a></li>
 </ul>
 </li>
 <li><a href="#ci">Continuous integration</a>
@@ -298,23 +298,23 @@ Org file can always be downloaded <a href="https://matthewbauer.us/bauer/README.
 </li>
 <li><a href="#extra">Extra</a>
 <ul>
-<li><a href="#org03421fc"><code>update.sh</code></a></li>
-<li><a href="#org406ec94"><code>.gitignore</code></a></li>
-<li><a href="#orge5ad959"><code>.gitattributes</code></a></li>
-<li><a href="#org6aead72">NixOS module</a></li>
+<li><a href="#org74edb64"><code>update.sh</code></a></li>
+<li><a href="#org0dff0e2"><code>.gitignore</code></a></li>
+<li><a href="#org1e749a7"><code>.gitattributes</code></a></li>
+<li><a href="#org8deac71">NixOS module</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org0bbb4fc" class="outline-2">
-<h2 id="usage"><a id="org0bbb4fc"></a>Usage</h2>
+<div id="outline-container-orgcfaf467" class="outline-2">
+<h2 id="usage"><a id="orgcfaf467"></a>Usage</h2>
 <div class="outline-text-2" id="text-usage">
 </div>
 
-<div id="outline-container-org4836857" class="outline-3">
-<h3 id="install"><a id="org4836857"></a>Installing/upgrading</h3>
+<div id="outline-container-orgf2435e4" class="outline-3">
+<h3 id="install"><a id="orgf2435e4"></a>Installing/upgrading</h3>
 <div class="outline-text-3" id="text-install">
 <p>
 This is the script that I use to setup all of my new machines but it&rsquo;s portable
@@ -351,8 +351,8 @@ nix-collect-garbage -d
 </div>
 </div>
 
-<div id="outline-container-org8f2b18a" class="outline-3">
-<h3 id="develop"><a id="org8f2b18a"></a>Developing</h3>
+<div id="outline-container-org19e07b6" class="outline-3">
+<h3 id="develop"><a id="org19e07b6"></a>Developing</h3>
 <div class="outline-text-3" id="text-develop">
 <p>
 After you’ve installed it, it’s easy to make changes. By default, the
@@ -381,8 +381,8 @@ GitHub!
 </div>
 </div>
 
-<div id="outline-container-org9c2dd97" class="outline-3">
-<h3 id="nonix"><a id="org9c2dd97"></a>Without Nix</h3>
+<div id="outline-container-org4bb2a05" class="outline-3">
+<h3 id="nonix"><a id="org4bb2a05"></a>Without Nix</h3>
 <div class="outline-text-3" id="text-nonix">
 <p>
 You can also use this configuration without Nix. This just gives you the Emacs
@@ -424,8 +424,8 @@ Then, add the following to <a href="file:///Users/mbauer/.emacs.d/init.el">your 
 </div>
 </div>
 </div>
-<div id="outline-container-org956b4f4" class="outline-2">
-<h2 id="emacs"><a id="org956b4f4"></a>Emacs init file</h2>
+<div id="outline-container-orgabd7b32" class="outline-2">
+<h2 id="emacs"><a id="orgabd7b32"></a>Emacs init file</h2>
 <div class="outline-text-2" id="text-emacs">
 <p>
 This is the main part of the IDE. It is written in Emacs lisp &amp; will be loaded
@@ -433,9 +433,9 @@ every time Emacs is started.
 </p>
 </div>
 
-<div id="outline-container-orgf5d518e" class="outline-3">
-<h3 id="orgf5d518e">Increase GC</h3>
-<div class="outline-text-3" id="text-orgf5d518e">
+<div id="outline-container-orgc8ee7dd" class="outline-3">
+<h3 id="orgc8ee7dd">Increase GC</h3>
+<div class="outline-text-3" id="text-orgc8ee7dd">
 <p>
 Increasing GC is a common way to speed up Emacs. <code>gc-cons-threshold</code> sets at
 what point Emacs should invoke its garbage collector Some people set it to a
@@ -468,9 +468,9 @@ this.
 </div>
 </div>
 
-<div id="outline-container-orgda150db" class="outline-3">
-<h3 id="orgda150db">Autoloads &amp; Misc.</h3>
-<div class="outline-text-3" id="text-orgda150db">
+<div id="outline-container-org835e236" class="outline-3">
+<h3 id="org835e236">Autoloads &amp; Misc.</h3>
+<div class="outline-text-3" id="text-org835e236">
 <p>
 Setup some initial aliases for Emacs. These give us an easy way to use these
 functions without actually require&rsquo;ing them. Ideally, Emacs should pick these up
@@ -522,9 +522,9 @@ When we are within a terminal we want to be able to use the mouse, so
 </div>
 </div>
 
-<div id="outline-container-orgb8ddabc" class="outline-3">
-<h3 id="orgb8ddabc">Custom config</h3>
-<div class="outline-text-3" id="text-orgb8ddabc">
+<div id="outline-container-org9cc0a5e" class="outline-3">
+<h3 id="org9cc0a5e">Custom config</h3>
+<div class="outline-text-3" id="text-org9cc0a5e">
 <p>
 <a href="./lisp/set-defaults.el">set-defaults</a> provides an easy way to override the default custom files. This
 means that when you customize a variable it will appear as ‘standard’ even
@@ -541,9 +541,9 @@ in other Emacs distributions.
 </div>
 </div>
 
-<div id="outline-container-orgce6e436" class="outline-4">
-<h4 id="orgce6e436">Better defaults</h4>
-<div class="outline-text-4" id="text-orgce6e436">
+<div id="outline-container-org1a6ff82" class="outline-4">
+<h4 id="org1a6ff82">Better defaults</h4>
+<div class="outline-text-4" id="text-org1a6ff82">
 <p>
 These are some <b>better</b> defaults for Emacs. They shouldn’t require any packages
 to be installed to work (those go in use-package). In addition, they should take
@@ -896,9 +896,9 @@ The format of arguments to <code>set-defaults</code> is identical to the one use
 </div>
 </div>
 
-<div id="outline-container-org78277da" class="outline-4">
-<h4 id="org78277da">Site paths</h4>
-<div class="outline-text-4" id="text-org78277da">
+<div id="outline-container-org1ad8219" class="outline-4">
+<h4 id="org1ad8219">Site paths</h4>
+<div class="outline-text-4" id="text-org1ad8219">
 <p>
 Now, pull in generated paths from <code>site-paths.el</code>. Nix will generate this file
 automatically for us &amp; different Emacs variables will be set to their Nix
@@ -917,9 +917,9 @@ exists before setting it.
 </div>
 </div>
 
-<div id="outline-container-org183e9ee" class="outline-4">
-<h4 id="org183e9ee">Set environment</h4>
-<div class="outline-text-4" id="text-org183e9ee">
+<div id="outline-container-org8dc457d" class="outline-4">
+<h4 id="org8dc457d">Set environment</h4>
+<div class="outline-text-4" id="text-org8dc457d">
 <p>
 <code>set-envs</code> is provided by <a href="./lisp/set-defaults.el">set-defaults</a>. We can use it like
 <code>custom-set-variables</code>, just it calls <code>setenv</code> instead of <code>setq</code>. All of
@@ -951,9 +951,9 @@ Fix broken Git on Windows.
 </div>
 </div>
 
-<div id="outline-container-org8aa0c67" class="outline-4">
-<h4 id="org8aa0c67">Load custom file</h4>
-<div class="outline-text-4" id="text-org8aa0c67">
+<div id="outline-container-org50d5b26" class="outline-4">
+<h4 id="org50d5b26">Load custom file</h4>
+<div class="outline-text-4" id="text-org50d5b26">
 <p>
 This file allows users to override the above defaults. This will mean you
 can use custom as you normally would in vanilla Emacs.
@@ -967,9 +967,9 @@ can use custom as you normally would in vanilla Emacs.
 </div>
 </div>
 
-<div id="outline-container-orgc176c85" class="outline-3">
-<h3 id="orgc176c85">Setup use-package</h3>
-<div class="outline-text-3" id="text-orgc176c85">
+<div id="outline-container-org2a56158" class="outline-3">
+<h3 id="org2a56158">Setup use-package</h3>
+<div class="outline-text-3" id="text-org2a56158">
 <p>
 <a href="https://github.com/jwiegley/use-package">use-package</a> is an Emacs package by John Weigley allowing users to easily
 configure other Emacs packages. It’s quite useful &amp; it will be used
@@ -1050,9 +1050,9 @@ Basically, we’ll prevent use-package from running ‘ensure’ on anything.
 </div>
 </div>
 
-<div id="outline-container-org1f6172e" class="outline-3">
-<h3 id="org1f6172e">Key bindings</h3>
-<div class="outline-text-3" id="text-org1f6172e">
+<div id="outline-container-org052a17d" class="outline-3">
+<h3 id="org052a17d">Key bindings</h3>
+<div class="outline-text-3" id="text-org052a17d">
 <p>
 Using bind-key, setup some simple key bindings. None of these should overwrite
 Emacs’ default keybindings. Also, they should only require vanilla Emacs to work
@@ -1241,9 +1241,9 @@ with how Emacs key binding works, you should read through <a href="https://www.m
 </div>
 </div>
 
-<div id="outline-container-org853bdab" class="outline-3">
-<h3 id="org853bdab">Setup installer</h3>
-<div class="outline-text-3" id="text-org853bdab">
+<div id="outline-container-orgfef21f5" class="outline-3">
+<h3 id="orgfef21f5">Setup installer</h3>
+<div class="outline-text-3" id="text-orgfef21f5">
 <p>
 Installer provides installation &amp; upgrading functionality. You can upgrade the
 IDE at any time by typing <code>M-x upgrade</code> from within Emacs. You may have to
@@ -1257,8 +1257,8 @@ restart Emacs for the upgrade to take place. See <a href="./lisp/installer.el">i
 </div>
 </div>
 
-<div id="outline-container-org47218a5" class="outline-3">
-<h3 id="packages"><a id="org47218a5"></a>Packages</h3>
+<div id="outline-container-orga867373" class="outline-3">
+<h3 id="packages"><a id="orga867373"></a>Packages</h3>
 <div class="outline-text-3" id="text-packages">
 <p>
 Each of these entries are <code>use-package</code> calls that will both install &amp; load
@@ -1273,17 +1273,17 @@ resort, go to one of the package group headings &amp; type <code>C-c ^ a</code>.
 </p>
 </div>
 
-<div id="outline-container-orgc8387e3" class="outline-4">
-<h4 id="orgc8387e3">Essentials</h4>
-<div class="outline-text-4" id="text-orgc8387e3">
+<div id="outline-container-org7fae403" class="outline-4">
+<h4 id="org7fae403">Essentials</h4>
+<div class="outline-text-4" id="text-org7fae403">
 <p>
 These are the best &amp; most useful modes available to us in Emacs world.
 </p>
 </div>
 
 <ul class="org-ul">
-<li><a id="org953e316"></a>aggressive-indent<br />
-<div class="outline-text-5" id="text-org953e316">
+<li><a id="orgdbfcdc2"></a>aggressive-indent<br />
+<div class="outline-text-5" id="text-orgdbfcdc2">
 <p>
 <a href="https://github.com/Malabarba/aggressive-indent-mode">GitHub</a>
 </p>
@@ -1306,8 +1306,8 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 </div>
 </li>
 
-<li><a id="org3d957df"></a>Apropospriate Theme<br />
-<div class="outline-text-5" id="text-org3d957df">
+<li><a id="org76febd9"></a>Apropospriate Theme<br />
+<div class="outline-text-5" id="text-org76febd9">
 <p>
 <a href="https://github.com/waymondo/apropospriate-theme">GitHub</a>
 </p>
@@ -1330,8 +1330,8 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 </div>
 </li>
 
-<li><a id="orgd759b04"></a>Company<br />
-<div class="outline-text-5" id="text-orgd759b04">
+<li><a id="orgbd84db4"></a>Company<br />
+<div class="outline-text-5" id="text-orgbd84db4">
 <p>
 <a href="http://company-mode.github.io">Website</a>
 </p>
@@ -1455,8 +1455,8 @@ Company provides completions in Emacs. Activate them by pressing <code>C-M-i</co
 </div>
 </div>
 </li>
-<li><a id="orgfd56c47"></a>Counsel<br />
-<div class="outline-text-5" id="text-orgfd56c47">
+<li><a id="org57de824"></a>Counsel<br />
+<div class="outline-text-5" id="text-org57de824">
 <p>
 <a href="https://github.com/abo-abo/swiper">GitHub</a>
 </p>
@@ -1513,8 +1513,8 @@ info.
 </div>
 
 <ul class="org-ul">
-<li><a id="org42b644b"></a>ivy<br />
-<div class="outline-text-6" id="text-org42b644b">
+<li><a id="org1d2bb2c"></a>ivy<br />
+<div class="outline-text-6" id="text-org1d2bb2c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">ivy</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-rainbow-delimiters-depth-4">[</span>remap list-buffers<span class="org-rainbow-delimiters-depth-4">]</span> . ivy-switch-buffer<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -1537,8 +1537,8 @@ info.
 </li>
 </ul>
 </li>
-<li><a id="org29006ac"></a>diff-hl<br />
-<div class="outline-text-5" id="text-org29006ac">
+<li><a id="org6e7d524"></a>diff-hl<br />
+<div class="outline-text-5" id="text-org6e7d524">
 <p>
 <a href="https://github.com/dgutov/diff-hl">GitHub</a>
 </p>
@@ -1563,8 +1563,8 @@ indications show where a file has been edited from the last Git commit.
 </div>
 </li>
 
-<li><a id="orga6d95dd"></a>dtrt-indent<br />
-<div class="outline-text-5" id="text-orga6d95dd">
+<li><a id="org62270ad"></a>dtrt-indent<br />
+<div class="outline-text-5" id="text-org62270ad">
 <p>
 <a href="https://github.com/jscheid/dtrt-indent">GitHub</a>
 </p>
@@ -1582,8 +1582,8 @@ This mode will try to
 </div>
 </li>
 
-<li><a id="org55da3b5"></a>Emacs shell<br />
-<div class="outline-text-5" id="text-org55da3b5">
+<li><a id="org2e53ce5"></a>Emacs shell<br />
+<div class="outline-text-5" id="text-org2e53ce5">
 <p>
 Emacs shell provides . Run eshell by typing <code>C-c e</code> or <code>M-x eshell</code>.
 </p>
@@ -1672,8 +1672,8 @@ Emacs shell provides . Run eshell by typing <code>C-c e</code> or <code>M-x eshe
 </div>
 
 <ul class="org-ul">
-<li><a id="org624a16f"></a>esh-help<br />
-<div class="outline-text-6" id="text-org624a16f">
+<li><a id="org1ddad4f"></a>esh-help<br />
+<div class="outline-text-6" id="text-org1ddad4f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">esh-help</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span>eshell-mode .
@@ -1686,8 +1686,8 @@ Emacs shell provides . Run eshell by typing <code>C-c e</code> or <code>M-x eshe
 </div>
 </li>
 
-<li><a id="org6b71ad0"></a>em-dired<br />
-<div class="outline-text-6" id="text-org6b71ad0">
+<li><a id="org203f60b"></a>em-dired<br />
+<div class="outline-text-6" id="text-org203f60b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span>autoload 'em-dired-new <span class="org-string">"em-dired"</span><span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">em-dired</span>
@@ -1705,8 +1705,8 @@ Emacs shell provides . Run eshell by typing <code>C-c e</code> or <code>M-x eshe
 </ul>
 </li>
 
-<li><a id="orgd4ebade"></a>ESUP<br />
-<div class="outline-text-5" id="text-orgd4ebade">
+<li><a id="org2ad0ee7"></a>ESUP<br />
+<div class="outline-text-5" id="text-org2ad0ee7">
 <p>
 <a href="https://github.com/jschaf/esup">GitHub</a>
 </p>
@@ -1739,8 +1739,8 @@ apropospriate, &amp; flycheck are the biggest offenders.
 </div>
 </li>
 
-<li><a id="org3c0d4c9"></a>Flycheck<br />
-<div class="outline-text-5" id="text-org3c0d4c9">
+<li><a id="orga9ccf68"></a>Flycheck<br />
+<div class="outline-text-5" id="text-orga9ccf68">
 <p>
 <a href="http://www.flycheck.org/">Website</a>
 </p>
@@ -1761,8 +1761,8 @@ supports many languages and give us a lot of features right out of the box.
 </div>
 </li>
 
-<li><a id="org608671a"></a>github-clone<br />
-<div class="outline-text-5" id="text-org608671a">
+<li><a id="orgdeb2284"></a>github-clone<br />
+<div class="outline-text-5" id="text-orgdeb2284">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">github-clone</span>
   <span class="org-builtin">:disabled</span>
@@ -1772,8 +1772,8 @@ supports many languages and give us a lot of features right out of the box.
 </div>
 </div>
 </li>
-<li><a id="org93fb209"></a>Gnus<br />
-<div class="outline-text-5" id="text-org93fb209">
+<li><a id="org4f0783e"></a>Gnus<br />
+<div class="outline-text-5" id="text-org4f0783e">
 <p>
 <a href="http://www.gnus.org">Website</a>
 </p>
@@ -1792,8 +1792,8 @@ Gnus is an infamous email client &amp; news reader.
 </div>
 </li>
 
-<li><a id="org595eca1"></a>God Mode<br />
-<div class="outline-text-5" id="text-org595eca1">
+<li><a id="orge1d61d4"></a>God Mode<br />
+<div class="outline-text-5" id="text-orge1d61d4">
 <p>
 <a href="https://github.com/chrisdone/god-mode">GitHub</a>
 </p>
@@ -1819,8 +1819,8 @@ certain Emacs keybinds.
 </div>
 </li>
 
-<li><a id="orge39d467"></a>helpful<br />
-<div class="outline-text-5" id="text-orge39d467">
+<li><a id="orgef4b9c7"></a>helpful<br />
+<div class="outline-text-5" id="text-orgef4b9c7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">helpful</span>
   <span class="org-builtin">:if</span> <span class="org-rainbow-delimiters-depth-2">(</span>&gt;= emacs-major-version 25<span class="org-rainbow-delimiters-depth-2">)</span>
@@ -1833,8 +1833,8 @@ certain Emacs keybinds.
 </div>
 </li>
 
-<li><a id="org3d6104c"></a>Hippie Expand<br />
-<div class="outline-text-5" id="text-org3d6104c">
+<li><a id="orgd50caed"></a>Hippie Expand<br />
+<div class="outline-text-5" id="text-orgd50caed">
 <p>
 Hippie provides dynamic expansions. Try it out by pressing <code>M-/</code>.
 </p>
@@ -1856,8 +1856,8 @@ Hippie provides dynamic expansions. Try it out by pressing <code>M-/</code>.
 </div>
 </li>
 
-<li><a id="org623c4b0"></a>Magit<br />
-<div class="outline-text-5" id="text-org623c4b0">
+<li><a id="orgde30a04"></a>Magit<br />
+<div class="outline-text-5" id="text-orgde30a04">
 <p>
 <a href="https://magit.vc">Website</a>
 </p>
@@ -1914,8 +1914,8 @@ line are available in an intuitive Emacs buffer.
 </div>
 
 <ul class="org-ul">
-<li><a id="org1ba4423"></a>magithub<br />
-<div class="outline-text-6" id="text-org1ba4423">
+<li><a id="org985c9fb"></a>magithub<br />
+<div class="outline-text-6" id="text-org985c9fb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">magithub</span>
   <span class="org-builtin">:after</span> magit
@@ -1929,8 +1929,8 @@ line are available in an intuitive Emacs buffer.
 </ul>
 </li>
 
-<li><a id="org76b3b48"></a>MMM Mode<br />
-<div class="outline-text-5" id="text-org76b3b48">
+<li><a id="orgb75835c"></a>MMM Mode<br />
+<div class="outline-text-5" id="text-orgb75835c">
 <p>
 <a href="https://github.com/purcell/mmm-mode">GitHub</a>
 </p>
@@ -1950,8 +1950,8 @@ MMM mode lets you edit multiple languages within one buffer.
 </div>
 </li>
 
-<li><a id="org723fc1f"></a>multiple-cursors<br />
-<div class="outline-text-5" id="text-org723fc1f">
+<li><a id="orgeff9321"></a>multiple-cursors<br />
+<div class="outline-text-5" id="text-orgeff9321">
 <p>
 <a href="https://github.com/magnars/multiple-cursors.el">GitHub</a>
 </p>
@@ -1976,8 +1976,8 @@ Multiple cursors give you more cursors. It is bound to <code>C-&gt;</code> &amp;
 </div>
 </li>
 
-<li><a id="org7e23782"></a>notmuch<br />
-<div class="outline-text-5" id="text-org7e23782">
+<li><a id="org121f2f0"></a>notmuch<br />
+<div class="outline-text-5" id="text-org121f2f0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">notmuch</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"s-m"</span> . notmuch<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -1987,8 +1987,8 @@ Multiple cursors give you more cursors. It is bound to <code>C-&gt;</code> &amp;
 </div>
 </li>
 
-<li><a id="orgd440567"></a>Org<br />
-<div class="outline-text-5" id="text-orgd440567">
+<li><a id="orge1e1ce9"></a>Org<br />
+<div class="outline-text-5" id="text-orge1e1ce9">
 <p>
 <a href="https://orgmode.org">Website</a>
 </p>
@@ -2036,8 +2036,8 @@ outliner but also much much more.
 </div>
 </div>
 </li>
-<li><a id="orgced4ced"></a>Projectile<br />
-<div class="outline-text-5" id="text-orgced4ced">
+<li><a id="org3587499"></a>Projectile<br />
+<div class="outline-text-5" id="text-org3587499">
 <p>
 <a href="https://github.com/bbatsov/projectile">GitHub</a>
 </p>
@@ -2065,8 +2065,8 @@ easymenu to make the &ldquo;Projectile&rdquo; modeline clickable.
 </div>
 </li>
 
-<li><a id="orgf152c2d"></a>smart-hungry-delete<br />
-<div class="outline-text-5" id="text-orgf152c2d">
+<li><a id="orged00134"></a>smart-hungry-delete<br />
+<div class="outline-text-5" id="text-orged00134">
 <p>
 <a href="https://github.com/hrehfeld/emacs-smart-hungry-delete">GitHub</a>
 </p>
@@ -2096,8 +2096,8 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 </div>
 </li>
 
-<li><a id="orgf816886"></a>Smartparens<br />
-<div class="outline-text-5" id="text-orgf816886">
+<li><a id="orgb534e1b"></a>Smartparens<br />
+<div class="outline-text-5" id="text-orgb534e1b">
 <p>
 <a href="https://github.com/Fuco1/smartparens">Website</a>
 </p>
@@ -2187,8 +2187,8 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
 </div>
 </li>
 
-<li><a id="org436c67d"></a>sudo-edit<br />
-<div class="outline-text-5" id="text-org436c67d">
+<li><a id="orgf91620a"></a>sudo-edit<br />
+<div class="outline-text-5" id="text-orgf91620a">
 <p>
 <a href="https://github.com/nflath/sudo-edit">GitHub</a>
 </p>
@@ -2206,8 +2206,8 @@ achieve this).
 </div>
 </li>
 
-<li><a id="orgb2540a4"></a>try<br />
-<div class="outline-text-5" id="text-orgb2540a4">
+<li><a id="org8cd9918"></a>try<br />
+<div class="outline-text-5" id="text-org8cd9918">
 <p>
 <a href="https://github.com/larstvei/Try">GitHub</a>
 </p>
@@ -2220,8 +2220,8 @@ achieve this).
 </div>
 </li>
 
-<li><a id="orgd862f7b"></a>which-key<br />
-<div class="outline-text-5" id="text-orgd862f7b">
+<li><a id="org3a28183"></a>which-key<br />
+<div class="outline-text-5" id="text-org3a28183">
 <p>
 Which-key will tell you what key bindings are available give a prefix. Test it
 out by pressing <code>C-x</code> &amp; waiting a few seconds. Each key listed is bound to a
@@ -2240,9 +2240,9 @@ function.
 </ul>
 </div>
 
-<div id="outline-container-org960100f" class="outline-4">
-<h4 id="org960100f">Built-ins</h4>
-<div class="outline-text-4" id="text-org960100f">
+<div id="outline-container-orga393278" class="outline-4">
+<h4 id="orga393278">Built-ins</h4>
+<div class="outline-text-4" id="text-orga393278">
 <p>
 These are available automatically, so these <code>use-package</code> blocks just
 configure them.
@@ -2250,8 +2250,8 @@ configure them.
 </div>
 
 <ul class="org-ul">
-<li><a id="org5c5e09f"></a>ansi-color<br />
-<div class="outline-text-5" id="text-org5c5e09f">
+<li><a id="org087a310"></a>ansi-color<br />
+<div class="outline-text-5" id="text-org087a310">
 <p>
 Get color/ansi codes in compilation mode.
 </p>
@@ -2270,8 +2270,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="orgaff52a9"></a>autorevert<br />
-<div class="outline-text-5" id="text-orgaff52a9">
+<li><a id="orga379769"></a>autorevert<br />
+<div class="outline-text-5" id="text-orga379769">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">autorevert</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2283,8 +2283,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="orgcf9b41d"></a>bug-reference<br />
-<div class="outline-text-5" id="text-orgcf9b41d">
+<li><a id="orgfbe4bf8"></a>bug-reference<br />
+<div class="outline-text-5" id="text-orgfbe4bf8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">bug-reference</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2295,8 +2295,8 @@ Get color/ansi codes in compilation mode.
 </div>
 
 <ul class="org-ul">
-<li><a id="orge43c929"></a>bug-reference-github<br />
-<div class="outline-text-6" id="text-orge43c929">
+<li><a id="org5e8e6be"></a>bug-reference-github<br />
+<div class="outline-text-6" id="text-org5e8e6be">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">bug-reference-github</span>
   <span class="org-builtin">:commands</span> bug-reference-github-set-url-format
@@ -2316,8 +2316,8 @@ Get color/ansi codes in compilation mode.
 </ul>
 </li>
 
-<li><a id="org2db779b"></a>comint<br />
-<div class="outline-text-5" id="text-org2db779b">
+<li><a id="org17bc2c5"></a>comint<br />
+<div class="outline-text-5" id="text-org17bc2c5">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">comint</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2336,8 +2336,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="orgfa659f1"></a>compile<br />
-<div class="outline-text-5" id="text-orgfa659f1">
+<li><a id="orge01533e"></a>compile<br />
+<div class="outline-text-5" id="text-orge01533e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">compile</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2369,8 +2369,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="org278193d"></a>delsel<br />
-<div class="outline-text-5" id="text-org278193d">
+<li><a id="org5eee73a"></a>delsel<br />
+<div class="outline-text-5" id="text-org5eee73a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">delsel</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2382,8 +2382,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="org9cd633e"></a>dired<br />
-<div class="outline-text-5" id="text-org9cd633e">
+<li><a id="org25c99a8"></a>dired<br />
+<div class="outline-text-5" id="text-org25c99a8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dired</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2425,8 +2425,8 @@ Get color/ansi codes in compilation mode.
 </div>
 
 <ul class="org-ul">
-<li><a id="org4824e01"></a>dired-column<br />
-<div class="outline-text-6" id="text-org4824e01">
+<li><a id="org9e78ff7"></a>dired-column<br />
+<div class="outline-text-6" id="text-org9e78ff7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dired-column</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2438,8 +2438,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="orgecca093"></a>dired-subtree<br />
-<div class="outline-text-6" id="text-orgecca093">
+<li><a id="orgf66f210"></a>dired-subtree<br />
+<div class="outline-text-6" id="text-orgf66f210">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dired-subtree</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-builtin">:package</span> dired
@@ -2452,8 +2452,8 @@ Get color/ansi codes in compilation mode.
 </div>
 </li>
 
-<li><a id="org6df1220"></a>dired-x<br />
-<div class="outline-text-6" id="text-org6df1220">
+<li><a id="org23d3090"></a>dired-x<br />
+<div class="outline-text-6" id="text-org23d3090">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dired-x</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2470,8 +2470,8 @@ Get color/ansi codes in compilation mode.
 </ul>
 </li>
 
-<li><a id="orgce6a384"></a>eldoc<br />
-<div class="outline-text-5" id="text-orgce6a384">
+<li><a id="org6ef8e5f"></a>eldoc<br />
+<div class="outline-text-5" id="text-org6ef8e5f">
 <p>
 Provides some info for the thing at the point.
 </p>
@@ -2492,8 +2492,8 @@ Provides some info for the thing at the point.
 </div>
 </li>
 
-<li><a id="orga8746a3"></a>electric<br />
-<div class="outline-text-5" id="text-orga8746a3">
+<li><a id="orgda2dfa2"></a>electric<br />
+<div class="outline-text-5" id="text-orgda2dfa2">
 <p>
 Setup these modes:
 </p>
@@ -2519,8 +2519,8 @@ Setup these modes:
 </div>
 
 <ul class="org-ul">
-<li><a id="org5640840"></a>elec-pair<br />
-<div class="outline-text-6" id="text-org5640840">
+<li><a id="orgc9b1a78"></a>elec-pair<br />
+<div class="outline-text-6" id="text-orgc9b1a78">
 <p>
 Setup electric-pair-mode for prog-modes. Also disable it when smartparens is
 setup.
@@ -2541,8 +2541,8 @@ setup.
 </ul>
 </li>
 
-<li><a id="org2ce96ce"></a>eww<br />
-<div class="outline-text-5" id="text-org2ce96ce">
+<li><a id="org844f844"></a>eww<br />
+<div class="outline-text-5" id="text-org844f844">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">eww</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2557,8 +2557,8 @@ setup.
 </div>
 </div>
 </li>
-<li><a id="orgc1a44ec"></a>executable<br />
-<div class="outline-text-5" id="text-orgc1a44ec">
+<li><a id="org63b55b4"></a>executable<br />
+<div class="outline-text-5" id="text-org63b55b4">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">executable</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2570,8 +2570,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org014e79a"></a>ffap<br />
-<div class="outline-text-5" id="text-org014e79a">
+<li><a id="org398fa0c"></a>ffap<br />
+<div class="outline-text-5" id="text-org398fa0c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">ffap</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"C-x C-f"</span> . find-file-at-point<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -2594,8 +2594,8 @@ setup.
 </div>
 </div>
 </li>
-<li><a id="org49e62fe"></a>files<br />
-<div class="outline-text-5" id="text-org49e62fe">
+<li><a id="org216ed41"></a>files<br />
+<div class="outline-text-5" id="text-org216ed41">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">files</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2627,8 +2627,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgafe24dc"></a>flyspell<br />
-<div class="outline-text-5" id="text-orgafe24dc">
+<li><a id="org1ef72a2"></a>flyspell<br />
+<div class="outline-text-5" id="text-org1ef72a2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">flyspell</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2645,8 +2645,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org90f93b6"></a>goto-addr<br />
-<div class="outline-text-5" id="text-org90f93b6">
+<li><a id="org6d81524"></a>goto-addr<br />
+<div class="outline-text-5" id="text-org6d81524">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">goto-addr</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2658,8 +2658,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgb2b9a04"></a>hl-line<br />
-<div class="outline-text-5" id="text-orgb2b9a04">
+<li><a id="orgdb6e318"></a>hl-line<br />
+<div class="outline-text-5" id="text-orgdb6e318">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">hl-line</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2670,8 +2670,8 @@ setup.
 </div>
 </div>
 </li>
-<li><a id="orgd6acc7a"></a>paren<br />
-<div class="outline-text-5" id="text-orgd6acc7a">
+<li><a id="org2176b0d"></a>paren<br />
+<div class="outline-text-5" id="text-org2176b0d">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">paren</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2682,8 +2682,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgf111f09"></a>pp<br />
-<div class="outline-text-5" id="text-orgf111f09">
+<li><a id="org768bbca"></a>pp<br />
+<div class="outline-text-5" id="text-org768bbca">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">pp</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2702,8 +2702,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org2328115"></a>prog-mode<br />
-<div class="outline-text-5" id="text-org2328115">
+<li><a id="org3f89b14"></a>prog-mode<br />
+<div class="outline-text-5" id="text-org3f89b14">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">prog-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2749,8 +2749,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgb5d7aef"></a>savehist-mode<br />
-<div class="outline-text-5" id="text-orgb5d7aef">
+<li><a id="org76239d2"></a>savehist-mode<br />
+<div class="outline-text-5" id="text-org76239d2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">savehist</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2760,8 +2760,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org5066d7e"></a>saveplace-mode<br />
-<div class="outline-text-5" id="text-org5066d7e">
+<li><a id="orgd40e4fc"></a>saveplace-mode<br />
+<div class="outline-text-5" id="text-orgd40e4fc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">saveplace</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2772,8 +2772,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org57aa8ab"></a>Shell<br />
-<div class="outline-text-5" id="text-org57aa8ab">
+<li><a id="org72a07c1"></a>Shell<br />
+<div class="outline-text-5" id="text-org72a07c1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">shell</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2793,8 +2793,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orga2461e7"></a>simple<br />
-<div class="outline-text-5" id="text-orga2461e7">
+<li><a id="org47867ec"></a>simple<br />
+<div class="outline-text-5" id="text-org47867ec">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">simple</span>
    <span class="org-builtin">:ensure</span> nil
@@ -2812,8 +2812,8 @@ setup.
 </div>
 </div>
 </li>
-<li><a id="orgb23db9b"></a>subword<br />
-<div class="outline-text-5" id="text-orgb23db9b">
+<li><a id="org64f01e0"></a>subword<br />
+<div class="outline-text-5" id="text-org64f01e0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">subword</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2823,8 +2823,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org2631577"></a>term<br />
-<div class="outline-text-5" id="text-org2631577">
+<li><a id="org742e282"></a>term<br />
+<div class="outline-text-5" id="text-org742e282">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">term</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2846,8 +2846,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgc4c002f"></a>text-mode<br />
-<div class="outline-text-5" id="text-orgc4c002f">
+<li><a id="orgfffcd65"></a>text-mode<br />
+<div class="outline-text-5" id="text-orgfffcd65">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">text-mode</span>
   <span class="org-builtin">:no-require</span>
@@ -2858,8 +2858,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgb16f29f"></a>time<br />
-<div class="outline-text-5" id="text-orgb16f29f">
+<li><a id="org3f013c9"></a>time<br />
+<div class="outline-text-5" id="text-org3f013c9">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">time</span>
   <span class="org-builtin">:demand</span>
@@ -2870,8 +2870,8 @@ setup.
 </div>
 </li>
 
-<li><a id="orgcaddaec"></a>url-handlers<br />
-<div class="outline-text-5" id="text-orgcaddaec">
+<li><a id="org1ee127f"></a>url-handlers<br />
+<div class="outline-text-5" id="text-org1ee127f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">url-handlers</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2883,8 +2883,8 @@ setup.
 </div>
 </li>
 
-<li><a id="org82be5dd"></a>which-func<br />
-<div class="outline-text-5" id="text-org82be5dd">
+<li><a id="org7f187ef"></a>which-func<br />
+<div class="outline-text-5" id="text-org7f187ef">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">which-func</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2894,8 +2894,8 @@ setup.
 </div>
 </div>
 </li>
-<li><a id="orga440620"></a>whitespace<br />
-<div class="outline-text-5" id="text-orga440620">
+<li><a id="org224476b"></a>whitespace<br />
+<div class="outline-text-5" id="text-org224476b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">whitespace</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2906,9 +2906,9 @@ setup.
 </li>
 </ul>
 </div>
-<div id="outline-container-orgb94cccd" class="outline-4">
-<h4 id="orgb94cccd">Programming languages</h4>
-<div class="outline-text-4" id="text-orgb94cccd">
+<div id="outline-container-org31435ff" class="outline-4">
+<h4 id="org31435ff">Programming languages</h4>
+<div class="outline-text-4" id="text-org31435ff">
 <p>
 Each <code>use-package</code> declaration corresponds to <code>major modes</code> in Emacs lingo.
 Each language will at least one of these major modes as well as associated
@@ -2917,8 +2917,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 
 <ul class="org-ul">
-<li><a id="org4891b39"></a>C/C++<br />
-<div class="outline-text-5" id="text-org4891b39">
+<li><a id="orgac7a744"></a>C/C++<br />
+<div class="outline-text-5" id="text-orgac7a744">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">cc-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -2933,8 +2933,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 
 <ul class="org-ul">
-<li><a id="org3b91f15"></a>Irony<br />
-<div class="outline-text-6" id="text-org3b91f15">
+<li><a id="orgfd72795"></a>Irony<br />
+<div class="outline-text-6" id="text-orgfd72795">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">irony</span>
   <span class="org-builtin">:preface</span>
@@ -2955,8 +2955,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 
 <ul class="org-ul">
-<li><a id="org88b6f49"></a>flycheck-irony<br />
-<div class="outline-text-7" id="text-org88b6f49">
+<li><a id="orgb2738f2"></a>flycheck-irony<br />
+<div class="outline-text-7" id="text-orgb2738f2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">flycheck-irony</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span>flycheck-mode . flycheck-irony-setup<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -2965,8 +2965,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="orge296d19"></a>irony-eldoc<br />
-<div class="outline-text-7" id="text-orge296d19">
+<li><a id="org5fe592a"></a>irony-eldoc<br />
+<div class="outline-text-7" id="text-org5fe592a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">irony-eldoc</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span>irony-mode . irony-eldoc<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -2979,8 +2979,8 @@ packages (for completion, syntax checking, etc.)
 </ul>
 </li>
 
-<li><a id="orgcaffd84"></a>CoffeeScript<br />
-<div class="outline-text-5" id="text-orgcaffd84">
+<li><a id="org6476e7c"></a>CoffeeScript<br />
+<div class="outline-text-5" id="text-org6476e7c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">coffee-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.coffee\\'"</span> . coffee-mode<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -2989,8 +2989,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="org3283734"></a>CSS<br />
-<div class="outline-text-5" id="text-org3283734">
+<li><a id="org54a6fed"></a>CSS<br />
+<div class="outline-text-5" id="text-org54a6fed">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">css-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3000,8 +3000,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="org542f158"></a>CSV<br />
-<div class="outline-text-5" id="text-org542f158">
+<li><a id="org96f3064"></a>CSV<br />
+<div class="outline-text-5" id="text-org96f3064">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">csv-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.csv\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3010,8 +3010,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="orgc2dec7d"></a>ELF<br />
-<div class="outline-text-5" id="text-orgc2dec7d">
+<li><a id="orga3039f6"></a>ELF<br />
+<div class="outline-text-5" id="text-orga3039f6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">elf-mode</span>
   <span class="org-builtin">:magic</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"&#127;ELF"</span> . elf-mode<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3020,8 +3020,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="org38414ad"></a>Emacs speaks statistics<br />
-<div class="outline-text-5" id="text-org38414ad">
+<li><a id="org3a1ba65"></a>Emacs speaks statistics<br />
+<div class="outline-text-5" id="text-org3a1ba65">
 <p>
 <a href="https://ess.r-project.org">Website</a>
 </p>
@@ -3065,8 +3065,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="org5c8980c"></a>Go<br />
-<div class="outline-text-5" id="text-org5c8980c">
+<li><a id="orgc553a28"></a>Go<br />
+<div class="outline-text-5" id="text-orgc553a28">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">go-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.go\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3075,8 +3075,8 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="orgc9bd290"></a>HAML<br />
-<div class="outline-text-5" id="text-orgc9bd290">
+<li><a id="org28eaec6"></a>HAML<br />
+<div class="outline-text-5" id="text-org28eaec6">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">haml-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.haml\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3085,10 +3085,10 @@ packages (for completion, syntax checking, etc.)
 </div>
 </li>
 
-<li><a id="org7e004b2"></a>Haskell<br />
+<li><a id="orge726016"></a>Haskell<br />
 <ul class="org-ul">
-<li><a id="orgde8f344"></a>ghc<br />
-<div class="outline-text-6" id="text-orgde8f344">
+<li><a id="org716dabc"></a>ghc<br />
+<div class="outline-text-6" id="text-org716dabc">
 <p>
 Note: this needs ghc-mod to be in PATH to work properly.
 </p>
@@ -3102,8 +3102,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </div>
 </div>
 </li>
-<li><a id="org9d9ae4c"></a>haskell-mode<br />
-<div class="outline-text-6" id="text-org9d9ae4c">
+<li><a id="org84690f7"></a>haskell-mode<br />
+<div class="outline-text-6" id="text-org84690f7">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span>load <span class="org-string">"haskell-mode-autoloads"</span> t t<span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">haskell</span>
@@ -3112,14 +3112,15 @@ Note: this needs ghc-mod to be in PATH to work properly.
          <span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.cabal\\'"</span> . haskell-cabal-mode<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode . subword-mode<span class="org-rainbow-delimiters-depth-3">)</span>
          <span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode . flyspell-prog-mode<span class="org-rainbow-delimiters-depth-3">)</span>
-         <span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode . haskell-indentation-mode<span class="org-rainbow-delimiters-depth-3">)</span>
+         <span class="org-comment-delimiter">;; </span><span class="org-comment">(haskell-mode . haskell-indentation-mode)</span>
+         <span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode . haskell-indent-mode<span class="org-rainbow-delimiters-depth-3">)</span>
          <span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode . imenu-add-menubar-index<span class="org-rainbow-delimiters-depth-3">)</span>
          <span class="org-rainbow-delimiters-depth-3">(</span>haskell-mode .
-         <span class="org-rainbow-delimiters-depth-4">(</span><span class="org-keyword">lambda</span> <span class="org-rainbow-delimiters-depth-5">()</span>
-             <span class="org-rainbow-delimiters-depth-5">(</span>autoload 'haskell-doc-current-info
-                     <span class="org-string">"haskell-doc"</span><span class="org-rainbow-delimiters-depth-5">)</span>
-             <span class="org-rainbow-delimiters-depth-5">(</span><span class="org-keyword">setq-local</span> eldoc-documentation-function
-                        'haskell-doc-current-info<span class="org-rainbow-delimiters-depth-5">)</span><span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+                       <span class="org-rainbow-delimiters-depth-4">(</span><span class="org-keyword">lambda</span> <span class="org-rainbow-delimiters-depth-5">()</span>
+                         <span class="org-rainbow-delimiters-depth-5">(</span>autoload 'haskell-doc-current-info
+                           <span class="org-string">"haskell-doc"</span><span class="org-rainbow-delimiters-depth-5">)</span>
+                         <span class="org-rainbow-delimiters-depth-5">(</span><span class="org-keyword">setq-local</span> eldoc-documentation-function
+                                     'haskell-doc-current-info<span class="org-rainbow-delimiters-depth-5">)</span><span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
   <span class="org-builtin">:init</span>
   <span class="org-rainbow-delimiters-depth-2">(</span>add-to-list 'completion-ignored-extensions <span class="org-string">".hi"</span><span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
 </pre>
@@ -3127,8 +3128,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </div>
 </li>
 
-<li><a id="orgc85875c"></a>haskell-interactive-mode<br />
-<div class="outline-text-6" id="text-orgc85875c">
+<li><a id="org3651115"></a>haskell-interactive-mode<br />
+<div class="outline-text-6" id="text-org3651115">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">haskell-interactive-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3140,10 +3141,10 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </ul>
 </li>
 
-<li><a id="orgb31547d"></a>Java<br />
+<li><a id="org5344eb7"></a>Java<br />
 <ul class="org-ul">
-<li><a id="orgdea1d90"></a>jdee<br />
-<div class="outline-text-6" id="text-orgdea1d90">
+<li><a id="org3f4d56b"></a>jdee<br />
+<div class="outline-text-6" id="text-org3f4d56b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">jdee</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"\\.java\\'"</span> . jdee-mode<span class="org-rainbow-delimiters-depth-2">)</span>
@@ -3157,10 +3158,10 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </ul>
 </li>
 
-<li><a id="orgde8a734"></a>JavaScript<br />
+<li><a id="org69cf2c4"></a>JavaScript<br />
 <ul class="org-ul">
-<li><a id="orgca10394"></a>indium<br />
-<div class="outline-text-6" id="text-orgca10394">
+<li><a id="orgfdaa06f"></a>indium<br />
+<div class="outline-text-6" id="text-orgfdaa06f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">indium</span>
   <span class="org-builtin">:if</span> <span class="org-rainbow-delimiters-depth-2">(</span>&gt;= emacs-major-version 25<span class="org-rainbow-delimiters-depth-2">)</span>
@@ -3170,8 +3171,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </div>
 </li>
 
-<li><a id="org60be2e4"></a>js2-mode<br />
-<div class="outline-text-6" id="text-org60be2e4">
+<li><a id="org655e703"></a>js2-mode<br />
+<div class="outline-text-6" id="text-org655e703">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">js2-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.js\\'"</span> . js2-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3186,8 +3187,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </div>
 </li>
 
-<li><a id="org5103079"></a>tern<br />
-<div class="outline-text-6" id="text-org5103079">
+<li><a id="orga4c5c65"></a>tern<br />
+<div class="outline-text-6" id="text-orga4c5c65">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">tern</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span>js2-mode . tern-mode<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3198,8 +3199,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </ul>
 </li>
 
-<li><a id="orga241d42"></a>JSON<br />
-<div class="outline-text-5" id="text-orga241d42">
+<li><a id="orgf653c6b"></a>JSON<br />
+<div class="outline-text-5" id="text-orgf653c6b">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">json-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.bowerrc$"</span>     . json-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3216,10 +3217,10 @@ Note: this needs ghc-mod to be in PATH to work properly.
 </div>
 </li>
 
-<li><a id="org78a6de7"></a>LaTeX<br />
+<li><a id="orgb0273ec"></a>LaTeX<br />
 <ul class="org-ul">
-<li><a id="orgbe409f1"></a>auctex<br />
-<div class="outline-text-6" id="text-orgbe409f1">
+<li><a id="orgb00e669"></a>auctex<br />
+<div class="outline-text-6" id="text-orgb00e669">
 <p>
 Auctex provides some helpful tools for working with LaTeX.
 </p>
@@ -3239,8 +3240,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </li>
 
-<li><a id="orgcc64fb8"></a>Lisp<br />
-<div class="outline-text-5" id="text-orgcc64fb8">
+<li><a id="org247d5dc"></a>Lisp<br />
+<div class="outline-text-5" id="text-org247d5dc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">elisp-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3250,8 +3251,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 
 <ul class="org-ul">
-<li><a id="orge08726f"></a>ielm<br />
-<div class="outline-text-6" id="text-orge08726f">
+<li><a id="org2e88b00"></a>ielm<br />
+<div class="outline-text-6" id="text-org2e88b00">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">ielm</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3263,8 +3264,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </li>
 
-<li><a id="org707cf51"></a>Mach-O<br />
-<div class="outline-text-5" id="text-org707cf51">
+<li><a id="org6fd73d2"></a>Mach-O<br />
+<div class="outline-text-5" id="text-org6fd73d2">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">macho-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3277,10 +3278,10 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org1e67221"></a>Markdown<br />
+<li><a id="org9aed077"></a>Markdown<br />
 <ul class="org-ul">
-<li><a id="org7c985cc"></a>markdown-mode<br />
-<div class="outline-text-6" id="text-org7c985cc">
+<li><a id="org75ba8f1"></a>markdown-mode<br />
+<div class="outline-text-6" id="text-org75ba8f1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">markdown-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"README\\.md\\'"</span> . gfm-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3293,8 +3294,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </li>
 
-<li><a id="org6ff90de"></a>git-modes<br />
-<div class="outline-text-5" id="text-org6ff90de">
+<li><a id="org4a4f182"></a>git-modes<br />
+<div class="outline-text-5" id="text-org4a4f182">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">gitattributes-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"/\\.gitattributes\\'"</span>  . gitattributes-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3316,8 +3317,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org056538a"></a>restclient<br />
-<div class="outline-text-5" id="text-org056538a">
+<li><a id="org3fda426"></a>restclient<br />
+<div class="outline-text-5" id="text-org3fda426">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">restclient</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.rest\\'"</span> . restclient-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3327,8 +3328,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org0d90656"></a>Nix<br />
-<div class="outline-text-5" id="text-org0d90656">
+<li><a id="orgc43edfb"></a>Nix<br />
+<div class="outline-text-5" id="text-orgc43edfb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">nix-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.nix\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3340,8 +3341,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 
 <ul class="org-ul">
-<li><a id="orge1ae192"></a>nix-buffer<br />
-<div class="outline-text-6" id="text-orge1ae192">
+<li><a id="org31594ce"></a>nix-buffer<br />
+<div class="outline-text-6" id="text-org31594ce">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">nix-buffer</span>
   <span class="org-builtin">:commands</span> nix-buffer
@@ -3357,8 +3358,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </div>
 </li>
-<li><a id="orga68c096"></a>nix-update<br />
-<div class="outline-text-6" id="text-orga68c096">
+<li><a id="orgbb251d4"></a>nix-update<br />
+<div class="outline-text-6" id="text-orgbb251d4">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">nix-update</span>
   <span class="org-builtin">:commands</span> nix-update-fetch
@@ -3370,8 +3371,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </li>
 </ul>
 </li>
-<li><a id="org972380f"></a>mwim<br />
-<div class="outline-text-5" id="text-org972380f">
+<li><a id="org6a2e5af"></a>mwim<br />
+<div class="outline-text-5" id="text-org6a2e5af">
 <p>
 <a href="https://github.com/alezost/mwim.el">GitHub</a>
 </p>
@@ -3387,8 +3388,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orgaa8d852"></a>PHP<br />
-<div class="outline-text-5" id="text-orgaa8d852">
+<li><a id="org3f8d494"></a>PHP<br />
+<div class="outline-text-5" id="text-org3f8d494">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">php-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.php\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3397,8 +3398,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org3611453"></a>Proof General<br />
-<div class="outline-text-5" id="text-org3611453">
+<li><a id="orgbd0fece"></a>Proof General<br />
+<div class="outline-text-5" id="text-orgbd0fece">
 <p>
 <a href="https://proofgeneral.github.io">Website</a>
 </p>
@@ -3413,10 +3414,10 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org1c3324b"></a>Python<br />
+<li><a id="org041f84c"></a>Python<br />
 <ul class="org-ul">
-<li><a id="org7e4aa9f"></a>Anaconda<br />
-<div class="outline-text-6" id="text-org7e4aa9f">
+<li><a id="orga92305d"></a>Anaconda<br />
+<div class="outline-text-6" id="text-orga92305d">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">anaconda-mode</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>python-mode . anaconda-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3426,8 +3427,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org2d7b35d"></a>python-mode<br />
-<div class="outline-text-6" id="text-org2d7b35d">
+<li><a id="orgedef3d9"></a>python-mode<br />
+<div class="outline-text-6" id="text-orgedef3d9">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">python</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3438,8 +3439,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orgf373efc"></a>jedi<br />
-<div class="outline-text-6" id="text-orgf373efc">
+<li><a id="org4b0eec8"></a>jedi<br />
+<div class="outline-text-6" id="text-org4b0eec8">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">jedi</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>python-mode . jedi:setup<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
@@ -3449,8 +3450,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </div>
 </li>
-<li><a id="org260dc79"></a>elpy<br />
-<div class="outline-text-6" id="text-org260dc79">
+<li><a id="org1e2481e"></a>elpy<br />
+<div class="outline-text-6" id="text-org1e2481e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">elpy</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"\\.py\\'"</span> . elpy-mode<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3461,8 +3462,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </li>
 
-<li><a id="orgec5d821"></a>Ruby<br />
-<div class="outline-text-5" id="text-orgec5d821">
+<li><a id="org4f70577"></a>Ruby<br />
+<div class="outline-text-5" id="text-org4f70577">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">ruby-mode</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3473,8 +3474,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org72c8fb1"></a>Rust<br />
-<div class="outline-text-5" id="text-org72c8fb1">
+<li><a id="orgc538e3a"></a>Rust<br />
+<div class="outline-text-5" id="text-orgc538e3a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">rust-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.rs\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3483,8 +3484,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orged58882"></a>SASS<br />
-<div class="outline-text-5" id="text-orged58882">
+<li><a id="org57f38bf"></a>SASS<br />
+<div class="outline-text-5" id="text-org57f38bf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">sass-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.sass\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3493,8 +3494,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orgaffa9dc"></a>Scala<br />
-<div class="outline-text-5" id="text-orgaffa9dc">
+<li><a id="org7d94552"></a>Scala<br />
+<div class="outline-text-5" id="text-org7d94552">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">scala-mode</span>
   <span class="org-builtin">:interpreter</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"scala"</span> . scala-mode<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3503,8 +3504,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org7a7b39c"></a>SCSS<br />
-<div class="outline-text-5" id="text-org7a7b39c">
+<li><a id="orgce78879"></a>SCSS<br />
+<div class="outline-text-5" id="text-orgce78879">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">scss-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.scss\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3513,8 +3514,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org5e8266a"></a>Shell<br />
-<div class="outline-text-5" id="text-org5e8266a">
+<li><a id="orgb379ee4"></a>Shell<br />
+<div class="outline-text-5" id="text-orgb379ee4">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">sh-script</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3527,8 +3528,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="org9789984"></a>texinfo<br />
-<div class="outline-text-5" id="text-org9789984">
+<li><a id="orgcec16c0"></a>texinfo<br />
+<div class="outline-text-5" id="text-orgcec16c0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">texinfo</span>
   <span class="org-builtin">:ensure</span> nil
@@ -3538,8 +3539,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orgd9dd377"></a>TypeScript<br />
-<div class="outline-text-5" id="text-orgd9dd377">
+<li><a id="orgc91ccad"></a>TypeScript<br />
+<div class="outline-text-5" id="text-orgc91ccad">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">typescript-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.ts\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3548,8 +3549,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 
 <ul class="org-ul">
-<li><a id="orga4ff4da"></a>tide<br />
-<div class="outline-text-6" id="text-orga4ff4da">
+<li><a id="orge4de12e"></a>tide<br />
+<div class="outline-text-6" id="text-orge4de12e">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">tide</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>typescript-mode . tide-setup<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3561,8 +3562,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </li>
 
-<li><a id="org76d99ce"></a>Web<br />
-<div class="outline-text-5" id="text-org76d99ce">
+<li><a id="org52cb96f"></a>Web<br />
+<div class="outline-text-5" id="text-org52cb96f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">web-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"\\.erb\\'"</span> . web-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3583,8 +3584,8 @@ Auctex provides some helpful tools for working with LaTeX.
 </div>
 </li>
 
-<li><a id="orgc217d86"></a>YAML<br />
-<div class="outline-text-5" id="text-orgc217d86">
+<li><a id="org7863909"></a>YAML<br />
+<div class="outline-text-5" id="text-org7863909">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">yaml-mode</span>
   <span class="org-builtin">:mode</span> <span class="org-string">"\\.ya?ml\\'"</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3595,9 +3596,9 @@ Auctex provides some helpful tools for working with LaTeX.
 </ul>
 </div>
 
-<div id="outline-container-orgc2b8d24" class="outline-4">
-<h4 id="orgc2b8d24">Custom</h4>
-<div class="outline-text-4" id="text-orgc2b8d24">
+<div id="outline-container-org436e13f" class="outline-4">
+<h4 id="org436e13f">Custom</h4>
+<div class="outline-text-4" id="text-org436e13f">
 <p>
 These are all available in <a href="./site-lisp">./site-lisp</a>. Eventually they should go into separate
 repositories.
@@ -3605,12 +3606,12 @@ repositories.
 </div>
 
 <ul class="org-ul">
-<li><a id="orgf293000"></a>dired-column<br /></li>
-<li><a id="org5941af8"></a>em-dired<br /></li>
-<li><a id="orgca99c89"></a>installer<br /></li>
-<li><a id="org1a422e6"></a>macho-mode<br /></li>
-<li><a id="org5cbb1e2"></a>nethack<br />
-<div class="outline-text-5" id="text-org5cbb1e2">
+<li><a id="org9463a36"></a>dired-column<br /></li>
+<li><a id="orgd62a807"></a>em-dired<br /></li>
+<li><a id="org5bf9aa8"></a>installer<br /></li>
+<li><a id="org6463901"></a>macho-mode<br /></li>
+<li><a id="orgdbcf134"></a>nethack<br />
+<div class="outline-text-5" id="text-orgdbcf134">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">nethack</span>
   <span class="org-builtin">:commands</span> nethack
@@ -3620,14 +3621,14 @@ repositories.
 </div>
 </li>
 
-<li><a id="org77e17a9"></a>nix-fontify<br /></li>
-<li><a id="org901ce87"></a>set-defaults<br /></li>
-<li><a id="org2a6573d"></a>use-package-list<br /></li>
+<li><a id="orga0020e8"></a>nix-fontify<br /></li>
+<li><a id="orgd876df6"></a>set-defaults<br /></li>
+<li><a id="org2bddeef"></a>use-package-list<br /></li>
 </ul>
 </div>
-<div id="outline-container-orgd5c2313" class="outline-4">
-<h4 id="orgd5c2313">Other</h4>
-<div class="outline-text-4" id="text-orgd5c2313">
+<div id="outline-container-org69e8db3" class="outline-4">
+<h4 id="org69e8db3">Other</h4>
+<div class="outline-text-4" id="text-org69e8db3">
 <p>
 These should correspond to minor modes or helper functions. Some of them are
 more helpful than others but none are <i>essential</i>.
@@ -3639,8 +3640,8 @@ Most of these are available in MELPA.
 </div>
 
 <ul class="org-ul">
-<li><a id="org65e4d56"></a>browse-at-remote<br />
-<div class="outline-text-5" id="text-org65e4d56">
+<li><a id="org43dbbeb"></a>browse-at-remote<br />
+<div class="outline-text-5" id="text-org43dbbeb">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">browse-at-remote</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"C-c g g"</span> . browse-at-remote<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3648,8 +3649,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="org18ac429"></a>buffer-move<br />
-<div class="outline-text-5" id="text-org18ac429">
+<li><a id="org66facbe"></a>buffer-move<br />
+<div class="outline-text-5" id="text-org66facbe">
 <p>
 <a href="https://github.com/lukhas/buffer-move">GitHub</a>
 </p>
@@ -3666,8 +3667,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="orgec7bc0f"></a>copy-as-format<br />
-<div class="outline-text-5" id="text-orgec7bc0f">
+<li><a id="org0a59598"></a>copy-as-format<br />
+<div class="outline-text-5" id="text-org0a59598">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">copy-as-format</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"C-c w s"</span> . copy-as-format-slack<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3677,8 +3678,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org906cdf6"></a>crux<br />
-<div class="outline-text-5" id="text-org906cdf6">
+<li><a id="orgc13bf91"></a>crux<br />
+<div class="outline-text-5" id="text-orgc13bf91">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">crux</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"C-c D"</span> . crux-delete-file-and-buffer<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3690,16 +3691,16 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org54b39d6"></a>delight<br />
-<div class="outline-text-5" id="text-org54b39d6">
+<li><a id="orgb9971cc"></a>delight<br />
+<div class="outline-text-5" id="text-orgb9971cc">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">delight</span><span class="org-rainbow-delimiters-depth-1">)</span>
 </pre>
 </div>
 </div>
 </li>
-<li><a id="org7ec2f0d"></a>dumb-jump<br />
-<div class="outline-text-5" id="text-org7ec2f0d">
+<li><a id="org4a55719"></a>dumb-jump<br />
+<div class="outline-text-5" id="text-org4a55719">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dumb-jump</span>
   <span class="org-builtin">:if</span> <span class="org-rainbow-delimiters-depth-2">(</span>&gt;= emacs-major-version 25<span class="org-rainbow-delimiters-depth-2">)</span>
@@ -3708,8 +3709,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="org391f5a6"></a>expand-region<br />
-<div class="outline-text-5" id="text-org391f5a6">
+<li><a id="org2643cdf"></a>expand-region<br />
+<div class="outline-text-5" id="text-org2643cdf">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">dumb-jump</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>prog-mode . dumb-jump-mode<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3718,8 +3719,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="orgd61d76e"></a>git-attr<br />
-<div class="outline-text-5" id="text-orgd61d76e">
+<li><a id="orgc175056"></a>git-attr<br />
+<div class="outline-text-5" id="text-orgc175056">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">git-attr-linguist</span>
   <span class="org-builtin">:ensure</span> git-attr
@@ -3728,8 +3729,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="orgbbf1965"></a>htmlize<br />
-<div class="outline-text-5" id="text-orgbbf1965">
+<li><a id="org7fa53a1"></a>htmlize<br />
+<div class="outline-text-5" id="text-org7fa53a1">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">htmlize</span> <span class="org-builtin">:no-require</span><span class="org-rainbow-delimiters-depth-1">)</span>
 </pre>
@@ -3737,8 +3738,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org9cef219"></a>page-break-lines<br />
-<div class="outline-text-5" id="text-org9cef219">
+<li><a id="orgb69943f"></a>page-break-lines<br />
+<div class="outline-text-5" id="text-orgb69943f">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">page-break-lines</span>
   <span class="org-builtin">:delight</span>
@@ -3755,8 +3756,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org9d73a51"></a>pandoc-mode<br />
-<div class="outline-text-5" id="text-org9d73a51">
+<li><a id="org88dbe70"></a>pandoc-mode<br />
+<div class="outline-text-5" id="text-org88dbe70">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">pandoc-mode</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>markdown-mode . pandoc-mode<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3766,8 +3767,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org07b6fb7"></a>rainbow-delimiters<br />
-<div class="outline-text-5" id="text-org07b6fb7">
+<li><a id="orgb19b9af"></a>rainbow-delimiters<br />
+<div class="outline-text-5" id="text-orgb19b9af">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">rainbow-delimiters</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>emacs-lisp-mode
@@ -3782,8 +3783,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="orgc89bab7"></a>rainbow-mode<br />
-<div class="outline-text-5" id="text-orgc89bab7">
+<li><a id="org9747995"></a>rainbow-mode<br />
+<div class="outline-text-5" id="text-org9747995">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">rainbow-mode</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span>emacs-lisp-mode
@@ -3802,8 +3803,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org5d464d7"></a>shrink-whitespace<br />
-<div class="outline-text-5" id="text-org5d464d7">
+<li><a id="org7546915"></a>shrink-whitespace<br />
+<div class="outline-text-5" id="text-org7546915">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">shrink-whitespace</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"H-SPC"</span> . shrink-whitespace<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3812,8 +3813,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="org3d8ec24"></a>string-inflection<br />
-<div class="outline-text-5" id="text-org3d8ec24">
+<li><a id="orgc28ef84"></a>string-inflection<br />
+<div class="outline-text-5" id="text-orgc28ef84">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">string-inflection</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"C-c r r"</span> . string-inflection-all-cycle<span class="org-rainbow-delimiters-depth-3">)</span>
@@ -3827,8 +3828,8 @@ Most of these are available in MELPA.
 </div>
 </li>
 
-<li><a id="orgef532af"></a>volatile-highlights<br />
-<div class="outline-text-5" id="text-orgef532af">
+<li><a id="orgbbf5d3a"></a>volatile-highlights<br />
+<div class="outline-text-5" id="text-orgbbf5d3a">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">volatile-highlights</span>
   <span class="org-builtin">:commands</span> volatile-highlights-mode
@@ -3839,8 +3840,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="orgddf8bd5"></a>with-editor<br />
-<div class="outline-text-5" id="text-orgddf8bd5">
+<li><a id="org4f4dead"></a>with-editor<br />
+<div class="outline-text-5" id="text-org4f4dead">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">with-editor</span>
   <span class="org-builtin">:disabled</span>
@@ -3850,8 +3851,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="org1a14c9b"></a>comment-tags<br />
-<div class="outline-text-5" id="text-org1a14c9b">
+<li><a id="org0424b4c"></a>comment-tags<br />
+<div class="outline-text-5" id="text-org0424b4c">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">comment-tags</span>
   <span class="org-builtin">:hook</span> <span class="org-rainbow-delimiters-depth-2">(</span>prog-mode . comment-tags-mode<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3859,8 +3860,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 </li>
-<li><a id="org04ce3cb"></a>unfill<br />
-<div class="outline-text-5" id="text-org04ce3cb">
+<li><a id="org3a352e0"></a>unfill<br />
+<div class="outline-text-5" id="text-org3a352e0">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">use-package</span> <span class="org-constant">unfill</span>
   <span class="org-builtin">:bind</span> <span class="org-rainbow-delimiters-depth-2">(</span><span class="org-rainbow-delimiters-depth-3">[</span>remap fill-paragraph<span class="org-rainbow-delimiters-depth-3">]</span> . unfill-toggle<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>
@@ -3873,8 +3874,8 @@ Most of these are available in MELPA.
 </div>
 </div>
 
-<div id="outline-container-orgabffe6a" class="outline-2">
-<h2 id="profiles"><a id="orgabffe6a"></a>Profiles</h2>
+<div id="outline-container-orga8581fc" class="outline-2">
+<h2 id="profiles"><a id="orga8581fc"></a>Profiles</h2>
 <div class="outline-text-2" id="text-profiles">
 <p>
 All of these files live outside of Emacs but are necessary for a usable
@@ -3883,9 +3884,9 @@ scripts as well.
 </p>
 </div>
 
-<div id="outline-container-orgb96dc24" class="outline-3">
-<h3 id="orgb96dc24"><code>.profile</code></h3>
-<div class="outline-text-3" id="text-orgb96dc24">
+<div id="outline-container-orged05608" class="outline-3">
+<h3 id="orged05608"><code>.profile</code></h3>
+<div class="outline-text-3" id="text-orged05608">
 <p>
 To use this, you must create a short ~/.profile file. Here is an example,
 </p>
@@ -3967,8 +3968,8 @@ Define <code>update_terminal_cwd</code> function.
 </div>
 </div>
 </div>
-<div id="outline-container-org6a705b2" class="outline-3">
-<h3 id="zshrc"><a id="org6a705b2"></a><code>.zshrc</code></h3>
+<div id="outline-container-org4ad7211" class="outline-3">
+<h3 id="zshrc"><a id="org4ad7211"></a><code>.zshrc</code></h3>
 <div class="outline-text-3" id="text-zshrc">
 <p>
 This is a profile for use with <a href="http://www.zsh.org">Zsh</a>. It is closely based off of <a href="https://github.com/robbyrussell/oh-my-zsh">oh-my-zsh</a>.
@@ -4120,9 +4121,9 @@ Setup Apple Terminal so that CWD is shown.
 </div>
 </div>
 
-<div id="outline-container-orgbd65f9f" class="outline-3">
-<h3 id="orgbd65f9f"><code>etc-profile.sh</code></h3>
-<div class="outline-text-3" id="text-orgbd65f9f">
+<div id="outline-container-orge6cd1d9" class="outline-3">
+<h3 id="orge6cd1d9"><code>etc-profile.sh</code></h3>
+<div class="outline-text-3" id="text-orge6cd1d9">
 <p>
 This just sources everything in the <code>/etc/profile.d</code> dir. <code>PREFIX</code> can be
 used to reference the Nix output dir.
@@ -4149,9 +4150,9 @@ This will source everything in <code>/etc/profile.d</code>.
 </div>
 </div>
 </div>
-<div id="outline-container-org9a8ec17" class="outline-3">
-<h3 id="org9a8ec17"><code>.gitignore</code></h3>
-<div class="outline-text-3" id="text-org9a8ec17">
+<div id="outline-container-org9ed8395" class="outline-3">
+<h3 id="org9ed8395"><code>.gitignore</code></h3>
+<div class="outline-text-3" id="text-org9ed8395">
 <p>
 Some basic gitignore paths.
 </p>
@@ -4164,9 +4165,9 @@ Some basic gitignore paths.
 </div>
 </div>
 </div>
-<div id="outline-container-orgbc31db5" class="outline-3">
-<h3 id="orgbc31db5"><code>.gitconfig</code></h3>
-<div class="outline-text-3" id="text-orgbc31db5">
+<div id="outline-container-org9b40e1e" class="outline-3">
+<h3 id="org9b40e1e"><code>.gitconfig</code></h3>
+<div class="outline-text-3" id="text-org9b40e1e">
 <div class="org-src-container">
 <pre class="src src-gitconfig">[<span class="org-type">core</span>]
         <span class="org-variable-name">editor</span> = emacsclient
@@ -4194,13 +4195,13 @@ Some basic gitignore paths.
 </div>
 </div>
 </div>
-<div id="outline-container-orgb65e34c" class="outline-2">
-<h2 id="bootstrap"><a id="orgb65e34c"></a>Bootstrapping</h2>
+<div id="outline-container-org370ec96" class="outline-2">
+<h2 id="bootstrap"><a id="org370ec96"></a>Bootstrapping</h2>
 <div class="outline-text-2" id="text-bootstrap">
 </div>
 
-<div id="outline-container-org0641890" class="outline-3">
-<h3 id="site-paths"><a id="org0641890"></a><code>site-paths.el.in</code></h3>
+<div id="outline-container-org791aa84" class="outline-3">
+<h3 id="site-paths"><a id="org791aa84"></a><code>site-paths.el.in</code></h3>
 <div class="outline-text-3" id="text-site-paths">
 <p>
 This file provides site-specific paths. However, it must be substituted in Nix
@@ -4582,9 +4583,9 @@ Set some defaults that depend on the path variables below,
 </div>
 </div>
 
-<div id="outline-container-org256a1b4" class="outline-3">
-<h3 id="org256a1b4"><code>bootstrap.sh</code></h3>
-<div class="outline-text-3" id="text-org256a1b4">
+<div id="outline-container-org0272f31" class="outline-3">
+<h3 id="org0272f31"><code>bootstrap.sh</code></h3>
+<div class="outline-text-3" id="text-org0272f31">
 <p>
 This is the bootstrap script that is mentioned above. We use it to install the
 IDE. It ensures Nix is installed as well as that the Git repo is available &amp;
@@ -4643,8 +4644,8 @@ The last action is to install our new derivation.
 </div>
 </div>
 
-<div id="outline-container-org818e631" class="outline-3">
-<h3 id="runemacs"><a id="org818e631"></a><code>runemacs.sh</code></h3>
+<div id="outline-container-org95cbbcf" class="outline-3">
+<h3 id="runemacs"><a id="org95cbbcf"></a><code>runemacs.sh</code></h3>
 <div class="outline-text-3" id="text-runemacs">
 <p>
 Cross-platform script to execute app.
@@ -4664,14 +4665,14 @@ Cross-platform script to execute app.
 </div>
 </div>
 </div>
-<div id="outline-container-orgcfab9d5" class="outline-2">
-<h2 id="build"><a id="orgcfab9d5"></a>Building</h2>
+<div id="outline-container-org11f0571" class="outline-2">
+<h2 id="build"><a id="org11f0571"></a>Building</h2>
 <div class="outline-text-2" id="text-build">
 </div>
 
-<div id="outline-container-org3b41bb2" class="outline-3">
-<h3 id="org3b41bb2"><code>default.nix</code>: the tangler</h3>
-<div class="outline-text-3" id="text-org3b41bb2">
+<div id="outline-container-orge722d0e" class="outline-3">
+<h3 id="orge722d0e"><code>default.nix</code>: the tangler</h3>
+<div class="outline-text-3" id="text-orge722d0e">
 <div class="org-src-container">
 <pre class="src src-nix"><span class="org-comment-delimiter"># </span><span class="org-comment">-*- mode: nix; coding: utf-8; -*-</span>
 { channel ? <span class="org-string">"nixpkgs-unstable"</span>
@@ -4712,9 +4713,9 @@ Now let&rsquo;s tangle README.org&#x2026;
 </div>
 </div>
 
-<div id="outline-container-org3ccb816" class="outline-3">
-<h3 id="org3ccb816"><code>bauer.nix</code>: the build script</h3>
-<div class="outline-text-3" id="text-org3ccb816">
+<div id="outline-container-org63239b5" class="outline-3">
+<h3 id="org63239b5"><code>bauer.nix</code>: the build script</h3>
+<div class="outline-text-3" id="text-org63239b5">
 <div class="org-src-container">
 <pre class="src src-nix"><span class="org-comment-delimiter"># </span><span class="org-comment">-*- mode: nix; coding: utf-8; -*-</span>
 { pkgs ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">&lt;nixpkgs&gt;</span> {}
@@ -4798,9 +4799,9 @@ Tex live provides some LaTeX commads for us.
 </div>
 </div>
 
-<div id="outline-container-org3024d1c" class="outline-4">
-<h4 id="org3024d1c">Emacs configuration</h4>
-<div class="outline-text-4" id="text-org3024d1c">
+<div id="outline-container-orgccb11bd" class="outline-4">
+<h4 id="orgccb11bd">Emacs configuration</h4>
+<div class="outline-text-4" id="text-orgccb11bd">
 <p>
 Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
@@ -4852,8 +4853,8 @@ once.
 </div>
 
 <ul class="org-ul">
-<li><a id="org8c89b3a"></a>Phase 1: picking up dependencies<br />
-<div class="outline-text-5" id="text-org8c89b3a">
+<li><a id="org5c2cff9"></a>Phase 1: picking up dependencies<br />
+<div class="outline-text-5" id="text-org5c2cff9">
 <p>
 myEmacsPackages gets a listing of all of the packages that are needed by the
 Emacs configuration. use-package-list generates this list automatically.
@@ -4899,8 +4900,8 @@ Emacs configuration. use-package-list generates this list automatically.
 </div>
 </li>
 
-<li><a id="orged6ed66"></a>Phase 2: byte compiling<br />
-<div class="outline-text-5" id="text-orged6ed66">
+<li><a id="orgf38013e"></a>Phase 2: byte compiling<br />
+<div class="outline-text-5" id="text-orgf38013e">
 <div class="org-src-container">
 <pre class="src src-nix"><span class="org-nix-attribute">default</span> = runCommand <span class="org-string">"default.el"</span> {
   <span class="org-nix-attribute">buildInputs</span> = [customEmacsPackages.emacs];
@@ -4977,8 +4978,8 @@ emacs --batch --quick \
 </div>
 </li>
 
-<li><a id="org89f1080"></a>Phase 3: wrapping into Emacs<br />
-<div class="outline-text-5" id="text-org89f1080">
+<li><a id="org43643fd"></a>Phase 3: wrapping into Emacs<br />
+<div class="outline-text-5" id="text-org43643fd">
 <div class="org-src-container">
 <pre class="src src-nix"><span class="org-nix-attribute">emacsWrapper</span> = explicitRequires:
  runCommand <span class="org-string">"emacs-packages-deps"</span>
@@ -5074,9 +5075,9 @@ TODO use dump-emacs here to speed up config.
 </ul>
 </div>
 
-<div id="outline-container-org7245e61" class="outline-4">
-<h4 id="org7245e61">The environment</h4>
-<div class="outline-text-4" id="text-org7245e61">
+<div id="outline-container-orgc449396" class="outline-4">
+<h4 id="orgc449396">The environment</h4>
+<div class="outline-text-4" id="text-orgc449396">
 <p>
 Finally, we can actually build the environment.
 </p>
@@ -5114,7 +5115,7 @@ Setup man pages&#x2026;
          llvmPackages.clang-manpages
          llvmPackages.llvm-manpages]
     ++ stdenv.lib.optional (stdenv.isDarwin &amp;&amp; big)
-         darwin.apple_sdk.sdk
+         <span class="org-string">"</span><span class="org-nix-antiquote">${</span>apple_sdk<span class="org-nix-antiquote">}</span><span class="org-string">/usr"</span>
     ++ stdenv.lib.optional stdenv.isLinux man-pages;
   <span class="org-nix-attribute">extraOutputsToInstall</span> = [ <span class="org-string">"man"</span> <span class="org-string">"doc"</span> <span class="org-string">"devdoc"</span> <span class="org-string">"devman"</span> ];
   <span class="org-nix-attribute">pathsToLink</span> = [ <span class="org-string">"/share/man"</span> ];
@@ -5193,7 +5194,7 @@ Setup system headers&#x2026;
   <span class="org-nix-attribute">name</span> = <span class="org-string">"headers"</span>;
   <span class="org-nix-attribute">paths</span> = [ libcxx ]
     ++ stdenv.lib.optional (stdenv.isDarwin &amp;&amp; big)
-          darwin.apple_sdk.sdk;
+          <span class="org-string">"</span><span class="org-nix-antiquote">${</span>apple_sdk<span class="org-nix-antiquote">}</span><span class="org-string">/usr"</span>;
 };
 </pre>
 </div>
@@ -5203,10 +5204,12 @@ Setup some Apple frameworks.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-nix"><span class="org-nix-attribute">sysframeworks</span> = buildEnv {
+<pre class="src src-nix"><span class="org-nix-attribute"><span class="org-whitespace-line">apple_sdk</span></span><span class="org-whitespace-line"> = </span><span class="org-string"><span class="org-whitespace-line">"</span></span><span class="org-nix-antiquote"><span class="org-whitespace-line">${</span></span><span class="org-whitespace-line">darwin.xcode</span><span class="org-nix-antiquote"><span class="org-whitespace-line">}</span></span><span class="org-string"><span class="org-whitespace-line">/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"</span></span><span class="org-whitespace-line">;</span>
+<span class="org-nix-attribute">sysframeworks</span> = buildEnv {
   <span class="org-nix-attribute">name</span> = <span class="org-string">"frameworks"</span>;
-  <span class="org-nix-attribute">paths</span> = stdenv.lib.optional (stdenv.isDarwin &amp;&amp; big)
-             darwin.apple_sdk.sdk;
+  <span class="org-nix-attribute">paths</span> = stdenv.lib.optionals (stdenv.isDarwin &amp;&amp; big)
+    [ <span class="org-string">"</span><span class="org-nix-antiquote">${</span>apple_sdk<span class="org-nix-antiquote">}</span><span class="org-string">/System/Library/Frameworks"</span>
+      <span class="org-string">"</span><span class="org-nix-antiquote">${</span>apple_sdk<span class="org-nix-antiquote">}</span><span class="org-string">/System/Library/PrivateFrameworks"</span> ];
 };
 </pre>
 </div>
@@ -5376,9 +5379,9 @@ The actual environment.
 </div>
 </div>
 
-<div id="outline-container-org03561ab" class="outline-3">
-<h3 id="org03561ab">Invoking it</h3>
-<div class="outline-text-3" id="text-org03561ab">
+<div id="outline-container-org0bdf057" class="outline-3">
+<h3 id="org0bdf057">Invoking it</h3>
+<div class="outline-text-3" id="text-org0bdf057">
 <p>
 We can build it with <code>nix-build</code>.
 </p>
@@ -5391,8 +5394,8 @@ We can build it with <code>nix-build</code>.
 </div>
 </div>
 </div>
-<div id="outline-container-org8fcf845" class="outline-2">
-<h2 id="ci"><a id="org8fcf845"></a>Continuous integration</h2>
+<div id="outline-container-orgcf2e3c1" class="outline-2">
+<h2 id="ci"><a id="orgcf2e3c1"></a>Continuous integration</h2>
 <div class="outline-text-2" id="text-ci">
 <a href="https://travis-ci.org/matthewbauer/bauer">
   <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master" alt="travis status"></img>
@@ -5403,8 +5406,8 @@ We&rsquo;ll set up Travis support here. We start by configuring <code>.travis.ym
 </p>
 </div>
 
-<div id="outline-container-org2fef1a5" class="outline-3">
-<h3 id="travis"><a id="org2fef1a5"></a><code>.travis.yml</code></h3>
+<div id="outline-container-org13438ad" class="outline-3">
+<h3 id="travis"><a id="org13438ad"></a><code>.travis.yml</code></h3>
 <div class="outline-text-3" id="text-travis">
 <div class="org-src-container">
 <pre class="src src-yaml"><span class="org-variable-name">language</span>: nix
@@ -5469,14 +5472,14 @@ Turn off those annoying Travis notifications.
 </div>
 </div>
 </div>
-<div id="outline-container-org870aceb" class="outline-2">
-<h2 id="extra"><a id="org870aceb"></a>Extra</h2>
+<div id="outline-container-orgc837b2e" class="outline-2">
+<h2 id="extra"><a id="orgc837b2e"></a>Extra</h2>
 <div class="outline-text-2" id="text-extra">
 </div>
 
-<div id="outline-container-org03421fc" class="outline-3">
-<h3 id="org03421fc"><code>update.sh</code></h3>
-<div class="outline-text-3" id="text-org03421fc">
+<div id="outline-container-org74edb64" class="outline-3">
+<h3 id="org74edb64"><code>update.sh</code></h3>
+<div class="outline-text-3" id="text-org74edb64">
 <p>
 This is a simple script that I use to make sure I&rsquo;ve updated the generated
 files.
@@ -5490,9 +5493,9 @@ files.
 </div>
 </div>
 </div>
-<div id="outline-container-org406ec94" class="outline-3">
-<h3 id="org406ec94"><code>.gitignore</code></h3>
-<div class="outline-text-3" id="text-org406ec94">
+<div id="outline-container-org0dff0e2" class="outline-3">
+<h3 id="org0dff0e2"><code>.gitignore</code></h3>
+<div class="outline-text-3" id="text-org0dff0e2">
 <p>
 If you end up with generated files, they’re easy to remove with Git. Just run
 <code>git clean -xdf</code> &amp; it will remove all of the files that match the .gitignore
@@ -5546,14 +5549,15 @@ site-paths.el.in
 init.el
 org-init.el
 org-src-<span class="org-keyword">*</span>
+configuration.nix
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orge5ad959" class="outline-3">
-<h3 id="orge5ad959"><code>.gitattributes</code></h3>
-<div class="outline-text-3" id="text-orge5ad959">
+<div id="outline-container-org1e749a7" class="outline-3">
+<h3 id="org1e749a7"><code>.gitattributes</code></h3>
+<div class="outline-text-3" id="text-org1e749a7">
 <div class="org-src-container">
 <pre class="src src-gitattributes">config.nix<span class="org-constant"> </span>    <span class="org-variable-name">linguist-generated</span>=true
 default.nix<span class="org-constant"> </span>   <span class="org-variable-name">linguist-generated</span>=true
@@ -5567,19 +5571,40 @@ module.nix     <span class="org-variable-name">linguist-generated</span>=true
 </div>
 </div>
 </div>
-<div id="outline-container-org6aead72" class="outline-3">
-<h3 id="org6aead72">NixOS module</h3>
-<div class="outline-text-3" id="text-org6aead72">
+<div id="outline-container-org8deac71" class="outline-3">
+<h3 id="org8deac71">NixOS module</h3>
+<div class="outline-text-3" id="text-org8deac71">
+<p>
+I’ve provided a module suitable for use with a NixOS configuration. To use it,
+just add something like the following to your configuration.nix file.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-nix">{ ... }:
+{
+  <span class="org-nix-attribute">imports</span> = [
+    (<span class="org-nix-builtin">builtins</span>.fetchurl <span class="org-string">"https://matthewbauer.us/bauer/module.nix"</span>)
+  ];
+  <span class="org-nix-attribute">program.bauer.enable</span> = <span class="org-nix-builtin">true</span>;
+}
+</pre>
+</div>
+
+<p>
+The actual module implementation follow here. It will pull in some files needed
+for all of this to work. It should provide ‘bauer’ as a runnable command.
+</p>
+
 <div class="org-src-container">
 <pre class="src src-nix">{ config, lib, pkgs, ... }: <span class="org-nix-keyword">with</span> lib;
 
 <span class="org-nix-keyword">let</span>
-<span class="org-nix-attribute">ensure</span> = f: n: <span class="org-nix-keyword">if</span> <span class="org-nix-builtin">builtins</span>.pathExists f <span class="org-nix-keyword">then</span> f
-         <span class="org-nix-keyword">else</span> <span class="org-nix-builtin">builtins</span>.fetchurl
-         <span class="org-string">"https://matthewbauer.us/bauer/</span><span class="org-nix-antiquote">${</span>n<span class="org-nix-antiquote">}</span>";
-<span class="org-nix-attribute">bauer</span> = <span class="org-nix-builtin">import</span> (ensure <span class="org-nix-constant">./default.nix</span> <span class="org-string">"default.nix"</span>) {
-  <span class="org-nix-keyword">inherit</span> pkgs;
-};
+  <span class="org-nix-attribute">ensure</span> = f: n: <span class="org-nix-keyword">if</span> <span class="org-nix-builtin">builtins</span>.pathExists f <span class="org-nix-keyword">then</span> f
+     <span class="org-nix-keyword">else</span> <span class="org-nix-builtin">builtins</span>.fetchurl
+    <span class="org-string">"https://matthewbauer.us/bauer/</span><span class="org-nix-antiquote">${</span>n<span class="org-nix-antiquote">}</span>";
+  <span class="org-nix-attribute">bauer</span> = <span class="org-nix-builtin">import</span> (ensure <span class="org-nix-constant">./default.nix</span> <span class="org-string">"default.nix"</span>) {
+    <span class="org-nix-keyword">inherit</span> pkgs;
+  };
 <span class="org-nix-keyword">in</span> {
   <span class="org-nix-attribute">options</span> = {
     <span class="org-nix-attribute">programs.bauer</span> = {
