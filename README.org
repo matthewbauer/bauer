@@ -2625,6 +2625,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package elpy
+    :disabled
     :mode ("\\.py\\'" . elpy-mode))
 #+END_SRC
 
@@ -2695,6 +2696,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tide
+    :disabled
     :hook ((typescript-mode . tide-setup)
 	   (typescript-mode . tide-hl-identifier-mode)))
 #+END_SRC
@@ -3183,7 +3185,7 @@ Some basic gitignore paths.
 #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
-	fsmonitor = @out@/etc/fsmonitor
+#	fsmonitor = @out@/etc/fsmonitor
 
 [commit]
 	gpgSign = true
@@ -3764,7 +3766,6 @@ substitution of all the attributes set.
               # Nix paths
               manpages sysheaders sysframeworks
               schemas bins infopages;
-      git = gitMinimal;
       gpg = gnupg1compat;
       aspell = myAspell;
     } // (lib.optionalAttrs big {
@@ -3775,7 +3776,7 @@ substitution of all the attributes set.
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive notmuch gnuplot
-        gdb coq rtags # mariadb go golint
+        gdb coq rtags git # mariadb go golint
         ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
@@ -4121,6 +4122,7 @@ Setup schemas...
 Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
+  git = gitMinimal.override { perlSupport = true; pythonSupport = false; };
   userPackages = [
     myAspell
 
@@ -4131,7 +4133,7 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    gitMinimal gnuplot gnupg tree cvs subversion
+    git gnuplot gnupg tree cvs subversion
 
     # Nix tools
     nix nix-index nix-zsh-completions
@@ -4192,15 +4194,15 @@ The actual environment.
 #+BEGIN_SRC nix
 in buildEnv {
   name = "bauer";
-  buildInputs = [ makeWrapper perl ];
+  buildInputs = [ makeWrapper ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
 
-    install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
-    substituteInPlace $out/etc/fsmonitor \
-      --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
-    patchShebangs $out/etc/fsmonitor
+    # install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
+    # substituteInPlace $out/etc/fsmonitor \
+    #   --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
+    # patchShebangs $out/etc/fsmonitor
 
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
