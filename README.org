@@ -2981,7 +2981,9 @@ Here we setup =.profile=. First, setup exports.
          MANPATH=@MANPATH@ \
          XDG_DATA_DIRS=@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
-         HISTFILE=$HOME/.history
+         HISTFILE=$HOME/.history \
+         SAVEHIST=10000 \
+         HISTSIZE=10000
 #+END_SRC
 
 Then setup aliases.
@@ -3070,7 +3072,6 @@ setopt always_to_end \
        correct \
        correctall \
        extended_glob \
-       extended_history \
        hist_expire_dups_first \
        hist_find_no_dups \
        hist_ignore_dups \
@@ -3694,11 +3695,12 @@ Now let's tangle README.org...
   with pkgs; let big = !small;
 #+END_SRC
 
-The normal version has a huge closure totalling in at over 5GB. This is
-extremely useful for developers, but not always ideal. If you want to, you can
-enable the “small” version with ‘nixpkgs.config.bauer.small = true’.
-Alternatively, if you need it, you should set ‘nixpkgs.config.bauer.small =
-false’.
+By default, you will be building the "small" version which is about 500MB. The
+normal version has a huge closure totalling in at over 5GB. This is extremely
+useful for integrations with developer tools and manuals, but also inconvenient
+when wanting to start for the first time. If you want to enable the big version,
+you can just do ‘nixpkgs.config.bauer.small = false’. Alternatively, if you
+/want/ the small version, just do ‘nixpkgs.config.bauer.small = true’.
 
 Next we start defining some packages. R is one of the simpler ones right now,
 so let's start with that.
@@ -3771,7 +3773,7 @@ substitution of all the attributes set.
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       inherit ant perl perlcritic
-        asciidoc lessc stack lua gcc
+        asciidoc lessc lua gcc
         pandoc clang cmake ghostscript
         sqliteInteractive freetds
         parallel unixODBC ncompress
