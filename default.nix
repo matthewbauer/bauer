@@ -9,13 +9,13 @@
 
 let
 ensure = f: n: if builtins.pathExists f then f
-               else builtins.fetchurl
-               "https://matthewbauer.us/bauer/${n}";
+	       else builtins.fetchurl
+	       "https://matthewbauer.us/bauer/${n}";
 in import (pkgs.runCommand "README" {
   buildInputs = with pkgs; [ emacs git ];
 } (''
   install -D ${ensure ./README.org "README.org"} \
-          $out/README.org
+	  $out/README.org
   cd $out
 '' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
