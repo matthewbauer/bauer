@@ -3616,6 +3616,19 @@ The last action is to install our new derivation.
 nix-env -if .
 #+END_SRC
 
+Install the profile.
+
+#+BEGIN_SRC shell
+echo "source $HOME/.nix-profile/etc/profile" >> $HOME/.profile
+
+echo "To use bauer correctly, you must first source the profile."
+echo
+echo "To do this, just run:"
+echo "  source $HOME/.nix-profile/etc/profile"
+echo "From you command line"
+echo "You can also run either emacs or zsh to launch the environment"
+#+END_SRC
+
 ** =runemacs.sh=
 :PROPERTIES:
 :header-args: :tangle runemacs.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
