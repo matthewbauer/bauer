@@ -49,7 +49,7 @@ enough for anyone to use.
 To install, just run this command from your shell:
 
 #+BEGIN_SRC shell
-curl https://matthewbauer.us/bootstrap.sh | sh
+curl https://matthewbauer.us/bauer/install | sh
 #+END_SRC
 
 Once it’s installed, you can open Emacs at any time with this command:
@@ -3571,7 +3571,7 @@ Set some defaults that depend on the path variables below,
 
 ** =bootstrap.sh=
 :PROPERTIES:
-:header-args: :tangle bootstrap.sh :shebang "#!/usr/bin/env sh"
+:header-args: :tangle install :shebang "#!/usr/bin/env sh"
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
@@ -3603,7 +3603,8 @@ If we can’t find default.nix then we’ll clone from GitHub. This will be stor
 #+BEGIN_SRC shell
 if ! [ -f default.nix ] \
    && command -v git >/dev/null 2>&1; then
-    repo_dir=$(mktemp -d)
+    repo_dir=$HOME/.local/share
+    mkdir -p $(dirname $repo_dir)
     git clone https://github.com/matthewbauer/bauer \
               $repo_dir
     cd $repo_dir
@@ -4259,6 +4260,7 @@ in buildEnv {
   passthru = with lib; {
     shellPath = "/bin/zsh";
     run = "/bin/run";
+    sourceFile = "/etc/profile.d/profile";
     PATH = makeSearchPath "bin" [bins];
     MANPATH = makeSearchPath "share/man" [manpages];
     INFOPATH = makeSearchPath "share/info" [infopages];
@@ -4421,6 +4423,7 @@ init.el
 org-init.el
 org-src-*
 configuration.nix
+install
 #+END_SRC
 
 ** =.gitattributes=
@@ -4432,6 +4435,7 @@ configuration.nix
 config.nix     linguist-generated=true
 default.nix    linguist-generated=true
 bootstrap.sh   linguist-generated=true
+install        linguist-generated=true
 update.sh      linguist-generated=true
 .travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
