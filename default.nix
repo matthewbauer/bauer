@@ -22,6 +22,6 @@ in import (pkgs.runCommand "README" {
 '' + ''
   emacs --batch --quick \
 	-l ob-tangle \
-	--eval "(org-babel-tangle-file \"README.org\")"
+  --eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
 '')) (args // { inherit ensure pkgs; })
