@@ -4249,9 +4249,8 @@ in buildEnv {
   '';
   pathsToLink = [
     "/bin"
-    "/Applications"
     "/etc/profile.d"
-  ];
+  ] ++ stdenv.lib.optional stdenv.isDarwin "/Applications";
   meta = with lib; {
     description = "Bauer’s automated unified Emacs realm";
     maintainers = with maintainers; [ matthewbauer ];
