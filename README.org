@@ -49,7 +49,7 @@ enough for anyone to use.
 To install, just run this command from your shell:
 
 #+BEGIN_SRC shell
-curl https://matthewbauer.us/bootstrap.sh | sh
+curl https://matthewbauer.us/bauer/install | sh
 #+END_SRC
 
 Once it’s installed, you can open Emacs at any time with this command:
@@ -559,7 +559,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(vc-make-backup-files t)
    '(view-read-only t)
    '(view-inhibit-help-message t)
-   '(visible-bell t)
    '(woman-imenu t)
    '(x-stretch-cursor t)
    '(which-key-lighter "")
@@ -959,7 +958,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :hook ((minibuffer-setup . company-mode)
            (minibuffer-setup .
             (lambda () (setq-local company-frontends
-                              '(company-preview-frontend))))
+                              '(company-preview-if-just-one-frontend))))
            (after-init . global-company-mode))
     :config
     (advice-add 'completion-at-point
@@ -979,8 +978,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :hook ((shell-mode sh-mode fish-mode eshell-mode) .
            (lambda ()
              (setq-local company-backends
-                         '((company-shell
-                            company-shell-env
+                         '((company-shell-env
                             company-fish-shell
                             company-capf
                             company-files))))))
@@ -2625,6 +2623,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package elpy
+    :disabled
     :mode ("\\.py\\'" . elpy-mode))
 #+END_SRC
 
@@ -2695,6 +2694,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tide
+    :disabled
     :hook ((typescript-mode . tide-setup)
 	   (typescript-mode . tide-hl-identifier-mode)))
 #+END_SRC
@@ -2979,7 +2979,9 @@ Here we setup =.profile=. First, setup exports.
          MANPATH=@MANPATH@ \
          XDG_DATA_DIRS=@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
-         HISTFILE=$HOME/.history
+         HISTFILE=$HOME/.history \
+         SAVEHIST=10000 \
+         HISTSIZE=10000
 #+END_SRC
 
 Then setup aliases.
@@ -3068,7 +3070,6 @@ setopt always_to_end \
        correct \
        correctall \
        extended_glob \
-       extended_history \
        hist_expire_dups_first \
        hist_find_no_dups \
        hist_ignore_dups \
@@ -3183,7 +3184,7 @@ Some basic gitignore paths.
 #+BEGIN_SRC gitconfig :padline no
 [core]
 	editor = emacsclient
-	fsmonitor = @out@/etc/fsmonitor
+#	fsmonitor = @out@/etc/fsmonitor
 
 [commit]
 	gpgSign = true
@@ -3570,7 +3571,7 @@ Set some defaults that depend on the path variables below,
 
 ** =bootstrap.sh=
 :PROPERTIES:
-:header-args: :tangle bootstrap.sh :shebang "#!/usr/bin/env sh"
+:header-args: :tangle install :shebang "#!/usr/bin/env sh"
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
@@ -3602,7 +3603,8 @@ If we can’t find default.nix then we’ll clone from GitHub. This will be stor
 #+BEGIN_SRC shell
 if ! [ -f default.nix ] \
    && command -v git >/dev/null 2>&1; then
-    repo_dir=$(mktemp -d)
+    repo_dir=$HOME/.local/share
+    mkdir -p $(dirname $repo_dir)
     git clone https://github.com/matthewbauer/bauer \
               $repo_dir
     cd $repo_dir
@@ -3613,6 +3615,19 @@ The last action is to install our new derivation.
 
 #+BEGIN_SRC shell
 nix-env -if .
+#+END_SRC
+
+Install the profile.
+
+#+BEGIN_SRC shell
+echo "source $HOME/.nix-profile/etc/profile" >> $HOME/.profile
+
+echo "To use bauer correctly, you must first source the profile."
+echo
+echo "To do this, just run:"
+echo "  source $HOME/.nix-profile/etc/profile"
+echo "From you command line"
+echo "You can also run either emacs or zsh to launch the environment"
 #+END_SRC
 
 ** =runemacs.sh=
@@ -3643,6 +3658,21 @@ esac
 :header-args: :tangle default.nix
 :END:
 
+Here we being the building process. There are a couple of stages to this not
+normally seen in configurations. The first part is the ‘default.nix’ which will
+tangle the README.org file. This should be the only file that has to live ouside
+of this ORG document. This is meant to be very minimal so that once we tangle
+README.org, we can get a working .nix file to import from using Nix’s import
+from derivation.
+
+The function header defines some arguments you can pass. It will use the latest
+nixpkgs-unstable from nixos.org. If you want to change this, you can pass in
+your own pkgs variable.
+
+The small argument is a bit of a hack. Nix will only recognize args that have
+been explicitly listed so we cannot rely on the ‘...’ syntax to pick up random
+args.
+
 #+BEGIN_SRC nix :padline no
 # -*- mode: nix; coding: utf-8; -*-
 { channel ? "nixpkgs-unstable"
@@ -3654,33 +3684,37 @@ esac
 } @ args:
 #+END_SRC
 
-Now let's tangle README.org...
+Now let's tangle README.org... This uses ORG’s babel functionality to generate a
+.nix file. The .nix file is renamed to default.nix to replace this script.
 
 #+BEGIN_SRC nix
-let
-ensure = f: n: if builtins.pathExists f then f
-               else builtins.fetchurl
-               "https://matthewbauer.us/bauer/${n}";
-in import (pkgs.runCommand "README" {
-  buildInputs = with pkgs; [ emacs git ];
-} (''
-  install -D ${ensure ./README.org "README.org"} \
-          $out/README.org
-  cd $out
-'' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
-  cp -r ${./site-lisp} site-lisp
-'' + ''
-  emacs --batch --quick \
-	-l ob-tangle \
-	--eval "(org-babel-tangle-file \"README.org\")"
-  cp bauer.nix default.nix
-'')) (args // { inherit ensure pkgs; })
+  let
+  ensure = f: n: if builtins.pathExists f then f
+		 else builtins.fetchurl
+		 "https://matthewbauer.us/bauer/${n}";
+  in import (pkgs.runCommand "README" {
+    buildInputs = with pkgs; [ emacs git ];
+  } (''
+    install -D ${ensure ./README.org "README.org"} \
+	    $out/README.org
+    cd $out
+  '' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
+    cp -r ${./site-lisp} site-lisp
+  '' + ''
+    emacs --batch --quick \
+	  -l ob-tangle \
+    --eval "(org-babel-tangle-file \"README.org\")"
+    cp bauer.nix default.nix
+  '')) (args // { inherit ensure pkgs; })
 #+END_SRC
 
 ** =bauer.nix=: the build script
 :PROPERTIES:
 :header-args: :tangle bauer.nix
 :END:
+
+Here we have the actual Nix file that will build our Emacs configuration. Again
+we have some options that can be provided...
 
 #+BEGIN_SRC nix :padline no
   # -*- mode: nix; coding: utf-8; -*-
@@ -3691,11 +3725,14 @@ in import (pkgs.runCommand "README" {
   with pkgs; let big = !small;
 #+END_SRC
 
-The normal version has a huge closure totalling in at over 5GB. This is
-extremely useful for developers, but not always ideal. If you want to, you can
-enable the “small” version with ‘nixpkgs.config.bauer.small = true’.
-Alternatively, if you need it, you should set ‘nixpkgs.config.bauer.small =
-false’.
+By default, you will be building the "small" version which is about 500MB. The
+normal version has a huge closure totalling in at over 5GB. This is extremely
+useful for integrations with developer tools and manuals, but also inconvenient
+when wanting to start running for the first time. If you want to enable the big
+version, you can just do ‘config.bauer.small = false’ in your
+~/.config/nixpkgs/config.nix file.
+Alternatively, if you /want/ the small version, just do
+‘nixpkgs.config.bauer.small = true’.
 
 Next we start defining some packages. R is one of the simpler ones right now,
 so let's start with that.
@@ -3763,18 +3800,17 @@ substitution of all the attributes set.
               # Nix paths
               manpages sysheaders sysframeworks
               schemas bins infopages;
-      git = gitMinimal;
       gpg = gnupg1compat;
       aspell = myAspell;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       inherit ant perl perlcritic
-        asciidoc lessc stack lua gcc
+        asciidoc lessc lua gcc
         pandoc clang cmake ghostscript
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive notmuch gnuplot
-        gdb coq rtags # mariadb go golint
+        gdb coq rtags git # mariadb go golint
         ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
@@ -4120,6 +4156,7 @@ Setup schemas...
 Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
+  git = gitMinimal.override { perlSupport = true; pythonSupport = false; };
   userPackages = [
     myAspell
 
@@ -4130,7 +4167,7 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    gitMinimal gnuplot gnupg tree cvs subversion
+    git gnuplot gnupg tree cvs subversion
 
     # Nix tools
     nix nix-index nix-zsh-completions
@@ -4191,15 +4228,15 @@ The actual environment.
 #+BEGIN_SRC nix
 in buildEnv {
   name = "bauer";
-  buildInputs = [ makeWrapper perl ];
+  buildInputs = [ makeWrapper ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
 
-    install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
-    substituteInPlace $out/etc/fsmonitor \
-      --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
-    patchShebangs $out/etc/fsmonitor
+    # install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
+    # substituteInPlace $out/etc/fsmonitor \
+    #   --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
+    # patchShebangs $out/etc/fsmonitor
 
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
@@ -4213,9 +4250,8 @@ in buildEnv {
   '';
   pathsToLink = [
     "/bin"
-    "/Applications"
     "/etc/profile.d"
-  ];
+  ] ++ stdenv.lib.optional stdenv.isDarwin "/Applications";
   meta = with lib; {
     description = "Bauer’s automated unified Emacs realm";
     maintainers = with maintainers; [ matthewbauer ];
@@ -4224,6 +4260,7 @@ in buildEnv {
   passthru = with lib; {
     shellPath = "/bin/zsh";
     run = "/bin/run";
+    sourceFile = "/etc/profile.d/profile";
     PATH = makeSearchPath "bin" [bins];
     MANPATH = makeSearchPath "share/man" [manpages];
     INFOPATH = makeSearchPath "share/info" [infopages];
@@ -4386,6 +4423,7 @@ init.el
 org-init.el
 org-src-*
 configuration.nix
+install
 #+END_SRC
 
 ** =.gitattributes=
@@ -4397,6 +4435,7 @@ configuration.nix
 config.nix     linguist-generated=true
 default.nix    linguist-generated=true
 bootstrap.sh   linguist-generated=true
+install        linguist-generated=true
 update.sh      linguist-generated=true
 .travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
@@ -4408,7 +4447,8 @@ module.nix     linguist-generated=true
 I’ve provided a module suitable for use with a NixOS configuration. To use it,
 just add something like the following to your configuration.nix file.
 
-#+BEGIN_SRC nix :tangle configuration.nix :padline no
+#+BEGIN_SRC nix :tangle no :padline no
+# -*- mode: nix; coding: utf-8; -*-
 { ... }:
 {
   imports = [
@@ -4421,7 +4461,8 @@ just add something like the following to your configuration.nix file.
 The actual module implementation follow here. It will pull in some files needed
 for all of this to work. It should provide ‘bauer’ as a runnable command.
 
-#+BEGIN_SRC nix :tangle module.nix :padline no
+#+BEGIN_SRC nix :tangle no :padline no
+# -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
 let
@@ -4455,6 +4496,21 @@ in {
 }
 #+END_SRC
 ** TODO VirtualBox & more images
+** LICENSE
+    Copyright (C) 2018 Matthew Bauer
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * COMMENT Footer
 # Local Variables:
 # mode: org
