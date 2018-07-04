@@ -322,10 +322,22 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-prompt-for-password nil)
    '(erc-query-display 'buffer)
    '(erc-rename-buffers t)
+   '(erc-track-exclude-server-buffer t)
+   '(erc-track-exclude-types (quote ("JOIN" "NICK" "PART" "QUIT" "MODE" "333" "353")))
+   '(erc-track-remove-disconnected-buffers t)
+   '(erc-track-position-in-mode-line t)
    '(erc-timestamp-format "%H:%M ")
    '(erc-timestamp-only-if-changed-flag nil)
    '(erc-try-new-nick-p nil)
    '(erc-user-full-name 'user-full-name)
+   '(eshell-history-size 1000)
+   '(eshell-output-filter-functions
+     (quote
+      (eshell-handle-control-codes eshell-handle-ansi-color eshell-watch-for-password-prompt)))
+   '(eshell-scroll-show-maximum-output nil)
+   '(eshell-visual-commands
+     (quote
+       ("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm" "nix" "ssh")))
    '(eshell-banner-message "")
    '(eshell-cmpl-autolist t)
    '(eshell-cmpl-cycle-completions nil)
@@ -360,10 +372,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-visual-commands '("vi" "top" "screen" "less"
                               "rlogin" "telnet" "lynx"))
    '(eshell-history-size 50000)
-   '(eshell-output-filter-functions
-     '(eshell-handle-control-codes
-       eshell-handle-ansi-color
-       eshell-watch-for-password-prompt))
+   '(eshell-output-filter-functions '(eshell-watch-for-password-prompt))
    '(eval-expression-print-level nil)
    '(expand-region-contract-fast-key "j")
    '(explicit-shell-args
@@ -390,11 +399,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(gnuplot-inline-image-mode 'dedicated)
    '(haskell-ask-also-kill-buffers nil)
    '(haskell-interactive-mode-scroll-to-bottom t)
-   '(haskell-process-args-stack-ghci
-     '("--ghci-options=-ferror-spans"
-       "--ghci-options=-fno-diagnostics-show-caret"
-       "--no-build"
-       "--no-load"))
+   '(haskell-process-type (quote ghci))
    '(haskell-process-load-or-reload-prompt t)
    '(haskell-process-prompt-restart-on-cabal-change nil)
    '(haskell-process-show-debug-tips nil)
@@ -441,7 +446,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(mac-option-key-is-meta nil)
    '(mac-option-modifier 'super)
    '(mac-right-option-modifier nil)
-   '(mac-system-move-file-to-trash-use-finder t)
+   '(magit-remote-add-set-remote\.pushDefault t)
+   '(magit-clone-set-remote\.pushDefault t)
    '(magit-ediff-dwim-show-on-hunks t)
    '(magit-highlight-trailing-whitespace nil)
    '(magit-highlight-whitespace nil)
@@ -454,6 +460,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(magit-stage-all-confirm nil)
    '(magit-unstage-all-confirm nil)
    '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+   '(mode-line-default-help-echo nil)
    '(mmm-global-mode 'buffers-with-submode-classes)
    '(mmm-submode-decoration-level 2)
    '(minibuffer-prompt-properties
