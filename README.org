@@ -1377,8 +1377,8 @@ line are available in an intuitive Emacs buffer.
 #+BEGIN_SRC emacs-lisp
   (use-package git-commit
     :hook ((git-commit-mode . flyspell-mode)
-           (git-commit-mode . git-commit-save-message)
-           (git-commit-mode . turn-on-auto-fill)))
+	   (git-commit-mode . git-commit-save-message)
+	   (git-commit-mode . turn-on-auto-fill)))
   (use-package magit
     :preface
     (autoload 'magit-toplevel "magit")
@@ -1392,30 +1392,30 @@ line are available in an intuitive Emacs buffer.
 
     (defun magit-remote-github (username &optional args)
       (interactive (list (magit-read-string-ns "User name")
-                         (magit-remote-arguments)))
+			 (magit-remote-arguments)))
       (let* ((url (magit-get "remote.origin.url"))
-             (match (string-match
-                     "^https?://github\.com/[^/]*/\\(.*\\)"
-                     url)))
-        (unless match
-          (error "Not a github remote"))
-        (let ((repo (match-string 1 url)))
-          (apply 'magit-remote-add username
-                 (format "https://github.com/%s/%s"
-                         username repo) args))))
+	     (match (string-match
+		     "^\\(?:https?://github\.com/[^/]*/\\(.*\\)\\|git@github.com:[^/]*/\\(.*\\)\\)"
+		     url)))
+	(unless match
+	  (error "Not a github remote"))
+	(let ((repo (match-string 1 url)))
+	  (apply 'magit-remote-add username
+		 (format "git@github.com:%s/%s"
+			 username repo) args))))
     :hook (magit-mode . (lambda ()
-                          (magit-define-popup-action
-                            'magit-remote-popup
-                            ?g
-                            "Add remote from github user name"
-                            'magit-remote-github)))
+			  (magit-define-popup-action
+			    'magit-remote-popup
+			    ?g
+			    "Add remote from github user name"
+			    'magit-remote-github)))
     :commands magit-clone
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
-           ("C-x G" . magit-dispatch-popup)
-           :package magit
-           :map magit-mode-map
-           ("C-o" . magit-dired-other-window)))
+	   ("C-x G" . magit-dispatch-popup)
+	   :package magit
+	   :map magit-mode-map
+	   ("C-o" . magit-dired-other-window)))
 #+END_SRC
 
 ***** magithub
