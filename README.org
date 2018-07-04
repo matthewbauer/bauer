@@ -1671,9 +1671,9 @@ function.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
-    :defer 2
+    :demand
     :commands which-key-mode
-    :config (which-key-mode))
+    :config (which-key-mode 1))
 #+END_SRC
 
 *** Built-ins
@@ -1827,6 +1827,8 @@ Get color/ansi codes in compilation mode.
 	   ("M-*" . eshell)
 	   ("W" . browse-url-of-dired-file)
 	   ("@" . dired-run-command)))
+  (use-package dired-du
+    :commands dired-du-mode)
 #+END_SRC
 
 ***** dired-column
@@ -1942,6 +1944,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package ffap
     :bind (("C-x C-f" . find-file-at-point)
+	   ("C-x 4 C-f" . ffap-other-window)
 	   ("C-x C-r" . ffap-read-only)
 	   ("C-x C-v" . ffap-alternate-file)
 	   ("C-x 4 f" . ffap-other-window)
