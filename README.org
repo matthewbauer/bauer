@@ -331,7 +331,9 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-try-new-nick-p nil)
    '(erc-user-full-name 'user-full-name)
    '(eshell-history-size 1000)
-   '(eshell-output-filter-functions nil)
+   '(eshell-output-filter-functions '(eshell-handle-ansi-color
+				      eshell-watch-for-password-prompt
+				      eshell-truncate-buffer))
    '(eshell-scroll-show-maximum-output nil)
    '(eshell-visual-commands '("vi" "screen" "top" "less" "more"
 			      "lynx" "ncftp" "pine" "tin" "trn"
