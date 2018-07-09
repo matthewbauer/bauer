@@ -223,6 +223,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auto-save-visited-file-name t)
    '(ange-ftp-default-user t)
    '(auto-window-vscroll nil)
+   '(bug-reference-bug-regexp
+     "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
    '(backward-delete-char-untabify-method 'hungry)
    '(backup-directory-alist `(("." .
 			       ,(expand-file-name "backup"
@@ -464,6 +466,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(pcomplete-compare-entries-function 'file-newer-than-file-p)
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
+   '(projectile-enable-idle-timer 1)
    '(projectile-mode-line
      '(:eval
        (if (and (ignore-errors (projectile-project-p))
@@ -1702,8 +1705,7 @@ Get color/ansi codes in compilation mode.
                        (projectile-project-root))
                      'git))
 	(bug-reference-github-set-url-format)))
-    :hook
-    (projectile-mode . bug-reference-github-projectile))
+    :hook (magit-mode . bug-reference-github-projectile))
 #+END_SRC
 
 **** comint
@@ -4518,20 +4520,22 @@ in {
 #+END_SRC
 ** TODO VirtualBox & more images
 ** LICENSE
-    Copyright (C) 2018 Matthew Bauer
+   License text (bug #1)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+   Copyright (C) 2018 Matthew Bauer
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   This program is free software: you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation, either version 3 of the License, or (at your option) any later
+   version.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
 * COMMENT Footer
 # Local Variables:
 # mode: org
