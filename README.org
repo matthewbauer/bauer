@@ -3716,8 +3716,9 @@ we have some options that can be provided...
   { pkgs ? import <nixpkgs> {}
   , ensure ? (f: n: f)
   , small ? pkgs.config.bauer.small or true
-  , ... }:
-  with pkgs; let big = !small;
+  , ... }: with pkgs; let
+  big = !small;
+  allowUnfree = pkgs.config.allowUnfree or false;
 #+END_SRC
 
 By default, you will be building the "small" version which is about 500MB. The
@@ -4048,7 +4049,7 @@ Setup man pages...
     paths = userPackages ++ [posix_man_pages
                              llvmPackages.clang-manpages
                              llvmPackages.llvm-manpages]
-      ++ stdenv.lib.optional (stdenv.isDarwin && big)
+      ++ stdenv.lib.optional (stdenv.isDarwin && big && allowUnfree)
                              "${apple_sdk}/usr"
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
@@ -4115,7 +4116,7 @@ Setup system headers...
   sysheaders = buildEnv {
     name = "headers";
     paths = [ libcxx ]
-      ++ stdenv.lib.optional (stdenv.isDarwin && big)
+      ++ stdenv.lib.optional (stdenv.isDarwin && big && allowUnfree)
                               "${apple_sdk}/usr";
   };
 #+END_SRC
@@ -4126,7 +4127,7 @@ Setup some Apple frameworks.
   apple_sdk = "${darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optionals (stdenv.isDarwin && big)
+    paths = stdenv.lib.optionals (stdenv.isDarwin && big && allowUnfree)
             [ "${apple_sdk}/System/Library/Frameworks"
               "${apple_sdk}/System/Library/PrivateFrameworks" ];
   };
