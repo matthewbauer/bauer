@@ -3275,14 +3275,16 @@ This will setup cacert-file var,
 Set env vars provided by Nix,
 
 #+BEGIN_SRC emacs-lisp
-(set-envs
- `("NIX_PATH"
-   "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs")
- `("NIX_REMOTE" "daemon")
- `("PATH" ,(string-join exec-path ":"))
- `("MANPATH" ,(string-join man-path ":"))
- `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
- )
+  (set-envs
+   `("NIX_PATH"
+     ,(string-join
+       `("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
+	 ,(getenv "NIX_PATH")) ":"))
+   `("NIX_REMOTE" "daemon")
+   `("PATH" ,(string-join exec-path ":"))
+   `("MANPATH" ,(string-join man-path ":"))
+   `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
+   )
 #+END_SRC
 
 Set paths provided by Nix,
