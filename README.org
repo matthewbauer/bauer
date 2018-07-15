@@ -1394,13 +1394,13 @@ line are available in an intuitive Emacs buffer.
 			 (magit-remote-arguments)))
       (let* ((url (magit-get "remote.origin.url"))
 	     (match (string-match
-		     "^\\(?:https?://github\.com/[^/]*/\\(.*\\)\\|git@github.com:[^/]*/\\(.*\\)\\)"
+		     "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
 		     url)))
 	(unless match
 	  (error "Not a github remote"))
 	(let ((repo (match-string 1 url)))
 	  (apply 'magit-remote-add username
-		 (format "git@github.com:%s/%s"
+		 (format "ssh://git@github.com/%s/%s"
 			 username repo) args))))
     :hook (magit-mode . (lambda ()
 			  (magit-define-popup-action
