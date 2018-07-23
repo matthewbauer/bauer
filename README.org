@@ -101,32 +101,11 @@ configuration without any of the Nix integrations. All of the binaries will have
 to be provided externally. To get started, run the following:
 
 #+BEGIN_SRC shell
-mkdir -p ~/.emacs.d
+mv ~/.emacs.d ~/.emacs.d.old
 git clone https://github.com/matthewbauer/bauer \
-          ~/.emacs.d/bauer
+          ~/.emacs.d
 #+END_SRC
 
-Then, add the following to [[~/.emacs.d/init.el][your Emacs init file]]:
-
-#+BEGIN_SRC emacs-lisp :tangle init.el
-(load
-  (expand-file-name "settings.el" user-emacs-directory) t)
-(package-initialize)
-(defvar bauer-dir
-        (expand-file-name ".nixpkgs" (getenv "HOME")))
-(defvar bauer-org
-        (expand-file-name "README.org" bauer-dir))
-(add-to-list 'load-path
-             (expand-file-name "site-lisp" bauer-dir))
-(unless (file-exists-p
-          (expand-file-name "README.el" bauer-dir))
-  (let ((default-directory bauer-dir))
-    (autoload 'org-babel-tangle-file "ob-tangle")
-    (org-babel-tangle-file bauer-org
-                          "README.el"
-                          "emacs-lisp")))
-(load (expand-file-name "README.el" bauer-dir) t)
-#+END_SRC
 * Emacs init file
 :PROPERTIES:
 :header-args: :tangle yes :comments link
@@ -903,6 +882,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 	    inferior-lisp-mode
 	    isp-interaction-mode
 	    slime-repl-mode) . aggressive-indent-mode))
+  (use-package ripgrep :commands ripgrep)
 #+END_SRC
 
 **** Apropospriate Theme
@@ -1106,7 +1086,9 @@ info.
     (defvar projector-completion-system)
     (setq projectile-completion-system 'ivy
 	  magit-completing-read-function 'ivy-completing-read)
-    :commands (ivy-completing-read ivy-completion-in-region))
+    :commands (ivy-completing-read
+               ivy-completion-in-region
+               swiper))
 #+END_SRC
 **** diff-hl
 :PROPERTIES:
@@ -2713,7 +2695,7 @@ Auctex provides some helpful tools for working with LaTeX.
 	   ("\\.html?\\'" . web-mode)
 	   ("\\.php\\'" . web-mode)
 	   ("\\.jsp\\'" . web-mode)
-	   ("\\.jsx?$" . web-mode)
+	   ;; ("\\.jsx?$" . web-mode)
 	   ("\\.es6\\'" . web-mode)
 	   ("\\.ejs\\'" . web-mode)
 	   ("\\.phtml\\'" . web-mode)
@@ -3245,7 +3227,8 @@ Setup =exec-path=.
 #+BEGIN_SRC emacs-lisp
 (setq exec-path
       (append `("@bins@/bin"
-                ,(expand-file-name "bin" output-directory))
+                ,(expand-file-name "bin" output-directory)
+		"@PATH@")
               exec-path))
 #+END_SRC
 
@@ -3253,7 +3236,8 @@ Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
 (defvar man-path `("@manpages@/share/man"
-                   ,(expand-file-name "share/man" output-directory)))
+                   ,(expand-file-name "share/man" output-directory)
+		   "@MANPATH@"))
 #+END_SRC
 
 This will setup cacert-file var,
@@ -3645,10 +3629,10 @@ Cross-platform script to execute app.
 #+BEGIN_SRC shell :padline no
 case $(uname) in
     Darwin)
-	open @out@/Applications/Emacs.app
+	open @emacs@/Applications/Emacs.app
     ;;
     *)
-	@out@/bin/emacs
+	@emacs@/bin/emacs
     ;;
 esac
 #+END_SRC
@@ -3827,6 +3811,8 @@ substitution of all the attributes set.
       # intero = haskellPackages.intero-nix-shim;
       # irony = irony-server;
       # jdeeserver = jdee-server;
+
+      inherit MANPATH PATH;
     })) "substituteAll ${./site-paths.el.in} $out";
 #+END_SRC
 
@@ -4068,7 +4054,7 @@ Setup XDG data directory..
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
-    paths = userPackages ++ [ myEmacs zsh ];
+    paths = userPackages ++ [ customEmacsPackages.emacs zsh ];
     pathsToLink = [
       "/share/applications"
       "/share/mime"
@@ -4217,12 +4203,12 @@ user has the most direct access to.
                   "" ];
 
   PATH = lib.concatStringsSep ":" [
-           (lib.makeBinPath ([ bins myEmacs zsh ]
+           (lib.makeBinPath ([ bins customEmacsPackages.emacs zsh ]
                              ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
   MANPATH = lib.makeSearchPathOutput "man" "share/man"
-    ([ manpages myEmacs zsh ] ++ global-dirs);
+    ([ manpages customEmacsPackages.emacs zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
     ([ xdg-data ] ++ global-dirs);
@@ -4249,7 +4235,8 @@ in buildEnv {
     ln -s $out/etc/.zshrc $out/etc/zshrc
     wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
     substituteAll ${./etc-profile.sh} $out/etc/profile
-    substituteAll ${./runemacs.sh} $out/bin/run
+    substitute ${./runemacs.sh} $out/bin/run \
+      --subst-var-by emacs ${myEmacs}
     chmod +x $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
   '';
@@ -4425,7 +4412,6 @@ gitignore
 default.el
 profile.sh
 site-paths.el.in
-init.el
 org-init.el
 org-src-*
 configuration.nix
@@ -4448,6 +4434,30 @@ update.sh      linguist-generated=true
 .gitignore     linguist-generated=true
 module.nix     linguist-generated=true
 #+END_SRC
+** =init.el=
+
+You can use this as [[~/.emacs.d/init.el][your Emacs init file]]:
+
+#+BEGIN_SRC emacs-lisp :tangle init.el
+(load
+  (expand-file-name "settings.el" user-emacs-directory) t)
+(package-initialize)
+(defvar bauer-dir
+        (expand-file-name ".emacs.d" (getenv "HOME")))
+(defvar bauer-org
+        (expand-file-name "README.org" bauer-dir))
+(add-to-list 'load-path
+             (expand-file-name "site-lisp" bauer-dir))
+(unless (file-exists-p
+          (expand-file-name "README.el" bauer-dir))
+  (let ((default-directory bauer-dir))
+    (autoload 'org-babel-tangle-file "ob-tangle")
+    (org-babel-tangle-file bauer-org
+                          "README.el"
+                          "emacs-lisp")))
+(load (expand-file-name "README.el" bauer-dir) t)
+#+END_SRC
+
 ** NixOS module
 
 I’ve provided a module suitable for use with a NixOS configuration. To use it,
