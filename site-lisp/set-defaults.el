@@ -69,10 +69,16 @@ ARGS are a list in the form of (SYMBOL VALUE)."
       (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
         (funcall set symbol (eval value))))))
 
+(defun append-envs (sep &rest env)
+  "Append environment variables with SEP from ENV alist."
+  (dolist (x env)
+    (setenv (car x) (string-join (cons (getenv (car x))
+				       (cadr x)) sep))))
+
 (defun set-envs (&rest env)
   "Set environment variables from ENV alist."
   (dolist (x env)
-    (setenv (car x) (car (cdr x)))))
+    (setenv (car x) (cadr x))))
 
 (defun set-paths (&rest args)
   "Set paths from ARGS as default values.
