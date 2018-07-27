@@ -770,7 +770,6 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c m r" . eval-region)
 
    ("C-x r q"        . save-buffers-kill-terminal)
-   ("C-x C-c"        . delete-frame)
    ("C-c C-<return>" . delete-blank-lines)
    ("C-<f10>"        . menu-bar-mode)
    ("C-x M-g"        . browse-url-at-point)
@@ -1979,6 +1978,8 @@ setup.
 	   (prog-mode . flyspell-prog-mode))
     :bind (:map flyspell-mode-map
 		("C-M-i" . nil)))
+  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
 #+END_SRC
 
 **** goto-addr
