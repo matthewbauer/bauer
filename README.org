@@ -304,7 +304,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-query-display 'buffer)
    '(erc-rename-buffers t)
    '(erc-track-exclude-server-buffer t)
-   '(erc-track-exclude-types (quote ("JOIN" "NICK" "PART" "QUIT" "MODE" "333" "353")))
+   '(erc-track-exclude-types '("JOIN" "NICK" "PART"
+			       "QUIT" "MODE" "333" "353"))
    '(erc-track-remove-disconnected-buffers t)
    '(erc-track-position-in-mode-line t)
    '(erc-timestamp-format "%H:%M ")
@@ -316,9 +317,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 				      eshell-watch-for-password-prompt
 				      eshell-truncate-buffer))
    '(eshell-scroll-show-maximum-output nil)
-   '(eshell-visual-commands '("vi" "screen" "top" "less" "more"
-			      "lynx" "ncftp" "pine" "tin" "trn"
-			      "elm" "nix" "ssh" "ob"))
+   '(eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"))
+   '(eshell-visual-options nil)
+   '(eshell-visual-subcommands '(("nix" "build" "run" "repl") ("vagrant" "ssh")))
    '(eshell-banner-message "")
    '(eshell-cmpl-autolist t)
    '(eshell-cmpl-cycle-completions nil)
@@ -326,7 +330,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-cmpl-ignore-case t)
    '(eshell-cp-overwrite-files nil)
    '(eshell-default-target-is-dot t)
-   '(eshell-destroy-buffer-when-process-dies nil)
+   '(eshell-destroy-buffer-when-process-dies t)
    '(eshell-hist-ignoredups t)
    '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
@@ -379,7 +383,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 	 "%b")))
    '(gnuplot-inline-image-mode 'dedicated)
    '(haskell-interactive-mode-scroll-to-bottom t)
-   '(haskell-process-type (quote ghci))
+   '(haskell-process-type 'ghci)
    '(haskell-process-load-or-reload-prompt t)
    '(haskell-process-suggest-haskell-docs-imports t)
    '(haskell-process-suggest-hoogle-imports t)
@@ -454,8 +458,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(org-confirm-babel-evaluate nil)
    '(org-edit-src-turn-on-auto-save t)
    '(org-export-with-toc nil)
-   '(org-html-htmlize-output-type (quote css))
-   '(org-latex-listings (quote minted))
+   '(org-html-htmlize-output-type 'css)
+   '(org-latex-listings 'minted)
    '(org-log-done 'time)
    '(org-special-ctrl-a/e t)
    '(org-support-shift-select t)
@@ -2519,6 +2523,9 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
   (use-package nix-mode
     :mode "\\.nix\\'")
+  (use-package nix-drv-mode
+    :ensure nil
+    :mode "\\.drv\\'")
   (use-package nix-shell
     :ensure nil
     :commands (nix-shell nix-unpack))
@@ -3060,9 +3067,6 @@ setopt always_to_end \
        auto_name_dirs \
        auto_pushd \
        cdablevarS \
-       complete_in_word \
-       correct \
-       correctall \
        extended_glob \
        hist_expire_dups_first \
        hist_find_no_dups \
@@ -4183,12 +4187,12 @@ Full list of packages that will be made available.
     myTex rEnv perl python lua coq ocaml
     openjdk nodejs gcc gdb
 
-    travis
+    travis v8
 
     # Disabled
-    # gcal ocrad mailutils dirmngr jwhois inetutils moe
+    # gcal ocrad mailutils dirmngr jwhois moe
   ] ++ (with netbsd; [ getent getconf ]) # games
-    ++ (with nodePackages; [ tern ])
+    ++ (with nodePackages; [ tern heroku node2nix ])
     ++ (with gitAndTools; [ hub ])
     ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
     ++ (with unixtools; [ utillinux nettools procps ])
@@ -4478,7 +4482,7 @@ just add something like the following to your configuration.nix file.
   imports = [
     (builtins.fetchurl "https://matthewbauer.us/bauer/module.nix")
   ];
-  program.bauer.enable = true;
+  programs.bauer.enable = true;
 }
 #+END_SRC
 
