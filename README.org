@@ -4050,10 +4050,11 @@ Setup man pages...
     name = "man-pages";
     ignoreCollisions = (!(config.bauer.small or false));
     paths = userPackages ++ [posix_man_pages
-                             llvmPackages.clang-manpages
-                             llvmPackages.llvm-manpages]
+			     # llvmPackages.clang-manpages
+			     # llvmPackages.llvm-manpages
+			     ]
       ++ stdenv.lib.optional (stdenv.isDarwin && big && allowUnfree)
-                             "${apple_sdk}/usr"
+			     "${apple_sdk}/usr"
       ++ stdenv.lib.optional stdenv.isLinux man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
@@ -4548,5 +4549,6 @@ in {
 # compile-command: "nix-build"
 # fill-column: 80
 # sentence-end-double-space: nil
+# indent-tabs-mode: t
 # tab-width: 8
 # End:
