@@ -924,51 +924,49 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
       (interactive)
       (company-complete-common-or-cycle -1))
     :bind (:map company-mode-map
-           ("C-M-i" . company-complete-common-or-cycle)
-           :map company-active-map
-           ("RET" . company-complete-selection)
-           ([return] . company-complete-selection)
-           ("C-j" . company-complete-selection)
+		("C-M-i" . company-complete-common-or-cycle)
+		:map company-active-map
+		("RET" . company-complete-selection)
+		([return] . company-complete-selection)
+		("C-j" . company-complete-selection)
 
-           ("TAB" . company-complete-common-or-cycle)
-           ("<tab>" . company-complete-common-or-cycle)
-           ("S-TAB" . company-complete-common-or-cycle-backward)
-           ("<backtab>" . company-complete-common-or-cycle-backward)
-           ("C-n" . company-select-next)
-           ("C-p" . company-select-previous)
+		("TAB" . company-complete-common-or-cycle)
+		("<tab>" . company-complete-common-or-cycle)
+		("S-TAB" . company-complete-common-or-cycle-backward)
+		("<backtab>" . company-complete-common-or-cycle-backward)
+		("C-n" . company-select-next)
+		("C-p" . company-select-previous)
 
-           ("C-/" . company-search-candidates)
-           ("C-M-/" . company-filter-candidates)
-           ("C-d" . company-show-doc-buffer)
-           )
+		("C-/" . company-search-candidates)
+		("C-M-/" . company-filter-candidates)
+		("C-d" . company-show-doc-buffer)
+		)
     :hook ((minibuffer-setup . company-mode)
-           (minibuffer-setup .
-            (lambda () (setq-local company-frontends
-                              '(company-preview-if-just-one-frontend))))
-           (after-init . global-company-mode))
+	   (minibuffer-setup .
+			     (lambda () (setq-local company-frontends
+					       '(company-preview-if-just-one-frontend))))
+	   (after-init . global-company-mode)
+	   ((shell-mode sh-mode fish-mode eshell-mode) .
+	    (lambda ()
+	      (setq-local company-backends
+			  '((company-capf
+			     company-files))))))
     :config
     (advice-add 'completion-at-point
-                :override 'company-complete-common-or-cycle)
+		:override 'company-complete-common-or-cycle)
     (global-company-mode))
   (use-package readline-complete
     :disabled
     :commands company-readline
     :hook (shell-mode . (lambda ()
-                          (setq-local company-backends '(company-readline)))))
+			  (setq-local company-backends '(company-readline)))))
   (use-package company-irony
     :commands company-irony
     :hook (irony-mode . (lambda ()
       (setq-local company-backends '(company-irony)))))
   (use-package company-shell
     :commands (company-shell company-fish-shell company-shell-env)
-    :hook ((shell-mode sh-mode fish-mode eshell-mode) .
-           (lambda ()
-             (setq-local company-backends
-                         '((company-shell
-                            company-shell-env
-                            company-fish-shell
-                            company-capf
-                            company-files))))))
+    :disabled)
   (use-package company-restclient
     :commands company-restclient
     :hook (restclient-mode . (lambda ()
@@ -976,8 +974,8 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   (use-package company-anaconda
     :commands company-anaconda
     :hook (anaconda-mode . (lambda ()
-                             (setq-local company-backends '((company-anaconda
-                                                             company-capf))))))
+			     (setq-local company-backends '((company-anaconda
+							     company-capf))))))
   (use-package company-jedi
     :commands company-jedi
     :hook (python-mode . (lambda ()
@@ -992,35 +990,35 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
       (setq-local company-backends '(company-ghc)))))
   (use-package company-auctex
     :commands (company-auctex
-               company-auctext-labels
-               company-auctest-bibs
-               company-auctex-macros
-               company-auctext-symbols
-               company-auctext-environments)
+	       company-auctext-labels
+	       company-auctest-bibs
+	       company-auctex-macros
+	       company-auctext-symbols
+	       company-auctext-environments)
     :hook
     (tex-mode . (lambda ()
-                  (setq-local company-backends '((company-auctex-labels
-                                                  company-auctex-bibs
-                                                  company-auctex-macros
-                                                  company-auctex-environments
-                                                  company-auctex-symbols))))))
+		  (setq-local company-backends '((company-auctex-labels
+						  company-auctex-bibs
+						  company-auctex-macros
+						  company-auctex-environments
+						  company-auctex-symbols))))))
   (use-package company-web
     :preface
     (autoload 'company-web-html "company-web-html")
     (autoload 'company-web-jade "company-web-jade")
     (autoload 'company-web-slim "company-web-slim")
     :hook ((web-mode . (lambda ()
-                         (setq-local company-backends '(company-web-html
-                                                        company-web-jade
-                                                        company-web-slim))))))
+			 (setq-local company-backends '(company-web-html
+							company-web-jade
+							company-web-slim))))))
   (use-package company-math
     :preface
     (autoload 'company-math-symbols-latex "company-math")
     (autoload 'company-latex-commands "company-math")
     :hook
     (TeX-mode . (lambda ()
-                  (setq-local company-backends '((company-math-symbols-latex
-                                                  company-latex-commands))))))
+		  (setq-local company-backends '((company-math-symbols-latex
+						  company-latex-commands))))))
   (use-package company-coq
     :hook (coq-mode . company-coq-mode))
 #+END_SRC
