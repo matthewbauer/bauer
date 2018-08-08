@@ -3795,7 +3795,7 @@ substitution of all the attributes set.
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" ({
       inherit (customEmacsPackages) emacs;
-      inherit ripgrep ag fortune gnutls # nethack
+      inherit ripgrep ag fortune nethack
               coreutils findutils openssh
               bash zsh diffutils man gawk
               gnugrep gnused cacert
@@ -3803,17 +3803,18 @@ substitution of all the attributes set.
               # Nix paths
               manpages sysheaders sysframeworks
               schemas bins infopages;
-      gpg = gnupg1compat;
-      aspell = myAspell;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
+      gpg = gnupg1compat;
+      aspell = myAspell;
       inherit ant perl perlcritic
         asciidoc lessc lua gcc
         pandoc clang cmake ghostscript
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive notmuch gnuplot
-        gdb coq rtags git # mariadb go golint
+        gdb coq rtags # mariadb go golint
+        git gnutls
         ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
@@ -4165,8 +4166,6 @@ Full list of packages that will be made available.
   # git = gitMinimal.override { perlSupport = true; pythonSupport = false; };
   git = gitMinimal;
   userPackages = [
-    myAspell
-
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
     gzip bzip2 gnumake bash patch xz
@@ -4174,13 +4173,15 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    git gnuplot gnupg tree cvs subversion
+    gnuplot tree cvs subversion # git gnupg
 
     # Nix tools
     nix nix-index nix-zsh-completions
 
     watchman
   ] ++ lib.optionals big ([
+    myAspell
+
     # Useful tools
     isync notmuch graphviz indent
     graphviz imagemagick
