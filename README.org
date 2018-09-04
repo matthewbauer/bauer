@@ -1489,8 +1489,8 @@ outliner but also much much more.
     (use-package ox-md
       :ensure nil
       :demand))
-  (use-package org-download
-    :hook (dired-mode . org-download-enable))
+    (use-package org-download
+      :hook (dired-mode . org-download-enable))
 #+END_SRC
 **** Projectile
 
@@ -2979,7 +2979,7 @@ Here we setup =.profile=. First, setup exports.
 #+BEGIN_SRC shell :padline no
   export LANG=en_US.UTF-8 \
          LC_ALL=en_US.UTF-8 \
-         PATH=@PATH@:$PREFIX/bin
+         PATH=$PREFIX/bin:@PATH@
          INFOPATH=@INFOPATH@ \
          MANPATH=@MANPATH@ \
          XDG_DATA_DIRS=@XDG_DATA_DIRS@ \
@@ -3799,7 +3799,7 @@ substitution of all the attributes set.
       inherit ripgrep ag fortune nethack
               coreutils findutils openssh
               bash zsh diffutils man gawk
-              gnugrep gnused cacert
+              gnugrep gnused cacert git
 
               # Nix paths
               manpages sysheaders sysframeworks
@@ -3815,7 +3815,7 @@ substitution of all the attributes set.
         parallel unixODBC ncompress
         texinfoInteractive notmuch gnuplot
         gdb coq rtags # mariadb go golint
-        git gnutls
+        gnutls
         ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
@@ -3948,9 +3948,8 @@ emacs --batch --quick \
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
    runCommand "emacs-packages-deps"
-   { inherit explicitRequires;
-     inherit (xorg) lndir;
-     inherit (customEmacsPackages) emacs; } ''
+   { nativeBuildInputs = [ xorg.lndir customEmacsPackages.emacs];
+     inherit explicitRequires; } ''
   findInputsOld() {
       local pkg="$1"; shift
       local var="$1"; shift
@@ -3987,7 +3986,7 @@ emacs --batch --quick \
     local origin_path=$2
     local dest_path=$3
     if [[ -d "$pkg/$origin_path" ]]; then
-      $lndir/bin/lndir -silent "$pkg/$origin_path" \
+      lndir -silent "$pkg/$origin_path" \
                                "$out/$dest_path"
     fi
   }
@@ -3999,9 +3998,8 @@ emacs --batch --quick \
   for pkg in "''${requires[@]}"; do
     linkEmacsPackage $pkg
   done
-  $emacs/bin/emacs --batch \
-                   -f batch-byte-compile \
-                   "$siteStart"
+  emacs --batch -f batch-byte-compile \
+                "$siteStart"
   '';
 #+END_SRC
 
@@ -4036,14 +4034,14 @@ First build the info pages...
 #+BEGIN_SRC nix
   infopages = buildEnv {
     name = "info-pages";
+    buildInputs = [ texinfoInteractive ];
     paths = userPackages ++ [customEmacsPackages.emacs];
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
     pathsToLink = [ "/share/info" ];
     postBuild = ''
       shopt -s nullglob
       for i in $out/share/info/*; do
-        ${texinfoInteractive}/bin/install-info \
-               $i $out/share/info/dir
+        install-info $i $out/share/info/dir
       done
     '';
   };
@@ -4072,6 +4070,7 @@ Setup XDG data directory..
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
+    buildInputs = [ desktop-file-utils shared-mime-info ];
     paths = userPackages ++ [ customEmacsPackages.emacs zsh ];
     pathsToLink = [
       "/share/applications"
@@ -4083,14 +4082,12 @@ Setup XDG data directory..
       export XDG_DATA_DIRS=$out/share
 
       if [ -w $out/share/applications ]; then
-        ${desktop-file-utils}/bin/update-desktop-database \
-                                  $out/share/applications
+        update-desktop-database $out/share/applications
       fi
 
       if [ -w $out/share/mime ] \
          && [ -w $out/share/mime/packages ]; then
-        ${shared-mime-info}/bin/update-mime-database \
-                                -V $out/share/mime
+        update-mime-database -V $out/share/mime
       fi
     '';
   };
@@ -4174,7 +4171,7 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    gnuplot tree cvs subversion # git gnupg
+    gnuplot tree cvs subversion git # gnupg
 
     # Nix tools
     nix nix-index nix-zsh-completions
