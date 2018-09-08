@@ -1,7 +1,8 @@
 # -*- mode: nix; coding: utf-8; -*-
 { version ? "18.09"
-, channel ? { "x86_64-darwin" = "nixpkgs-${version}-darwin";
-            }.${builtins.currentSystem} or "nixos-${version}"
+, channel ? {
+    "x86_64-darwin" = "nixpkgs-${version}-darwin";
+  }.${builtins.currentSystem} or "nixos-${version}"
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {}

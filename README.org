@@ -4347,11 +4347,18 @@ os:
 Setup some values for =NIXPKGS= variables.
 
 #+BEGIN_SRC yaml
-env:
-  - CHANNEL=nixos-unstable
-  - CHANNEL=nixpkgs-unstable
-  - CHANNEL=nixos-18.09
-  - CHANNEL=nixpkgs-18.09-darwin
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      env: CHANNEL=nixos-unstable
+    - os: linux
+      dist: trusty
+      env: CHANNEL=nixos-18.09
+    - os: osx
+      env: CHANNEL=nixpkgs-unstable
+    - os: osx
+      env: CHANNEL=nixpkgs-18.09-darwin
 #+END_SRC
 
 Setup the cache.
