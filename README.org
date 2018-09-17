@@ -3807,6 +3807,8 @@ substitution of all the attributes set.
               # Nix paths
               manpages sysheaders sysframeworks
               schemas bins infopages;
+
+      inherit MANPATH PATH;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       gpg = gnupg1compat;
@@ -3831,8 +3833,6 @@ substitution of all the attributes set.
       # intero = haskellPackages.intero-nix-shim;
       # irony = irony-server;
       # jdeeserver = jdee-server;
-
-      inherit MANPATH PATH;
     })) "substituteAll ${./site-paths.el.in} $out";
 #+END_SRC
 
