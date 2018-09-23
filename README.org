@@ -2980,9 +2980,9 @@ Here we setup =.profile=. First, setup exports.
 #+BEGIN_SRC shell :padline no
   export LANG=en_US.UTF-8 \
          LC_ALL=en_US.UTF-8 \
-         PATH=$PREFIX/bin:@PATH@
-         INFOPATH=@INFOPATH@ \
-         MANPATH=@MANPATH@ \
+         PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
+         INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
+         MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
          HISTFILE=$HOME/.history \
@@ -3277,7 +3277,15 @@ Set env vars provided by Nix,
    `("MANPATH" ,man-path))
   (set-envs
    `("NIX_REMOTE" "daemon")
-   `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME"))))
+   `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
+   `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
+				     ,(expand-file-name "share"
+							output-directory))
+				   ":"))
+   `("INFOPATH" ,(string-join `("@INFOPATH@"
+				,(expand-file-name "share/info"
+						   output-directory))
+			      ":")))
 #+END_SRC
 
 Set paths provided by Nix,
@@ -3810,7 +3818,7 @@ substitution of all the attributes set.
               manpages sysheaders sysframeworks
               schemas bins infopages;
 
-      inherit MANPATH PATH;
+      inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       gpg = gnupg1compat;
@@ -3835,7 +3843,14 @@ substitution of all the attributes set.
       # intero = haskellPackages.intero-nix-shim;
       # irony = irony-server;
       # jdeeserver = jdee-server;
-    })) "substituteAll ${./site-paths.el.in} $out";
+    })) ''
+      substituteAll ${./site-paths.el.in} $out
+      substituteInPlace $out \
+        --subst-var-by PATH ${PATH} \
+        --subst-var-by INFOPATH ${INFOPATH} \
+        --subst-var-by MANPATH ${MANPATH} \
+        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+  '';
 #+END_SRC
 
 Emacs building can be divided into phases. Each phase will run through the Elisp
@@ -4213,8 +4228,8 @@ We aim to support all directories in a common system, prioritizing ones that the
 user has the most direct access to.
 
 #+BEGIN_SRC nix
-  global-dirs = [ "~/.nix-profile"
-                  "~/.local"
+  global-dirs = [ # "~/.nix-profile"
+                  # "~/.local"
                   "/nix/var/nix/profiles/default"
                   "/run/wrappers"
                   "/run/current-system/sw"
@@ -4239,7 +4254,7 @@ The actual environment.
 #+BEGIN_SRC nix
 in buildEnv {
   name = "bauer";
-  buildInputs = [ makeWrapper ];
+  buildInputs = [ makeWrapper bash ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
@@ -4258,6 +4273,7 @@ in buildEnv {
     substitute ${./runemacs.sh} $out/bin/run \
       --subst-var-by emacs ${myEmacs}
     chmod +x $out/bin/run
+    patchShebangs $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
   '';
   pathsToLink = [
@@ -4284,6 +4300,7 @@ in buildEnv {
       buildInputs = [makeWrapper];
       emacs = myEmacs;
       inherit fortune cacert;
+      inherit PATH MANPATH XDG_DATA_DIRS INFOPATH;
     } ''
       mkdir -p $out/etc/profile.d
       substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
@@ -4291,8 +4308,7 @@ in buildEnv {
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
-        ${lib.optionalString stdenv.isLinux
-        "--subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}"}
+        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
     '')
   ];
 }
