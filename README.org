@@ -977,6 +977,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 			     (setq-local company-backends '((company-anaconda
 							     company-capf))))))
   (use-package company-jedi
+    :disabled
     :commands company-jedi
     :hook (python-mode . (lambda ()
       (setq-local company-backends '(company-jedi)))))
@@ -2606,6 +2607,7 @@ Auctex provides some helpful tools for working with LaTeX.
 :END:
 #+BEGIN_SRC emacs-lisp
   (use-package jedi
+    :disabled
     :hook ((python-mode . jedi:setup))
     :config
     (setq jedi:complete-on-dot t))
