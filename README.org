@@ -3673,10 +3673,10 @@ esac
 
 Here we being the building process. There are a couple of stages to this not
 normally seen in configurations. The first part is the ‘default.nix’ which will
-tangle the README.org file. This should be the only file that has to live ouside
-of this ORG document. This is meant to be very minimal so that once we tangle
-README.org, we can get a working .nix file to import from using Nix’s import
-from derivation.
+tangle the README.org file. This should be the only file that has to live
+outside of this ORG document. This is meant to be very minimal so that once we
+tangle README.org, we can get a working .nix file to import from using Nix’s
+import from derivation.
 
 The function header defines some arguments you can pass. It will use the latest
 nixpkgs-unstable from nixos.org. If you want to change this, you can pass in
@@ -3687,17 +3687,23 @@ been explicitly listed so we cannot rely on the ‘...’ syntax to pick up rand
 args.
 
 #+BEGIN_SRC nix :padline no
-# -*- mode: nix; coding: utf-8; -*-
-{ version ? "18.09"
-, channel ? {
-    "x86_64-darwin" = "nixpkgs-${version}-darwin";
-  }.${builtins.currentSystem} or "nixos-${version}"
-, nixpkgs-url ?
-  "nixos.org/channels/${channel}/nixexprs.tar.xz"
-, pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
-, small ? false
-, ...
-} @ args:
+  # -*- mode: nix; coding: utf-8; -*-
+  { version ? "18.09"
+  , channel ? {
+      "x86_64-darwin" = "nixpkgs-${version}-darwin";
+    }.${builtins.currentSystem} or "nixos-${version}"
+  , nixpkgs-url ?
+    "nixos.org/channels/${channel}/nixexprs.tar.xz"
+  , system ? builtins.currentSystem
+  , crossSystem ? null
+  , config ? {}
+  , overlays ? []
+  , pkgs ? import (builtins.fetchTarball nixpkgs-url) {
+    inherit crossSystem system config overlays;
+  }
+  , small ? false
+  , ...
+  } @ args:
 #+END_SRC
 
 Now let's tangle README.org... This uses ORG’s babel functionality to generate a
@@ -3734,7 +3740,11 @@ we have some options that can be provided...
 
 #+BEGIN_SRC nix :padline no
   # -*- mode: nix; coding: utf-8; -*-
-  { pkgs ? import <nixpkgs> {}
+  { system ? builtins.currentSystem
+  , crossSystem ? null
+  , config ? {}
+  , overlays ? []
+  , pkgs ? import <nixpkgs> { inherit crossSystem system config overlays; }
   , ensure ? (f: n: f)
   , small ? pkgs.config.bauer.small or true
   , ... }: with pkgs; let

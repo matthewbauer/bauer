@@ -5,7 +5,13 @@
   }.${builtins.currentSystem} or "nixos-${version}"
 , nixpkgs-url ?
   "nixos.org/channels/${channel}/nixexprs.tar.xz"
-, pkgs ? import (builtins.fetchTarball nixpkgs-url) {}
+, system ? builtins.currentSystem
+, crossSystem ? null
+, config ? {}
+, overlays ? []
+, pkgs ? import (builtins.fetchTarball nixpkgs-url) {
+  inherit crossSystem system config overlays;
+}
 , small ? false
 , ...
 } @ args:
