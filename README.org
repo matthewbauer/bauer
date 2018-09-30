@@ -844,6 +844,20 @@ with how Emacs key binding works, you should read through [[https://www.masterin
   (unless window-system
     (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
     (global-set-key (kbd "<mouse-5>") 'scroll-up-line))
+
+  (when (eq window-system 'mac)
+    (defun mac-fullscreen ()
+      (interactive)
+      (let ((fullscreen (frame-parameter nil 'fullscreen)))
+	(if (memq fullscreen '(fullscreen fullboth))
+	    (let ((fullscreen-restore (frame-parameter nil 'fullscreen-restore)))
+	      (if (memq fullscreen-restore '(maximized fullheight fullwidth))
+		  (set-frame-parameter nil 'fullscreen fullscreen-restore)
+		(set-frame-parameter nil 'fullscreen nil)))
+	  (modify-frame-parameters
+	   nil `((fullscreen . fullscreen) (fullscreen-restore . ,fullscreen))))))
+
+    (bind-key "C-x 5 4" 'mac-fullscreen))
 #+END_SRC
 
 ** Setup installer
