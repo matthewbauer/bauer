@@ -928,12 +928,12 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 
 #+BEGIN_SRC emacs-lisp
-  (load "company-autoloads" t t)
   (use-package company
     :commands global-company-mode
     :delight
     :demand
     :preface
+    (load "company-autoloads" t t)
     (defun company-complete-common-or-cycle-backward ()
       "Complete common prefix or cycle backward."
       (interactive)
@@ -2372,8 +2372,9 @@ Note: this needs ghc-mod to be in PATH to work properly.
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
-  (load "haskell-mode-autoloads" t t)
   (use-package haskell
+    :preface
+    (load "haskell-mode-autoloads" t t)
     :ensure haskell-mode
     :mode (("\\.hs\\'" . haskell-mode)
 	   ("\\.cabal\\'" . haskell-cabal-mode))
