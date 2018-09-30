@@ -3182,13 +3182,11 @@ export PREFIX=@out@
 This will source everything in =/etc/profile.d=.
 
 #+BEGIN_SRC shell
-if [ -d @out@/etc/profile.d ]; then
-  for i in @out@/etc/profile.d/*.sh; do
-    if [ -r $i ]; then
-      source $i
-    fi
-  done
-fi
+for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
+  if [ -r $i ]; then
+    source $i
+  fi
+done
 #+END_SRC
 ** =.gitignore=
 :PROPERTIES:
@@ -3747,7 +3745,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
   '' + ''
     emacs --batch --quick \
 	  -l ob-tangle \
-    --eval "(org-babel-tangle-file \"README.org\")"
+	  --eval "(org-babel-tangle-file \"README.org\")"
     cp bauer.nix default.nix
   '')) (args // { inherit ensure pkgs; })
 #+END_SRC
