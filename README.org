@@ -3998,7 +3998,7 @@ emacs --batch --quick \
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
    runCommand "emacs-packages-deps"
-   { nativeBuildInputs = [ xorg.lndir customEmacsPackages.emacs];
+   { nativeBuildInputs = [ xorg.lndir emacs ];
      inherit explicitRequires; } ''
   findInputsOld() {
       local pkg="$1"; shift
