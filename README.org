@@ -1484,14 +1484,13 @@ outliner but also much much more.
     :ensure org-plus-contrib
     :hook ((message-mode . turn-on-orgstruct++)
 	   (org-mode . (lambda ()
-             (add-hook 'completion-at-point-functions
-	               'pcomplete-completions-at-point
-                       nil t)))
+             (add-to-list 'completion-at-point-functions
+	                  'pcomplete-completions-at-point)))
 	   (org-mode . auto-fill-mode)
 	   (org-mode . (lambda () (setq-local scroll-margin 3)))
 	   (message-mode . turn-on-orgtbl)
 	   (org-mode . (lambda ()
-	     (autoload 'org-eldoc-documentation-function "esh-help")
+	     (autoload 'org-eldoc-documentation-function "org-eldoc")
 	     (setq-local eldoc-documentation-function
 	                 'org-eldoc-documentation-function))))
     :bind* (("C-c c" . org-capture)
