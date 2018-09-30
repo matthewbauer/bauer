@@ -1147,101 +1147,108 @@ This mode will try to
 Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package eshell
+  (use-package em-rebind
     :ensure nil
-    :bind (("C-c M-t" . eshell)
-           ("C-c x" . eshell)
-           ("C-c e" . eshell))
-    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . eshell-initialize))
-    :preface
-(defvar eshell-isearch-map
-    (let ((map (copy-keymap isearch-mode-map)))
-      (define-key map [(control ?m)] 'eshell-isearch-return)
-      (define-key map [return]       'eshell-isearch-return)
-      (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-      (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-      (define-key map [(control ?g)] 'eshell-isearch-abort)
-      (define-key map [backspace]    'eshell-isearch-delete-char)
-      (define-key map [delete]       'eshell-isearch-delete-char)
-      map)
-    "Keymap used in isearch in Eshell.")
-    (defun eshell-initialize ()
-    (defun eshell-spawn-external-command (beg end)
-      "Parse and expand any history references in current input."
-      (save-excursion
-        (goto-char end)
-        (when (looking-back "&!" beg)
-          (delete-region (match-beginning 0) (match-end 0))
-          (goto-char beg)
-          (insert "spawn "))))
-
-    (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)
-(use-package em-unix
-      :defer t
-      :config
-      (unintern 'eshell/su nil)
-      (unintern 'eshell/sudo nil))
-      )
-    (defun pcomplete/sudo ()
-      (let ((prec (pcomplete-arg 'last -1)))
-    (cond ((string= "sudo" prec)
-      (while (pcomplete-here*
-        (funcall pcomplete-command-completion-function)
-        (pcomplete-arg 'last) t))))))
+    :demand
     :config
-    (use-package em-rebind
-      :ensure nil
-      :demand
-      :config
-      ;; TODO move this back to customize
-      (setq eshell-rebind-keys-alist
-            '(([(control 97)] . eshell-bol)
-              ([home] . eshell-bol)
-              ([(control 100)] . eshell-delchar-or-maybe-eof)
-              ([backspace] . eshell-delete-backward-char)
-              ([delete] . eshell-delete-backward-char)
-              ([(control 119)] . backward-kill-word)
-              ([(control 117)] . eshell-kill-input)
-              ([tab] . completion-at-point)
-              ([(control 101)] . (lambda ()
-                (interactive) (end-of-line)))))
+    ;; TODO: move this back to customize
+    (setq eshell-rebind-keys-alist
+	  '(([(control 97)] . eshell-bol)
+	    ([home] . eshell-bol)
+	    ([(control 100)] . eshell-delchar-or-maybe-eof)
+	    ([backspace] . eshell-delete-backward-char)
+	    ([delete] . eshell-delete-backward-char)
+	    ([(control 119)] . backward-kill-word)
+	    ([(control 117)] . eshell-kill-input)
+	    ([tab] . completion-at-point)
+	    ([(control 101)] . (lambda ()
+				 (interactive) (end-of-line)))))
 
-      ;; TODO move this back to customize
-      (setq eshell-modules-list
-            '(eshell-alias
-              eshell-basic
-              eshell-cmpl
-              eshell-dirs
-              eshell-glob
-              eshell-hist
-              eshell-ls
-              eshell-pred
-              eshell-prompt
-              eshell-rebind
-              eshell-script
-              eshell-term
-              eshell-tramp
-              eshell-unix
-              eshell-xtra))))
+    ;; TODO: move this back to customize
+    (setq eshell-modules-list
+	  '(eshell-alias
+	    eshell-basic
+	    eshell-cmpl
+	    eshell-dirs
+	    eshell-glob
+	    eshell-hist
+	    eshell-ls
+	    eshell-pred
+	    eshell-prompt
+	    eshell-rebind
+	    eshell-script
+	    eshell-term
+	    eshell-tramp
+	    eshell-unix
+	    eshell-xtra
+	    )))
+
+    (use-package eshell
+      :ensure nil
+      :bind (("C-c M-t" . eshell)
+	     ("C-c x" . eshell)
+	     ("C-c e" . eshell))
+      :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
+	     (eshell-first-time-mode-hook . eshell-initialize))
+      :preface
+      (defvar eshell-isearch-map
+	(let ((map (copy-keymap isearch-mode-map)))
+	  (define-key map [(control ?m)] 'eshell-isearch-return)
+	  (define-key map [return]       'eshell-isearch-return)
+	  (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+	  (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+	  (define-key map [(control ?g)] 'eshell-isearch-abort)
+	  (define-key map [backspace]    'eshell-isearch-delete-char)
+	  (define-key map [delete]       'eshell-isearch-delete-char)
+	  map)
+	"Keymap used in isearch in Eshell.")
+      (defun eshell-initialize ()
+	(defun eshell-spawn-external-command (beg end)
+	  "Parse and expand any history references in current input."
+	  (save-excursion
+	    (goto-char end)
+	    (when (looking-back "&!" beg)
+	      (delete-region (match-beginning 0) (match-end 0))
+	      (goto-char beg)
+	      (insert "spawn "))))
+
+	(add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)
+	(use-package em-unix
+	  :disabled
+	  :defer t
+	  :config
+	  (unintern 'eshell/su nil)
+	  (unintern 'eshell/sudo nil)))
+      (defun pcomplete/sudo ()
+	(let ((prec (pcomplete-arg 'last -1)))
+	  (cond ((string= "sudo" prec)
+		 (while (pcomplete-here*
+			 (funcall pcomplete-command-completion-function)
+			 (pcomplete-arg 'last) t)))))))
 #+END_SRC
 
 ***** esh-help
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
-    :hook (eshell-mode .
-      (lambda ()
-	  (autoload 'esh-help-eldoc-command "esh-help")
-	  (setq-local eldoc-documentation-function
-	              'esh-help-eldoc-command))))
+    :preface
+    (autoload 'esh-help-eldoc-command "esh-help")
+    (defun esh-help-turn-on ()
+      (interactive)
+      (setq-local eldoc-documentation-function
+		  'esh-help-eldoc-command)
+      (setq eldoc-documentation-function
+		  'esh-help-eldoc-command)
+      (eldoc-mode 1))
+    :hook (eshell-mode . esh-help-turn-on))
 #+END_SRC
 
 ***** em-dired
 
 #+BEGIN_SRC emacs-lisp
-  (autoload 'em-dired-new "em-dired")
-  (use-package em-dired
+(use-package em-dired
+    :preface
+    (autoload 'em-dired-new "em-dired")
     :ensure nil
     :bind (:package dired
 		    :map dired-mode-map
