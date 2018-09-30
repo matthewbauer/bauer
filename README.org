@@ -2957,13 +2957,14 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package ripgrep :commands ripgrep-regexp)
   (use-package rg :commands rg-dwim)
+  (use-package deadgrep :commands deadgrep)
   (use-package org-static-blog :commands org-static-blog)
   (use-package pcmpl-args)
   (use-package pcmpl-git)
   (use-package pcomplete
     :ensure nil
     :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions))))
+	   (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions))))
     )
 #+END_SRC
 * Profiles
