@@ -69,8 +69,8 @@ ARGS anything else Eshell needs."
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")
-  (setq-local eshell-buffer-name
-              (concat "*eshell<" (expand-file-name default-directory) ">*")))
+  (setq eshell-buffer-name
+        (concat "*eshell<" (expand-file-name default-directory) ">*")))
 
 (defun em-dired-cd (&rest args)
   "Open each directory in a new buffer like dired.

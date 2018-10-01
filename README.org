@@ -211,7 +211,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 
 #+BEGIN_SRC emacs-lisp
   (set-defaults
-   '(completion--capf-misbehave-funs nil)
    '(TeX-auto-save t)
    '(TeX-auto-untabify t)
    '(TeX-electric-escape t)
@@ -694,6 +693,7 @@ when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]].
 
 #+BEGIN_SRC emacs-lisp
+  (require 'files)
   (when (fboundp 'ns-drag-n-drop-as-text)
     (global-set-key [M-s-drag-n-drop]
 		   'ns-drag-n-drop-as-text))
@@ -1036,6 +1036,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 		  (setq-local company-backends '((company-math-symbols-latex
 						  company-latex-commands))))))
   (use-package company-coq
+    :disabled
     :hook (coq-mode . company-coq-mode))
 #+END_SRC
 **** Counsel
@@ -1484,8 +1485,8 @@ outliner but also much much more.
     :ensure org-plus-contrib
     :hook ((message-mode . turn-on-orgstruct++)
 	   (org-mode . (lambda ()
-             (add-to-list 'completion-at-point-functions
-	                  'pcomplete-completions-at-point)))
+             (add-hook 'completion-at-point-functions
+	               'pcomplete-completions-at-point nil t)))
 	   (org-mode . auto-fill-mode)
 	   (org-mode . (lambda () (setq-local scroll-margin 3)))
 	   (message-mode . turn-on-orgtbl)
@@ -2205,6 +2206,7 @@ setup.
 #+BEGIN_SRC emacs-lisp
   (use-package which-func
     :ensure nil
+    :commands which-function-mode
     :demand
     :config (which-function-mode))
 #+END_SRC
@@ -2543,6 +2545,7 @@ Auctex provides some helpful tools for working with LaTeX.
   (use-package nix-mode
     :mode "\\.nix\\'")
   (use-package nix-drv-mode
+    :disabled
     :ensure nil
     :mode "\\.drv\\'")
   (use-package nix-shell
@@ -2567,6 +2570,7 @@ Auctex provides some helpful tools for working with LaTeX.
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
+  :disabled
   :commands nix-update-fetch
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
@@ -2961,11 +2965,18 @@ Most of these are available in MELPA.
   (use-package deadgrep :commands deadgrep)
   (use-package org-static-blog :commands org-static-blog)
   (use-package pcmpl-args)
-  (use-package pcmpl-git)
+  ;; (use-package pcmpl-git)
   (use-package pcomplete
     :ensure nil
+    :commands pcomplete-here
+    :preface
+    (autoload 'pcomplete-comint-setup "pcomplete")
     :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-	   (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions))))
+	   (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+	   (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
+	   (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
+					  'pcomplete-completions-at-point
+					  nil t))))
     )
 #+END_SRC
 * Profiles
@@ -3297,7 +3308,6 @@ Set env vars provided by Nix,
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
-   `("NIX_REMOTE" "daemon")
    `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
    `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
 				     ,(expand-file-name "share"
@@ -3312,7 +3322,7 @@ Set env vars provided by Nix,
 Set paths provided by Nix,
 
 #+BEGIN_SRC emacs-lisp
-  (defvar gnutls "gnutls")
+  (defvar gnutls-program "gnutls")
   (defvar pdf2dsc-command "pdf2dsc")
   (defvar dvips-command "dvips")
   (defvar dvipng-command "dvipng")
@@ -3400,7 +3410,7 @@ Set paths provided by Nix,
    '(tex-shell "@bash@/bin/sh")
    '(xargs-program "@findutils@/bin/xargs")
    '(vc-git-program "@git@/bin/git")
-   '(gnutls "@gnutls@/bin/gnutls-cli")
+   '(gnutls-program "@gnutls@/bin/gnutls-cli")
    '(pdf2dsc-command "@ghostscript@/bin/pdf2dsc")
    '(preview-gs-command "@texlive@/bin/rungs")
    '(TeX-command "@texlive@/bin/tex")
@@ -3438,8 +3448,8 @@ Set some defaults that depend on the path variables below,
 
 #+BEGIN_SRC emacs-lisp
   (set-defaults
-   '(imap-ssl-program `(,(concat gnutls " --tofu -p %p %s")))
-   '(tls-program (concat gnutls " --tofu -p %p %h"))
+   '(imap-ssl-program `(,(concat gnutls-program " --tofu -p %p %s")))
+   '(tls-program (concat gnutls-program " --tofu -p %p %h"))
    '(preview-pdf2dsc-command
      (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
    '(preview-dvips-command
