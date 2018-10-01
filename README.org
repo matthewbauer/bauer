@@ -245,15 +245,14 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(company-require-match nil)
    '(company-selection-wrap-around t)
    '(company-backends '(company-elisp
-			company-css
-			company-nxml
+                        company-css
 			company-cmake
-			(company-capf
+			company-nxml
+                        (company-capf
 			 company-files
 			 company-keywords
 			 company-dabbrev-code)
-			;; company-dabbrev
-			))
+			company-dabbrev))
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
@@ -970,40 +969,47 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (advice-add 'completion-at-point
 		:override 'company-complete-common-or-cycle)
     (global-company-mode))
-  (use-package readline-complete
-    :disabled
-    :commands company-readline
-    :hook (shell-mode . (lambda ()
-			  (setq-local company-backends '(company-readline)))))
+#+END_SRC
+
+***** company-irony
+#+BEGIN_SRC emacs-lisp
   (use-package company-irony
     :commands company-irony
     :hook (irony-mode . (lambda ()
-      (setq-local company-backends '(company-irony)))))
-  (use-package company-shell
-    :commands (company-shell company-fish-shell company-shell-env)
-    :disabled)
+      (setq-local company-backends '(company-irony company-capf)))))
+#+END_SRC
+
+***** company-restclient
+#+BEGIN_SRC emacs-lisp
   (use-package company-restclient
     :commands company-restclient
     :hook (restclient-mode . (lambda ()
-      (setq-local company-backends '(company-restclient)))))
+      (setq-local company-backends '(company-restclient company-capf)))))
+#+END_SRC
+***** company-anaconda
+#+BEGIN_SRC emacs-lisp
   (use-package company-anaconda
     :commands company-anaconda
     :hook (anaconda-mode . (lambda ()
 			     (setq-local company-backends '((company-anaconda
 							     company-capf))))))
-  (use-package company-jedi
-    :disabled
-    :commands company-jedi
-    :hook (python-mode . (lambda ()
-      (setq-local company-backends '(company-jedi)))))
+#+END_SRC
+***** company-tern
+#+BEGIN_SRC emacs-lisp
   (use-package company-tern
     :commands company-tern
     :hook (tern-mode . (lambda ()
-      (setq-local company-backends '(company-tern)))))
+      (setq-local company-backends '(company-tern company-capf)))))
+#+END_SRC
+***** company-ghc
+#+BEGIN_SRC emacs-lisp
   (use-package company-ghc
     :commands company-ghc
     :hook (haskell-mode . (lambda ()
-      (setq-local company-backends '(company-ghc)))))
+      (setq-local company-backends '(company-ghc company-capf)))))
+#+END_SRC
+***** company-auctex
+#+BEGIN_SRC emacs-lisp
   (use-package company-auctex
     :commands (company-auctex
 	       company-auctext-labels
@@ -1017,7 +1023,11 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 						  company-auctex-bibs
 						  company-auctex-macros
 						  company-auctex-environments
-						  company-auctex-symbols))))))
+						  company-auctex-symbols
+						  company-capf))))))
+#+END_SRC
+***** company-web
+#+BEGIN_SRC emacs-lisp
   (use-package company-web
     :preface
     (autoload 'company-web-html "company-web-html")
@@ -1026,7 +1036,11 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :hook ((web-mode . (lambda ()
 			 (setq-local company-backends '(company-web-html
 							company-web-jade
-							company-web-slim))))))
+							company-web-slim
+							company-capf))))))
+#+END_SRC
+***** company-math
+#+BEGIN_SRC emacs-lisp
   (use-package company-math
     :preface
     (autoload 'company-math-symbols-latex "company-math")
@@ -1034,10 +1048,8 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :hook
     (TeX-mode . (lambda ()
 		  (setq-local company-backends '((company-math-symbols-latex
-						  company-latex-commands))))))
-  (use-package company-coq
-    :disabled
-    :hook (coq-mode . company-coq-mode))
+						  company-latex-commands
+						  company-capf))))))
 #+END_SRC
 **** Counsel
 
@@ -1053,7 +1065,7 @@ info.
   (use-package counsel
     :disabled
     :commands (counsel-mode counsel-descbinds
-               counsel-grep-or-swiper)
+	       counsel-grep-or-swiper)
 
     ;; counsel doesn’t work well with windows drives
     ;; see https://github.com/abo-abo/swiper/issues/773
@@ -1062,18 +1074,18 @@ info.
     :bind* (([remap execute-extended-command] . counsel-M-x)
 	    ([remap find-library] . counsel-find-library)
 	    ([remap describe-bindings]	.
-             counsel-descbinds)
+	     counsel-descbinds)
 	    ([remap describe-face]  .
-             counsel-describe-faces)
+	     counsel-describe-faces)
 	    ([remap list-faces-display] . counsel-faces)
 	    ([remap imenu] . counsel-imenu)
 	    ([remap load-library] . counsel-load-library)
 	    ([remap load-theme] . counsel-load-theme)
 	    ([remap yank-pop] . counsel-yank-pop)
 	    ([remap info-lookup-symbol] .
-             counsel-info-lookup-symbol)
+	     counsel-info-lookup-symbol)
 	    ([remap pop-to-mark-command] .
-             counsel-mark-ring)
+	     counsel-mark-ring)
 	    ([remap bookmark-jump] . counsel-bookmark)
 	    ("C-c j" . counsel-git-grep)
 	    ("C-x l" . counsel-locate)
@@ -1148,6 +1160,41 @@ This mode will try to
 Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
+  (use-package eshell
+    :ensure nil
+    :bind (("C-c M-t" . eshell)
+	   ("C-c x" . eshell)
+	   ("C-c e" . eshell))
+    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
+	   (eshell-first-time-mode-hook . eshell-initialize))
+    :preface
+    (defvar eshell-isearch-map
+      (let ((map (copy-keymap isearch-mode-map)))
+	(define-key map [(control ?m)] 'eshell-isearch-return)
+	(define-key map [return]       'eshell-isearch-return)
+	(define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+	(define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+	(define-key map [(control ?g)] 'eshell-isearch-abort)
+	(define-key map [backspace]    'eshell-isearch-delete-char)
+	(define-key map [delete]       'eshell-isearch-delete-char)
+	map)
+      "Keymap used in isearch in Eshell.")
+    (defalias 'eshell/q 'eshell/exit)
+    (defun eshell-initialize ()
+      (defun eshell-spawn-external-command (beg end)
+	"Parse and expand any history references in current input."
+	(save-excursion
+	  (goto-char end)
+	  (when (looking-back "&!" beg)
+	    (delete-region (match-beginning 0) (match-end 0))
+	    (goto-char beg)
+	    (insert "spawn "))))
+
+      (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)))
+#+END_SRC
+
+***** em-rebind
+#+BEGIN_SRC emacs-lisp
   (use-package em-rebind
     :ensure nil
     :demand
@@ -1184,48 +1231,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 	    eshell-xtra
 	    )))
 
-    (use-package eshell
-      :ensure nil
-      :bind (("C-c M-t" . eshell)
-	     ("C-c x" . eshell)
-	     ("C-c e" . eshell))
-      :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-	     (eshell-first-time-mode-hook . eshell-initialize))
-      :preface
-      (defvar eshell-isearch-map
-	(let ((map (copy-keymap isearch-mode-map)))
-	  (define-key map [(control ?m)] 'eshell-isearch-return)
-	  (define-key map [return]       'eshell-isearch-return)
-	  (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-	  (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-	  (define-key map [(control ?g)] 'eshell-isearch-abort)
-	  (define-key map [backspace]    'eshell-isearch-delete-char)
-	  (define-key map [delete]       'eshell-isearch-delete-char)
-	  map)
-	"Keymap used in isearch in Eshell.")
-      (defun eshell-initialize ()
-	(defun eshell-spawn-external-command (beg end)
-	  "Parse and expand any history references in current input."
-	  (save-excursion
-	    (goto-char end)
-	    (when (looking-back "&!" beg)
-	      (delete-region (match-beginning 0) (match-end 0))
-	      (goto-char beg)
-	      (insert "spawn "))))
-
-	(add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)
-	(use-package em-unix
-	  :disabled
-	  :defer t
-	  :config
-	  (unintern 'eshell/su nil)
-	  (unintern 'eshell/sudo nil)))
-      (defun pcomplete/sudo ()
-	(let ((prec (pcomplete-arg 'last -1)))
-	  (cond ((string= "sudo" prec)
-		 (while (pcomplete-here*
-			 (funcall pcomplete-command-completion-function)
-			 (pcomplete-arg 'last) t)))))))
 #+END_SRC
 
 ***** esh-help
@@ -1377,10 +1382,6 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package git-commit
-    :hook ((git-commit-mode . flyspell-mode)
-	   (git-commit-mode . git-commit-save-message)
-	   (git-commit-mode . turn-on-auto-fill)))
   (use-package magit
     :preface
     (autoload 'magit-toplevel "magit")
@@ -1420,6 +1421,13 @@ line are available in an intuitive Emacs buffer.
 	   ("C-o" . magit-dired-other-window)))
 #+END_SRC
 
+***** git-commit
+#+BEGIN_SRC
+  (use-package git-commit
+    :hook ((git-commit-mode . flyspell-mode)
+	   (git-commit-mode . git-commit-save-message)
+	   (git-commit-mode . turn-on-auto-fill)))
+#+END_SRC
 ***** magithub
 :PROPERTIES:
 :header-args: :tangle no
@@ -1699,6 +1707,10 @@ Get color/ansi codes in compilation mode.
 
 **** autorevert
 
+Autorevert mode makes files update when they have changed on disk. Unfortunately
+this can have some issues in cases where Emacs uses the wrong file. Need to
+investigate how to fix this.
+
 #+BEGIN_SRC emacs-lisp
   (use-package autorevert
     :ensure nil
@@ -1708,6 +1720,8 @@ Get color/ansi codes in compilation mode.
 #+END_SRC
 
 **** bug-reference
+
+Provides links to bugs listed in sourvce code.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
@@ -1732,6 +1746,8 @@ Get color/ansi codes in compilation mode.
 #+END_SRC
 
 **** comint
+
+Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
   (use-package comint
@@ -1918,6 +1934,9 @@ setup.
 #+END_SRC
 
 **** eww
+
+eww is enabled so we can open files in non-graphical environments.
+
 #+BEGIN_SRC emacs-lisp
   (use-package eww
     :ensure nil
@@ -1930,6 +1949,8 @@ setup.
     (setq browse-url-browser-function 'eww-browse-url))
 #+END_SRC
 **** executable
+
+Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package executable
@@ -2030,7 +2051,7 @@ setup.
   (use-package paren
     :ensure nil
     :hook ((prog-mode . show-paren-mode)
-	   (prog-mode . (lambda () (show-paren-mode -1)))))
+	   (smartparens-mode . (lambda () (show-paren-mode -1)))))
 #+END_SRC
 
 **** pp
@@ -2118,7 +2139,8 @@ setup.
   (use-package shell
     :ensure nil
     :bind (("C-c C-s" . shell)
-           ("H-s" . shell))
+           ("H-s" . shell)
+	   ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
            (shell-mode . dirtrack-mode)
            (shell-mode . pcomplete-shell-setup)
@@ -2132,18 +2154,18 @@ setup.
 
 **** simple
 #+BEGIN_SRC emacs-lisp
-(use-package simple
-   :ensure nil
-   :demand
-   :commands (column-number-mode auto-fill-mode)
-   :bind
-   (("C-`" . list-processes)
-    :map minibuffer-local-map
-    ("<escape>"	 . abort-recursive-edit)
-    ("M-TAB"	 . previous-complete-history-element)
-    ("<M-S-tab>" . next-complete-history-element))
-   :hook ((text-mode . visual-line-mode))
-   :config (column-number-mode))
+  (use-package simple
+    :ensure nil
+    :demand
+    :commands (column-number-mode auto-fill-mode)
+    :bind
+    (("C-`" . list-processes)
+     :map minibuffer-local-map
+     ("<escape>"	 . abort-recursive-edit)
+     ("M-TAB"	 . previous-complete-history-element)
+     ("<M-S-tab>" . next-complete-history-element))
+    :hook ((text-mode . visual-line-mode))
+    :config (column-number-mode))
 #+END_SRC
 **** subword
 
@@ -2255,7 +2277,10 @@ packages (for completion, syntax checking, etc.)
     :hook (((c++-mode c-mode objc-mode) .
             irony-mode-disable-remote)
            ((c++-mode c-mode objc-mode) . irony-mode)))
-  (use-package irony-cdb
+ #+END_SRC
+
+ #+BEGIN_SRC emacs-lisp
+(use-package irony-cdb
     :ensure nil
     :hook (irony-mode . irony-cdb-autosetup-compile-options))
  #+END_SRC
@@ -2432,11 +2457,13 @@ Note: this needs ghc-mod to be in PATH to work properly.
 	   ("\\.es6\\'" . js2-mode)
 	   ("\\.ejs\\'" . js2-mode))
     :interpreter "node")
+#+END_SRC
+****** js2-imenu-extras
+#+BEGIN_SRC emacs-lisp
   (use-package js2-imenu-extras
     :ensure nil
     :hook (js2-mode . js2-imenu-extras-mode))
 #+END_SRC
-
 ***** tern
 
 #+BEGIN_SRC emacs-lisp
@@ -2464,16 +2491,19 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 Auctex provides some helpful tools for working with LaTeX.
 
+****** tex-site
 #+BEGIN_SRC emacs-lisp
   (use-package tex-site
     :ensure auctex
     :no-require
     :mode ("\\.tex\\'" . TeX-latex-mode))
+#+END_SRC
+****** tex-mode
+#+BEGIN_SRC emacs-lisp
   (use-package tex-mode
     :ensure nil
     :hook (TeX-mode . latex-electric-env-pair-mode))
 #+END_SRC
-
 **** Lisp
 
 #+BEGIN_SRC emacs-lisp
@@ -2491,6 +2521,9 @@ Auctex provides some helpful tools for working with LaTeX.
 #+END_SRC
 
 **** Mach-O
+
+View macho binaries read-only. To view in Hexl-mode raw binaries, run M-x
+macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package macho-mode
@@ -2513,11 +2546,16 @@ Auctex provides some helpful tools for working with LaTeX.
 
 **** git-modes
 
+***** gitattributes
 #+BEGIN_SRC emacs-lisp
   (use-package gitattributes-mode
     :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
 	   ("/info/attributes\\'"   . gitattributes-mode)
 	   ("/git/attributes\\'"    . gitattributes-mode)))
+#+END_SRC
+
+***** gitconfig
+#+BEGIN_SRC emacs-lisp
   (use-package gitconfig-mode
     :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
 	   ("/\\.git/config\\'"     . gitconfig-mode)
@@ -2525,6 +2563,10 @@ Auctex provides some helpful tools for working with LaTeX.
 	   ("/git/config\\'"        . gitconfig-mode)
 	   ("/\\.gitmodules\\'"     . gitconfig-mode)
 	   ("/etc/gitconfig\\'"     . gitconfig-mode)))
+#+END_SRC
+
+***** gitignore
+#+BEGIN_SRC emacs-lisp
   (use-package gitignore-mode
     :mode (("/\\.gitignore\\'"      . gitignore-mode)
 	   ("/info/exclude\\'"      . gitignore-mode)
@@ -2541,18 +2583,25 @@ Auctex provides some helpful tools for working with LaTeX.
 
 **** Nix
 
+***** nix-mode
 #+BEGIN_SRC emacs-lisp
   (use-package nix-mode
     :mode "\\.nix\\'")
-  (use-package nix-drv-mode
-    :disabled
-    :ensure nil
-    :mode "\\.drv\\'")
+#+END_SRC
+
+***** nix-shell
+#+BEGIN_SRC emacs-lisp
   (use-package nix-shell
     :ensure nil
     :commands (nix-shell nix-unpack))
 #+END_SRC
-
+***** nix-drv-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package nix-drv-mode
+    :disabled
+    :ensure nil
+    :mode "\\.drv\\'")
+#+END_SRC
 ***** nix-buffer
 
 #+BEGIN_SRC emacs-lisp
@@ -2575,18 +2624,6 @@ Auctex provides some helpful tools for working with LaTeX.
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mwim
-    :bind (([remap move-beginning-of-line]
-            . mwim-beginning-of-code-or-line)
-           ([remap move-end-of-line]
-            . mwim-end-of-code-or-line)))
-#+END_SRC
-
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -2821,13 +2858,6 @@ Most of these are available in MELPA.
 #+END_SRC
 **** TODO emacs-gif-screencast
 **** TODO epresent
-**** expand-region
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :hook ((prog-mode . dumb-jump-mode)))
-#+END_SRC
-
 **** TODO eyebrowse
 **** git-attr
 :PROPERTIES:
@@ -2957,15 +2987,21 @@ Most of these are available in MELPA.
 (use-package unfill
   :bind ([remap fill-paragraph] . unfill-toggle))
 #+END_SRC
-
-**** misc
+**** deadgrep
 #+BEGIN_SRC emacs-lisp
-  (use-package ripgrep :commands ripgrep-regexp)
-  (use-package rg :commands rg-dwim)
-  (use-package deadgrep :commands deadgrep)
+  ;; (use-package ripgrep :commands ripgrep-regexp)
+  ;; (use-package rg :commands rg-dwim)
+  (use-package deadgrep
+    :commands deadgrep
+    :bind (:map projectile-command-map
+	   ("s g" . deadgrep)))
+#+END_SRC
+**** org-static-blog
+#+BEGIN_SRC emacs-lisp
   (use-package org-static-blog :commands org-static-blog)
-  (use-package pcmpl-args)
-  ;; (use-package pcmpl-git)
+#+END_SRC
+**** pcomplette
+#+BEGIN_SRC emacs-lisp
   (use-package pcomplete
     :ensure nil
     :commands pcomplete-here
@@ -2976,9 +3012,22 @@ Most of these are available in MELPA.
 	   (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
 	   (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
 					  'pcomplete-completions-at-point
-					  nil t))))
-    )
+					  nil t)))))
+  (use-package pcmpl-args)
+  ;; (use-package pcmpl-git)
 #+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line]
+            . mwim-beginning-of-code-or-line)
+           ([remap move-end-of-line]
+            . mwim-end-of-code-or-line)))
+#+END_SRC
+
 * Profiles
 :PROPERTIES:
 :CUSTOM_ID: profiles
@@ -3742,6 +3791,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
 
 #+BEGIN_SRC nix
   let
+  inherit (pkgs) lib;
   ensure = f: n: if builtins.pathExists f then f
 		 else builtins.fetchurl
 		 "https://matthewbauer.us/bauer/${n}";
@@ -3751,7 +3801,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
     install -D ${ensure ./README.org "README.org"} \
 	    $out/README.org
     cd $out
-  '' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
+  '' + lib.optionalString (builtins.pathExists ./site-lisp) ''
     cp -r ${./site-lisp} site-lisp
   '' + ''
     emacs --batch --quick \
@@ -3778,9 +3828,11 @@ we have some options that can be provided...
   , pkgs ? import <nixpkgs> { inherit crossSystem system config overlays; }
   , ensure ? (f: n: f)
   , small ? pkgs.config.bauer.small or true
-  , ... }: with pkgs; let
+  , ... }: let
+  inherit (pkgs) stdenv lib runCommand buildEnv config writeText;
+  inherit (stdenv) hostPlatform;
   big = !small;
-  allowUnfree = pkgs.config.allowUnfree or false;
+  allowUnfree = config.allowUnfree or false;
 #+END_SRC
 
 By default, you will be building the "small" version which is about 500MB. The
@@ -3812,24 +3864,22 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
-  customEmacsPackages = emacsPackagesNg.overrideScope
-    (super: self: {
-      emacs = if stdenv.isDarwin then emacsMacport else emacs;
-    });
+  customEmacsPackages = pkgs.emacsPackagesNgGen
+    (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
 Next, we define aspell with the English language. This is used by Emacs
 ispell.
 
 #+BEGIN_SRC nix
-  myAspell = aspellWithDicts (ps : with ps; [ en ]);
+  myAspell = pkgs.aspellWithDicts (ps : with ps; [ en ]);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
 
 #+BEGIN_SRC nix
-  myTex = texlive.combine {
-    inherit (texlive) xetex setspace
+  myTex = pkgs.texlive.combine {
+    inherit (pkgs.texlive) xetex setspace
       fontspec chktex enumitem xifthen
       ifmtarg filehook wrapfig inconsolata
       upquote minted lastpage collection-basic
@@ -3848,7 +3898,7 @@ Here, we start building up the site-paths.el file. This does a simple
 substitution of all the attributes set.
 
 #+BEGIN_SRC nix
-    site-paths = runCommand "site-paths.el" ({
+    site-paths = runCommand "site-paths.el" (with pkgs; ({
       inherit (customEmacsPackages) emacs;
       inherit ripgrep ag fortune nethack
               coreutils findutils openssh
@@ -3884,7 +3934,7 @@ substitution of all the attributes set.
       # intero = haskellPackages.intero-nix-shim;
       # irony = irony-server;
       # jdeeserver = jdee-server;
-    })) ''
+    }))) ''
       substituteAll ${./site-paths.el.in} $out
       substituteInPlace $out \
         --subst-var-by PATH ${PATH} \
@@ -3940,7 +3990,7 @@ myEmacsPackages = builtins.fromJSON
 
 #+BEGIN_SRC nix
   default = runCommand "default.el" {
-    buildInputs = [customEmacsPackages.emacs];
+    buildInputs = [ pkgs.emacs ];
   } ''
 #+END_SRC
 
@@ -4009,7 +4059,7 @@ emacs --batch --quick \
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
    runCommand "emacs-packages-deps"
-   { nativeBuildInputs = [ xorg.lndir emacs ];
+   { nativeBuildInputs = [ pkgs.xorg.lndir pkgs.emacs ];
      inherit explicitRequires; } ''
   findInputsOld() {
       local pkg="$1"; shift
@@ -4070,8 +4120,8 @@ requiredPackages is a function that takes two arguments.
 requiredPackages = epkgs: map (x:
   if builtins.hasAttr x epkgs
     then builtins.getAttr x epkgs
-  else if builtins.hasAttr x emacsPackages
-    then builtins.getAttr x emacsPackages
+  else if builtins.hasAttr x pkgs.emacsPackages
+    then builtins.getAttr x pkgs.emacsPackages
   else abort "no attribute found for use-package ${x}");
 #+END_SRC
 
@@ -4095,7 +4145,7 @@ First build the info pages...
 #+BEGIN_SRC nix
   infopages = buildEnv {
     name = "info-pages";
-    buildInputs = [ texinfoInteractive ];
+    buildInputs = [ pkgs.texinfoInteractive ];
     paths = userPackages ++ [customEmacsPackages.emacs];
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
     pathsToLink = [ "/share/info" ];
@@ -4114,13 +4164,13 @@ Setup man pages...
   manpages = buildEnv {
     name = "man-pages";
     ignoreCollisions = (!(config.bauer.small or false));
-    paths = userPackages ++ [posix_man_pages
-			     # llvmPackages.clang-manpages
-			     # llvmPackages.llvm-manpages
+    paths = userPackages ++ [pkgs.posix_man_pages
+			     # pkgs.llvmPackages.clang-manpages
+			     # pkgs.llvmPackages.llvm-manpages
 			     ]
-      ++ stdenv.lib.optional (stdenv.isDarwin && big && allowUnfree)
-			     "${apple_sdk}/usr"
-      ++ stdenv.lib.optional stdenv.isLinux man-pages;
+      ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
+		       "${apple_sdk}/usr"
+      ++ lib.optional hostPlatform.isLinux pkgs.man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
@@ -4131,8 +4181,8 @@ Setup XDG data directory..
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
     name = "xdg-data-dirs";
-    buildInputs = [ desktop-file-utils shared-mime-info ];
-    paths = userPackages ++ [ customEmacsPackages.emacs zsh ];
+    buildInputs = [ pkgs.desktop-file-utils pkgs.shared-mime-info ];
+    paths = userPackages ++ [ customEmacsPackages.emacs pkgs.zsh ];
     pathsToLink = [
       "/share/applications"
       "/share/mime"
@@ -4183,19 +4233,19 @@ Setup system headers...
 #+BEGIN_SRC nix
   sysheaders = buildEnv {
     name = "headers";
-    paths = [ libcxx ]
-      ++ stdenv.lib.optional (stdenv.isDarwin && big && allowUnfree)
-                              "${apple_sdk}/usr";
+    paths = [ pkgs.libcxx ]
+      ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
+                      "${apple_sdk}/usr";
   };
 #+END_SRC
 
 Setup some Apple frameworks.
 
 #+BEGIN_SRC nix
-  apple_sdk = "${darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
+  apple_sdk = "${pkgs.darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
   sysframeworks = buildEnv {
     name = "frameworks";
-    paths = stdenv.lib.optionals (stdenv.isDarwin && big && allowUnfree)
+    paths = lib.optionals (hostPlatform.isDarwin && big && allowUnfree)
             [ "${apple_sdk}/System/Library/Frameworks"
               "${apple_sdk}/System/Library/PrivateFrameworks" ];
   };
@@ -4213,7 +4263,7 @@ Setup schemas...
     <documentElement localName="article" typeId="DocBook"/>
     <documentElement localName="book" typeId="DocBook"/>
     <typeId id="DocBook"
-            uri="${docbook5}/xml/rng/docbook/docbookxi.rnc"
+            uri="${pkgs.docbook5}/xml/rng/docbook/docbookxi.rnc"
     />
   </locatingRules>
   '';
@@ -4223,8 +4273,8 @@ Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
   # git = gitMinimal.override { perlSupport = true; pythonSupport = false; };
-  git = gitMinimal;
-  userPackages = [
+  git = pkgs.gitMinimal;
+  userPackages = (with pkgs; [
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
     gzip bzip2 gnumake bash patch xz
@@ -4260,7 +4310,7 @@ Full list of packages that will be made available.
     ++ (with gitAndTools; [ hub ])
     ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
     ++ (with unixtools; [ utillinux nettools procps ])
-  );
+  ));
 #+END_SRC
 
 Setup global environment variables & directories. Most of the global
@@ -4279,12 +4329,12 @@ user has the most direct access to.
                   "" ];
 
   PATH = lib.concatStringsSep ":" [
-           (lib.makeBinPath ([ bins customEmacsPackages.emacs zsh ]
+           (lib.makeBinPath ([ bins customEmacsPackages.emacs pkgs.zsh ]
                              ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
   MANPATH = lib.makeSearchPathOutput "man" "share/man"
-    ([ manpages customEmacsPackages.emacs zsh ] ++ global-dirs);
+    ([ manpages customEmacsPackages.emacs pkgs.zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
     ([ xdg-data ] ++ global-dirs);
@@ -4295,21 +4345,21 @@ The actual environment.
 #+BEGIN_SRC nix
 in buildEnv {
   name = "bauer";
-  buildInputs = [ makeWrapper bash ];
+  buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
 
     # install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
     # substituteInPlace $out/etc/fsmonitor \
-    #   --replace "'watchman -j --no-pretty'" "'${watchman}/bin/watchman -j --no-pretty'"
+    #   --replace "'watchman -j --no-pretty'" "'${pkgs.watchman}/bin/watchman -j --no-pretty'"
     # patchShebangs $out/etc/fsmonitor
 
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
     ln -s $out/etc/.zshrc $out/etc/zshrc
-    wrapProgram $out/bin/zsh --set ZDOTDIR $out/etc
+    makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
     substituteAll ${./etc-profile.sh} $out/etc/profile
     substitute ${./runemacs.sh} $out/bin/run \
       --subst-var-by emacs ${myEmacs}
@@ -4320,7 +4370,7 @@ in buildEnv {
   pathsToLink = [
     "/bin"
     "/etc/profile.d"
-  ] ++ stdenv.lib.optional stdenv.isDarwin "/Applications";
+  ] ++ lib.optional hostPlatform.isDarwin "/Applications";
   meta = with lib; {
     description = "Bauer’s automated unified Emacs realm";
     maintainers = with maintainers; [ matthewbauer ];
@@ -4336,11 +4386,10 @@ in buildEnv {
     XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
   };
   paths = [
-    myEmacs zsh
+    myEmacs
     (runCommand "my-profile" {
-      buildInputs = [makeWrapper];
       emacs = myEmacs;
-      inherit fortune cacert;
+      inherit (pkgs) fortune cacert;
       inherit PATH MANPATH XDG_DATA_DIRS INFOPATH;
     } ''
       mkdir -p $out/etc/profile.d
@@ -4595,7 +4644,7 @@ in {
 #+END_SRC
 ** TODO VirtualBox & more images
 ** LICENSE
-   License text (bug #1)
+   License text
 
    Copyright (C) 2018 Matthew Bauer
 
