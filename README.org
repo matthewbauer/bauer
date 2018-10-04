@@ -4272,8 +4272,6 @@ Setup schemas...
 Full list of packages that will be made available.
 
 #+BEGIN_SRC nix
-  # git = gitMinimal.override { perlSupport = true; pythonSupport = false; };
-  git = pkgs.gitMinimal;
   userPackages = (with pkgs; [
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
@@ -4282,7 +4280,8 @@ Full list of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
-    gnuplot tree cvs subversion git # gnupg
+    gnuplot tree cvs subversion # gnupg
+    (pkgs.git.override { withManual = true; })
 
     # Nix tools
     nix nix-index nix-zsh-completions
@@ -4349,12 +4348,6 @@ in buildEnv {
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./gitconfig} $out/etc/gitconfig
-
-    # install -D -m 655 ${git}/share/git-core/templates/hooks/fsmonitor-watchman.sample $out/etc/fsmonitor
-    # substituteInPlace $out/etc/fsmonitor \
-    #   --replace "'watchman -j --no-pretty'" "'${pkgs.watchman}/bin/watchman -j --no-pretty'"
-    # patchShebangs $out/etc/fsmonitor
-
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
@@ -4547,6 +4540,7 @@ org-init.el
 org-src-*
 configuration.nix
 install
+auto/
 #+END_SRC
 
 ** =.gitattributes=

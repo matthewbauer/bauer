@@ -17,6 +17,7 @@
 } @ args:
 
 let
+inherit (pkgs) lib;
 ensure = f: n: if builtins.pathExists f then f
 	       else builtins.fetchurl
 	       "https://matthewbauer.us/bauer/${n}";
@@ -26,11 +27,11 @@ in import (pkgs.runCommand "README" {
   install -D ${ensure ./README.org "README.org"} \
 	  $out/README.org
   cd $out
-'' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
+'' + lib.optionalString (builtins.pathExists ./site-lisp) ''
   cp -r ${./site-lisp} site-lisp
 '' + ''
   emacs --batch --quick \
 	-l ob-tangle \
-  --eval "(org-babel-tangle-file \"README.org\")"
+	--eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
 '')) (args // { inherit ensure pkgs; })
