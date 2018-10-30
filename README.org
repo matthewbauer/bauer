@@ -10,12 +10,7 @@
 #+options: prop:nil stat:t tags:nil tasks:nil tex:t timestamp:t title:t toc:nil
 #+property: header-args :cache yes :comments link
 #+property: header-args:emacs-lisp :results output silent
-#+latex_header: \usepackage{parskip}
 #+latex_header: \usepackage{inconsolata}
-#+latex_header: \usepackage[utf8]{inputenc}
-#+latex_header: \usepackage{alltt}
-#+latex_header: \usepackage{upquote}
-#+latex_header: \usepackage{listings}
 #+tags: noexport notangle
 #+startup: hideblocks align entitiespretty
 #+export_file_name: index
@@ -249,10 +244,10 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(company-require-match nil)
    '(company-selection-wrap-around t)
    '(company-backends '(company-elisp
-                        company-css
+			company-css
 			company-cmake
 			company-nxml
-                        (company-capf
+			(company-capf
 			 company-files
 			 company-keywords
 			 company-dabbrev-code)
@@ -378,6 +373,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 				 text-mode
 				 org-mode))
    '(flycheck-standard-error-navigation nil)
+   '(flycheck-check-syntax-automatically '(save mode-enabled))
    '(flyspell-highlight-properties nil)
    '(flyspell-issue-welcome-flag nil)
    '(frame-title-format
@@ -461,7 +457,58 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(org-confirm-babel-evaluate nil)
    '(org-export-with-toc nil)
    '(org-html-htmlize-output-type 'css)
-   '(org-latex-listings 'minted)
+   '(org-latex-listings-langs
+     (quote
+      ((emacs-lisp "Lisp")
+       (lisp "Lisp")
+       (clojure "Lisp")
+       (c "C")
+       (cc "C++")
+       (fortran "fortran")
+       (perl "Perl")
+       (cperl "Perl")
+       (python "Python")
+       (ruby "Ruby")
+       (html "HTML")
+       (xml "XML")
+       (tex "TeX")
+       (latex "[LaTeX]TeX")
+       (shell-script "bash")
+       (gnuplot "Gnuplot")
+       (ocaml "Caml")
+       (caml "Caml")
+       (sql "SQL")
+       (sqlite "sql")
+       (makefile "make")
+       (R "r")
+       (nix "{}")
+       (nil "{}")
+       (yaml "{}")
+       (gitattributes "{}")
+       (gitignore "{}")
+       (shell "{}")
+       (gitconfig "{}"))))
+   '(org-latex-default-packages-alist
+     (quote
+     (("utf8" "inputenc" t
+	("pdflatex"))
+       ("T1" "fontenc" t
+	("pdflatex"))
+       ("" "graphicx" t nil)
+       ("" "grffile" t nil)
+       ("" "longtable" nil nil)
+       ("" "wrapfig" nil nil)
+       ("" "rotating" nil nil)
+       ("normalem" "ulem" t nil)
+       ("" "amsmath" t nil)
+       ("" "textcomp" t nil)
+       ("" "amssymb" t nil)
+       ("" "capt-of" nil nil)
+       ("" "hyperref" nil nil)
+       ("" "parskip" nil nil)
+       ("" "alltt" nil nil)
+       ("" "upquote" nil nil)
+       ("" "listings" nil nil))))
    '(org-log-done 'time)
    '(org-special-ctrl-a/e t)
    '(org-support-shift-select t)
@@ -472,7 +519,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(pcomplete-compare-entries-function 'file-newer-than-file-p)
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
-;;   '(projectile-enable-idle-timer 1)
+   ;;   '(projectile-enable-idle-timer 1)
    '(projectile-mode-line
      '(:eval
        (if (and (ignore-errors (projectile-project-p))
@@ -3057,7 +3104,7 @@ bootstrap=$HOME/.nix-profile/etc/profile
 Run fortune,
 
 #+BEGIN_SRC shell
-if [ -z "$FORTUNE" ]; then
+if [ -z "$FORTUNE" ] && [ -x "@fortune@/bin/fortune" ]; then
   @fortune@/bin/fortune
   export FORTUNE=1
 fi
@@ -3908,7 +3955,7 @@ substitution of all the attributes set.
       inherit ripgrep ag fortune nethack
               coreutils findutils openssh
               bash zsh diffutils man gawk
-              gnugrep gnused cacert git
+              gnugrep gnused cacert # git
 
               # Nix paths
               manpages sysheaders sysframeworks
@@ -4286,10 +4333,10 @@ Full list of packages that will be made available.
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep sqlite
     gnuplot tree cvs subversion # gnupg
-    (pkgs.git.override { withManual = true; })
+    # (pkgs.git.override { withManual = true; })
 
     # Nix tools
-    nix nix-index nix-zsh-completions
+    # nix nix-index nix-zsh-completions
 
     watchman
   ] ++ lib.optionals big ([
@@ -4352,7 +4399,7 @@ in buildEnv {
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
-    substituteAll ${./gitconfig} $out/etc/gitconfig
+    # substituteAll ${./gitconfig} $out/etc/gitconfig
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
@@ -4370,7 +4417,7 @@ in buildEnv {
     "/etc/profile.d"
   ] ++ lib.optional hostPlatform.isDarwin "/Applications";
   meta = with lib; {
-    description = "Bauer’s automated unified Emacs realm";
+    description = "Bauer's automated unified Emacs realm";
     maintainers = with maintainers; [ matthewbauer ];
     platforms = platforms.all;
   };
@@ -4387,7 +4434,7 @@ in buildEnv {
     myEmacs
     (runCommand "my-profile" {
       emacs = myEmacs;
-      inherit (pkgs) fortune cacert;
+      inherit (pkgs) cacert; # fortune
       inherit PATH MANPATH XDG_DATA_DIRS INFOPATH;
     } ''
       mkdir -p $out/etc/profile.d
@@ -4643,8 +4690,6 @@ in {
 #+END_SRC
 ** TODO VirtualBox & more images
 ** LICENSE
-   License text
-
    Copyright (C) 2018 Matthew Bauer
 
    This program is free software: you can redistribute it and/or modify it under
