@@ -1596,6 +1596,13 @@ easymenu to make the "Projectile" modeline clickable.
     (projectile-mode))
 #+END_SRC
 
+**** Recentf
+#+BEGIN_SRC emacs-lisp
+  (use-package recentf
+    :disabled
+    :ensure nil
+    :config (recentf-mode 1))
+#+END_SRC
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
@@ -2520,6 +2527,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tern
+    :if (locate-file "tern" exec-path)
     :hook (js2-mode . tern-mode))
 #+END_SRC
 
@@ -3050,7 +3058,7 @@ Most of these are available in MELPA.
 #+END_SRC
 **** org-static-blog
 #+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog :commands org-static-blog)
+  (use-package org-static-blog :commands org-static-blog-publish)
 #+END_SRC
 **** pcomplette
 #+BEGIN_SRC emacs-lisp
@@ -3952,7 +3960,7 @@ substitution of all the attributes set.
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" (with pkgs; ({
       inherit (customEmacsPackages) emacs;
-      inherit ripgrep ag fortune nethack
+      inherit ripgrep ag # fortune # nethack
               coreutils findutils openssh
               bash zsh diffutils man gawk
               gnugrep gnused cacert # git
@@ -4331,14 +4339,12 @@ Full list of packages that will be made available.
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
-    unzip man openssh less calc ag ripgrep sqlite
-    gnuplot tree cvs subversion # gnupg
+    unzip man openssh less calc ag ripgrep # sqlite
+    tree # cvs # gnuplot # subversion # gnupg # watchman
     # (pkgs.git.override { withManual = true; })
 
     # Nix tools
-    # nix nix-index nix-zsh-completions
-
-    watchman
+    nix-zsh-completions # nix # nix-index
   ] ++ lib.optionals big ([
     myAspell
 
