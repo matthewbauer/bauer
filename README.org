@@ -277,6 +277,13 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(custom-safe-themes t)
    '(custom-search-field nil)
    '(dante-methods '(styx new-impure-nix stack mafia bare-cabal bare-ghci))
+   '(dante-repl-command-line-methods-alist
+     '((styx  . ,(lambda (root) (dante-repl-by-file root '("styx.yaml") '("styx" "repl" dante-target))))
+       (nix   . ,(lambda (root) (dante-repl-by-file root '("shell.nix" "default.nix") '("nix-shell" "--run" (concat "cabal new-repl " (or dante-target "") " --builddir=dist/dante")))))
+       (stack . ,(lambda (root) (dante-repl-by-file root '("stack.yaml") '("stack" "repl" dante-target))))
+       (mafia . ,(lambda (root) (dante-repl-by-file root '("mafia") '("mafia" "repl" dante-target))))
+       (new-build . ,(lambda (root) (when (or (directory-files root nil ".+\\.cabal$") (file-exists-p "cabal.project")) '("cabal" "new-repl" dante-target "--builddir=dist/dante"))))
+       (bare  . ,(lambda (_) '("cabal" "new-repl" (dante-target) "--builddir=dist/dante")))))
    '(delete-by-moving-to-trash t)
    '(delete-old-versions t)
    ;; '(dired-auto-revert-buffer t)
