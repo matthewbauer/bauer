@@ -276,14 +276,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                   user-emacs-directory))
    '(custom-safe-themes t)
    '(custom-search-field nil)
-   '(dante-methods '(styx new-impure-nix stack mafia bare-cabal bare-ghci))
-   '(dante-repl-command-line-methods-alist
-     '((styx  . ,(lambda (root) (dante-repl-by-file root '("styx.yaml") '("styx" "repl" dante-target))))
-       (nix   . ,(lambda (root) (dante-repl-by-file root '("shell.nix" "default.nix") '("nix-shell" "--run" (concat "cabal new-repl " (or dante-target "") " --builddir=dist/dante")))))
-       (stack . ,(lambda (root) (dante-repl-by-file root '("stack.yaml") '("stack" "repl" dante-target))))
-       (mafia . ,(lambda (root) (dante-repl-by-file root '("mafia") '("mafia" "repl" dante-target))))
-       (new-build . ,(lambda (root) (when (or (directory-files root nil ".+\\.cabal$") (file-exists-p "cabal.project")) '("cabal" "new-repl" dante-target "--builddir=dist/dante"))))
-       (bare  . ,(lambda (_) '("cabal" "new-repl" (dante-target) "--builddir=dist/dante")))))
+   '(dante-tap-time 2)
    '(delete-by-moving-to-trash t)
    '(delete-old-versions t)
    ;; '(dired-auto-revert-buffer t)
@@ -2499,7 +2492,8 @@ Note: this needs ghc-mod to be in PATH to work properly.
   :ensure t
   :after haskell-mode
   :commands 'dante-mode
-  :hook (haskell-mode . dante-mode)
+  :hook ((haskell-mode . dante-mode)
+         (dante-mode . (lambda () (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))))
   ;; :config (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint))
   )
 #+END_SRC
@@ -4115,6 +4109,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
+  install -D ${ensure ./site-lisp/dante.el
+                      "site-lisp/dante.el"} \
+          $out/share/emacs/site-lisp/dante.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
