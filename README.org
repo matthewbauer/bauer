@@ -276,7 +276,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                   user-emacs-directory))
    '(custom-safe-themes t)
    '(custom-search-field nil)
-   '(dante-tap-time 2)
+   '(dante-tap-type-time 2)
    '(delete-by-moving-to-trash t)
    '(delete-old-versions t)
    ;; '(dired-auto-revert-buffer t)
@@ -1159,7 +1159,7 @@ info.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
-    :demand
+    :commands (ivy-read)
     :bind (([remap list-buffers] . ivy-switch-buffer)
            ([remap switch-to-buffer] . ivy-switch-buffer)
            ([remap switch-to-buffer-other-window] .
