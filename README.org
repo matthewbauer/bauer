@@ -3208,14 +3208,12 @@ case "$TERM" in
         unsetopt zle \
                  prompt_cr \
                  prompt_subst
-        if whence -w precmd >/dev/null; then
-            unfunction precmd
-        fi
-        if whence -w preexec >/dev/null; then
-            unfunction preexec
-        fi
         PS1='$ '
+        PROMPT='$ '
         return
+        ;;
+    eterm*)
+        unsetopt zle
         ;;
 esac
 #+END_SRC
