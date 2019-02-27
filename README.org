@@ -531,7 +531,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                    (projectile-project-name))
          "")))
    '(projectile-switch-project-action 'projectile-dired)
-   '(projectile-require-project-root nil)
+   '(projectile-require-project-root t)
    '(projectile-verbose nil)
    '(proof-auto-action-when-deactivating-scripting 'retract)
    '(proof-autosend-enable nil)
@@ -1798,6 +1798,7 @@ Provides links to bugs listed in sourvce code.
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference-github
     :commands bug-reference-github-set-url-format
+    :disabled
     :preface
     (defun bug-reference-github-projectile ()
       (when (and projectile-mode
