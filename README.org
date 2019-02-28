@@ -1059,6 +1059,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** company-ghc
 #+BEGIN_SRC emacs-lisp
   (use-package company-ghc
+    :disabled
     :commands company-ghc
     :hook (haskell-mode . (lambda ()
       (setq-local company-backends '(company-ghc company-capf)))))
@@ -2457,6 +2458,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghc
+    :disabled 
     :if (locate-file "ghc-mod" exec-path)
     :hook ((haskell-mode . ghc-init)
            (haskell-mode . ghc-comp-init)))
