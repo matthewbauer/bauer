@@ -3177,16 +3177,6 @@ if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
 fi
 #+END_SRC
 
-Define =update_terminal_cwd= function.
-
-#+BEGIN_SRC shell
-update_terminal_cwd () {
-    local SEARCH=' '
-    local REPLACE='%20'
-    local PWD_URL="file://$HOSTNAME${PWD//$SEARCH/$REPLACE}"
-    printf '\e]7;%s\a' "$PWD_URL"
-}
-#+END_SRC
 ** =.zshrc=
 :PROPERTIES:
 :header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
@@ -3299,6 +3289,10 @@ PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
+update_terminal_cwd () {
+    printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
+}
+
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -z "$INSIDE_EMACS" ]; then
     autoload add-zsh-hook
