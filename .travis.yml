@@ -5,14 +5,19 @@ script:
 
 git:
   depth: 1
-sudo: false
-os:
-  - linux
-  - osx
 
-env:
-  - CHANNEL=nixos-unstable
-  - CHANNEL=nixpkgs-unstable
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      env: CHANNEL=nixos-unstable
+    - os: linux
+      dist: trusty
+      env: CHANNEL=nixos-18.09
+    - os: osx
+      env: CHANNEL=nixpkgs-unstable
+    - os: osx
+      env: CHANNEL=nixpkgs-18.09-darwin
 
 cache:
   directories:
