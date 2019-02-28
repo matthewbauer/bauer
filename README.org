@@ -4682,7 +4682,7 @@ just add something like the following to your configuration.nix file.
 The actual module implementation follow here. It will pull in some files needed
 for all of this to work. It should provide ‘bauer’ as a runnable command.
 
-#+BEGIN_SRC nix :tangle no :padline no
+#+BEGIN_SRC nix :tangle module.nix :padline no
 # -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
@@ -4716,9 +4716,33 @@ in {
   };
 }
 #+END_SRC
-** TODO VirtualBox & more images
+** NixOS virtualbox & installer
+#+BEGIN_SRC nix :tangle nixos.nix :padline no
+# -*- mode: nix; coding: utf-8; -*-
+{ system ? builtins.currentSystem }:
+let
+  ensure = f: n: if builtins.pathExists f then f
+                 else builtins.fetchurl
+    "https://matthewbauer.us/bauer/${n}";
+in {
+  ova = (import <nixpkgs/nixos/lib/eval-config.nix> {
+    inherit system;
+    modules = [
+      <nixpkgs/nixos/modules/installer/virtualbox-demo.nix>
+      (ensure ./module.nix "module.nix")
+    ];
+  }).config.system.build.virtualBoxOVA;
+  iso = (import <nixpkgs/nixos/lib/eval-config.nix> {
+    inherit system;
+    modules = [
+      <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical-kde.nix>
+      (ensure ./module.nix "module.nix")
+    ];
+  }).config.system.build.isoImage;
+}
+#+END_SRC
 ** LICENSE
-   Copyright (C) 2018 Matthew Bauer
+   Copyright (C) 2018-2019 Matthew Bauer
 
    This program is free software: you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
