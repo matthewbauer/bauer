@@ -252,6 +252,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                          company-keywords
                          company-dabbrev-code)
                         company-dabbrev))
+   '(comint-input-ring-size 100000)
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
@@ -2204,17 +2205,23 @@ Make scripts executable automatically.
   (use-package shell
     :ensure nil
     :bind (("C-c C-s" . shell)
-           ("H-s" . shell)
-           ("M-@" . shell))
+	   ("H-s" . shell)
+	   ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
-           (shell-mode . dirtrack-mode)
-           (shell-mode . pcomplete-shell-setup)
-           (shell-mode . use-histfile)
-           )
+	   (shell-mode . dirtrack-mode)
+	   (shell-mode . pcomplete-shell-setup)
+	   (shell-mode . use-histfile)
+	   (shell-mode . (lambda ()
+			   (setq comint-input-ring-file-name "~/.zsh_history")
+			   ;; Ignore timestamps in history file.  Assumes that zsh
+			   ;; EXTENDED_HISTORY option is in use.
+			   (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+			   (comint-read-input-ring t)))
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
        (expand-file-name "sh-history" user-emacs-directory))))
+
 #+END_SRC
 
 **** simple
