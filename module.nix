@@ -1,4 +1,5 @@
-# [[file:~/.nixpkgs/README.org::*NixOS%20module][NixOS module:2]]
+# [[file:~/.local/share/bauer/README.org::*NixOS%20module][NixOS module:2]]
+# -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
 let

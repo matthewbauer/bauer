@@ -252,6 +252,7 @@ The format of arguments to =set-defaults= is identical to the one used by
                          company-keywords
                          company-dabbrev-code)
                         company-dabbrev))
+   '(comint-input-ring-size 100000)
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
@@ -573,7 +574,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(tab-always-indent 'complete)
    '(term-input-autoexpand t)
    '(term-input-ignoredups t)
-   '(term-input-ring-file-name t)
    '(text-quoting-style 'quote)
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
@@ -1059,6 +1059,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** company-ghc
 #+BEGIN_SRC emacs-lisp
   (use-package company-ghc
+    :disabled
     :commands company-ghc
     :hook (haskell-mode . (lambda ()
       (setq-local company-backends '(company-ghc company-capf)))))
@@ -1237,8 +1238,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
       "Keymap used in isearch in Eshell.")
     (defalias 'eshell/q 'eshell/exit)
     (defalias 'eshell/\? 'help)
-    (defun eshell-initialize ()
-      (defun eshell-spawn-external-command (beg end)
+    (defun eshell-spawn-external-command (beg end)
         "Parse and expand any history references in current input."
         (save-excursion
           (goto-char end)
@@ -1246,7 +1246,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
             (delete-region (match-beginning 0) (match-end 0))
             (goto-char beg)
             (insert "spawn "))))
-
+    (defun eshell-initialize ()
       (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)))
 #+END_SRC
 
@@ -2203,17 +2203,23 @@ Make scripts executable automatically.
   (use-package shell
     :ensure nil
     :bind (("C-c C-s" . shell)
-           ("H-s" . shell)
-           ("M-@" . shell))
+	   ("H-s" . shell)
+	   ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
-           (shell-mode . dirtrack-mode)
-           (shell-mode . pcomplete-shell-setup)
-           (shell-mode . use-histfile)
-           )
+	   (shell-mode . dirtrack-mode)
+	   (shell-mode . pcomplete-shell-setup)
+	   (shell-mode . use-histfile)
+	   (shell-mode . (lambda ()
+			   (setq comint-input-ring-file-name "~/.zsh_history")
+			   ;; Ignore timestamps in history file.  Assumes that zsh
+			   ;; EXTENDED_HISTORY option is in use.
+			   (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+			   (comint-read-input-ring t))))
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
        (expand-file-name "sh-history" user-emacs-directory))))
+
 #+END_SRC
 
 **** simple
@@ -2457,6 +2463,7 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghc
+    :disabled 
     :if (locate-file "ghc-mod" exec-path)
     :hook ((haskell-mode . ghc-init)
            (haskell-mode . ghc-comp-init)))
@@ -3743,23 +3750,36 @@ Set some defaults that depend on the path variables below,
 
 This is the bootstrap script that is mentioned above. We use it to install the
 IDE. It ensures Nix is installed as well as that the Git repo is available &
-up-to-date.
+up-to-date. Note, this script will automatically install Nix and Git for you if
+they are not already installed! Use it at your own risk.
 
-First we install Nix if it isn’t already.
+Install Nix if it isn’t already.
 
 #+BEGIN_SRC shell
+echo This script will install Nix and Git
+echo if they are not already installed.
+
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
+    source $HOME/.profile
+fi
+#+END_SRC
+
+Check for Git. Install if it’s not there.
+
+#+BEGIN_SRC shell
+if ! command -v git >/dev/null 2>&1; then
+    nix-env -iA nixpkgs.git
 fi
 #+END_SRC
 
 If we are in a Git repo already, we’ll pull to get latest updates.
 
 #+BEGIN_SRC shell
-if [ -d .git ] && command -v git >/dev/null 2>&1; then
+if [ -d .git ]; then
     git pull origin master || true
 fi
 #+END_SRC
@@ -3768,8 +3788,7 @@ If we can’t find default.nix then we’ll clone from GitHub. This will be stor
 =~/.local/share/bauer=. 
 
 #+BEGIN_SRC shell
-if ! [ -f default.nix ] \
-   && command -v git >/dev/null 2>&1; then
+if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
     mkdir -p $(dirname $repo_dir)
     git clone https://github.com/matthewbauer/bauer \
@@ -4716,9 +4735,34 @@ in {
   };
 }
 #+END_SRC
-** TODO VirtualBox & more images
+** NixOS virtualbox & installer
+
+#+BEGIN_SRC nix :tangle no :padline no
+# -*- mode: nix; coding: utf-8; -*-
+{ system ? builtins.currentSystem }:
+let
+  ensure = f: n: if builtins.pathExists f then f
+                 else builtins.fetchurl
+    "https://matthewbauer.us/bauer/${n}";
+in {
+  ova = (import <nixpkgs/nixos/lib/eval-config.nix> {
+    inherit system;
+    modules = [
+      <nixpkgs/nixos/modules/installer/virtualbox-demo.nix>
+      (ensure ./module.nix "module.nix")
+    ];
+  }).config.system.build.virtualBoxOVA;
+  iso = (import <nixpkgs/nixos/lib/eval-config.nix> {
+    inherit system;
+    modules = [
+      <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical-kde.nix>
+      (ensure ./module.nix "module.nix")
+    ];
+  }).config.system.build.isoImage;
+}
+#+END_SRC
 ** LICENSE
-   Copyright (C) 2018 Matthew Bauer
+   Copyright (C) 2018-2019 Matthew Bauer
 
    This program is free software: you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
