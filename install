@@ -1,17 +1,24 @@
 #!/usr/bin/env sh
+echo This script will install Nix and Git
+echo if they are not already installed.
+
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
+    source $HOME/.profile
 fi
 
-if [ -d .git ] && command -v git >/dev/null 2>&1; then
+if ! command -v git >/dev/null 2>&1; then
+    nix-env -iA nixpkgs.git
+fi
+
+if [ -d .git ]; then
     git pull origin master || true
 fi
 
-if ! [ -f default.nix ] \
-   && command -v git >/dev/null 2>&1; then
+if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
     mkdir -p $(dirname $repo_dir)
     git clone https://github.com/matthewbauer/bauer \
