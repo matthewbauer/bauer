@@ -574,7 +574,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(tab-always-indent 'complete)
    '(term-input-autoexpand t)
    '(term-input-ignoredups t)
-   '(term-input-ring-file-name t)
    '(text-quoting-style 'quote)
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
@@ -1239,8 +1238,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
       "Keymap used in isearch in Eshell.")
     (defalias 'eshell/q 'eshell/exit)
     (defalias 'eshell/\? 'help)
-    (defun eshell-initialize ()
-      (defun eshell-spawn-external-command (beg end)
+    (defun eshell-spawn-external-command (beg end)
         "Parse and expand any history references in current input."
         (save-excursion
           (goto-char end)
@@ -1248,7 +1246,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
             (delete-region (match-beginning 0) (match-end 0))
             (goto-char beg)
             (insert "spawn "))))
-
+    (defun eshell-initialize ()
       (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)))
 #+END_SRC
 
