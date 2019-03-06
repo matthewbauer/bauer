@@ -1322,31 +1322,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-**** ESUP
-
-[[https://github.com/jschaf/esup][GitHub]]
-
-emacs-init-time gives good readings for Emacs startup time. Currently my
-emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
-but I aim to never let it go above 5. This is good but it includes some
-things we don’t have control over (window system & Emacs C internals).
-
-ESUP provides good info on what is taking a long time during startup. ESUP is a
-startup profiler for Emacs. I’ve provided "startup-profile" so that you can just
-profile what is in “default.el” (this script) & not any other miscellaneous
-scripts you have around. This will be part of our effort to get quick startup
-times. Slowdowns happen for various reasons but right now autorevert,
-apropospriate, & flycheck are the biggest offenders.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package esup
-    :commands esup
-    :preface
-    (defun startup-profile ()
-      (interactive)
-      (esup (locate-library "default"))))
-#+END_SRC
-
 **** Flycheck
 
 [[http://www.flycheck.org/][Website]]
