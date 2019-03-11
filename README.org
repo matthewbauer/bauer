@@ -2185,17 +2185,17 @@ Make scripts executable automatically.
 	   (shell-mode . dirtrack-mode)
 	   (shell-mode . pcomplete-shell-setup)
 	   (shell-mode . use-histfile)
-	   (shell-mode . (lambda ()
-			   (setq comint-input-ring-file-name "~/.zsh_history")
-			   ;; Ignore timestamps in history file.  Assumes that zsh
-			   ;; EXTENDED_HISTORY option is in use.
-			   (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-			   (comint-read-input-ring t))))
+	   ;; (shell-mode . (lambda ()
+	   ;; 		 (setq comint-input-ring-file-name "~/.zsh_history")
+	   ;; 		 ;; Ignore timestamps in history file.  Assumes that zsh
+	   ;; 		 ;; EXTENDED_HISTORY option is in use.
+	   ;; 		 (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+	   ;; 		 (comint-read-input-ring t)))
+	   )
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
        (expand-file-name "sh-history" user-emacs-directory))))
-
 #+END_SRC
 
 **** simple
