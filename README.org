@@ -652,8 +652,6 @@ set in the Emacs process.
 #+BEGIN_SRC emacs-lisp
   (set-envs
    '("EDITOR" "emacsclient")
-   '("LANG" "en_US.UTF-8")
-   '("LC_ALL" "en_US.UTF-8")
    '("NODE_NO_READLINE" "1")
    '("PAGER" "cat")
    '("PS1" "\\W > ")
@@ -3114,9 +3112,7 @@ fi
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-  export LANG=en_US.UTF-8 \
-         LC_ALL=en_US.UTF-8 \
-         PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
+  export PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
