@@ -271,11 +271,11 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(counsel-find-file-at-point t)
    '(counsel-mode-override-describe-bindings t)
    '(counsel-linux-apps-directories '("~/.nix-profile/share/applications/"
-				      "~/.local/share/applications/"
-				      "/nix/var/nix/profiles/default/share/applications/"
-				      "/run/current-system/sw/share/applications/"
-				      "/usr/local/share/applications/"
-				      "/usr/share/applications/"))
+                                      "~/.local/share/applications/"
+                                      "/nix/var/nix/profiles/default/share/applications/"
+                                      "/run/current-system/sw/share/applications/"
+                                      "/usr/local/share/applications/"
+                                      "/usr/share/applications/"))
    '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
@@ -541,9 +541,9 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(projectile-mode-line-prefix "")
    '(projectile-mode-line-function
      (lambda () (if (and (ignore-errors (projectile-project-p))
-		    (not (file-remote-p default-directory)))
-	       (format " Projectile[%s]" (projectile-project-name))
-	     "")))
+                    (not (file-remote-p default-directory)))
+               (format " Projectile[%s]" (projectile-project-name))
+             "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-require-project-root t)
    '(projectile-verbose nil)
@@ -1404,9 +1404,9 @@ certain Emacs keybinds.
   (use-package helpful
     :if (>= emacs-major-version 25)
     :bind (([remap describe-function] . helpful-callable)
-	   ([remap describe-variable] . helpful-variable)
-	   ([remap describe-key] . helpful-key)
-	   ("H-h" . helpful-at-point)))
+           ([remap describe-variable] . helpful-variable)
+           ([remap describe-key] . helpful-key)
+           ("H-h" . helpful-at-point)))
 #+END_SRC
 
 **** Hippie Expand
@@ -1971,13 +1971,13 @@ Setup these modes:
     :ensure nil
     :if (>= emacs-major-version 25)
     :hook ((prog-mode . electric-quote-local-mode)
-	   (text-mode . electric-quote-local-mode)
-	   (org-mode . electric-quote-local-mode)
-	   (message-mode . electric-quote-local-mode)
-	   (prog-mode . electric-indent-local-mode)
-	   (prog-mode . electric-layout-mode)
-	   (haskell-mode . (lambda () (electric-indent-local-mode -1)))
-	   (nix-mode . (lambda () (electric-indent-local-mode -1)))))
+           (text-mode . electric-quote-local-mode)
+           (org-mode . electric-quote-local-mode)
+           (message-mode . electric-quote-local-mode)
+           (prog-mode . electric-indent-local-mode)
+           (prog-mode . electric-layout-mode)
+           (haskell-mode . (lambda () (electric-indent-local-mode -1)))
+           (nix-mode . (lambda () (electric-indent-local-mode -1)))))
 #+END_SRC
 
 ***** elec-pair
@@ -2202,19 +2202,19 @@ Make scripts executable automatically.
   (use-package shell
     :ensure nil
     :bind (("C-c C-s" . shell)
-	   ("H-s" . shell)
-	   ("M-@" . shell))
+           ("H-s" . shell)
+           ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
-	   (shell-mode . dirtrack-mode)
-	   (shell-mode . pcomplete-shell-setup)
-	   (shell-mode . use-histfile)
-	   ;; (shell-mode . (lambda ()
-	   ;; 		 (setq comint-input-ring-file-name "~/.zsh_history")
-	   ;; 		 ;; Ignore timestamps in history file.  Assumes that zsh
-	   ;; 		 ;; EXTENDED_HISTORY option is in use.
-	   ;; 		 (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-	   ;; 		 (comint-read-input-ring t)))
-	   )
+           (shell-mode . dirtrack-mode)
+           (shell-mode . pcomplete-shell-setup)
+           (shell-mode . use-histfile)
+           ;; (shell-mode . (lambda ()
+           ;;            (setq comint-input-ring-file-name "~/.zsh_history")
+           ;;            ;; Ignore timestamps in history file.  Assumes that zsh
+           ;;            ;; EXTENDED_HISTORY option is in use.
+           ;;            (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+           ;;            (comint-read-input-ring t)))
+           )
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
@@ -4758,6 +4758,6 @@ in {
 # compile-command: "nix-build"
 # fill-column: 80
 # sentence-end-double-space: nil
-# indent-tabs-mode: t
+# indent-tabs-mode: nil
 # tab-width: 8
 # End:
