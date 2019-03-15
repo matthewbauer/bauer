@@ -2488,19 +2488,6 @@ packages (for completion, syntax checking, etc.)
     (add-to-list 'completion-ignored-extensions ".hi"))
 #+END_SRC
 
-***** dante
-
-#+BEGIN_SRC emacs-lisp
-(use-package dante
-  :ensure t
-  :after haskell-mode
-  :commands 'dante-mode
-  :hook ((haskell-mode . dante-mode)
-         (dante-mode . (lambda () (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))))
-  ;; :config (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint))
-  )
-#+END_SRC
-
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-interactive-mode
@@ -4108,9 +4095,6 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
-  install -D ${ensure ./site-lisp/dante.el
-                      "site-lisp/dante.el"} \
-          $out/share/emacs/site-lisp/dante.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
