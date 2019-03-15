@@ -1026,13 +1026,13 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                 ("C-d" . company-show-doc-buffer)
                 )
     :hook ((minibuffer-setup . company-mode)
-           ;; (minibuffer-setup . (lambda () (setq-local company-frontends
-           ;;                                       '(company-preview-if-just-one-frontend))))
+           (minibuffer-setup . (lambda ()
+                                 (setq-local company-frontends '(company-preview-if-just-one-frontend))
+                                 (setq-local company-auto-complete nil)))
            (after-init . global-company-mode)
            (shell-mode .
                        (lambda ()
-                         (setq-local company-backends
-                                     '(company-capf))))
+                         (setq-local company-backends '(company-capf))))
            (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
     :config
     (advice-add 'completion-at-point
