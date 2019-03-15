@@ -225,7 +225,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auto-window-vscroll nil)
    '(bug-reference-bug-regexp
      "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-   '(flycheck-emacs-lisp-load-path (quote inherit))
    '(backward-delete-char-untabify-method 'hungry)
    '(backup-directory-alist `(("." .
                                ,(expand-file-name "backup"
@@ -257,6 +256,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
    '(comint-scroll-show-maximum-output nil)
+   '(comint-scroll-to-bottom-on-input t)
+   '(comint-scroll-to-bottom-on-output t)
    '(compilation-always-kill t)
    '(compilation-ask-about-save nil)
    '(compilation-environment '("TERM=xterm-256color"))
@@ -269,6 +270,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(completions-format 'vertical)
    '(counsel-find-file-at-point t)
    '(counsel-mode-override-describe-bindings t)
+   '(counsel-linux-apps-directories '("~/.nix-profile/share/applications/"
+				      "~/.local/share/applications/"
+				      "/nix/var/nix/profiles/default/share/applications/"
+				      "/run/current-system/sw/share/applications/"
+				      "/usr/local/share/applications/"
+				      "/usr/share/applications/"))
    '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
@@ -315,14 +322,14 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-try-new-nick-p nil)
    '(erc-user-full-name 'user-full-name)
    '(eshell-history-size 1000)
-   '(eshell-output-filter-functions '(eshell-handle-ansi-color
-                                      eshell-watch-for-password-prompt
-                                      eshell-truncate-buffer))
+   '(eshell-bad-command-tolerance 1.0e+INF)
+   '(eshell-scroll-to-bottom-on-input 'this)
    '(eshell-scroll-show-maximum-output nil)
    '(eshell-visual-commands
      '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
        "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"))
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"))
    '(eshell-visual-options nil)
    '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
    '(eshell-banner-message "")
@@ -355,6 +362,9 @@ The format of arguments to =set-defaults= is identical to the one used by
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-save-history-on-exit t)
    '(eshell-stringify nil)
+   '(eshell-postoutput-scroll-to-bottom t)
+   '(eshell-scroll-to-bottom-on-input t)
+   '(eshell-scroll-to-bottom-on-output t)
    '(eshell-term-name "ansi")
    '(eshell-visual-commands '("vi" "top" "screen" "less"
                               "rlogin" "telnet" "lynx"))
@@ -374,6 +384,8 @@ The format of arguments to =set-defaults= is identical to the one used by
                                  outline-mode
                                  text-mode
                                  org-mode))
+   '(flycheck-emacs-lisp-load-path (quote inherit))
+   '(flycheck-disabled-checkers '(haskell-stack-ghc))
    '(flycheck-standard-error-navigation nil)
    '(flycheck-check-syntax-automatically '(save mode-enabled))
    '(flyspell-highlight-properties nil)
@@ -392,6 +404,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(haskell-process-suggest-haskell-docs-imports t)
    '(haskell-process-suggest-hoogle-imports t)
    '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-tags-on-save t)
    '(help-window-select t)
    '(hideshowvis-ignore-same-line nil)
    '(highlight-nonselected-windows nil)
@@ -406,6 +419,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(ibuffer-show-empty-filter-groups nil)
    '(ibuffer-shrink-to-minimum-size t)
    '(ibuffer-use-other-window t)
+   '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
    '(iedit-toggle-key-default nil)
    '(imenu-auto-rescan t)
    '(indicate-empty-lines t)
@@ -524,13 +538,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
    ;;   '(projectile-enable-idle-timer 1)
-   '(projectile-mode-line
-     '(:eval
-       (if (and (ignore-errors (projectile-project-p))
-                (not (file-remote-p default-directory)))
-           (format " Projectile[%s]"
-                   (projectile-project-name))
-         "")))
+   '(projectile-mode-line-prefix "")
+   '(projectile-mode-line-function
+     (lambda () (if (and (ignore-errors (projectile-project-p))
+		    (not (file-remote-p default-directory)))
+	       (format " Projectile[%s]" (projectile-project-name))
+	     "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-require-project-root t)
    '(projectile-verbose nil)
@@ -572,6 +585,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(sp-highlight-pair-overlay nil)
    '(switch-to-buffer-preserve-window-point t)
    '(tab-always-indent 'complete)
+   '(tab-stop-list (number-sequence 4 200 4))
+   '(tags-revert-without-query t)
    '(term-input-autoexpand t)
    '(term-input-ignoredups t)
    '(text-quoting-style 'quote)
@@ -607,6 +622,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-line-column 120)
    '(whitespace-style '(face trailing lines space-before-tab
                              empty lines-style))
+   '(whitespace-global-modes '(not erc-mode ses-mode))
    '(fortune-always-compile nil)
    )
 #+END_SRC
@@ -1383,17 +1399,14 @@ certain Emacs keybinds.
 #+END_SRC
 
 **** helpful
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :if (>= emacs-major-version 25)
     :bind (([remap describe-function] . helpful-callable)
-           ([remap describe-variable] . helpful-variable)
-           ([remap describe-key] . helpful-key))
-           ("H-h" . helpful-at-point))
+	   ([remap describe-variable] . helpful-variable)
+	   ([remap describe-key] . helpful-key)
+	   ("H-h" . helpful-at-point)))
 #+END_SRC
 
 **** Hippie Expand
@@ -2081,7 +2094,8 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package goto-addr
     :ensure nil
-    :hook ((prog-mode . goto-address-prog-mode)
+    :hook (((prog-mode conf-mode) . goto-address-prog-mode)
+           ((help-mode org-mode text-mode) . goto-address-mode)
            (git-commit-mode . goto-address-mode)
            (shell-mode . goto-address-mode)))
 #+END_SRC
@@ -2219,7 +2233,8 @@ Make scripts executable automatically.
      ("<escape>"         . abort-recursive-edit)
      ("M-TAB"    . previous-complete-history-element)
      ("<M-S-tab>" . next-complete-history-element))
-    :hook ((text-mode . visual-line-mode))
+    :hook ((text-mode . visual-line-mode)
+           (text-mode . auto-fill-mode))
     :config (column-number-mode))
 #+END_SRC
 **** subword
@@ -2438,20 +2453,6 @@ packages (for completion, syntax checking, etc.)
 #+END_SRC
 
 **** Haskell
-***** ghc
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-Note: this needs ghc-mod to be in PATH to work properly.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ghc
-    :disabled 
-    :if (locate-file "ghc-mod" exec-path)
-    :hook ((haskell-mode . ghc-init)
-           (haskell-mode . ghc-comp-init)))
-#+END_SRC
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2493,7 +2494,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-interactive-mode
-    :disabled
     :ensure nil
     :hook (haskell-mode . interactive-haskell-mode))
 #+END_SRC
@@ -2511,9 +2511,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 **** JavaScript
 ***** indium
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
@@ -2921,12 +2918,6 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
-#+END_SRC
-**** dumb-jump
-#+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :if (>= emacs-major-version 25)
-    :hook ((prog-mode . dumb-jump-mode)))
 #+END_SRC
 **** TODO emacs-gif-screencast
 **** TODO epresent
