@@ -1026,15 +1026,14 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                 ("C-d" . company-show-doc-buffer)
                 )
     :hook ((minibuffer-setup . company-mode)
-           (minibuffer-setup . (lambda () (setq-local company-frontends
-                                                 '(company-preview-if-just-one-frontend))))
+           ;; (minibuffer-setup . (lambda () (setq-local company-frontends
+           ;;                                       '(company-preview-if-just-one-frontend))))
            (after-init . global-company-mode)
-           ((shell-mode sh-mode fish-mode eshell-mode) .
-            (lambda ()
-              (setq-local company-backends
-                          '(company-capf company-files))))
-           (eshell-mode . (lambda () (setq-local company-frontends
-                                            '(company-preview-if-just-one-frontend)))))
+           (shell-mode .
+                       (lambda ()
+                         (setq-local company-backends
+                                     '(company-capf))))
+           (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
     :config
     (advice-add 'completion-at-point
                 :override 'company-complete-common-or-cycle)
@@ -1230,7 +1229,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
            ("C-c x" . eshell)
            ("C-c e" . eshell))
     :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . eshell-initialize))
+           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
     :preface
     (defvar eshell-isearch-map
       (let ((map (copy-keymap isearch-mode-map)))
@@ -1246,22 +1245,13 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (defalias 'eshell/q 'eshell/exit)
     (defalias 'eshell/\? 'help)
     (defun eshell-spawn-external-command (beg end)
-        "Parse and expand any history references in current input."
-        (save-excursion
-          (goto-char end)
-          (when (looking-back "&!" beg)
-            (delete-region (match-beginning 0) (match-end 0))
-            (goto-char beg)
-            (insert "spawn "))))
-    (defun eshell-initialize ()
-      (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)))
-#+END_SRC
-
-***** esh-autosuggest
-
-#+BEGIN_SRC emacs-lisp
-(use-package esh-autosuggest
-  :hook (eshell-mode . esh-autosuggest-mode))
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn ")))))
 #+END_SRC
 
 ***** em-rebind
@@ -2207,13 +2197,12 @@ Make scripts executable automatically.
            (shell-mode . dirtrack-mode)
            (shell-mode . pcomplete-shell-setup)
            (shell-mode . use-histfile)
-           ;; (shell-mode . (lambda ()
-           ;;            (setq comint-input-ring-file-name "~/.zsh_history")
-           ;;            ;; Ignore timestamps in history file.  Assumes that zsh
-           ;;            ;; EXTENDED_HISTORY option is in use.
-           ;;            (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-           ;;            (comint-read-input-ring t)))
-           )
+           (shell-mode . (lambda ()
+                      (setq-local comint-input-ring-file-name "~/.history")
+                      ;; Ignore timestamps in history file.  Assumes that zsh
+                      ;; EXTENDED_HISTORY option is in use.
+                      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+                      (comint-read-input-ring t))))
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
@@ -3058,7 +3047,7 @@ Most of these are available in MELPA.
     :preface
     (autoload 'pcomplete-comint-setup "pcomplete")
     :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
            (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
            ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
            ;;                                'pcomplete-completions-at-point
