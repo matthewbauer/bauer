@@ -323,8 +323,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-user-full-name 'user-full-name)
    '(eshell-history-size 1000)
    '(eshell-bad-command-tolerance 1.0e+INF)
-   '(eshell-scroll-to-bottom-on-input 'this)
-   '(eshell-scroll-show-maximum-output nil)
    '(eshell-visual-commands
      '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
        "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
@@ -362,9 +360,10 @@ The format of arguments to =set-defaults= is identical to the one used by
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-save-history-on-exit t)
    '(eshell-stringify nil)
-   '(eshell-postoutput-scroll-to-bottom t)
-   '(eshell-scroll-to-bottom-on-input t)
-   '(eshell-scroll-to-bottom-on-output t)
+   ;; '(eshell-postoutput-scroll-to-bottom t)
+   ;; '(eshell-scroll-to-bottom-on-input t)
+   ;; '(eshell-scroll-to-bottom-on-output t)
+   '(eshell-scroll-show-maximum-output nil)
    '(eshell-term-name "ansi")
    '(eshell-visual-commands '("vi" "top" "screen" "less"
                               "rlogin" "telnet" "lynx"))
@@ -1343,6 +1342,14 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     :hook (eshell-mode . em-dired-mode)
     :init
     (advice-add 'eshell :before 'em-dired-new))
+#+END_SRC
+
+***** xterm-color
+
+#+BEGIN_SRC emacs-lisp
+(use-package xterm-color
+  :commands xterm-color-filter
+  :hook (eshell-before-prompt . (lambda () (setq-local xterm-color-preserve-properties t))))
 #+END_SRC
 
 **** Flycheck
