@@ -1958,11 +1958,13 @@ Setup these modes:
     :ensure nil
     :if (>= emacs-major-version 25)
     :hook ((prog-mode . electric-quote-local-mode)
-           (text-mode . electric-quote-local-mode)
-           (org-mode . electric-quote-local-mode)
-           (message-mode . electric-quote-local-mode)
-           (prog-mode . electric-indent-local-mode)
-           (prog-mode . electric-layout-mode)))
+	   (text-mode . electric-quote-local-mode)
+	   (org-mode . electric-quote-local-mode)
+	   (message-mode . electric-quote-local-mode)
+	   (prog-mode . electric-indent-local-mode)
+	   (prog-mode . electric-layout-mode)
+	   (haskell-mode . (lambda () (electric-indent-local-mode -1)))
+	   (nix-mode . (lambda () (electric-indent-local-mode -1)))))
 #+END_SRC
 
 ***** elec-pair
