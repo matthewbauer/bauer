@@ -1034,8 +1034,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
            ((shell-mode sh-mode fish-mode eshell-mode) .
             (lambda ()
               (setq-local company-backends
-                          '((company-capf
-                             company-files)))))
+                          '(company-capf company-files))))
            (eshell-mode . (lambda () (setq-local company-frontends
                                             '(company-preview-if-just-one-frontend)))))
     :config
@@ -1073,14 +1072,6 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :commands company-tern
     :hook (tern-mode . (lambda ()
       (setq-local company-backends '(company-tern company-capf)))))
-#+END_SRC
-***** company-ghc
-#+BEGIN_SRC emacs-lisp
-  (use-package company-ghc
-    :disabled
-    :commands company-ghc
-    :hook (haskell-mode . (lambda ()
-      (setq-local company-backends '(company-ghc company-capf)))))
 #+END_SRC
 ***** company-auctex
 #+BEGIN_SRC emacs-lisp
