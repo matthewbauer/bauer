@@ -862,6 +862,10 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c I"   . bauer-find-config))
 
   (bind-keys
+    :map help-map
+    ("C-r" . woman))
+
+  (bind-keys
    :package view
    :map view-mode-map
    ("n" . next-line)
@@ -1513,14 +1517,6 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
      ("C-c C-<"     . mc/mark-all-like-this)
      ("C-!"         . mc/mark-next-symbol-like-this)
      ("C-S-c C-S-c" . mc/edit-lines)))
-#+END_SRC
-
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package notmuch
-    :bind (("s-m" . notmuch)
-           ("H-m" . notmuch)))
 #+END_SRC
 
 **** Org
