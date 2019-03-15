@@ -4024,7 +4024,7 @@ package-list =
 #+END_SRC
 
 #+BEGIN_SRC nix
-myEmacsPackages = builtins.fromJSON
+myEmacsPackages' = builtins.fromJSON
                    (builtins.readFile package-list);
 #+END_SRC
 
@@ -4085,7 +4085,7 @@ export HOME=$PWD
 emacs --batch --quick \
       --eval \
 "(let ((default-directory \"${emacsWrapper
-  ((requiredPackages customEmacsPackages myEmacsPackages)
+  ((requiredPackages customEmacsPackages myEmacsPackages')
    ++ (with customEmacsPackages; [use-package delight]))
 }/share/emacs/site-lisp\"))
   (normal-top-level-add-subdirs-to-load-path))" \
@@ -4172,8 +4172,14 @@ Now we build our Emacs distribution.
 TODO use dump-emacs here to speed up config.
 
 #+BEGIN_SRC nix
+  myEmacsPackages = buildEnv {
+    name = "emacs-packages-env";
+    paths = (requiredPackages pkgs.emacsPackagesNg myEmacsPackages')
+          ++ [ pkgs.emacsPackagesNg.use-package ];
+  };
+
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-    (requiredPackages epkgs myEmacsPackages)
+    (requiredPackages epkgs myEmacsPackages')
     ++ [default epkgs.use-package]
   );
 #+END_SRC
@@ -4193,6 +4199,7 @@ First build the info pages...
     pathsToLink = [ "/share/info" ];
     postBuild = ''
       shopt -s nullglob
+      find -L ${myEmacsPackages}/share/emacs/ -name '*.info*' -exec ln -s {} $out/share/info \;
       for i in $out/share/info/*; do
         install-info $i $out/share/info/dir
       done
