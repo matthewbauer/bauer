@@ -398,11 +398,12 @@ The format of arguments to =set-defaults= is identical to the one used by
          "%b")))
    '(gnuplot-inline-image-mode 'dedicated)
    '(haskell-interactive-mode-scroll-to-bottom t)
-   '(haskell-process-type 'ghci)
+   '(haskell-process-type 'cabal-new-repl)
    '(haskell-process-load-or-reload-prompt t)
    '(haskell-process-suggest-haskell-docs-imports t)
    '(haskell-process-suggest-hoogle-imports t)
    '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-compile-cabal-build-command "cabal new-build")
    '(haskell-tags-on-save t)
    '(help-window-select t)
    '(hideshowvis-ignore-same-line nil)
@@ -961,6 +962,31 @@ resort, go to one of the package group headings & type =C-c ^ a=.
 
 These are the best & most useful modes available to us in Emacs world.
 
+**** align
+
+#+BEGIN_SRC emacs-lisp
+  (use-package align
+    :bind ("M-[" . align)
+    :config
+    (add-to-list 'align-rules-list
+		 '(haskell-types
+		   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-assignment
+		   (regexp . "\\(\\s-+\\)=\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-arrows
+		   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-left-arrows
+		   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    )
+#+END_SRC
+
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
 
@@ -1348,9 +1374,8 @@ supports many languages and give us a lot of features right out of the box.
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :hook (prog-mode . flycheck-mode))
-  ;; (use-package flycheck-haskell
-  ;;   :hook (flycheck-mode . flycheck-haskell-setup)
-  ;;   )
+  (use-package flycheck-haskell
+     :hook (haskell-mode . flycheck-haskell-setup))
 #+END_SRC
 
 **** github-clone
@@ -2444,11 +2469,14 @@ packages (for completion, syntax checking, etc.)
     :preface
     (load "haskell-mode-autoloads" t t)
     :ensure haskell-mode
-    :mode (("\\.hs\\'" . haskell-mode)
+    :mode (("\\.hs\\(c\\|-boot\\)?\\'" . haskell-mode)
+           ("\\.lhs\\'" . literate-haskell-mode)
            ("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
            (haskell-mode . flyspell-prog-mode)
            (haskell-mode . haskell-indentation-mode)
+           (haskell-mode . haskell-auto-insert-module-template)
+           ;; (haskell-mode . haskell-decl-scan-mode)
            ;; (haskell-mode . haskell-indent-mode)
            ;; (haskell-mode . imenu-add-menubar-index)
            ;; (haskell-mode .
@@ -2458,6 +2486,25 @@ packages (for completion, syntax checking, etc.)
            ;;            (setq-local eldoc-documentation-function
            ;;                        'haskell-doc-current-info)))
            )
+    :bind (:map haskell-mode-map
+           ("C-c h" . haskell-hoogle)
+           ("C-c C-." . haskell-navigate-imports)
+           ("C-c C-l" . haskell-process-load-or-reload)
+           ("C-`" . haskell-interactive-bring)
+           ("C-c C-t" . haskell-process-do-type)
+           ("C-c C-i" . haskell-process-do-info)
+           ("C-c C-c" . haskell-process-cabal-build)
+           ("C-c C-k" . haskell-interactive-mode-clear)
+           ("C-c c" . haskell-process-cabal)
+           ;; ("M-." . haskell-mode-jump-to-def)
+           :map haskell-cabal-mode-map
+           ("C-`" . haskell-interactive-bring)
+           ("C-c C-k" . haskell-interactive-mode-clear)
+           ("C-c C-c" . haskell-process-cabal-build)
+           ("C-c c" . haskell-process-cabal)
+           :map interactive-haskell-mode-map
+           ("M-." . haskell-mode-goto-loc)
+           ("C-c C-t" . haskell-mode-show-type-at))
     :init
     (add-to-list 'completion-ignored-extensions ".hi"))
 #+END_SRC
