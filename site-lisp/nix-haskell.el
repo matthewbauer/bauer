@@ -31,7 +31,7 @@
   buildPkgDb = pkg: pkgs.buildEnv {
     name = \"package-db-${pkg.compiler.name}\";
     paths = [ (getGhc pkg.compiler.name) ] ++
-            lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs));
+            lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs ++ pkg.nativeBuildInputs));
     pathsToLink = [ \"/lib/${pkg.compiler.name}/package.conf.d\" \"/bin\" ];
     buildInputs = [ (getGhc pkg.compiler.name) ];
     postBuild = ''
@@ -59,6 +59,7 @@
 in buildPkgDb pkg")
 
 (defvar nix-haskell--running-processes nil)
+(defvar nix-haskell--package-db-cache nil)
 
 (defun nix-haskell--store-sentinel (err buf drv-file drv proc event)
   "Make a nix-haskell process.
@@ -91,7 +92,10 @@ EVENT the event that was fired."
 		(out (cdadr (cadar drv))))
 	   (dolist
 	       (callback (lax-plist-get nix-haskell--running-processes prop))
-	     (funcall callback out drv-file)))))
+	     (funcall callback out drv-file))
+	   (setq nix-haskell--package-db-cache
+		 (lax-plist-put nix-haskell--package-db-cache
+				prop (list out drv-file))))))
      (setq nix-haskell--running-processes
 	   (lax-plist-put nix-haskell--running-processes prop nil))
      (kill-buffer err))
@@ -105,34 +109,44 @@ CALLBACK called once the package-db is determined.
 DIR directory containing the haskell project."
   (interactive)
   (unless dir (setq dir default-directory))
-  (let ((root (locate-dominating-file dir "default.nix"))
-	(cabal-file (haskell-cabal-find-file dir))
-	filename package-name)
+  (let ((cabal-file (haskell-cabal-find-file dir))
+	filename package-name root)
 
+    (unless root (setq root (locate-dominating-file dir "shell.nix")))
+    (unless root (setq root (locate-dominating-file dir "default.nix")))
     (when root (setq root (expand-file-name root)))
+
     (when cabal-file (setq cabal-file (expand-file-name cabal-file)))
     (unless cabal-file (error "Cannot find a valid .cabal file"))
     (setq package-name (replace-regexp-in-string ".cabal$" "" (file-name-nondirectory cabal-file)))
-    (setq filename (if root (concat root "default.nix") cabal-file))
 
-    (let* ((prop cabal-file)
-	   (data (lax-plist-get nix-instantiate--running-processes prop))
-	   (stdout (generate-new-buffer "*nix-haskell-instantiate-stdout*"))
-	   (stderr (generate-new-buffer "*nix-haskell-instantiate-error*")))
-      (setq nix-haskell--running-processes
-	    (lax-plist-put nix-haskell--running-processes
-			   prop (cons callback data)))
-      (make-process
-       :name (format "*nix-haskell*<%s>" cabal-file)
-       :buffer stdout
-       :command (list nix-instantiate-executable
-		      "-E" nix-haskell-pkg-db-expr
-		      "--argstr" "filename" filename
-		      "--argstr" "packageName" package-name)
-       :noquery t
-       :sentinel (apply-partially 'nix-haskell--instantiate-sentinel
-				  prop stderr)
-       :stderr stderr)))
+    (unless (and filename (file-exists-p filename)) (setq filename (concat root "default.nix")))
+    (unless (and filename (file-exists-p filename)) (setq filename (concat root "shell.nix")))
+    (unless (and filename (file-exists-p filename)) (setq filename cabal-file))
+
+    (message )
+
+    ;; TODO: update cache after certain threshold
+    (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
+      (if cache
+	  (apply callback cache)
+	(let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
+	       (stdout (generate-new-buffer "*nix-haskell-instantiate-stdout*"))
+	       (stderr (generate-new-buffer "*nix-haskell-instantiate-error*")))
+	  (setq nix-haskell--running-processes
+		(lax-plist-put nix-haskell--running-processes
+			       cabal-file (cons callback data)))
+	  (make-process
+	   :name (format "*nix-haskell*<%s>" cabal-file)
+	   :buffer stdout
+	   :command (list nix-instantiate-executable
+			  "-E" nix-haskell-pkg-db-expr
+			  "--argstr" "filename" filename
+			  "--argstr" "packageName" package-name)
+	   :noquery t
+	   :sentinel (apply-partially 'nix-haskell--instantiate-sentinel
+				       cabal-file stderr)
+	   :stderr stderr)))))
   t)
 
 (defun nix-haskell--interactive (buf out drv)
@@ -160,13 +174,13 @@ DRV derivation file."
 	  (setq-local haskell-process-type 'cabal-new-repl)
 	  (setq-local haskell-process-path-cabal (expand-file-name "bin/cabal" out))
 	  (add-to-list 'haskell-process-args-cabal-new-repl
-		       (format "--with-ghc-pkg=%s/bin/ghc-pkg" out) t)
+			(format "--with-ghc-pkg=%s/bin/ghc-pkg" out) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
-		       (format "--with-ghc=%s/bin/ghc" out) t)
+			(format "--with-ghc=%s/bin/ghc" out) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
-		       (format "--ghc-pkg-option=--package-db=%s" package-db) t)
+			(format "--ghc-pkg-option=--package-db=%s" package-db) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
-		       (format "--ghc-option=-package-db=%s" package-db) t)
+			(format "--ghc-option=-package-db=%s" package-db) t)
 	  (interactive-haskell-mode 1)
 
 	  ;; Setup flycheck.
