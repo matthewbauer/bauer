@@ -2518,6 +2518,15 @@ packages (for completion, syntax checking, etc.)
     )
 #+END_SRC
 
+***** nix-haskell
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nix-haskell
+    :ensure nil
+    :hook (haskell-mode . nix-haskell-setup))
+#+END_SRC
+
+
 **** Java
 ***** jdee
 
@@ -4113,6 +4122,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/use-package-list.el
                        "site-lisp/use-package-list.el"} \
           $out/share/emacs/site-lisp/use-package-list.el
+  install -D ${ensure ./site-lisp/nix-haskell.el
+                      "site-lisp/nix-haskell.el"} \
+          $out/share/emacs/site-lisp/nix-haskell.el
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
