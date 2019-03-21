@@ -16,18 +16,31 @@
 (require 'haskell)
 (require 'flycheck)
 
-(defvar nix-haskell-pkg-db-expr "{ pkgs, filename, packageName }: let
+(defvar nix-haskell-pkg-db-expr "{ pkgs ? import <nixpkgs> {}
+, filename, packageName }: let
   inherit (pkgs) lib;
-  getGhc = name: pkgs.haskell.compiler.${lib.replaceStrings [\".\" \"-\"] [\"\" \"\"] name};
+  getGhc = name: let compilerName = lib.replaceStrings [\".\" \"-\"] [\"\" \"\"] name;
+                     getChannel = channel: import (builtins.fetchTarball \"channel:${channel}\") {};
+                     findNonNull = l: r: if l != null then l
+                                         else if (r.haskell.compiler ? ${compilerName})
+                                              then r.haskell.compiler.${compilerName}
+                                         else null;
+                     compiler = builtins.foldl' findNonNull null (map getChannel [\"nixos-18.09\"]);
+                 in pkgs.haskell.compiler.${compilerName} or (if compiler != null then compiler
+                                                              else throw \"Can’t find compiler for ${compilerName}\");
   buildPkgDb = pkg: pkgs.buildEnv {
     name = \"package-db-${pkg.compiler.name}\";
     paths = [ (getGhc pkg.compiler.name) ] ++
-            lib.closePropagation pkg.getBuildInputs.haskellBuildInputs;
+            lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs));
     pathsToLink = [ \"/lib/${pkg.compiler.name}/package.conf.d\" \"/bin\" ];
     buildInputs = [ (getGhc pkg.compiler.name) ];
     postBuild = ''
       ghc-pkg --package-db=$out/lib/${pkg.compiler.name}/package.conf.d recache
+      if ! [ -x $out/bin/cabal ]; then
+        ln -s ${pkgs.cabal-install}/bin/cabal $out/bin/cabal
+      fi
     '';
+    ignoreCollisions = true;
   };
   pkg = if lib.hasSuffix \".cabal\" filename
         then pkgs.haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath filename)
@@ -36,8 +49,10 @@
                   nixExpr' = if builtins.isFunction nixExpr then nixExpr {} else nixExpr;
               in (if nixExpr' ? compiler then nixExpr'
                   else if builtins.isAttrs nixExpr'
-                  then let nixExpr'' = if nixExpr' ? haskellPackages then nixExpr'.haskellPackages else nixExpr';
-                       in (if nixExpr'' ? packageName then nixExpr''.${packageName}
+                  then let nixExpr'' = if nixExpr' ? haskellPackages then nixExpr'.haskellPackages
+                                       else if nixExpr' ? haskellPackageSets then nixExpr'.haskellPackageSets.ghc
+                                       else nixExpr';
+                       in (if nixExpr'' ? ${packageName} then nixExpr''.${packageName}
                            else throw \"Can't find target for ${packageName} in ${filename}.\")
                   else throw \"Can't import ${filename} correctly.\"))
         else throw \"Can't do anything with ${filename}.\";
@@ -112,7 +127,6 @@ DIR directory containing the haskell project."
        :buffer stdout
        :command (list nix-instantiate-executable
 		      "-E" nix-haskell-pkg-db-expr
-		      "--arg" "pkgs" "(import <nixpkgs> {})"
 		      "--argstr" "filename" filename
 		      "--argstr" "packageName" package-name)
        :noquery t
