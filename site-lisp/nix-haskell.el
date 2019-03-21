@@ -15,6 +15,7 @@
 (require 'nix-store)
 (require 'haskell)
 (require 'flycheck)
+;; (require 'projectile)
 
 (defvar nix-haskell-pkg-db-expr "{ pkgs ? import <nixpkgs> {}
 , filename, packageName }: let
@@ -103,33 +104,37 @@ EVENT the event that was fired."
   (unless (process-live-p proc)
     (kill-buffer (process-buffer proc))))
 
-(defun nix-haskell--get-pkg-db (callback &optional dir)
+(defun nix-haskell--get-pkg-db (callback)
   "Get a package-db async.
-CALLBACK called once the package-db is determined.
-DIR directory containing the haskell project."
-  (interactive)
-  (unless dir (setq dir default-directory))
-  (let ((cabal-file (haskell-cabal-find-file dir))
+CALLBACK called once the package-db is determined."
+  (let ((cabal-file (haskell-cabal-find-file default-directory))
 	filename package-name root)
 
-    (unless root (setq root (locate-dominating-file dir "shell.nix")))
-    (unless root (setq root (locate-dominating-file dir "default.nix")))
-    (when root (setq root (expand-file-name root)))
+    ;; (when (and (projectile-project-p) (not root)
+    ;;	       (or (file-exists-p (expand-file-name "default.nix" (projectile-project-root)))
+    ;;		   (file-exists-p (expand-file-name "shell.nix" (projectile-project-root)))))
+    ;;   (setq root (projectile-project-root)))
+    (unless root
+      (setq root (locate-dominating-file default-directory "default.nix")))
+    (unless root
+      (setq root (locate-dominating-file default-directory "shell.nix")))
+    (when root
+      (setq root (expand-file-name root)))
 
     (when cabal-file (setq cabal-file (expand-file-name cabal-file)))
     (unless cabal-file (error "Cannot find a valid .cabal file"))
     (setq package-name (replace-regexp-in-string ".cabal$" "" (file-name-nondirectory cabal-file)))
 
-    (unless (and filename (file-exists-p filename)) (setq filename (concat root "default.nix")))
-    (unless (and filename (file-exists-p filename)) (setq filename (concat root "shell.nix")))
-    (unless (and filename (file-exists-p filename)) (setq filename cabal-file))
-
-    (message )
+    (unless (and filename (file-exists-p filename))
+      (setq filename (expand-file-name "default.nix" root)))
+    (unless (and filename (file-exists-p filename))
+      (setq filename (expand-file-name "shell.nix" root)))
+    (unless (and filename (file-exists-p filename))
+      (setq filename cabal-file))
 
     ;; TODO: update cache after certain threshold
     (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
-      (if cache
-	  (apply callback cache)
+      (if cache (apply callback cache)
 	(let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
 	       (stdout (generate-new-buffer "*nix-haskell-instantiate-stdout*"))
 	       (stderr (generate-new-buffer "*nix-haskell-instantiate-error*")))
@@ -173,6 +178,7 @@ DRV derivation file."
 	  ;; Setup haskell-mode args.
 	  (setq-local haskell-process-type 'cabal-new-repl)
 	  (setq-local haskell-process-path-cabal (expand-file-name "bin/cabal" out))
+	  (make-local-variable 'haskell-process-args-cabal-new-repl)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 			(format "--with-ghc-pkg=%s/bin/ghc-pkg" out) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
@@ -186,6 +192,7 @@ DRV derivation file."
 	  ;; Setup flycheck.
 	  (setq-local flycheck-haskell-ghc-executable
 		      (expand-file-name "bin/ghc" out))
+	  (make-local-variable 'flycheck-ghc-package-databases)
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
 	  (flycheck-mode 1)))
     (let ((stdout (generate-new-buffer "*nix-haskell-store-stdout*"))
