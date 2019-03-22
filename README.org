@@ -1069,7 +1069,10 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
            (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
     :config
     (advice-add 'completion-at-point
-                :override 'company-complete-common-or-cycle)
+                :around (lambda (old-function &rest args)
+                          (if company-mode
+                              (apply 'company-complete-common-or-cycle args)
+                            (apply 'old-function args))))
     (global-company-mode))
 #+END_SRC
 
