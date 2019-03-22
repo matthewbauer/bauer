@@ -23,7 +23,7 @@
   getGhc = name: let compilerName = lib.replaceStrings [\".\" \"-\"] [\"\" \"\"] name;
                      getChannel = channel: import (builtins.fetchTarball \"channel:${channel}\") {};
                      findNonNull = l: r: if l != null then l
-                                         else if (r.haskell.compiler ? ${compilerName})
+                                         else if r.haskell.compiler ? ${compilerName}
                                               then r.haskell.compiler.${compilerName}
                                          else null;
                      compiler = builtins.foldl' findNonNull null (map getChannel [\"nixos-18.09\"]);
