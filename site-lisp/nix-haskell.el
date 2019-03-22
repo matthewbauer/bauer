@@ -2,7 +2,9 @@
 
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Homepage: https://github.com/NixOS/nix-mode
-;; Keywords: nix
+;; Keywords: nix, haskell
+;; Version: 0.0.1
+;; Package-Requires: ((haskell-mode "16.0") (flycheck "30") (nix-mode "1.3.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -43,22 +45,33 @@ using provides a malicious GHC in its Nix configuration."
                                          else null;
                      compiler = builtins.foldl' findNonNull null (map getChannel [\"nixos-18.09\"]);
                  in pkgs.haskell.compiler.${compilerName} or (if compiler != null then compiler
-                                                              else throw \"Can’t find compiler for ${compilerName}\");
-  buildPkgDb = pkg: pkgs.buildEnv {
-    name = \"package-db-${pkg.compiler.name}\";
-    paths = [ (getGhc pkg.compiler.name) ] ++
-            lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs ++ pkg.nativeBuildInputs));
-    pathsToLink = [ \"/lib/${pkg.compiler.name}/package.conf.d\" \"/bin\" ];
-    buildInputs = [ (getGhc pkg.compiler.name) ];
-    postBuild = ''
-      ghc-pkg --package-db=$out/lib/${pkg.compiler.name}/package.conf.d recache
-      if ! [ -x $out/bin/cabal ]; then
-        ln -s ${pkgs.cabal-install}/bin/cabal $out/bin/cabal
-      fi
-    '';
-    ignoreCollisions = true;
+                                                              else throw \"Can’t find compiler for ${compilerName}.\");
+  buildPkgDb = pkg: let
+    maybeGhc = if pkg.nativeBuildInputs != [] then builtins.head pkg.nativeBuildInputs else null;
+    compiler = if pkg ? compiler then getGhc pkg.compiler.name
+               else if maybeGhc != null && builtins.match \"^ghc.*\" maybeGhc.name != null
+                    then getGhc (if maybeGhc ? version then \"ghc-${maybeGhc.version}\" else maybeGhc.name)
+               else throw \"Can’t find compiler for ${pkg.name}.\";
+    package-db = pkgs.buildEnv {
+      name = \"package-db-${compiler.name}\";
+      paths = lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs ++ pkg.nativeBuildInputs));
+      pathsToLink = [ \"/lib/${compiler.name}/package.conf.d\" ];
+      buildInputs = [ compiler ];
+      postBuild = ''
+        ghc-pkg --package-db=$out/lib/${compiler.name}/package.conf.d recache
+      '';
+      ignoreCollisions = true;
+    };
+    compilerBin = pkgs.buildEnv {
+      name = \"${compiler.name}-bins-only\";
+      paths = [ compiler ];
+      pathsToLink = [ \"/bin\" ];
+    };
+  in pkgs.buildEnv {
+    name = \"${compiler.name}-env\";
+    paths = [ package-db pkgs.cabal-install compilerBin ];
   };
- pkg = if lib.hasSuffix \".cabal\" filename
+  pkg = if lib.hasSuffix \".cabal\" filename
         then haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath filename) {}
         else if lib.hasSuffix \".nix\" filename
         then (let nixExpr = import filename;
@@ -67,7 +80,7 @@ using provides a malicious GHC in its Nix configuration."
                                    then haskellPackages.callPackage filename {}
                                    else nixExpr {})
                              else nixExpr;
-              in (if nixExpr' ? compiler then nixExpr'
+              in (if lib.isDerivation nixExpr' then nixExpr'
                   else if builtins.isAttrs nixExpr'
                   then let nixExpr'' = if nixExpr' ? haskellPackages then nixExpr'.haskellPackages
                                        else if nixExpr' ? haskellPackageSets then nixExpr'.haskellPackageSets.ghc
@@ -78,7 +91,7 @@ using provides a malicious GHC in its Nix configuration."
         else throw \"Can't do anything with ${filename}.\";
 in buildPkgDb pkg")
 
-;; Store information on running Nix evaluations.
+;; Store information on running" Nix evaluations.
 (defvar nix-haskell--running-processes nil)
 
 ;; Cache information on past Nix evaluations.
@@ -139,6 +152,8 @@ CALLBACK called once the package-db is determined."
     ;;	       (or (file-exists-p (expand-file-name "default.nix" (projectile-project-root)))
     ;;		   (file-exists-p (expand-file-name "shell.nix" (projectile-project-root)))))
     ;;   (setq root (projectile-project-root)))
+    (unless root
+      (setq root (locate-dominating-file default-directory "cabal.project")))
     (unless root
       (setq root (locate-dominating-file default-directory "default.nix")))
     (unless root
@@ -236,6 +251,8 @@ DRV derivation file."
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--with-ghc=%s/bin/ghc" out) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
+		       (format "--with-hsc2hs=%s/bin/hsc2hs" out) t)
+	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--ghc-pkg-option=--package-db=%s" package-db) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--ghc-option=-package-db=%s" package-db) t)
@@ -248,7 +265,7 @@ DRV derivation file."
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
 	  (flycheck-mode 1)))
     (let ((stderr (generate-new-buffer
-		   (format "*nix-haskell-store-stderr*<%s>" cabal-file))))
+		   (format "*nix-haskell-store-stderr*<%s>" drv))))
       (make-process
        :name (format "*nix-haskell-store*<%s>" drv)
        :buffer nil
