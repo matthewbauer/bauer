@@ -46,6 +46,11 @@
   :type 'boolean
   :group 'nix-haskell)
 
+(defcustom nix-haskell-ttl (* 60 10)
+  "Time in seconds to keep the cache."
+  :type 'integer
+  :group 'nix-haskell)
+
 ;; Expression used to build Haskell’s package db
 
 ;; We don’t want to just get ghc from the Nix file. This would leave
@@ -106,6 +111,7 @@
                   else if builtins.isAttrs nixExpr'
                   then let nixExpr'' = if nixExpr' ? haskellPackages then nixExpr'.haskellPackages
                                        else if nixExpr' ? haskellPackageSets then nixExpr'.haskellPackageSets.ghc
+                                       else if nixExpr' ? ghc then nixExpr'.ghc
                                        else nixExpr';
                        in (if nixExpr'' ? ${packageName} then nixExpr''.${packageName}
                            else if nixExpr'' ? callCabal2nix
@@ -162,7 +168,7 @@ EVENT the event that was fired."
 	     (funcall callback out drv-file))
 	   (setq nix-haskell--package-db-cache
 		 (lax-plist-put nix-haskell--package-db-cache
-				prop (list out drv-file))))))
+				prop (list (float-time) out drv-file))))))
      (setq nix-haskell--running-processes
 	   (lax-plist-put nix-haskell--running-processes prop nil))
      (kill-buffer err))
@@ -204,14 +210,19 @@ CALLBACK called once the package-db is determined."
     (unless (and nix-file (file-exists-p nix-file))
       (setq nix-file (expand-file-name "shell.nix" root)))
 
-    ;; TODO: update cache after certain threshold
     (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
-      (if cache (apply callback cache)
-	(let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
+      (when cache (apply callback (cdr cache)))
+
+      (when (or (not cache)
+                (> (float-time) (+ (car cache) nix-haskell-ttl))
+                (> (time-to-seconds
+                    (nth 5 (file-attributes cabal-file)))
+                   (car cache)))
+        (let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
 	       (stdout (generate-new-buffer
-			(format "*nix-haskell-instantiate-stdout<%s>*" cabal-file)))
+		        (format "*nix-haskell-instantiate-stdout<%s>*" cabal-file)))
 	       (stderr (generate-new-buffer
-			(format "*nix-haskell-instantiate-stderr<%s>*" cabal-file)))
+		        (format "*nix-haskell-instantiate-stderr<%s>*" cabal-file)))
 	       (command (list nix-instantiate-executable
 			      "-E" nix-haskell-pkg-db-expr
 			      "--argstr" "cabalFile" cabal-file
@@ -236,8 +247,8 @@ CALLBACK called once the package-db is determined."
 	    (setq command
 		  (append command
 			  (list "--arg" "haskellPackages"
-				(format "(import %s {}).ghc"
-					(expand-file-name "reflex-platform.nix"
+			        (format "(import %s {}).ghc"
+				        (expand-file-name "reflex-platform.nix"
 							  root))))))
 
 	  (when (file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
@@ -247,12 +258,12 @@ CALLBACK called once the package-db is determined."
 	    (setq command
 		  (append command
 			  (list "--arg" "haskellPackages"
-				(format "(import %s {}).haskellPackageSets.ghc"
-					(expand-file-name ".obelisk/impl/default.nix"
+			        (format "(import %s {}).haskellPackageSets.ghc"
+				        (expand-file-name ".obelisk/impl/default.nix"
 							  root))))))
 
 	  (setq nix-haskell--running-processes
-		(lax-plist-put nix-haskell--running-processes
+	        (lax-plist-put nix-haskell--running-processes
 			       cabal-file (cons callback data)))
 	  (make-process
 	   :name (format "*nix-haskell*<%s>" cabal-file)
@@ -314,7 +325,10 @@ DRV derivation file."
 		      (expand-file-name "bin/ghc" out))
 	  (make-local-variable 'flycheck-ghc-package-databases)
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
-	  (flycheck-mode 1)))
+	  (flycheck-mode 1)
+
+          (let ((haskell-process-load-or-reload-prompt nil))
+            (haskell-session-new-assume-from-cabal))))
     (let ((stderr (generate-new-buffer
 		   (format "*nix-haskell-store<%s>*" drv))))
       (make-process
