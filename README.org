@@ -1072,7 +1072,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                 :around (lambda (old-function &rest args)
                           (if company-mode
                               (apply 'company-complete-common-or-cycle args)
-                            (apply 'old-function args))))
+                            (apply old-function args))))
     (global-company-mode))
 #+END_SRC
 
