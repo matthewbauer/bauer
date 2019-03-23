@@ -281,6 +281,7 @@ To use with use-package, something like this will work:
 
 \(use-package nix-haskell
   :hook \(haskell-mode . nix-haskell-setup))"
+  (interactive)
 
   ;; Disable flycheck and interactive-haskell-mode.
   ;; They will be reenabled later.
