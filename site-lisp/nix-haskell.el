@@ -97,7 +97,12 @@ in buildPkgDb pkg")
 ;; Cache information on past Nix evaluations.
 (defvar nix-haskell--package-db-cache nil)
 
-(defun nix-haskell--store-sentinel (err buf drv-file drv proc event)
+(defun nix-haskell-clear-cache ()
+  "Clean the nix-haskell cache."
+  (interactive)
+  (setq nix-haskell--package-db-cache nil))
+
+(defun nix-haskell--store-sentinel (err buf drv-file drv _ event)
   "Make a nix-haskell process.
 ERR the error buffer.
 BUF the main buffer.
@@ -109,9 +114,7 @@ EVENT the event that was fired."
     ("finished\n"
      (nix-haskell--interactive buf drv-file drv)
      (kill-buffer err))
-    (_ (display-buffer err)))
-  (unless (process-live-p proc)
-    (kill-buffer (process-buffer proc))))
+    (_ (display-buffer err))))
 
 (defun nix-haskell--instantiate-sentinel (prop err proc event)
   "Make a nix-haskell process.
