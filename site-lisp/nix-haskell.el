@@ -10,6 +10,24 @@
 
 ;;; Commentary:
 
+;; Setup for this is fairly straightforward. It aims to automatically
+;; configure everything for you. It assumes that you are already using
+;; haskell-mode and flycheck.
+
+;; If you have use-package setup, this is enough to get nix-haskell
+;; working,
+
+;; (use-package nix-haskell
+;;   :hook (haskell-mode . nix-haskell-setup))
+
+;; Opening a buffer will start a nix process to get your dependencies.
+;; Flycheck and interactive-haskell-mode will start running once they
+;; have been downloaded. This is cached so it will only be done once
+;; for each buffer.
+
+;; Flycheck will be started automatically. To start a haskell session,
+;; press C-c C-l.
+
 ;;; Code:
 
 (require 'nix)
@@ -23,19 +41,22 @@
   "Nix integration with haskell-mode.el"
   :group 'nix)
 
-(defcustom nix-haskell-trust-project nil
-  "Whether to allow nix-haskell to trust the projects config.
-This can leads to a security vulnerability if the project you are
-using provides a malicious GHC in its Nix configuration."
+(defcustom nix-haskell-verbose nil
+  "Whether to print lots of messages when running nix-haskell.el."
   :type 'boolean
-  :risky t
   :group 'nix-haskell)
-(make-variable-buffer-local 'nix-haskell-trust-project)
 
 ;; Expression used to build Haskell’s package db
+
+;; We don’t want to just get ghc from the Nix file. This would leave
+;; us vulnerable to malicious projects. Instead, we get the compiler
+;; name and try to find it in nixpkgs.haskell.compiler. These aren’t
+;; left in Nixpkgs for very long so we try to download some channels
+;; to see if they are in there.
 (defvar nix-haskell-pkg-db-expr "{ pkgs ? import <nixpkgs> {}
 , haskellPackages ? pkgs.haskellPackages
-, filename, packageName }: let
+, nixFile ? null, packageName, cabalFile
+, channels ? [\"nixos-18.09\" \"nixos-18.03\" \"nixos-17.09\" \"nixos-17.03\" \"nixos-16.09\"] }: let
   inherit (pkgs) lib;
   getGhc = name: let compilerName = lib.replaceStrings [\".\" \"-\"] [\"\" \"\"] name;
                      getChannel = channel: import (builtins.fetchTarball \"channel:${channel}\") {};
@@ -43,7 +64,7 @@ using provides a malicious GHC in its Nix configuration."
                                          else if r.haskell.compiler ? ${compilerName}
                                               then r.haskell.compiler.${compilerName}
                                          else null;
-                     compiler = builtins.foldl' findNonNull null (map getChannel [\"nixos-18.09\"]);
+                     compiler = builtins.foldl' findNonNull null (map getChannel channels);
                  in pkgs.haskell.compiler.${compilerName} or (if compiler != null then compiler
                                                               else throw \"Can’t find compiler for ${compilerName}.\");
   buildPkgDb = pkg: let
@@ -54,7 +75,9 @@ using provides a malicious GHC in its Nix configuration."
                else throw \"Can’t find compiler for ${pkg.name}.\";
     package-db = pkgs.buildEnv {
       name = \"package-db-${compiler.name}\";
-      paths = lib.closePropagation (pkg.getBuildInputs.haskellBuildInputs or (pkg.buildInputs ++ pkg.propagatedBuildInputs ++ pkg.nativeBuildInputs));
+      paths = lib.closePropagation
+                (pkg.getBuildInputs.haskellBuildInputs or
+                  (pkg.buildInputs ++ pkg.propagatedBuildInputs ++ pkg.nativeBuildInputs));
       pathsToLink = [ \"/lib/${compiler.name}/package.conf.d\" ];
       buildInputs = [ compiler ];
       postBuild = ''
@@ -71,13 +94,12 @@ using provides a malicious GHC in its Nix configuration."
     name = \"${compiler.name}-env\";
     paths = [ package-db pkgs.cabal-install compilerBin ];
   };
-  pkg = if lib.hasSuffix \".cabal\" filename
-        then haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath filename) {}
-        else if lib.hasSuffix \".nix\" filename
-        then (let nixExpr = import filename;
+  pkg = if nixFile == null
+        then haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath cabalFile) {}
+        else (let nixExpr = import nixFile;
                   nixExpr' = if builtins.isFunction nixExpr
                              then (if (builtins.functionArgs nixExpr) ? mkDerivation
-                                   then haskellPackages.callPackage filename {}
+                                   then haskellPackages.callPackage nixFile {}
                                    else nixExpr {})
                              else nixExpr;
               in (if lib.isDerivation nixExpr' then nixExpr'
@@ -86,9 +108,10 @@ using provides a malicious GHC in its Nix configuration."
                                        else if nixExpr' ? haskellPackageSets then nixExpr'.haskellPackageSets.ghc
                                        else nixExpr';
                        in (if nixExpr'' ? ${packageName} then nixExpr''.${packageName}
-                           else throw \"Can't find target for ${packageName} in ${filename}.\")
-                  else throw \"Can't import ${filename} correctly.\"))
-        else throw \"Can't do anything with ${filename}.\";
+                           else if nixExpr'' ? callCabal2nix
+                                then nixExpr''.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath cabalFile) {}
+                           else haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath cabalFile) {})
+                  else throw \"Can't import ${nixFile} correctly.\"));
 in buildPkgDb pkg")
 
 ;; Store information on running" Nix evaluations.
@@ -114,7 +137,9 @@ EVENT the event that was fired."
     ("finished\n"
      (nix-haskell--interactive buf drv-file drv)
      (kill-buffer err))
-    (_ (display-buffer err))))
+    (_
+     (display-buffer err)
+     (error "Running nix-haskell failed to realise the store path"))))
 
 (defun nix-haskell--instantiate-sentinel (prop err proc event)
   "Make a nix-haskell process.
@@ -141,7 +166,9 @@ EVENT the event that was fired."
      (setq nix-haskell--running-processes
 	   (lax-plist-put nix-haskell--running-processes prop nil))
      (kill-buffer err))
-    (_ (display-buffer err)))
+    (_
+     (display-buffer err)
+     (error "Running nix-haskell failed to instantiate")))
   (unless (process-live-p proc)
     (kill-buffer (process-buffer proc))))
 
@@ -149,7 +176,7 @@ EVENT the event that was fired."
   "Get a package-db async.
 CALLBACK called once the package-db is determined."
   (let ((cabal-file (haskell-cabal-find-file default-directory))
-	filename package-name root)
+	nix-file package-name root)
 
     ;; (when (and (projectile-project-p) (not root)
     ;;	       (or (file-exists-p (expand-file-name "default.nix" (projectile-project-root)))
@@ -168,44 +195,61 @@ CALLBACK called once the package-db is determined."
     (unless cabal-file (error "Cannot find a valid .cabal file"))
     (setq package-name (replace-regexp-in-string ".cabal$" "" (file-name-nondirectory cabal-file)))
 
+    (unless root
+      (setq root (file-name-directory cabal-file)))
+
     ;; Look for shell.nix or default.nix
-    (unless (and filename (file-exists-p filename))
-      (setq filename (expand-file-name "default.nix" root)))
-    (unless (and filename (file-exists-p filename))
-      (setq filename (expand-file-name "shell.nix" root)))
-    (unless (and filename (file-exists-p filename))
-      (setq filename cabal-file))
+    (unless (and nix-file (file-exists-p nix-file))
+      (setq nix-file (expand-file-name "default.nix" root)))
+    (unless (and nix-file (file-exists-p nix-file))
+      (setq nix-file (expand-file-name "shell.nix" root)))
 
     ;; TODO: update cache after certain threshold
     (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
       (if cache (apply callback cache)
 	(let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
 	       (stdout (generate-new-buffer
-			(format "*nix-haskell-instantiate-stdout*<%s>" cabal-file)))
+			(format "*nix-haskell-instantiate-stdout<%s>*" cabal-file)))
 	       (stderr (generate-new-buffer
-			(format "*nix-haskell-instantiate-stderr*<%s>" cabal-file)))
+			(format "*nix-haskell-instantiate-stderr<%s>*" cabal-file)))
 	       (command (list nix-instantiate-executable
 			      "-E" nix-haskell-pkg-db-expr
-			      "--argstr" "filename" filename
+			      "--argstr" "cabalFile" cabal-file
 			      "--argstr" "packageName" package-name)))
 
-	  ;; Pick up projects with custom package sets. Note: this
-	  ;; requires trusting the project’s configuration.
-	  (when nix-haskell-trust-project
-	    (when (file-exists-p (expand-file-name "reflex-platform.nix" root))
-	      (setq command
-		    (append command
-			    (list "--arg" "haskellPackages"
-				  (format "(import %s {}).ghc"
-					  (expand-file-name "reflex-platform.nix"
-							    root))))))
-	    (when (file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
-	      (setq command
-		    (append command
-			    (list "--arg" "haskellPackages"
-				  (format "(import %s {}).haskellPackageSets.ghc"
-					  (expand-file-name ".obelisk/impl/default.nix"
-							    root)))))))
+          (when nix-haskell-verbose
+            (message "Running nix-instantiate for %s..." cabal-file))
+
+          (when (and nix-file (file-exists-p nix-file))
+            (when nix-haskell-verbose
+              (message "Found Nix file at %s." nix-file))
+            (setq command
+                  (append command (list "--argstr" "nixFile" nix-file))))
+
+	  ;; Pick up projects with custom package sets. This is
+	  ;; required for some important projects like those based on
+	  ;; Obelisk or reflex-platform.
+	  (when (file-exists-p (expand-file-name "reflex-platform.nix" root))
+            (when nix-haskell-verbose
+              (message "Detected reflex-platform project."))
+
+	    (setq command
+		  (append command
+			  (list "--arg" "haskellPackages"
+				(format "(import %s {}).ghc"
+					(expand-file-name "reflex-platform.nix"
+							  root))))))
+
+	  (when (file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
+            (when nix-haskell-verbose
+              (message "Detected obelisk project."))
+
+	    (setq command
+		  (append command
+			  (list "--arg" "haskellPackages"
+				(format "(import %s {}).haskellPackageSets.ghc"
+					(expand-file-name ".obelisk/impl/default.nix"
+							  root))))))
 
 	  (setq nix-haskell--running-processes
 		(lax-plist-put nix-haskell--running-processes
@@ -233,6 +277,10 @@ OUT filename of derivation.
 DRV derivation file."
   (if (file-exists-p out)
       (let ((package-db out))
+
+        (when nix-haskell-verbose
+          (message "nix-haskell succeeded in buffer."))
+
 	(with-current-buffer buf
 	  ;; Find package db directory.
 	  (setq package-db (expand-file-name "lib" package-db))
@@ -268,9 +316,9 @@ DRV derivation file."
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
 	  (flycheck-mode 1)))
     (let ((stderr (generate-new-buffer
-		   (format "*nix-haskell-store-stderr*<%s>" drv))))
+		   (format "*nix-haskell-store<%s>*" drv))))
       (make-process
-       :name (format "*nix-haskell-store*<%s>" drv)
+       :name (format "*nix-haskell-store<%s>*" drv)
        :buffer nil
        :command (list nix-store-executable "-r" drv)
        :noquery t
