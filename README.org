@@ -2509,7 +2509,16 @@ packages (for completion, syntax checking, etc.)
            ("C-c C-c" . haskell-process-cabal-build)
            ("C-c c" . haskell-process-cabal)
            :map interactive-haskell-mode-map
-           ("M-." . haskell-mode-jump-to-def-or-tag)
+           ("M-." . (lambda (&optional _next-p)
+                      (interactive "P")
+                      (let ((initial-loc (point-marker))
+                            (loc (haskell-mode-find-def (haskell-ident-at-point))))
+                        (if loc
+                            (progn
+                              (haskell-mode-handle-generic-loc loc)
+                              (unless (equal initial-loc (point-marker))
+                                (xref-push-marker-stack initial-loc)))
+                          (call-interactively 'haskell-mode-tag-find)))))
            ("C-c C-t" . haskell-mode-show-type-at))
     :init
     (add-to-list 'completion-ignored-extensions ".hi"))

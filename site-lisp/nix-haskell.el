@@ -105,6 +105,8 @@
                   nixExpr' = if builtins.isFunction nixExpr
                              then (if (builtins.functionArgs nixExpr) ? mkDerivation
                                    then haskellPackages.callPackage nixFile {}
+                                   else if (builtins.functionArgs nixExpr) == {}
+                                   then haskellPackages // (nixExpr haskellPackages pkgs)
                                    else nixExpr {})
                              else nixExpr;
               in (if lib.isDerivation nixExpr' then nixExpr'
@@ -240,7 +242,9 @@ CALLBACK called once the package-db is determined."
 	  ;; Pick up projects with custom package sets. This is
 	  ;; required for some important projects like those based on
 	  ;; Obelisk or reflex-platform.
-	  (when (file-exists-p (expand-file-name "reflex-platform.nix" root))
+          (cond
+           ((file-exists-p (expand-file-name "reflex-platform.nix" root))
+
             (when nix-haskell-verbose
               (message "Detected reflex-platform project."))
 
@@ -251,7 +255,8 @@ CALLBACK called once the package-db is determined."
 				        (expand-file-name "reflex-platform.nix"
 							  root))))))
 
-	  (when (file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
+           ((file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
+
             (when nix-haskell-verbose
               (message "Detected obelisk project."))
 
@@ -262,9 +267,26 @@ CALLBACK called once the package-db is determined."
 				        (expand-file-name ".obelisk/impl/default.nix"
 							  root))))))
 
+           ;; ((and (file-exists-p (expand-file-name "default.nix" root))
+           ;;       (not (string= (expand-file-name "default.nix" root)
+           ;;                     nix-file)))
+           ;;  (when nix-haskell-verbose
+           ;;    (message "Detected default.nix."))
+	   ;;  (setq command
+	   ;;        (append command
+	   ;;             (list "--arg" "haskellPackages"
+	   ;;                   (format "(import %s {})"
+	   ;;                           (expand-file-name "default.nix"
+	   ;;                                             root))))))
+           )
+
 	  (setq nix-haskell--running-processes
 	        (lax-plist-put nix-haskell--running-processes
 			       cabal-file (cons callback data)))
+
+          ;; (when nix-haskell-verbose
+          ;;   (message "Running %s." command))
+
 	  (make-process
 	   :name (format "*nix-haskell*<%s>" cabal-file)
 	   :buffer stdout
