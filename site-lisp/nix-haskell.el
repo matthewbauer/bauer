@@ -51,6 +51,11 @@
   :type 'integer
   :group 'nix-haskell)
 
+(defcustom nix-haskell-auto-create-session t
+  "Whether to start an interactive-haskell-mode session automatically."
+  :type 'boolean
+  :group 'nix-haskell)
+
 ;; Expression used to build Haskell’s package db
 
 ;; We don’t want to just get ghc from the Nix file. This would leave
@@ -349,8 +354,9 @@ DRV derivation file."
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
 	  (flycheck-mode 1)
 
-          (let ((haskell-process-load-or-reload-prompt nil))
-            (haskell-session-new-assume-from-cabal))))
+          (when nix-haskell-auto-create-session
+            (let ((haskell-process-load-or-reload-prompt nil))
+              (haskell-session-new-assume-from-cabal)))))
     (let ((stderr (generate-new-buffer
 		   (format "*nix-haskell-store<%s>*" drv))))
       (make-process
