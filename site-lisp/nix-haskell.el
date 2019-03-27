@@ -213,9 +213,9 @@ CALLBACK called once the package-db is determined."
 
     ;; Look for shell.nix or default.nix
     (unless (and nix-file (file-exists-p nix-file))
-      (setq nix-file (expand-file-name "default.nix" root)))
-    (unless (and nix-file (file-exists-p nix-file))
       (setq nix-file (expand-file-name "shell.nix" root)))
+    (unless (and nix-file (file-exists-p nix-file))
+      (setq nix-file (expand-file-name "default.nix" root)))
 
     (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
       (when cache (apply callback (cdr cache)))
