@@ -114,13 +114,19 @@
                                    then haskellPackages // (nixExpr haskellPackages pkgs)
                                    else nixExpr {})
                              else nixExpr;
-              in (if lib.isDerivation nixExpr' then nixExpr'
+              in (if lib.isDerivation nixExpr'
+                     then (if nixExpr' ? shells
+                           then nixExpr'.shells.ghc
+                           else nixExpr')
                   else if builtins.isAttrs nixExpr'
-                  then let nixExpr'' = if nixExpr' ? haskellPackages then nixExpr'.haskellPackages
+                  then let nixExpr'' = if nixExpr' ? proj then nixExpr'.proj
+                                       else if nixExpr' ? shells then nixExpr'
+                                       else if nixExpr' ? haskellPackages then nixExpr'.haskellPackages
                                        else if nixExpr' ? haskellPackageSets then nixExpr'.haskellPackageSets.ghc
                                        else if nixExpr' ? ghc then nixExpr'.ghc
                                        else nixExpr';
-                       in (if nixExpr'' ? ${packageName} then nixExpr''.${packageName}
+                       in (if nixExpr'' ? shells then nixExpr''.shells.ghc
+                           else if nixExpr'' ? ${packageName} then nixExpr''.${packageName}
                            else if nixExpr'' ? callCabal2nix
                                 then nixExpr''.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath cabalFile) {}
                            else haskellPackages.callCabal2nix \"auto-callcabal2nix\" (builtins.toPath cabalFile) {})
