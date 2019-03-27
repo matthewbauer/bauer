@@ -51,7 +51,7 @@
   :type 'integer
   :group 'nix-haskell)
 
-(defcustom nix-haskell-auto-create-session t
+(defcustom nix-haskell-auto-create-session nil
   "Whether to start an interactive-haskell-mode session automatically."
   :type 'boolean
   :group 'nix-haskell)
