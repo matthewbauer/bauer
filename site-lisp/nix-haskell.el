@@ -339,6 +339,8 @@ DRV derivation file."
 		      (format "%s new-build" (expand-file-name "bin/cabal" out)))
 
 	  ;; Setup haskell-mode args.
+          (make-local-variable 'exec-path)
+          (add-to-list 'exec-path (format "%s/bin" out) t)
 	  (setq-local haskell-process-type 'cabal-new-repl)
 	  (setq-local haskell-process-path-cabal (expand-file-name "bin/cabal" out))
 	  (make-local-variable 'haskell-process-args-cabal-new-repl)
