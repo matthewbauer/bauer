@@ -339,8 +339,6 @@ DRV derivation file."
 		      (format "%s new-build" (expand-file-name "bin/cabal" out)))
 
 	  ;; Setup haskell-mode args.
-          (make-local-variable 'exec-path)
-          (add-to-list 'exec-path (format "%s/bin" out) t)
 	  (setq-local haskell-process-type 'cabal-new-repl)
 	  (setq-local haskell-process-path-cabal (expand-file-name "bin/cabal" out))
 	  (make-local-variable 'haskell-process-args-cabal-new-repl)
@@ -354,18 +352,17 @@ DRV derivation file."
 		       (format "--ghc-pkg-option=--package-db=%s" package-db) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--ghc-option=-package-db=%s" package-db) t)
-	  (interactive-haskell-mode 1)
+          (when nix-haskell-auto-create-session
+	    (interactive-haskell-mode 1)
+            (let ((haskell-process-load-or-reload-prompt nil))
+              (haskell-session-new-assume-from-cabal)))
 
 	  ;; Setup flycheck.
 	  (setq-local flycheck-haskell-ghc-executable
 		      (expand-file-name "bin/ghc" out))
 	  (make-local-variable 'flycheck-ghc-package-databases)
 	  (add-to-list 'flycheck-ghc-package-databases package-db)
-	  (flycheck-mode 1)
-
-          (when nix-haskell-auto-create-session
-            (let ((haskell-process-load-or-reload-prompt nil))
-              (haskell-session-new-assume-from-cabal)))))
+	  (flycheck-mode 1)))
     (let ((stderr (generate-new-buffer
 		   (format "*nix-haskell-store<%s>*" drv))))
       (make-process
