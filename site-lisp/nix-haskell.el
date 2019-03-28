@@ -211,101 +211,102 @@ CALLBACK called once the package-db is determined."
       (setq root (expand-file-name root)))
 
     (when cabal-file (setq cabal-file (expand-file-name cabal-file)))
-    (unless cabal-file (error "Cannot find a valid .cabal file"))
-    (setq package-name (replace-regexp-in-string ".cabal$" "" (file-name-nondirectory cabal-file)))
+    ;; (unless cabal-file (error "Cannot find a valid .cabal file"))
+    (when cabal-file
+      (setq package-name (replace-regexp-in-string ".cabal$" "" (file-name-nondirectory cabal-file)))
 
-    (unless root
-      (setq root (file-name-directory cabal-file)))
+      (unless root
+        (setq root (file-name-directory cabal-file)))
 
-    ;; Look for shell.nix or default.nix
-    (unless (and nix-file (file-exists-p nix-file))
-      (setq nix-file (expand-file-name "shell.nix" root)))
-    (unless (and nix-file (file-exists-p nix-file))
-      (setq nix-file (expand-file-name "default.nix" root)))
+      ;; Look for shell.nix or default.nix
+      (unless (and nix-file (file-exists-p nix-file))
+        (setq nix-file (expand-file-name "shell.nix" root)))
+      (unless (and nix-file (file-exists-p nix-file))
+        (setq nix-file (expand-file-name "default.nix" root)))
 
-    (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
-      (when cache (apply callback (cdr cache)))
+      (let ((cache (lax-plist-get nix-haskell--package-db-cache cabal-file)))
+        (when cache (apply callback (cdr cache)))
 
-      (when (or (not cache)
-                (> (float-time) (+ (car cache) nix-haskell-ttl))
-                (> (time-to-seconds
-                    (nth 5 (file-attributes cabal-file)))
-                   (car cache)))
-        (let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
-	       (stdout (generate-new-buffer
-		        (format "*nix-haskell-instantiate-stdout<%s>*" cabal-file)))
-	       (stderr (generate-new-buffer
-		        (format "*nix-haskell-instantiate-stderr<%s>*" cabal-file)))
-	       (command (list nix-instantiate-executable
-			      "-E" nix-haskell-pkg-db-expr
-			      "--argstr" "cabalFile" cabal-file
-			      "--argstr" "packageName" package-name)))
-
-          (when nix-haskell-verbose
-            (message "Running nix-instantiate for %s..." cabal-file))
-
-          (when (and nix-file (file-exists-p nix-file))
-            (when nix-haskell-verbose
-              (message "Found Nix file at %s." nix-file))
-            (setq command
-                  (append command (list "--argstr" "nixFile" nix-file))))
-
-	  ;; Pick up projects with custom package sets. This is
-	  ;; required for some important projects like those based on
-	  ;; Obelisk or reflex-platform.
-          (cond
-           ((file-exists-p (expand-file-name "reflex-platform.nix" root))
+        (when (or (not cache)
+                  (> (float-time) (+ (car cache) nix-haskell-ttl))
+                  (> (time-to-seconds
+                      (nth 5 (file-attributes cabal-file)))
+                     (car cache)))
+          (let* ((data (lax-plist-get nix-haskell--running-processes cabal-file))
+	         (stdout (generate-new-buffer
+		          (format "*nix-haskell-instantiate-stdout<%s>*" cabal-file)))
+	         (stderr (generate-new-buffer
+		          (format "*nix-haskell-instantiate-stderr<%s>*" cabal-file)))
+	         (command (list nix-instantiate-executable
+			        "-E" nix-haskell-pkg-db-expr
+			        "--argstr" "cabalFile" cabal-file
+			        "--argstr" "packageName" package-name)))
 
             (when nix-haskell-verbose
-              (message "Detected reflex-platform project."))
+              (message "Running nix-instantiate for %s..." cabal-file))
 
-	    (setq command
-		  (append command
-			  (list "--arg" "haskellPackages"
-			        (format "(import %s {}).ghc"
-				        (expand-file-name "reflex-platform.nix"
-							  root))))))
+            (when (and nix-file (file-exists-p nix-file))
+              (when nix-haskell-verbose
+                (message "Found Nix file at %s." nix-file))
+              (setq command
+                    (append command (list "--argstr" "nixFile" nix-file))))
 
-           ((file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
+	    ;; Pick up projects with custom package sets. This is
+	    ;; required for some important projects like those based on
+	    ;; Obelisk or reflex-platform.
+            (cond
+             ((file-exists-p (expand-file-name "reflex-platform.nix" root))
 
-            (when nix-haskell-verbose
-              (message "Detected obelisk project."))
+              (when nix-haskell-verbose
+                (message "Detected reflex-platform project."))
 
-	    (setq command
-		  (append command
-			  (list "--arg" "haskellPackages"
-			        (format "(import %s {}).haskellPackageSets.ghc"
-				        (expand-file-name ".obelisk/impl/default.nix"
-							  root))))))
+	      (setq command
+		    (append command
+			    (list "--arg" "haskellPackages"
+			          (format "(import %s {}).ghc"
+				          (expand-file-name "reflex-platform.nix"
+							    root))))))
 
-           ;; ((and (file-exists-p (expand-file-name "default.nix" root))
-           ;;       (not (string= (expand-file-name "default.nix" root)
-           ;;                     nix-file)))
-           ;;  (when nix-haskell-verbose
-           ;;    (message "Detected default.nix."))
-	   ;;  (setq command
-	   ;;        (append command
-	   ;;             (list "--arg" "haskellPackages"
-	   ;;                   (format "(import %s {})"
-	   ;;                           (expand-file-name "default.nix"
-	   ;;                                             root))))))
-           )
+             ((file-exists-p (expand-file-name ".obelisk/impl/default.nix" root))
 
-	  (setq nix-haskell--running-processes
-	        (lax-plist-put nix-haskell--running-processes
-			       cabal-file (cons callback data)))
+              (when nix-haskell-verbose
+                (message "Detected obelisk project."))
 
-          ;; (when nix-haskell-verbose
-          ;;   (message "Running %s." command))
+	      (setq command
+		    (append command
+			    (list "--arg" "haskellPackages"
+			          (format "(import %s {}).haskellPackageSets.ghc"
+				          (expand-file-name ".obelisk/impl/default.nix"
+							    root))))))
 
-	  (make-process
-	   :name (format "*nix-haskell*<%s>" cabal-file)
-	   :buffer stdout
-	   :command command
-	   :noquery t
-	   :sentinel (apply-partially 'nix-haskell--instantiate-sentinel
-				      cabal-file stderr)
-	   :stderr stderr)))))
+             ;; ((and (file-exists-p (expand-file-name "default.nix" root))
+             ;;       (not (string= (expand-file-name "default.nix" root)
+             ;;                     nix-file)))
+             ;;  (when nix-haskell-verbose
+             ;;    (message "Detected default.nix."))
+	     ;;  (setq command
+	     ;;        (append command
+	     ;;             (list "--arg" "haskellPackages"
+	     ;;                   (format "(import %s {})"
+	     ;;                           (expand-file-name "default.nix"
+	     ;;                                             root))))))
+             )
+
+	    (setq nix-haskell--running-processes
+	          (lax-plist-put nix-haskell--running-processes
+			         cabal-file (cons callback data)))
+
+            ;; (when nix-haskell-verbose
+            ;;   (message "Running %s." command))
+
+	    (make-process
+	     :name (format "*nix-haskell*<%s>" cabal-file)
+	     :buffer stdout
+	     :command command
+	     :noquery t
+	     :sentinel (apply-partially 'nix-haskell--instantiate-sentinel
+				        cabal-file stderr)
+	     :stderr stderr))))))
 
   ;; t is used here so the hook doesn’t wait for the process above to
   ;; finish.
