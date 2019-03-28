@@ -339,7 +339,7 @@ DRV derivation file."
 		      (format "%s new-build" (expand-file-name "bin/cabal" out)))
 
 	  ;; Setup haskell-mode args.
-	  (setq-local haskell-process-type 'cabal-new-repl)
+          (setq-local haskell-process-type 'cabal-new-repl)
 	  (setq-local haskell-process-path-cabal (expand-file-name "bin/cabal" out))
 	  (make-local-variable 'haskell-process-args-cabal-new-repl)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
@@ -349,7 +349,7 @@ DRV derivation file."
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--with-hsc2hs=%s/bin/hsc2hs" out) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
-		       (format "--ghc-pkg-option=--package-db=%s" package-db) t)
+	               (format "--ghc-pkg-option=--global-package-db=%s" package-db) t)
 	  (add-to-list 'haskell-process-args-cabal-new-repl
 		       (format "--ghc-option=-package-db=%s" package-db) t)
           (when nix-haskell-auto-create-session
