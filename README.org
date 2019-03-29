@@ -2536,9 +2536,9 @@ packages (for completion, syntax checking, etc.)
 ***** nix-haskell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package nix-haskell
+  (use-package nix-haskell-mode
     :ensure nil
-    :hook (haskell-mode . nix-haskell-setup))
+    :hook (haskell-mode . nix-haskell-mode))
 #+END_SRC
 
 
@@ -4137,9 +4137,8 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/use-package-list.el
                        "site-lisp/use-package-list.el"} \
           $out/share/emacs/site-lisp/use-package-list.el
-  install -D ${ensure ./site-lisp/nix-haskell.el
-                      "site-lisp/nix-haskell.el"} \
-          $out/share/emacs/site-lisp/nix-haskell.el
+  install -D ${builtins.fetchurl "https://raw.githubusercontent.com/matthewbauer/nix-haskell-mode/master/nix-haskell-mode.el"} \
+          $out/share/emacs/site-lisp/nix-haskell-mode.el
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
