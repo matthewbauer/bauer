@@ -225,7 +225,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auto-window-vscroll nil)
    '(bug-reference-bug-regexp
      "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-   '(flycheck-emacs-lisp-load-path (quote inherit))
    '(backward-delete-char-untabify-method 'hungry)
    '(backup-directory-alist `(("." .
                                ,(expand-file-name "backup"
@@ -257,6 +256,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
    '(comint-scroll-show-maximum-output nil)
+   '(comint-scroll-to-bottom-on-input t)
+   '(comint-scroll-to-bottom-on-output t)
    '(compilation-always-kill t)
    '(compilation-ask-about-save nil)
    '(compilation-environment '("TERM=xterm-256color"))
@@ -269,6 +270,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(completions-format 'vertical)
    '(counsel-find-file-at-point t)
    '(counsel-mode-override-describe-bindings t)
+   '(counsel-linux-apps-directories '("~/.nix-profile/share/applications/"
+                                      "~/.local/share/applications/"
+                                      "/nix/var/nix/profiles/default/share/applications/"
+                                      "/run/current-system/sw/share/applications/"
+                                      "/usr/local/share/applications/"
+                                      "/usr/share/applications/"))
    '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
@@ -315,14 +322,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(erc-try-new-nick-p nil)
    '(erc-user-full-name 'user-full-name)
    '(eshell-history-size 1000)
-   '(eshell-output-filter-functions '(eshell-handle-ansi-color
-                                      eshell-watch-for-password-prompt
-                                      eshell-truncate-buffer))
-   '(eshell-scroll-show-maximum-output nil)
+   '(eshell-bad-command-tolerance 1.0e+INF)
    '(eshell-visual-commands
      '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
        "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"))
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"))
    '(eshell-visual-options nil)
    '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
    '(eshell-banner-message "")
@@ -355,6 +360,10 @@ The format of arguments to =set-defaults= is identical to the one used by
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-save-history-on-exit t)
    '(eshell-stringify nil)
+   ;; '(eshell-postoutput-scroll-to-bottom t)
+   ;; '(eshell-scroll-to-bottom-on-input t)
+   ;; '(eshell-scroll-to-bottom-on-output t)
+   '(eshell-scroll-show-maximum-output nil)
    '(eshell-term-name "ansi")
    '(eshell-visual-commands '("vi" "top" "screen" "less"
                               "rlogin" "telnet" "lynx"))
@@ -374,6 +383,8 @@ The format of arguments to =set-defaults= is identical to the one used by
                                  outline-mode
                                  text-mode
                                  org-mode))
+   '(flycheck-emacs-lisp-load-path (quote inherit))
+   '(flycheck-disabled-checkers '(haskell-stack-ghc))
    '(flycheck-standard-error-navigation nil)
    '(flycheck-check-syntax-automatically '(save mode-enabled))
    '(flyspell-highlight-properties nil)
@@ -387,11 +398,16 @@ The format of arguments to =set-defaults= is identical to the one used by
          "%b")))
    '(gnuplot-inline-image-mode 'dedicated)
    '(haskell-interactive-mode-scroll-to-bottom t)
-   '(haskell-process-type 'ghci)
-   '(haskell-process-load-or-reload-prompt t)
+   '(haskell-process-log t)
+   '(haskell-process-type 'cabal-new-repl)
+   '(haskell-process-auto-import-loaded-modules t)
+   '(haskell-process-load-or-reload-prompt nil)
+   '(haskell-process-suggest-restart nil)
    '(haskell-process-suggest-haskell-docs-imports t)
    '(haskell-process-suggest-hoogle-imports t)
    '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-compile-cabal-build-command "cabal new-build")
+   '(haskell-tags-on-save t)
    '(help-window-select t)
    '(hideshowvis-ignore-same-line nil)
    '(highlight-nonselected-windows nil)
@@ -406,6 +422,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(ibuffer-show-empty-filter-groups nil)
    '(ibuffer-shrink-to-minimum-size t)
    '(ibuffer-use-other-window t)
+   '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
    '(iedit-toggle-key-default nil)
    '(imenu-auto-rescan t)
    '(indicate-empty-lines t)
@@ -524,13 +541,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
    ;;   '(projectile-enable-idle-timer 1)
-   '(projectile-mode-line
-     '(:eval
-       (if (and (ignore-errors (projectile-project-p))
-                (not (file-remote-p default-directory)))
-           (format " Projectile[%s]"
-                   (projectile-project-name))
-         "")))
+   '(projectile-mode-line-prefix "")
+   '(projectile-mode-line-function
+     (lambda () (if (and (ignore-errors (projectile-project-p))
+                    (not (file-remote-p default-directory)))
+               (format " Projectile[%s]" (projectile-project-name))
+             "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-require-project-root t)
    '(projectile-verbose nil)
@@ -572,6 +588,9 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(sp-highlight-pair-overlay nil)
    '(switch-to-buffer-preserve-window-point t)
    '(tab-always-indent 'complete)
+   '(tab-stop-list (number-sequence 4 200 4))
+   '(tags-revert-without-query t)
+   '(tags-add-tables t)
    '(term-input-autoexpand t)
    '(term-input-ignoredups t)
    '(text-quoting-style 'quote)
@@ -604,8 +623,10 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(x-stretch-cursor t)
    '(which-key-lighter "")
    '(whitespace-action '(cleanup auto-cleanup))
+   '(whitespace-line-column 120)
    '(whitespace-style '(face trailing lines space-before-tab
                              empty lines-style))
+   '(whitespace-global-modes '(not erc-mode ses-mode))
    '(fortune-always-compile nil)
    )
 #+END_SRC
@@ -635,8 +656,6 @@ set in the Emacs process.
 #+BEGIN_SRC emacs-lisp
   (set-envs
    '("EDITOR" "emacsclient")
-   '("LANG" "en_US.UTF-8")
-   '("LC_ALL" "en_US.UTF-8")
    '("NODE_NO_READLINE" "1")
    '("PAGER" "cat")
    '("PS1" "\\W > ")
@@ -847,6 +866,10 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c I"   . bauer-find-config))
 
   (bind-keys
+    :map help-map
+    ("C-r" . woman))
+
+  (bind-keys
    :package view
    :map view-mode-map
    ("n" . next-line)
@@ -942,6 +965,32 @@ resort, go to one of the package group headings & type =C-c ^ a=.
 
 These are the best & most useful modes available to us in Emacs world.
 
+**** align
+
+#+BEGIN_SRC emacs-lisp
+  (use-package align
+    :bind ("M-[" . align)
+    :ensure nil
+    :config
+    (add-to-list 'align-rules-list
+		 '(haskell-types
+		   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-assignment
+		   (regexp . "\\(\\s-+\\)=\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-arrows
+		   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    (add-to-list 'align-rules-list
+		 '(haskell-left-arrows
+		   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
+		   (modes quote (haskell-mode literate-haskell-mode))))
+    )
+#+END_SRC
+
 **** aggressive-indent
 [[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
 
@@ -1010,19 +1059,21 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                 ("C-M-/" . company-filter-candidates)
                 ("C-d" . company-show-doc-buffer)
                 )
-    :hook ((minibuffer-setup . company-mode)
-           (minibuffer-setup .
-                             (lambda () (setq-local company-frontends
-                                               '(company-preview-if-just-one-frontend))))
+    :hook (;; (minibuffer-setup . company-mode)
+           ;; (minibuffer-setup . (lambda ()
+           ;;                       (setq-local company-frontends '(company-preview-if-just-one-frontend))
+           ;;                       (setq-local company-auto-complete nil)))
            (after-init . global-company-mode)
-           ((shell-mode sh-mode fish-mode eshell-mode) .
-            (lambda ()
-              (setq-local company-backends
-                          '((company-capf
-                             company-files))))))
+           (shell-mode .
+                       (lambda ()
+                         (setq-local company-backends '(company-capf))))
+           (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
     :config
     (advice-add 'completion-at-point
-                :override 'company-complete-common-or-cycle)
+                :around (lambda (old-function &rest args)
+                          (if company-mode
+                              (apply 'company-complete-common-or-cycle args)
+                            (apply old-function args))))
     (global-company-mode))
 #+END_SRC
 
@@ -1055,14 +1106,6 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :commands company-tern
     :hook (tern-mode . (lambda ()
       (setq-local company-backends '(company-tern company-capf)))))
-#+END_SRC
-***** company-ghc
-#+BEGIN_SRC emacs-lisp
-  (use-package company-ghc
-    :disabled
-    :commands company-ghc
-    :hook (haskell-mode . (lambda ()
-      (setq-local company-backends '(company-ghc company-capf)))))
 #+END_SRC
 ***** company-auctex
 #+BEGIN_SRC emacs-lisp
@@ -1223,7 +1266,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
            ("C-c x" . eshell)
            ("C-c e" . eshell))
     :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . eshell-initialize))
+           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
     :preface
     (defvar eshell-isearch-map
       (let ((map (copy-keymap isearch-mode-map)))
@@ -1239,15 +1282,13 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (defalias 'eshell/q 'eshell/exit)
     (defalias 'eshell/\? 'help)
     (defun eshell-spawn-external-command (beg end)
-        "Parse and expand any history references in current input."
-        (save-excursion
-          (goto-char end)
-          (when (looking-back "&!" beg)
-            (delete-region (match-beginning 0) (match-end 0))
-            (goto-char beg)
-            (insert "spawn "))))
-    (defun eshell-initialize ()
-      (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command)))
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn ")))))
 #+END_SRC
 
 ***** em-rebind
@@ -1321,29 +1362,13 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-**** ESUP
-
-[[https://github.com/jschaf/esup][GitHub]]
-
-emacs-init-time gives good readings for Emacs startup time. Currently my
-emacs-init-time is 4.5 seconds. It fluctuates based on what’s been enabled
-but I aim to never let it go above 5. This is good but it includes some
-things we don’t have control over (window system & Emacs C internals).
-
-ESUP provides good info on what is taking a long time during startup. ESUP is a
-startup profiler for Emacs. I’ve provided "startup-profile" so that you can just
-profile what is in “default.el” (this script) & not any other miscellaneous
-scripts you have around. This will be part of our effort to get quick startup
-times. Slowdowns happen for various reasons but right now autorevert,
-apropospriate, & flycheck are the biggest offenders.
+***** xterm-color
 
 #+BEGIN_SRC emacs-lisp
-  (use-package esup
-    :commands esup
-    :preface
-    (defun startup-profile ()
-      (interactive)
-      (esup (locate-library "default"))))
+(use-package xterm-color
+  :disabled
+  :commands xterm-color-filter
+  :hook (eshell-before-prompt . (lambda () (setq-local xterm-color-preserve-properties t))))
 #+END_SRC
 
 **** Flycheck
@@ -1356,9 +1381,8 @@ supports many languages and give us a lot of features right out of the box.
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :hook (prog-mode . flycheck-mode))
-  ;; (use-package flycheck-haskell
-  ;;   :hook (flycheck-mode . flycheck-haskell-setup)
-  ;;   )
+  (use-package flycheck-haskell
+     :hook (haskell-mode . flycheck-haskell-setup))
 #+END_SRC
 
 **** github-clone
@@ -1400,17 +1424,14 @@ certain Emacs keybinds.
 #+END_SRC
 
 **** helpful
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :if (>= emacs-major-version 25)
     :bind (([remap describe-function] . helpful-callable)
            ([remap describe-variable] . helpful-variable)
-           ([remap describe-key] . helpful-key))
-           ("H-h" . helpful-at-point))
+           ([remap describe-key] . helpful-key)
+           ("H-h" . helpful-at-point)))
 #+END_SRC
 
 **** Hippie Expand
@@ -1528,14 +1549,6 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
      ("C-c C-<"     . mc/mark-all-like-this)
      ("C-!"         . mc/mark-next-symbol-like-this)
      ("C-S-c C-S-c" . mc/edit-lines)))
-#+END_SRC
-
-**** notmuch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package notmuch
-    :bind (("s-m" . notmuch)
-           ("H-m" . notmuch)))
 #+END_SRC
 
 **** Org
@@ -1979,7 +1992,9 @@ Setup these modes:
            (org-mode . electric-quote-local-mode)
            (message-mode . electric-quote-local-mode)
            (prog-mode . electric-indent-local-mode)
-           (prog-mode . electric-layout-mode)))
+           (prog-mode . electric-layout-mode)
+           (haskell-mode . (lambda () (electric-indent-local-mode -1)))
+           (nix-mode . (lambda () (electric-indent-local-mode -1)))))
 #+END_SRC
 
 ***** elec-pair
@@ -2096,7 +2111,8 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package goto-addr
     :ensure nil
-    :hook ((prog-mode . goto-address-prog-mode)
+    :hook (((prog-mode conf-mode) . goto-address-prog-mode)
+           ((help-mode org-mode text-mode) . goto-address-mode)
            (git-commit-mode . goto-address-mode)
            (shell-mode . goto-address-mode)))
 #+END_SRC
@@ -2203,23 +2219,22 @@ Make scripts executable automatically.
   (use-package shell
     :ensure nil
     :bind (("C-c C-s" . shell)
-	   ("H-s" . shell)
-	   ("M-@" . shell))
+           ("H-s" . shell)
+           ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
-	   (shell-mode . dirtrack-mode)
-	   (shell-mode . pcomplete-shell-setup)
-	   (shell-mode . use-histfile)
-	   (shell-mode . (lambda ()
-			   (setq comint-input-ring-file-name "~/.zsh_history")
-			   ;; Ignore timestamps in history file.  Assumes that zsh
-			   ;; EXTENDED_HISTORY option is in use.
-			   (setq comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-			   (comint-read-input-ring t))))
+           (shell-mode . dirtrack-mode)
+           (shell-mode . pcomplete-shell-setup)
+           (shell-mode . use-histfile)
+           (shell-mode . (lambda ()
+                      (setq-local comint-input-ring-file-name "~/.history")
+                      ;; Ignore timestamps in history file.  Assumes that zsh
+                      ;; EXTENDED_HISTORY option is in use.
+                      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
+                      (comint-read-input-ring t))))
     :preface
     (defun use-histfile ()
       (turn-on-comint-history
        (expand-file-name "sh-history" user-emacs-directory))))
-
 #+END_SRC
 
 **** simple
@@ -2234,7 +2249,8 @@ Make scripts executable automatically.
      ("<escape>"         . abort-recursive-edit)
      ("M-TAB"    . previous-complete-history-element)
      ("<M-S-tab>" . next-complete-history-element))
-    :hook ((text-mode . visual-line-mode))
+    :hook ((text-mode . visual-line-mode)
+           (text-mode . auto-fill-mode))
     :config (column-number-mode))
 #+END_SRC
 **** subword
@@ -2306,7 +2322,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
-    :disabled
     :ensure nil
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
@@ -2454,20 +2469,6 @@ packages (for completion, syntax checking, etc.)
 #+END_SRC
 
 **** Haskell
-***** ghc
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-Note: this needs ghc-mod to be in PATH to work properly.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ghc
-    :disabled 
-    :if (locate-file "ghc-mod" exec-path)
-    :hook ((haskell-mode . ghc-init)
-           (haskell-mode . ghc-comp-init)))
-#+END_SRC
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2475,12 +2476,15 @@ Note: this needs ghc-mod to be in PATH to work properly.
     :preface
     (load "haskell-mode-autoloads" t t)
     :ensure haskell-mode
-    :mode (("\\.hs\\'" . haskell-mode)
+    :mode (("\\.hs\\(c\\|-boot\\)?\\'" . haskell-mode)
+           ("\\.lhs\\'" . literate-haskell-mode)
            ("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
            (haskell-mode . flyspell-prog-mode)
            ;; (haskell-mode . haskell-indentation-mode)
-           ;; (haskell-mode . haskell-indent-mode)
+           (haskell-mode . haskell-auto-insert-module-template)
+           ;; (haskell-mode . haskell-decl-scan-mode)
+           (haskell-mode . haskell-indent-mode)
            ;; (haskell-mode . imenu-add-menubar-index)
            ;; (haskell-mode .
            ;;          (lambda ()
@@ -2489,30 +2493,57 @@ Note: this needs ghc-mod to be in PATH to work properly.
            ;;            (setq-local eldoc-documentation-function
            ;;                        'haskell-doc-current-info)))
            )
+    :bind (:map haskell-mode-map
+           ("C-c h" . haskell-hoogle)
+           ("C-c C-." . haskell-navigate-imports)
+           ("C-`" . haskell-interactive-bring)
+           ("C-c `" . haskell-interactive-bring)
+           ("C-c C-t" . haskell-process-do-type)
+           ("C-c C-i" . haskell-process-do-info)
+           ("C-c C-c" . haskell-process-cabal-build)
+           ("C-c C-k" . haskell-interactive-mode-clear)
+           ("C-c c" . haskell-process-cabal)
+           ;; ("M-." . haskell-mode-jump-to-def)
+           :map haskell-cabal-mode-map
+           ("C-`" . haskell-interactive-bring)
+           ("C-c C-k" . haskell-interactive-mode-clear)
+           ("C-c C-c" . haskell-process-cabal-build)
+           ("C-c c" . haskell-process-cabal)
+           :map interactive-haskell-mode-map
+           ("M-." . (lambda (&optional _next-p)
+                      (interactive "P")
+                      (if (haskell-session-maybe)
+                          (let ((initial-loc (point-marker))
+                                (loc (haskell-mode-find-def (haskell-ident-at-point))))
+                            (if loc
+                                (progn
+                                  (haskell-mode-handle-generic-loc loc)
+                                  (unless (equal initial-loc (point-marker))
+                                    (xref-push-marker-stack initial-loc)))
+                              (call-interactively 'haskell-mode-tag-find)))
+                        (call-interactively 'haskell-mode-tag-find))))
+           ("C-c C-t" . haskell-mode-show-type-at))
     :init
     (add-to-list 'completion-ignored-extensions ".hi"))
-#+END_SRC
-
-***** dante
-
-#+BEGIN_SRC emacs-lisp
-(use-package dante
-  :ensure t
-  :after haskell-mode
-  :commands 'dante-mode
-  :hook ((haskell-mode . dante-mode)
-         (dante-mode . (lambda () (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))))
-  ;; :config (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint))
-  )
 #+END_SRC
 
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-interactive-mode
-    :disabled
     :ensure nil
-    :hook (haskell-mode . interactive-haskell-mode))
+    :commands interactive-haskell-mode
+    ;; :hook (haskell-mode . interactive-haskell-mode)
+    )
 #+END_SRC
+
+***** nix-haskell
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nix-haskell-mode
+    :ensure nil
+    :hook (haskell-mode . nix-haskell-mode))
+#+END_SRC
+
 
 **** Java
 ***** jdee
@@ -2527,9 +2558,6 @@ Note: this needs ghc-mod to be in PATH to work properly.
 
 **** JavaScript
 ***** indium
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
@@ -2938,12 +2966,6 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
-**** dumb-jump
-#+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :if (>= emacs-major-version 25)
-    :hook ((prog-mode . dumb-jump-mode)))
-#+END_SRC
 **** TODO emacs-gif-screencast
 **** TODO epresent
 **** TODO eyebrowse
@@ -3092,15 +3114,17 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package pcomplete
     :ensure nil
+    :demand
     :commands pcomplete-here
     :preface
     (autoload 'pcomplete-comint-setup "pcomplete")
     :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
            (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
-           (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
-                                          'pcomplete-completions-at-point
-                                          nil t)))))
+           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
+           ;;                                'pcomplete-completions-at-point
+           ;;                                nil t)))
+           ))
   (use-package pcmpl-args)
   ;; (use-package pcmpl-git)
 #+END_SRC
@@ -3149,9 +3173,7 @@ fi
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-  export LANG=en_US.UTF-8 \
-         LC_ALL=en_US.UTF-8 \
-         PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
+  export PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
@@ -3884,24 +3906,23 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
 
 #+BEGIN_SRC nix
   let
-  inherit (pkgs) lib;
-  ensure = f: n: if builtins.pathExists f then f
-                 else builtins.fetchurl
-                 "https://matthewbauer.us/bauer/${n}";
+    ensure = f: n: if builtins.pathExists f then f
+                   else builtins.fetchurl
+                   "https://matthewbauer.us/bauer/${n}";
   in import (pkgs.runCommand "README" {
     buildInputs = with pkgs; [ emacs git ];
   } (''
     install -D ${ensure ./README.org "README.org"} \
             $out/README.org
     cd $out
-  '' + lib.optionalString (builtins.pathExists ./site-lisp) ''
+  '' + pkgs.lib.optionalString (builtins.pathExists ./site-lisp) ''
     cp -r ${./site-lisp} site-lisp
   '' + ''
     emacs --batch --quick \
           -l ob-tangle \
           --eval "(org-babel-tangle-file \"README.org\")"
     cp bauer.nix default.nix
-  '')) (args // { inherit ensure pkgs; })
+  '')) (args // { inherit ensure; })
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -4003,10 +4024,10 @@ substitution of all the attributes set.
               schemas bins infopages;
 
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
+      aspell = myAspell;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       gpg = gnupg1compat;
-      aspell = myAspell;
       inherit ant perl perlcritic
         asciidoc lessc lua gcc
         pandoc clang cmake ghostscript
@@ -4075,7 +4096,7 @@ package-list =
 #+END_SRC
 
 #+BEGIN_SRC nix
-myEmacsPackages = builtins.fromJSON
+myEmacsPackages' = builtins.fromJSON
                    (builtins.readFile package-list);
 #+END_SRC
 
@@ -4119,12 +4140,11 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/use-package-list.el
                        "site-lisp/use-package-list.el"} \
           $out/share/emacs/site-lisp/use-package-list.el
+  install -D ${builtins.fetchurl "https://raw.githubusercontent.com/matthewbauer/nix-haskell-mode/master/nix-haskell-mode.el"} \
+          $out/share/emacs/site-lisp/nix-haskell-mode.el
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
-  install -D ${ensure ./site-lisp/dante.el
-                      "site-lisp/dante.el"} \
-          $out/share/emacs/site-lisp/dante.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
@@ -4139,7 +4159,7 @@ export HOME=$PWD
 emacs --batch --quick \
       --eval \
 "(let ((default-directory \"${emacsWrapper
-  ((requiredPackages customEmacsPackages myEmacsPackages)
+  ((requiredPackages customEmacsPackages myEmacsPackages')
    ++ (with customEmacsPackages; [use-package delight]))
 }/share/emacs/site-lisp\"))
   (normal-top-level-add-subdirs-to-load-path))" \
@@ -4226,8 +4246,14 @@ Now we build our Emacs distribution.
 TODO use dump-emacs here to speed up config.
 
 #+BEGIN_SRC nix
+  myEmacsPackages = buildEnv {
+    name = "emacs-packages-env";
+    paths = (requiredPackages pkgs.emacsPackagesNg myEmacsPackages')
+          ++ [ pkgs.emacsPackagesNg.use-package ];
+  };
+
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-    (requiredPackages epkgs myEmacsPackages)
+    (requiredPackages epkgs myEmacsPackages')
     ++ [default epkgs.use-package]
   );
 #+END_SRC
@@ -4247,6 +4273,7 @@ First build the info pages...
     pathsToLink = [ "/share/info" ];
     postBuild = ''
       shopt -s nullglob
+      find -L ${myEmacsPackages}/share/emacs/ -name '*.info*' -exec ln -s {} $out/share/info \;
       for i in $out/share/info/*; do
         install-info $i $out/share/info/dir
       done
@@ -4784,6 +4811,6 @@ in {
 # compile-command: "nix-build"
 # fill-column: 80
 # sentence-end-double-space: nil
-# indent-tabs-mode: t
+# indent-tabs-mode: nil
 # tab-width: 8
 # End:
