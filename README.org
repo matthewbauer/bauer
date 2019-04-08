@@ -1674,8 +1674,29 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
              slime-repl-mode
              org-mode) . show-smartparens-mode)
            ((web-mode
-             html-mode) . smartparens-mode)
-           (smartparens-mode . sp-use-paredit-bindings))
+             html-mode) . smartparens-mode))
+    :bind (:map smartparens-mode-map
+           ("C-M-f" . sp-forward-sexp) ;; navigation
+           ("C-M-b" . sp-backward-sexp)
+           ("C-M-u" . sp-backward-up-sexp)
+           ("C-M-d" . sp-down-sexp)
+           ("C-M-p" . sp-backward-down-sexp)
+           ("C-M-n" . sp-up-sexp)
+           ("M-s" . sp-splice-sexp) ;; depth-changing commands
+           ("M-<up>" . sp-splice-sexp-killing-backward)
+           ("M-<down>" . sp-splice-sexp-killing-forward)
+           ("M-r" . sp-splice-sexp-killing-around)
+           ("M-(" . sp-wrap-round)
+           ("C-)" . sp-forward-slurp-sexp) ;; barf/slurp
+           ("C-<right>" . sp-forward-slurp-sexp)
+           ("C-}" . sp-forward-barf-sexp)
+           ("C-<left>" . sp-forward-barf-sexp)
+           ("C-(" . sp-backward-slurp-sexp)
+           ("C-M-<left>" . sp-backward-slurp-sexp)
+           ("C-{" . sp-backward-barf-sexp)
+           ("C-M-<right>" . sp-backward-barf-sexp)
+           ("M-S" . sp-split-sexp) ;; misc
+           ("M-j" . sp-join-sexp))
     :config
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
     (use-package smartparens-config
