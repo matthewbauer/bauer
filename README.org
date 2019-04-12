@@ -3789,12 +3789,12 @@ TODO use dump-emacs here to speed up config.
   myEmacsPackages = buildEnv {
     name = "emacs-packages-env";
     paths = (requiredPackages pkgs.emacsPackagesNg myEmacsPackages')
-          ++ [ pkgs.emacsPackagesNg.use-package ];
+          ++ [ pkgs.emacsPackagesNg.use-package pkgs.emacsPackagesNg.delight ];
   };
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.use-package]
+    ++ [default epkgs.use-package epkgs.delight]
   );
 #+END_SRC
 
