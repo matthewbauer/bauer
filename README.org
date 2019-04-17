@@ -1414,6 +1414,7 @@ Magit forge.
 
 #+BEGIN_SRC emacs-lisp
   (use-package forge
+    :disabled
     :after magit)
 #+END_SRC
 
@@ -2687,6 +2688,319 @@ macho-mode to toggle then M-x hexl-mode.
     :ensure nil
     :mode ("\\.py\\'" . python-mode)
     :interpreter ("python" . python-mode))
+#+END_SRC
+
+
+**** Ruby
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ruby-mode
+    :ensure nil
+    :mode ("\\.rb\\'" . ruby-mode)
+    :interpreter ("ruby" . ruby-mode))
+#+END_SRC
+
+**** Rust
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rust-mode
+    :mode "\\.rs\\'")
+#+END_SRC
+
+**** SASS
+
+#+BEGIN_SRC emacs-lisp
+  (use-package sass-mode
+    :mode "\\.sass\\'")
+#+END_SRC
+
+**** Scala
+
+#+BEGIN_SRC emacs-lisp
+  (use-package scala-mode
+    :interpreter ("scala" . scala-mode))
+#+END_SRC
+
+**** SCSS
+
+#+BEGIN_SRC emacs-lisp
+  (use-package scss-mode
+    :mode "\\.scss\\'")
+#+END_SRC
+
+**** Shell
+
+#+BEGIN_SRC emacs-lisp
+(use-package sh-script
+  :ensure nil
+  :commands shell-command
+  :mode (("\\.*shellrc$" . sh-mode)
+         ("\\.*shell_profile" . sh-mode)
+         ("\\.zsh\\'" . sh-mode)))
+#+END_SRC
+
+**** texinfo
+
+#+BEGIN_SRC emacs-lisp
+  (use-package texinfo
+    :ensure nil
+    :mode ("\\.texi\\'" . texinfo-mode))
+#+END_SRC
+
+**** TypeScript
+
+#+BEGIN_SRC emacs-lisp
+  (use-package typescript-mode
+    :mode "\\.ts\\'")
+#+END_SRC
+
+**** Web
+
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :mode (("\\.erb\\'" . web-mode)
+           ("\\.mustache\\'" . web-mode)
+           ("\\.html?\\'" . web-mode)
+           ("\\.php\\'" . web-mode)
+           ("\\.jsp\\'" . web-mode)
+           ;; ("\\.jsx?$" . web-mode)
+           ("\\.es6\\'" . web-mode)
+           ("\\.ejs\\'" . web-mode)
+           ("\\.phtml\\'" . web-mode)
+           ("\\.tpl\\.php\\'" . web-mode)
+           ("\\.[agj]sp\\'" . web-mode)
+           ("\\.as[cp]x\\'" . web-mode)
+           ("\\.djhtml\\'" . web-mode)))
+#+END_SRC
+
+**** YAML
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :mode "\\.ya?ml\\'")
+#+END_SRC
+
+*** Custom
+
+These are all available in [[./site-lisp][./site-lisp]]. Eventually they should go into separate
+repositories.
+
+**** dired-column
+**** em-dired
+**** installer
+**** macho-mode
+**** nethack
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nethack
+    :commands nethack
+    :ensure nil)
+#+END_SRC
+
+**** nix-fontify
+**** set-defaults
+**** use-package-list
+*** Other
+
+These should correspond to minor modes or helper functions. Some of them are
+more helpful than others but none are /essential/.
+
+Most of these are available in MELPA.
+
+**** browse-at-remote
+#+BEGIN_SRC emacs-lisp
+  (use-package browse-at-remote
+    :bind ("C-c g g" . browse-at-remote))
+#+END_SRC
+**** buffer-move
+[[https://github.com/lukhas/buffer-move][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package buffer-move
+    :bind
+    (("<M-S-up>" . buf-move-up)
+     ("<M-S-down>" . buf-move-down)
+     ("<M-S-left>" . buf-move-left)
+     ("<M-S-right>" . buf-move-right)))
+#+END_SRC
+
+**** copy-as-format
+
+#+BEGIN_SRC emacs-lisp
+  (use-package copy-as-format
+    :bind (("C-c w s" . copy-as-format-slack)
+           ("C-c w g" . copy-as-format-github)))
+#+END_SRC
+
+**** crux
+
+#+BEGIN_SRC emacs-lisp
+  (use-package crux
+    :bind (("C-c D" . crux-delete-file-and-buffer)
+           ("C-c C-e" . crux-eval-and-replace)
+           ("C-c d" . crux-duplicate-current-line-or-region)
+           ([shift return] . crux-smart-open-line)))
+#+END_SRC
+
+**** delight
+
+
+
+#+BEGIN_SRC emacs-lisp
+  (use-package delight)
+#+END_SRC
+**** TODO emacs-gif-screencast
+**** TODO epresent
+**** TODO eyebrowse
+**** TODO hackernews
+**** htmlize
+
+#+BEGIN_SRC emacs-lisp
+  (use-package htmlize :no-require)
+#+END_SRC
+
+**** TODO idle-highlight-mode
+**** TODO iedit
+**** page-break-lines
+
+#+BEGIN_SRC emacs-lisp
+  (use-package page-break-lines
+    :delight
+    :hook ((doc-mode
+            emacs-lisp-mode
+            compilation-mode
+            outline-mode
+            prog-mode
+            haskell-mode
+            help-mode
+            magit-mode) . page-break-lines-mode))
+#+END_SRC
+
+**** pandoc-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pandoc-mode
+    :hook ((markdown-mode . pandoc-mode)
+           (pandoc-mode . pandoc-load-default-settings)))
+#+END_SRC
+
+**** rainbow-delimiters
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            lisp-interaction-mode
+            slime-repl-mode) . rainbow-delimiters-mode))
+#+END_SRC
+
+**** rainbow-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-mode
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            lisp-interaction-mode
+            slime-repl-mode
+            web-mode
+            less-css-mode
+            html-mode
+            css-mode) . rainbow-mode))
+#+END_SRC
+
+**** shrink-whitespace
+
+#+BEGIN_SRC emacs-lisp
+  (use-package shrink-whitespace
+    :bind ("H-SPC" . shrink-whitespace))
+#+END_SRC
+
+**** TODO smex
+**** string-inflection
+
+#+BEGIN_SRC emacs-lisp
+  (use-package string-inflection
+    :bind (("C-c r r" . string-inflection-all-cycle)
+           ("C-c r c" . string-inflection-camelcase)
+           ("C-c r l" . string-inflection-lower-camelcase)
+           ("C-c r u" . string-inflection-underscore)
+           ("C-c r k" . string-inflection-kebab-case)
+           ("C-c r J" . string-inflection-java-style-cycle)))
+#+END_SRC
+
+**** TODO sx
+**** TODO twittering-mode
+**** TODO undo-tree
+**** TODO unfill
+**** TODO yasnippet
+**** TODO git-timemachine
+**** with-editor
+#+BEGIN_SRC emacs-lisp
+  (use-package with-editor
+    :disabled
+    :hook
+    ((shell-mode eshell-mode) . with-editor-export-editor))
+#+END_SRC
+**** TODO flycheck-pkg-config
+**** TODO dired-rsync
+**** TODO org-brain
+**** comment-tags
+#+BEGIN_SRC emacs-lisp
+(use-package comment-tags
+  :hook (prog-mode . comment-tags-mode))
+#+END_SRC
+**** unfill
+#+BEGIN_SRC emacs-lisp
+(use-package unfill
+  :bind ([remap fill-paragraph] . unfill-toggle))
+#+END_SRC
+**** deadgrep
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package ripgrep :commands ripgrep-regexp)
+  ;; (use-package rg :commands rg-dwim)
+  (use-package deadgrep
+    :commands deadgrep
+    :bind (:map projectile-command-map
+           ("s g" . deadgrep)))
+#+END_SRC
+**** org-static-blog
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog :commands org-static-blog-publish)
+#+END_SRC
+**** pcomplette
+#+BEGIN_SRC emacs-lisp
+  (use-package pcomplete
+    :ensure nil
+    :demand
+    :commands pcomplete-here
+    :preface
+    (autoload 'pcomplete-comint-setup "pcomplete")
+    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
+           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
+           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
+           ;;                                'pcomplete-completions-at-point
+           ;;                                nil t)))
+           ))
+  (use-package pcmpl-args)
+  ;; (use-package pcmpl-git)
+#+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line]
+            . mwim-beginning-of-code-or-line)
+           ([remap move-end-of-line]
+            . mwim-end-of-code-or-line)))
 #+END_SRC
 
 * Profiles
