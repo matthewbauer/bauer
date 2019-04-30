@@ -3785,7 +3785,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
           -l ob-tangle \
           --eval "(org-babel-tangle-file \"README.org\")"
     cp bauer.nix default.nix
-  '')) (args // { inherit ensure; })
+  '')) { inherit ensure pkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
