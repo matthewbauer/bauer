@@ -1376,35 +1376,36 @@ line are available in an intuitive Emacs buffer.
     (autoload 'magit-toplevel "magit")
     (autoload 'magit-read-string-ns "magit")
     (autoload 'magit-get "magit")
-    (autoload 'magit-define-popup-action "magit")
+    ;; (autoload 'magit-define-popup-action "magit")
     (autoload 'magit-remote-arguments "magit")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
 
-    (defun magit-remote-github (username &optional args)
-      (interactive (list (magit-read-string-ns "User name")
-                         (magit-remote-arguments)))
-      (let* ((url (magit-get "remote.origin.url"))
-             (match (string-match
-                     "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
-                     url)))
-        (unless match
-          (error "Not a github remote"))
-        (let ((repo (match-string 1 url)))
-          (apply 'magit-remote-add username
-                 (format "ssh://git@github.com/%s/%s"
-                         username repo) args))))
-    :hook (magit-mode . (lambda ()
-                          (magit-define-popup-action
-                            'magit-remote-popup
-                            ?g
-                            "Add remote from github user name"
-                            'magit-remote-github)))
+    ;; (defun magit-remote-github (username &optional args)
+    ;;   (interactive (list (magit-read-string-ns "User name")
+    ;;                      (magit-remote-arguments)))
+    ;;   (let* ((url (magit-get "remote.origin.url"))
+    ;;          (match (string-match
+    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
+    ;;                  url)))
+    ;;     (unless match
+    ;;       (error "Not a github remote"))
+    ;;     (let ((repo (match-string 1 url)))
+    ;;       (apply 'magit-remote-add username
+    ;;              (format "ssh://git@github.com/%s/%s"
+    ;;                      username repo) args))))
+    ;; :hook (magit-mode . (lambda ()
+    ;;                       (magit-define-popup-action
+    ;;                         'magit-remote-popup
+    ;;                         ?g
+    ;;                         "Add remote from github user name"
+    ;;                         'magit-remote-github)))
+
     :commands magit-clone
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
-           ("C-x G" . magit-dispatch-popup)
+           ("C-x G" . magit-dispatch)
            :package magit
            :map magit-mode-map
            ("C-o" . magit-dired-other-window)))
