@@ -1746,11 +1746,15 @@ Base mode used for shell and terminal modes.
     (autoload 'comint-read-input-ring "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
+      ;; Ignore timestamps in history file.  Assumes that zsh
+      ;; EXTENDED_HISTORY option is in use.
+      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
       (comint-read-input-ring 'silent))
     (defun save-history ()
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
-                             (comint-write-input-ring)))))
+                             (comint-write-input-ring))))
+    )
 #+END_SRC
 
 **** compile
@@ -2128,25 +2132,18 @@ Make scripts executable automatically.
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package shell
-    :ensure nil
-    :bind (("C-c C-s" . shell)
-           ("H-s" . shell)
-           ("M-@" . shell))
-    :hook ((shell-mode . ansi-color-for-comint-mode-on)
-           (shell-mode . dirtrack-mode)
-           (shell-mode . pcomplete-shell-setup)
-           (shell-mode . use-histfile)
-           (shell-mode . (lambda ()
-                      (setq-local comint-input-ring-file-name "~/.history")
-                      ;; Ignore timestamps in history file.  Assumes that zsh
-                      ;; EXTENDED_HISTORY option is in use.
-                      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-                      (comint-read-input-ring t))))
-    :preface
-    (defun use-histfile ()
-      (turn-on-comint-history
-       (expand-file-name "sh-history" user-emacs-directory))))
+    (use-package shell
+      :ensure nil
+      :bind (("C-c C-s" . shell)
+             ("H-s" . shell)
+             ("M-@" . shell))
+      :hook ((shell-mode . ansi-color-for-comint-mode-on)
+             (shell-mode . dirtrack-mode)
+             (shell-mode . pcomplete-shell-setup)
+             ;; (shell-mode . (lambda ()
+             ;;            (turn-on-comint-history (expand-file-name "sh-history"
+             ;;            user-emacs-directory))))
+             ))
 #+END_SRC
 
 **** simple
