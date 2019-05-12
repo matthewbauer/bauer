@@ -1940,7 +1940,10 @@ eww is enabled so we can open files in non-graphical environments.
                     (getenv "TERM_PROGRAM")
                     "Apple_Terminal")))
     :commands eww-browse-url
-    :hook ((eww-mode . visual-line-mode))
+    :config
+    (add-hook 'eww-mode-hook (lambda ()
+      (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
+      (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
     :init
     (setq browse-url-browser-function 'eww-browse-url))
 #+END_SRC
