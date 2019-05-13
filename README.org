@@ -3040,19 +3040,10 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
-Run fortune,
-
-#+BEGIN_SRC shell
-if [ -z "$FORTUNE" ] && [ -x "@fortune@/bin/fortune" ]; then
-  @fortune@/bin/fortune
-  export FORTUNE=1
-fi
-#+END_SRC
-
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-  export PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
+  export PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
@@ -3314,7 +3305,7 @@ This will source everything in =/etc/profile.d=.
 
 #+BEGIN_SRC shell
 for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
-  if [ -r $i ]; then
+  if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
 done
@@ -3421,9 +3412,9 @@ Set env vars provided by Nix,
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
-   '("NIX_PATH"
-       ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
-        "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
+   ;; '("NIX_PATH"
+   ;;     ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
+   ;;      "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
