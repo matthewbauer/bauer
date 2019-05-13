@@ -238,6 +238,20 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
+   '(comint-password-prompt-regexp (concat
+                                    "\\(^ *\\|"
+                                    (regexp-opt
+                                     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+                                       "Enter Auth" "Old" "old" "New" "new" "'s" "login"
+                                       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
+                                       "[sudo]" "Repeat" "Bad" "Retype")
+                                     t)
+                                    ;; Allow for user name to precede password equivalent (Bug#31075).
+                                    " +.*\\)"
+                                    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
+                                    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
+                                    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
+                                    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
    '(compilation-always-kill t)
    '(compilation-ask-about-save nil)
    '(compilation-environment '("TERM=xterm-256color"))
@@ -392,8 +406,8 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(mmm-submode-decoration-level 2)
    '(minibuffer-prompt-properties
      '(read-only t
-       cursor-intangible t
-       face minibuffer-prompt))
+                 cursor-intangible t
+                 face minibuffer-prompt))
    '(next-error-recenter t)
    '(ns-function-modifier 'hyper)
    '(ns-pop-up-frames nil)
@@ -436,7 +450,7 @@ The format of arguments to =set-defaults= is identical to the one used by
        (gitconfig "{}"))))
    '(org-latex-default-packages-alist
      (quote
-     (("utf8" "inputenc" t
+      (("utf8" "inputenc" t
         ("pdflatex"))
        ("T1" "fontenc" t
         ("pdflatex"))
@@ -467,9 +481,9 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(projectile-mode-line-prefix "")
    '(projectile-mode-line-function
      (lambda () (if (and (ignore-errors (projectile-project-p))
-                    (not (file-remote-p default-directory)))
-               (format " Projectile[%s]" (projectile-project-name))
-             "")))
+                         (not (file-remote-p default-directory)))
+                    (format " Projectile[%s]" (projectile-project-name))
+                  "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-require-project-root t)
    '(projectile-verbose nil)
@@ -1744,6 +1758,7 @@ Base mode used for shell and terminal modes.
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
+    (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
       ;; Ignore timestamps in history file.  Assumes that zsh
