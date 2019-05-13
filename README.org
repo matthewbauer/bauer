@@ -1482,8 +1482,7 @@ outliner but also much much more.
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :ensure org-plus-contrib
-    :hook ((message-mode . turn-on-orgstruct++)
-           (org-mode . (lambda ()
+    :hook ((org-mode . (lambda ()
              (add-hook 'completion-at-point-functions
                        'pcomplete-completions-at-point nil t)))
            (org-mode . auto-fill-mode)
