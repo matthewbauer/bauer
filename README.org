@@ -1420,7 +1420,6 @@ Magit forge.
 
 #+BEGIN_SRC emacs-lisp
   (use-package forge
-    :disabled
     :after magit)
 #+END_SRC
 
@@ -1502,6 +1501,8 @@ outliner but also much much more.
       :demand))
     (use-package org-download
       :hook (dired-mode . org-download-enable))
+    (use-package org-present
+      :commands org-present)
 #+END_SRC
 **** Projectile
 
@@ -1528,7 +1529,6 @@ easymenu to make the "Projectile" modeline clickable.
 **** Recentf
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
-    :disabled
     :ensure nil
     :config (recentf-mode 1))
 #+END_SRC
