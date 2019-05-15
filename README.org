@@ -4653,6 +4653,7 @@ org-src-*
 configuration.nix
 install
 auto/
+*~
 #+END_SRC
 
 ** =.gitattributes=
@@ -4773,6 +4774,38 @@ in {
     ];
   }).config.system.build.isoImage;
 }
+#+END_SRC
+
+** Deploy script
+:PROPERTIES:
+:header-args: :tangle deploy.sh :shebang "#!/usr/bin/env sh"
+:END:
+
+#+BEGIN_SRC shell
+  update() {
+    ./update.sh
+    git add .
+    git commit -m "Regen"
+  }
+
+  setup() {
+    git stash push
+    git checkout gh-pages
+  }
+
+  cleanup() {
+    git checkout master
+    git stash pop
+  }
+
+  setup
+  trap cleanup EXIT
+
+  git fetch origin
+  git reset --hard origin/gh-pages
+  git merge --no-edit master
+  update
+  git push origin gh-pages
 #+END_SRC
 ** LICENSE
    Copyright (C) 2018-2019 Matthew Bauer
