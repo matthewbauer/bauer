@@ -80,7 +80,7 @@ The last line will spawn an Emacs frame in the Git repo. Anything in that file
 can be change. Once you’ve made a change, just run =M-x dev-restart= to rebuild
 the configuration & restart Emacs. Make any changes you want to [[./README.org][the README.org
 file]] or any of the files in [[./site-lisp][the site-lisp folder]]. Make sure you commit your
-changes afterward by typing =C-c p v=, then =c-ac=. If you have already forked
+changes afterward by typing =C-c p v=, then =cc=. If you have already forked
 [[https://github.com/matthewbauer/bauer][this repo on GitHub]], you can add it as a remote by typing =Mg= followed by your
 GitHub username within Magit. To push to it, just type =Pr= then find your
 username in the list & press enter. Pull requests are always welcome through
@@ -108,7 +108,7 @@ git clone https://github.com/matthewbauer/bauer \
 :CUSTOM_ID: emacs
 :END:
 
-This is the main part of the IDE. It is written in Emacs lisp & will be loaded
+This is the main part of the IDE. It is written in Emacs Lisp & will be loaded
 every time Emacs is started.
 
 ** Increase GC
@@ -161,27 +161,10 @@ compiling phases used later.
     (defvar dired-mode-map))
 #+END_SRC
 
-Now we are going to setup some basic Emacs GUI elements. Under normal
-circumstances, we want GUI elements hidden from the user so that we only see the
-text buffer. This gives us a minimalist look that works well with the theme. We
-will end up disabling =tool-bar-mode=, =scroll-bar-mode=, =blink-cursor-mode=,
-& =menu-bar-mode= here. The one exception to this is when we are running macOS
-where the system provides a builtin menubar system that Emacs can use.
-
-#+BEGIN_SRC  emacs-lisp
-  ;;(when window-system
-  ;;  (tool-bar-mode -1)
-  ;;  (scroll-bar-mode -1)
-  ;;  (blink-cursor-mode -1))
-
-  ;;(when (not (memq window-system '(mac ns)))
-  ;;  (menu-bar-mode -1))
-#+END_SRC
-
 When we are within a terminal we want to be able to use the mouse, so
 =xterm-mouse-mode= is enabled here.
 
-#+BEGIN_SRC  emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (when (not window-system)
     (xterm-mouse-mode 1))
 #+END_SRC
@@ -221,7 +204,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auto-revert-check-vc-info t)
    '(auto-revert-verbose nil)
    '(auto-save-visited-file-name t)
-   '(ange-ftp-default-user t)
    '(auto-window-vscroll nil)
    '(bug-reference-bug-regexp
      "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
@@ -239,7 +221,8 @@ The format of arguments to =set-defaults= is identical to the one used by
            save-buffers-kill-terminal
            save-buffers-kill-emacs
            comint-previous-matching-input-from-input
-           comint-next-matching-input-from-input))
+           comint-next-matching-input-from-input
+           completion-at-point))
    '(company-require-match nil)
    '(company-selection-wrap-around t)
    '(company-backends '(company-elisp
@@ -255,9 +238,22 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
-   '(comint-scroll-show-maximum-output nil)
-   '(comint-scroll-to-bottom-on-input t)
-   '(comint-scroll-to-bottom-on-output t)
+   '(comint-move-point-for-output 'this)
+   '(comint-scroll-to-bottom-on-input 'this)
+   '(comint-password-prompt-regexp (concat
+                                    "\\(^ *\\|"
+                                    (regexp-opt
+                                     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+                                       "Enter Auth" "Old" "old" "New" "new" "'s" "login"
+                                       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
+                                       "[sudo]" "Repeat" "Bad" "Retype")
+                                     t)
+                                    ;; Allow for user name to precede password equivalent (Bug#31075).
+                                    " +.*\\)"
+                                    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
+                                    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
+                                    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
+                                    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
    '(compilation-always-kill t)
    '(compilation-ask-about-save nil)
    '(compilation-environment '("TERM=xterm-256color"))
@@ -268,14 +264,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                          substring))
    '(completions-cycle-threshold t)
    '(completions-format 'vertical)
-   '(counsel-find-file-at-point t)
-   '(counsel-mode-override-describe-bindings t)
-   '(counsel-linux-apps-directories '("~/.nix-profile/share/applications/"
-                                      "~/.local/share/applications/"
-                                      "/nix/var/nix/profiles/default/share/applications/"
-                                      "/run/current-system/sw/share/applications/"
-                                      "/usr/local/share/applications/"
-                                      "/usr/share/applications/"))
    '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
@@ -284,52 +272,19 @@ The format of arguments to =set-defaults= is identical to the one used by
                   user-emacs-directory))
    '(custom-safe-themes t)
    '(custom-search-field nil)
-   '(dante-tap-type-time 2)
    '(delete-by-moving-to-trash t)
    '(delete-old-versions t)
-   ;; '(dired-auto-revert-buffer t)
-   '(dired-dwim-target t)
    '(dired-hide-details-hide-symlink-targets nil)
    '(dired-listing-switches "-alhv")
    '(dired-omit-files "^\\.\\|^#.*#$")
    '(dired-omit-verbose nil)
    '(dired-recursive-copies 'always)
    '(dired-recursive-deletes 'always)
-   '(dired-subtree-line-prefix " ")
    '(disabled-command-function nil)
    '(display-buffer-reuse-frames t)
    '(dtrt-indent-verbosity 0)
    '(echo-keystrokes 0)
-   '(enable-recursive-minibuffers t)
-   '(erc-autojoin-timing 'ident)
-   '(erc-interpret-mirc-color t)
-   '(erc-join-buffer 'bury)
-   '(erc-kill-buffer-on-part t)
-   '(erc-kill-queries-on-quit t)
-   '(erc-kill-server-buffer-on-quit t)
-   '(erc-log-write-after-send t)
-   '(erc-prompt (lambda nil (concat "[" (buffer-name) "]")))
-   '(erc-prompt-for-password nil)
-   '(erc-query-display 'buffer)
-   '(erc-rename-buffers t)
-   '(erc-track-exclude-server-buffer t)
-   '(erc-track-exclude-types '("JOIN" "NICK" "PART"
-                               "QUIT" "MODE" "333" "353"))
-   '(erc-track-remove-disconnected-buffers t)
-   '(erc-track-position-in-mode-line t)
-   '(erc-timestamp-format "%H:%M ")
-   '(erc-timestamp-only-if-changed-flag nil)
-   '(erc-try-new-nick-p nil)
-   '(erc-user-full-name 'user-full-name)
-   '(eshell-history-size 1000)
    '(eshell-bad-command-tolerance 1.0e+INF)
-   '(eshell-visual-commands
-     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-       "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
-       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"))
-   '(eshell-visual-options nil)
-   '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
    '(eshell-banner-message "")
    '(eshell-cmpl-autolist t)
    '(eshell-cmpl-cycle-completions nil)
@@ -342,6 +297,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
+   '(eshell-history-size 50000)
    '(eshell-review-quick-commands t)
    '(eshell-prompt-function
      (lambda ()
@@ -360,18 +316,16 @@ The format of arguments to =set-defaults= is identical to the one used by
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-save-history-on-exit t)
    '(eshell-stringify nil)
-   ;; '(eshell-postoutput-scroll-to-bottom t)
-   ;; '(eshell-scroll-to-bottom-on-input t)
-   ;; '(eshell-scroll-to-bottom-on-output t)
    '(eshell-scroll-show-maximum-output nil)
-   '(eshell-term-name "ansi")
-   '(eshell-visual-commands '("vi" "top" "screen" "less"
-                              "rlogin" "telnet" "lynx"))
-   '(eshell-history-size 50000)
+   '(eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+       "telnet" "rlogin"))
+   '(eshell-visual-options nil)
+   '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
    '(eval-expression-print-level nil)
-   '(expand-region-contract-fast-key "j")
-   '(explicit-shell-args
-     '("-c" "export EMACS= INSIDE_EMACS=; stty echo; shell"))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
    '(flycheck-display-errors-function
@@ -396,20 +350,16 @@ The format of arguments to =set-defaults= is identical to the one used by
        (if (buffer-file-name)
            (abbreviate-file-name (buffer-file-name))
          "%b")))
-   '(gnuplot-inline-image-mode 'dedicated)
-   '(haskell-interactive-mode-scroll-to-bottom t)
-   '(haskell-process-log t)
-   '(haskell-process-type 'cabal-new-repl)
-   '(haskell-process-auto-import-loaded-modules t)
-   '(haskell-process-load-or-reload-prompt nil)
+   '(haskell-process-check-cabal-config-on-load nil)
+   '(haskell-process-auto-import-loaded-modules nil)
    '(haskell-process-suggest-restart nil)
-   '(haskell-process-suggest-haskell-docs-imports t)
-   '(haskell-process-suggest-hoogle-imports t)
-   '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-process-suggest-haskell-docs-imports nil)
+   '(haskell-process-suggest-hoogle-imports nil)
+   '(haskell-process-suggest-remove-import-lines nil)
    '(haskell-compile-cabal-build-command "cabal new-build")
+   '(haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
    '(haskell-tags-on-save t)
    '(help-window-select t)
-   '(hideshowvis-ignore-same-line nil)
    '(highlight-nonselected-windows nil)
    '(history-delete-duplicates t)
    '(ibuffer-default-display-maybe-show-predicates t)
@@ -418,12 +368,10 @@ The format of arguments to =set-defaults= is identical to the one used by
      '((mark modified read-only " " (name 16 -1) " "
              (size 6 -1 :right) " " (mode 16 16) " " filename)
        (mark " " (name 16 -1) " " filename)))
-   '(ibuffer-maybe-show-regexps nil)
    '(ibuffer-show-empty-filter-groups nil)
    '(ibuffer-shrink-to-minimum-size t)
    '(ibuffer-use-other-window t)
    '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
-   '(iedit-toggle-key-default nil)
    '(imenu-auto-rescan t)
    '(indicate-empty-lines t)
    '(inhibit-startup-echo-area-message t)
@@ -448,17 +396,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(mac-right-option-modifier nil)
    '(magit-remote-add-set-remote\.pushDefault t)
    '(magit-clone-set-remote\.pushDefault t)
-   '(magit-ediff-dwim-show-on-hunks t)
-   '(magit-highlight-trailing-whitespace nil)
-   '(magit-highlight-whitespace nil)
    '(magit-log-auto-more t)
    '(magit-no-confirm t)
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
    '(magit-process-popup-time 15)
    '(magit-save-repository-buffers 'dontask)
-   '(magit-stage-all-confirm nil)
-   '(magit-unstage-all-confirm nil)
    '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
    '(mode-line-default-help-echo nil)
    '(mmm-global-mode 'buffers-with-submode-classes)
@@ -468,8 +411,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                  cursor-intangible t
                  face minibuffer-prompt))
    '(next-error-recenter t)
-   '(notmuch-show-logo nil)
-   '(nrepl-log-messages t)
    '(ns-function-modifier 'hyper)
    '(ns-pop-up-frames nil)
    '(nsm-save-host-names t)
@@ -511,7 +452,7 @@ The format of arguments to =set-defaults= is identical to the one used by
        (gitconfig "{}"))))
    '(org-latex-default-packages-alist
      (quote
-     (("utf8" "inputenc" t
+      (("utf8" "inputenc" t
         ("pdflatex"))
        ("T1" "fontenc" t
         ("pdflatex"))
@@ -537,16 +478,14 @@ The format of arguments to =set-defaults= is identical to the one used by
      '(("melpa" . "https://melpa.org/packages/")
        ("org" . "http://orgmode.org/elpa/")
        ("gnu" . "https://elpa.gnu.org/packages/")))
-   '(pcomplete-compare-entries-function 'file-newer-than-file-p)
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
    '(projectile-ignored-project-function 'file-remote-p)
-   ;;   '(projectile-enable-idle-timer 1)
    '(projectile-mode-line-prefix "")
    '(projectile-mode-line-function
      (lambda () (if (and (ignore-errors (projectile-project-p))
-                    (not (file-remote-p default-directory)))
-               (format " Projectile[%s]" (projectile-project-name))
-             "")))
+                         (not (file-remote-p default-directory)))
+                    (format " Projectile[%s]" (projectile-project-name))
+                  "")))
    '(projectile-switch-project-action 'projectile-dired)
    '(projectile-require-project-root t)
    '(projectile-verbose nil)
@@ -573,9 +512,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                                      sr-history-registry
                                      file-name-history
                                      tablist-name-filter))
-   '(savehist-ignored-variables
-     '(load-history flyspell-auto-correct-ring kill-ring))
-   '(savehist-save-minibuffer-history t)
    '(scroll-preserve-screen-position 'always)
    '(scroll-conservatively 101)
    '(sentence-end-double-space nil)
@@ -583,14 +519,12 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(shell-completion-execonly nil)
    '(shell-input-autoexpand nil)
    '(sh-learn-basic-offset t)
-   ;; '(show-paren-delay 0)
    '(sp-autoskip-closing-pair 'always)
    '(sp-highlight-pair-overlay nil)
-   '(switch-to-buffer-preserve-window-point t)
    '(tab-always-indent 'complete)
    '(tab-stop-list (number-sequence 4 200 4))
-   '(tags-revert-without-query t)
    '(tags-add-tables t)
+   '(tags-revert-without-query t)
    '(term-input-autoexpand t)
    '(term-input-ignoredups t)
    '(text-quoting-style 'quote)
@@ -625,7 +559,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-action '(cleanup auto-cleanup))
    '(whitespace-line-column 120)
    '(whitespace-style '(face trailing lines space-before-tab
-                             empty lines-style))
+                        empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode))
    '(fortune-always-compile nil)
    )
@@ -1222,17 +1156,13 @@ info.
                swiper))
 #+END_SRC
 **** diff-hl
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-[[https://github.com/dgutov/diff-hl][GitHub]]
 
 This mode provides indicators at the right fringe of the Emacs buffer. These
 indications show where a file has been edited from the last Git commit.
 
 #+BEGIN_SRC emacs-lisp
   (use-package diff-hl
+    :disabled
     :bind (:package diff-hl
            :map diff-hl-mode-map
            ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
@@ -1362,15 +1292,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-***** xterm-color
-
-#+BEGIN_SRC emacs-lisp
-(use-package xterm-color
-  :disabled
-  :commands xterm-color-filter
-  :hook (eshell-before-prompt . (lambda () (setq-local xterm-color-preserve-properties t))))
-#+END_SRC
-
 **** Flycheck
 
 [[http://www.flycheck.org/][Website]]
@@ -1382,16 +1303,13 @@ supports many languages and give us a lot of features right out of the box.
   (use-package flycheck
     :hook (prog-mode . flycheck-mode))
   (use-package flycheck-haskell
-     :hook (haskell-mode . flycheck-haskell-setup))
+    :hook (haskell-mode . flycheck-haskell-setup))
+  (use-package flycheck-cask
+    :hook (emacs-lisp-mode . flycheck-cask-setup))
+  (use-package flycheck-rust
+    :hook (rust-mode . flycheck-rust-setup))
 #+END_SRC
 
-**** github-clone
-#+BEGIN_SRC emacs-lisp
-  (use-package github-clone
-    :disabled
-    :if (locate-file "git" exec-path)
-    :bind ("C-c g c" . github-clone))
-#+END_SRC
 **** Gnus
 
 [[http://www.gnus.org][Website]]
@@ -1465,38 +1383,46 @@ line are available in an intuitive Emacs buffer.
     (autoload 'magit-toplevel "magit")
     (autoload 'magit-read-string-ns "magit")
     (autoload 'magit-get "magit")
-    (autoload 'magit-define-popup-action "magit")
+    ;; (autoload 'magit-define-popup-action "magit")
     (autoload 'magit-remote-arguments "magit")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
 
-    (defun magit-remote-github (username &optional args)
-      (interactive (list (magit-read-string-ns "User name")
-                         (magit-remote-arguments)))
-      (let* ((url (magit-get "remote.origin.url"))
-             (match (string-match
-                     "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
-                     url)))
-        (unless match
-          (error "Not a github remote"))
-        (let ((repo (match-string 1 url)))
-          (apply 'magit-remote-add username
-                 (format "ssh://git@github.com/%s/%s"
-                         username repo) args))))
-    :hook (magit-mode . (lambda ()
-                          (magit-define-popup-action
-                            'magit-remote-popup
-                            ?g
-                            "Add remote from github user name"
-                            'magit-remote-github)))
-    :commands magit-clone
+    ;; (defun magit-remote-github (username &optional args)
+    ;;   (interactive (list (magit-read-string-ns "User name")
+    ;;                      (magit-remote-arguments)))
+    ;;   (let* ((url (magit-get "remote.origin.url"))
+    ;;          (match (string-match
+    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
+    ;;                  url)))
+    ;;     (unless match
+    ;;       (error "Not a github remote"))
+    ;;     (let ((repo (match-string 1 url)))
+    ;;       (apply 'magit-remote-add username
+    ;;              (format "ssh://git@github.com/%s/%s"
+    ;;                      username repo) args))))
+    ;; :hook (magit-mode . (lambda ()
+    ;;                       (magit-define-popup-action
+    ;;                         'magit-remote-popup
+    ;;                         ?g
+    ;;                         "Add remote from github user name"
+    ;;                         'magit-remote-github)))
+
+    :commands (magit-clone magit-blame)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
-           ("C-x G" . magit-dispatch-popup)
+           ("C-x G" . magit-dispatch)
            :package magit
            :map magit-mode-map
            ("C-o" . magit-dired-other-window)))
+#+END_SRC
+
+Magit forge.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package forge
+    :after magit)
 #+END_SRC
 
 ***** git-commit
@@ -1506,19 +1432,6 @@ line are available in an intuitive Emacs buffer.
            (git-commit-mode . git-commit-save-message)
            (git-commit-mode . turn-on-auto-fill)))
 #+END_SRC
-***** magithub
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-
-#+BEGIN_SRC emacs-lisp
-(use-package magithub
-  :after magit
-  :config
-  (magithub-feature-autoinject t)
-  (setq magithub-clone-default-directory "~/github"))
-#+END_SRC
-
 **** MMM Mode
 
 [[https://github.com/purcell/mmm-mode][GitHub]]
@@ -1561,8 +1474,7 @@ outliner but also much much more.
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :ensure org-plus-contrib
-    :hook ((message-mode . turn-on-orgstruct++)
-           (org-mode . (lambda ()
+    :hook ((org-mode . (lambda ()
              (add-hook 'completion-at-point-functions
                        'pcomplete-completions-at-point nil t)))
            (org-mode . auto-fill-mode)
@@ -1591,6 +1503,8 @@ outliner but also much much more.
       :demand))
     (use-package org-download
       :hook (dired-mode . org-download-enable))
+    (use-package org-present
+      :commands org-present)
 #+END_SRC
 **** Projectile
 
@@ -1674,8 +1588,29 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
              slime-repl-mode
              org-mode) . show-smartparens-mode)
            ((web-mode
-             html-mode) . smartparens-mode)
-           (smartparens-mode . sp-use-paredit-bindings))
+             html-mode) . smartparens-mode))
+    :bind (:map smartparens-mode-map
+           ("C-M-f" . sp-forward-sexp) ;; navigation
+           ("C-M-b" . sp-backward-sexp)
+           ("C-M-u" . sp-backward-up-sexp)
+           ("C-M-d" . sp-down-sexp)
+           ("C-M-p" . sp-backward-down-sexp)
+           ("C-M-n" . sp-up-sexp)
+           ("M-s" . sp-splice-sexp) ;; depth-changing commands
+           ("M-<up>" . sp-splice-sexp-killing-backward)
+           ("M-<down>" . sp-splice-sexp-killing-forward)
+           ("M-r" . sp-splice-sexp-killing-around)
+           ("M-(" . sp-wrap-round)
+           ("C-)" . sp-forward-slurp-sexp) ;; barf/slurp
+           ("C-<right>" . sp-forward-slurp-sexp)
+           ("C-}" . sp-forward-barf-sexp)
+           ("C-<left>" . sp-forward-barf-sexp)
+           ("C-(" . sp-backward-slurp-sexp)
+           ("C-M-<left>" . sp-backward-slurp-sexp)
+           ("C-{" . sp-backward-barf-sexp)
+           ("C-M-<right>" . sp-backward-barf-sexp)
+           ("M-S" . sp-split-sexp) ;; misc
+           ("M-j" . sp-join-sexp))
     :config
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
     (use-package smartparens-config
@@ -1806,22 +1741,6 @@ Provides links to bugs listed in sourvce code.
            (text-mode . bug-reference-mode)))
 #+END_SRC
 
-***** bug-reference-github
-
-#+BEGIN_SRC emacs-lisp
-  (use-package bug-reference-github
-    :commands bug-reference-github-set-url-format
-    :disabled
-    :preface
-    (defun bug-reference-github-projectile ()
-      (when (and projectile-mode
-                 (eq (projectile-project-vcs
-                       (projectile-project-root))
-                     'git))
-        (bug-reference-github-set-url-format)))
-    :hook (magit-mode . bug-reference-github-projectile))
-#+END_SRC
-
 **** comint
 
 Base mode used for shell and terminal modes.
@@ -1832,13 +1751,18 @@ Base mode used for shell and terminal modes.
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
+    (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
+      ;; Ignore timestamps in history file.  Assumes that zsh
+      ;; EXTENDED_HISTORY option is in use.
+      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
       (comint-read-input-ring 'silent))
     (defun save-history ()
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
-                             (comint-write-input-ring)))))
+                             (comint-write-input-ring))))
+    )
 #+END_SRC
 
 **** compile
@@ -1881,7 +1805,6 @@ Base mode used for shell and terminal modes.
     :config (delete-selection-mode t))
 #+END_SRC
 
-**** TODO desktop
 **** dired
 
 #+BEGIN_SRC emacs-lisp
@@ -2023,7 +1946,11 @@ eww is enabled so we can open files in non-graphical environments.
              (not (string-equal
                     (getenv "TERM_PROGRAM")
                     "Apple_Terminal")))
-    :commands eww-browse-url
+    :commands (eww-browse-url eww-reload)
+    :config
+    (add-hook 'eww-mode-hook (lambda ()
+      (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
+      (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
     :init
     (setq browse-url-browser-function 'eww-browse-url))
 #+END_SRC
@@ -2212,29 +2139,21 @@ Make scripts executable automatically.
     :hook (after-init . save-place-mode))
 #+END_SRC
 
-**** TODO server
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package shell
-    :ensure nil
-    :bind (("C-c C-s" . shell)
-           ("H-s" . shell)
-           ("M-@" . shell))
-    :hook ((shell-mode . ansi-color-for-comint-mode-on)
-           (shell-mode . dirtrack-mode)
-           (shell-mode . pcomplete-shell-setup)
-           (shell-mode . use-histfile)
-           (shell-mode . (lambda ()
-                      (setq-local comint-input-ring-file-name "~/.history")
-                      ;; Ignore timestamps in history file.  Assumes that zsh
-                      ;; EXTENDED_HISTORY option is in use.
-                      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
-                      (comint-read-input-ring t))))
-    :preface
-    (defun use-histfile ()
-      (turn-on-comint-history
-       (expand-file-name "sh-history" user-emacs-directory))))
+    (use-package shell
+      :ensure nil
+      :bind (("C-c C-s" . shell)
+             ("H-s" . shell)
+             ("M-@" . shell))
+      :hook ((shell-mode . ansi-color-for-comint-mode-on)
+             (shell-mode . dirtrack-mode)
+             (shell-mode . pcomplete-shell-setup)
+             ;; (shell-mode . (lambda ()
+             ;;            (turn-on-comint-history (expand-file-name "sh-history"
+             ;;            user-emacs-directory))))
+             ))
 #+END_SRC
 
 **** simple
@@ -2325,14 +2244,12 @@ Make scripts executable automatically.
     :ensure nil
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
-**** TODO winner-mode
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
-**** TODO Agda
 **** C/C++
 
 #+BEGIN_SRC emacs-lisp
@@ -2347,9 +2264,6 @@ packages (for completion, syntax checking, etc.)
 #+END_SRC
 
 ***** Irony
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
@@ -2493,6 +2407,9 @@ packages (for completion, syntax checking, etc.)
            ;;            (setq-local eldoc-documentation-function
            ;;                        'haskell-doc-current-info)))
            )
+    :functions xref-push-marker-stack
+    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
+                haskell-mode-handle-generic-loc)
     :bind (:map haskell-mode-map
            ("C-c h" . haskell-hoogle)
            ("C-c C-." . haskell-navigate-imports)
@@ -2714,7 +2631,6 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-drv-mode
 #+BEGIN_SRC emacs-lisp
   (use-package nix-drv-mode
-    :disabled
     :ensure nil
     :mode "\\.drv\\'")
 #+END_SRC
@@ -2735,7 +2651,6 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
-  :disabled
   :commands nix-update-fetch
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
@@ -2748,14 +2663,12 @@ macho-mode to toggle then M-x hexl-mode.
 #+END_SRC
 
 **** Proof General
-:PROPERTIES:
-:header-args: :tangle no
-:END:
 
 [[https://proofgeneral.github.io][Website]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package proof-site
+    :disabled
     :ensure proofgeneral
     :demand
     :if (not needs-package-init))
@@ -2780,24 +2693,6 @@ macho-mode to toggle then M-x hexl-mode.
     :interpreter ("python" . python-mode))
 #+END_SRC
 
-***** jedi
-:PROPERTIES:
-:header-args: :tangle no
-:END:
-#+BEGIN_SRC emacs-lisp
-  (use-package jedi
-    :disabled
-    :hook ((python-mode . jedi:setup))
-    :config
-    (setq jedi:complete-on-dot t))
-#+END_SRC
-***** elpy
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elpy
-    :disabled
-    :mode ("\\.py\\'" . elpy-mode))
-#+END_SRC
 
 **** Ruby
 
@@ -2860,15 +2755,6 @@ macho-mode to toggle then M-x hexl-mode.
 #+BEGIN_SRC emacs-lisp
   (use-package typescript-mode
     :mode "\\.ts\\'")
-#+END_SRC
-
-***** tide
-
-#+BEGIN_SRC emacs-lisp
-  (use-package tide
-    :disabled
-    :hook ((typescript-mode . tide-setup)
-           (typescript-mode . tide-hl-identifier-mode)))
 #+END_SRC
 
 **** Web
@@ -2966,27 +2852,27 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
-**** TODO emacs-gif-screencast
-**** TODO epresent
-**** TODO eyebrowse
-**** git-attr
-:PROPERTIES:
-:header-args: :tangle no
-:END:
+**** emacs-gif-screencast
 #+BEGIN_SRC emacs-lisp
-  (use-package git-attr-linguist
-    :ensure git-attr
-    :hook ((find-file . git-attr-linguist)))
+(use-package gif-screencast
+  :commands gif-screencast)
 #+END_SRC
-**** TODO hackernews
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
   (use-package htmlize :no-require)
 #+END_SRC
 
-**** TODO idle-highlight-mode
-**** TODO iedit
+**** idle-highlight-mode
+#+BEGIN_SRC emacs-lisp
+(use-package idle-highlight-mode
+  :hook (prog-mode . idle-highlight-mode))
+#+END_SRC
+**** iedit
+#+BEGIN_SRC emacs-lisp
+(use-package iedit
+  :commands iedit-mode)
+#+END_SRC
 **** page-break-lines
 
 #+BEGIN_SRC emacs-lisp
@@ -3047,7 +2933,6 @@ Most of these are available in MELPA.
     :bind ("H-SPC" . shrink-whitespace))
 #+END_SRC
 
-**** TODO smex
 **** string-inflection
 
 #+BEGIN_SRC emacs-lisp
@@ -3060,33 +2945,53 @@ Most of these are available in MELPA.
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
-**** TODO sx
-**** TODO twittering-mode
-**** TODO undo-tree
-**** TODO unfill
-**** volatile-highlights
-:PROPERTIES:
-:header-args: :tangle no
-:END:
+**** url-util
+
 #+BEGIN_SRC emacs-lisp
-  (use-package volatile-highlights
-    :commands volatile-highlights-mode
-    :config (volatile-highlights-mode t)
-    :delight
-    :demand)
+  (use-package url-util
+    :ensure nil
+    :functions (url-hexify-string url-unhex-string)
+    :preface
+    (defun func-region (start end func)
+      "Run a function over the region between START and END in current buffer."
+      (unless (region-active-p) (throw "No active region."))
+      (save-excursion
+        (let ((text (delete-and-extract-region start end)))
+          (insert (funcall func text)))))
+    (defun url-encode (start end)
+      "URL encode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-hexify-string))
+    (defun url-decode (start end)
+      "URL decode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-unhex-string)))
 #+END_SRC
-**** TODO yasnippet
-**** TODO git-timemachine
+**** undo-tree
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :config (global-undo-tree-mode 1)
+    ;; (global-set-key (kbd "C-z") 'undo)
+    ;; (defalias 'redo 'undo-tree-redo)
+    ;; (global-set-key (kbd "C-S-z") 'redo)
+    )
+#+END_SRC
+**** git-timemachine
+#+BEGIN_SRC emacs-lisp
+(use-package git-timemachine
+  :commands git-timemachine)
+#+END_SRC
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
-    :disabled
     :hook
     ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
-**** TODO flycheck-pkg-config
-**** TODO dired-rsync
-**** TODO org-brain
+**** dired-rsync
+#+BEGIN_SRC emacs-lisp
+(use-package dired-rsync
+  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+#+END_SRC
 **** comment-tags
 #+BEGIN_SRC emacs-lisp
 (use-package comment-tags
@@ -3161,19 +3066,10 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
-Run fortune,
-
-#+BEGIN_SRC shell
-if [ -z "$FORTUNE" ] && [ -x "@fortune@/bin/fortune" ]; then
-  @fortune@/bin/fortune
-  export FORTUNE=1
-fi
-#+END_SRC
-
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
-  export PATH=$PREFIX/bin:$HOME/.nix-profile/bin:@PATH@
+  export PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
@@ -3204,6 +3100,12 @@ if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
+#+END_SRC
+
+Last, we source the HOME profile to make sure it is used by zsh.
+
+#+BEGIN_SRC shell
+[ -f $HOME/.profile ] && source $HOME/.profile
 #+END_SRC
 
 ** =.zshrc=
@@ -3316,18 +3218,104 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
-Setup Apple Terminal so that CWD is shown.
+Setup Apple Terminal so that CWD is shown and sessions are saved.
 
 #+BEGIN_SRC shell
 update_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
 }
 
+shell_session_save() {
+    if [ -n "$SHELL_SESSION_FILE" ]; then
+        (umask 077; echo 'echo Restored session: "$(date -r '$(date +%s)')"' >| "$SHELL_SESSION_FILE")
+        shell_session_save_history
+    fi
+}
+
+shell_session_history_enable() {
+    (umask 077; touch "$SHELL_SESSION_HISTFILE_NEW")
+    HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
+    SHELL_SESSION_HISTORY=1
+}
+
+shell_session_delete_expired() {
+    if [ ! -e "$SHELL_SESSION_TIMESTAMP_FILE" ] || \
+       [ -z "$(find "$SHELL_SESSION_TIMESTAMP_FILE" -mtime -1)" ]; then
+        local expiration_lock_file="$SHELL_SESSION_DIR/_expiration_lockfile"
+        if shlock -f "$expiration_lock_file" -p $$; then
+            echo -n 'Deleting expired sessions...'
+            local delete_count=$(find "$SHELL_SESSION_DIR" -type f -mtime +14 -print -delete | wc -l)
+            if [ "$delete_count" -gt 0 ]; then
+                echo $delete_count' completed.'
+            else
+                echo 'none found.'
+            fi
+            (umask 077; touch "$SHELL_SESSION_TIMESTAMP_FILE")
+            rm "$expiration_lock_file"
+        fi
+    fi
+}
+
+shell_session_history_check() {
+    if [ ${SHELL_SESSION_DID_HISTORY_CHECK:-0} -eq 0 ]; then
+        SHELL_SESSION_DID_HISTORY_CHECK=1
+        shell_session_history_enable
+        precmd_functions=()
+    fi
+}
+
+shell_session_save_history() {
+    shell_session_history_enable
+    # history -a
+    if [ -f "$SHELL_SESSION_HISTFILE_SHARED" ] && [ ! -s "$SHELL_SESSION_HISTFILE" ]; then
+        echo '...copying shared history...'
+        (umask 077; cp "$SHELL_SESSION_HISTFILE_SHARED" "$SHELL_SESSION_HISTFILE")
+    fi
+    echo '...saving history...'
+    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE_SHARED")
+    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE")
+    : >| "$SHELL_SESSION_HISTFILE_NEW"
+    if [ -n "$HISTFILESIZE" ]; then
+        echo 'truncating history files...'
+        HISTFILE="$SHELL_SESSION_HISTFILE_SHARED"
+        HISTFILESIZE="$HISTFILESIZE"
+        HISTFILE="$SHELL_SESSION_HISTFILE"
+        HISTFILESIZE="$size"
+        HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
+    fi
+    echo '...'
+}
+
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
-   && [ -z "$INSIDE_EMACS" ]; then
-    autoload add-zsh-hook
-    add-zsh-hook chpwd update_terminal_cwd
+   && [ -z "$INSIDE_EMACS" ] \
+   && [ ${SHELL_SESSION_DID_INIT:-0} -eq 0 ] \
+   && [ -n "$TERM_SESSION_ID" ]; then
+    chpwd_functions+=(update_terminal_cwd)
     update_terminal_cwd
+
+    SHELL_SESSION_DID_INIT=1
+    SHELL_SESSION_DIR="$HOME/.zsh_sessions"
+    SHELL_SESSION_FILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.session"
+
+    mkdir -m 700 -p "$SHELL_SESSION_DIR"
+    if [ -r "$SHELL_SESSION_FILE" ]; then
+        source "$SHELL_SESSION_FILE"
+        rm "$SHELL_SESSION_FILE"
+    fi
+    if [ ${SHELL_SESSION_HISTORY:-1} -eq 1 ]; then
+        SHELL_SESSION_HISTFILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.history"
+        SHELL_SESSION_HISTFILE_NEW="$SHELL_SESSION_DIR/$TERM_SESSION_ID.historynew"
+        SHELL_SESSION_HISTFILE_SHARED="$HISTFILE"
+        if [ -s "$SHELL_SESSION_HISTFILE" ]; then
+            history -r "$SHELL_SESSION_HISTFILE"
+            shell_session_history_enable
+        else
+            precmd_functions+=(shell_session_history_check)
+        fi
+    fi
+    SHELL_SESSION_TIMESTAMP_FILE="$SHELL_SESSION_DIR/_expiration_check_timestamp"
+    exit_trap() { shell_session_save && shell_session_delete_expired }
+    trap exit_trap EXIT
 fi
 #+END_SRC
 
@@ -3347,7 +3335,7 @@ This will source everything in =/etc/profile.d=.
 
 #+BEGIN_SRC shell
 for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
-  if [ -r $i ]; then
+  if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
 done
@@ -3454,9 +3442,9 @@ Set env vars provided by Nix,
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
-   '("NIX_PATH"
-       ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
-        "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
+   ;; '("NIX_PATH"
+   ;;     ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
+   ;;      "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
@@ -3922,7 +3910,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
           -l ob-tangle \
           --eval "(org-babel-tangle-file \"README.org\")"
     cp bauer.nix default.nix
-  '')) (args // { inherit ensure; })
+  '')) { inherit ensure pkgs; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -4249,12 +4237,12 @@ TODO use dump-emacs here to speed up config.
   myEmacsPackages = buildEnv {
     name = "emacs-packages-env";
     paths = (requiredPackages pkgs.emacsPackagesNg myEmacsPackages')
-          ++ [ pkgs.emacsPackagesNg.use-package ];
+          ++ [ pkgs.emacsPackagesNg.use-package pkgs.emacsPackagesNg.delight ];
   };
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.use-package]
+    ++ [default epkgs.use-package epkgs.delight]
   );
 #+END_SRC
 
@@ -4288,6 +4276,8 @@ Setup man pages...
     name = "man-pages";
     ignoreCollisions = (!(config.bauer.small or false));
     paths = userPackages ++ [pkgs.posix_man_pages
+                             pkgs.stdman
+                             # pkgs.stdmanpages
                              # pkgs.llvmPackages.clang-manpages
                              # pkgs.llvmPackages.llvm-manpages
                              ]
@@ -4484,6 +4474,7 @@ in buildEnv {
   pathsToLink = [
     "/bin"
     "/etc/profile.d"
+    "/share/applications"
   ] ++ lib.optional hostPlatform.isDarwin "/Applications";
   meta = with lib; {
     description = "Bauer's automated unified Emacs realm";
@@ -4569,15 +4560,10 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env: CHANNEL=nixos-18.09
-    - os: linux
-      dist: trusty
       env: CHANNEL=nixos-19.03
     - os: linux
       dist: trusty
       env: CHANNEL=nixos-unstable
-    - os: osx
-      env: CHANNEL=nixpkgs-18.09-darwin
     - os: osx
       env: CHANNEL=nixpkgs-19.03-darwin
     - os: osx
