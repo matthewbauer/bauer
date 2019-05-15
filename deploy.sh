@@ -7,7 +7,6 @@ update() {
 
 setup() {
   git stash push
-  # update
   git checkout gh-pages
 }
 
@@ -21,7 +20,6 @@ trap cleanup EXIT
 
 git fetch origin
 git reset --hard origin/gh-pages
-
 git merge --no-edit master
 update
 git push origin gh-pages
