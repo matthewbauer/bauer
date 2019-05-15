@@ -349,11 +349,11 @@ The format of arguments to =set-defaults= is identical to the one used by
        (if (buffer-file-name)
            (abbreviate-file-name (buffer-file-name))
          "%b")))
-   '(haskell-process-auto-import-loaded-modules t)
+   '(haskell-process-auto-import-loaded-modules nil)
    '(haskell-process-suggest-restart nil)
-   '(haskell-process-suggest-haskell-docs-imports t)
-   '(haskell-process-suggest-hoogle-imports t)
-   '(haskell-process-suggest-remove-import-lines t)
+   '(haskell-process-suggest-haskell-docs-imports nil)
+   '(haskell-process-suggest-hoogle-imports nil)
+   '(haskell-process-suggest-remove-import-lines nil)
    '(haskell-compile-cabal-build-command "cabal new-build")
    '(haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
    '(haskell-tags-on-save t)
@@ -1290,15 +1290,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
     (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
-***** xterm-color
-
-#+BEGIN_SRC emacs-lisp
-(use-package xterm-color
-  :disabled
-  :commands xterm-color-filter
-  :hook (eshell-before-prompt . (lambda () (setq-local xterm-color-preserve-properties t))))
-#+END_SRC
-
 **** Flycheck
 
 [[http://www.flycheck.org/][Website]]
@@ -1811,7 +1802,6 @@ Base mode used for shell and terminal modes.
     :config (delete-selection-mode t))
 #+END_SRC
 
-**** TODO desktop
 **** dired
 
 #+BEGIN_SRC emacs-lisp
@@ -2146,7 +2136,6 @@ Make scripts executable automatically.
     :hook (after-init . save-place-mode))
 #+END_SRC
 
-**** TODO server
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
