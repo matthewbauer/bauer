@@ -4782,12 +4782,6 @@ in {
 :END:
 
 #+BEGIN_SRC shell
-  update() {
-    ./update.sh
-    git add .
-    git commit -m "Regen"
-  }
-
   setup() {
     git stash push
     git checkout gh-pages
@@ -4804,7 +4798,13 @@ in {
   git fetch origin
   git reset --hard origin/gh-pages
   git merge --no-edit master
+<<<<<<< HEAD
   update
+=======
+  ./update.sh
+  git add .
+  git commit -m "Regen"
+>>>>>>> master
   git push origin gh-pages
 #+END_SRC
 ** LICENSE
