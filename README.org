@@ -350,6 +350,7 @@ The format of arguments to =set-defaults= is identical to the one used by
        (if (buffer-file-name)
            (abbreviate-file-name (buffer-file-name))
          "%b")))
+   '(haskell-process-check-cabal-config-on-load nil)
    '(haskell-process-auto-import-loaded-modules nil)
    '(haskell-process-suggest-restart nil)
    '(haskell-process-suggest-haskell-docs-imports nil)
@@ -558,7 +559,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-action '(cleanup auto-cleanup))
    '(whitespace-line-column 120)
    '(whitespace-style '(face trailing lines space-before-tab
-                             empty lines-style))
+                        empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode))
    '(fortune-always-compile nil)
    )
@@ -1530,6 +1531,7 @@ easymenu to make the "Projectile" modeline clickable.
 **** Recentf
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
+    :disabled
     :ensure nil
     :config (recentf-mode 1))
 #+END_SRC
