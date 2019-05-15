@@ -2252,14 +2252,12 @@ Make scripts executable automatically.
     :ensure nil
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
-**** TODO winner-mode
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
-**** TODO Agda
 **** C/C++
 
 #+BEGIN_SRC emacs-lisp
@@ -2277,7 +2275,6 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
-    :disabled
     :preface
     (autoload 'file-remote-p "files")
     (defun irony-mode-disable-remote ()
@@ -2642,7 +2639,6 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-drv-mode
 #+BEGIN_SRC emacs-lisp
   (use-package nix-drv-mode
-    :disabled
     :ensure nil
     :mode "\\.drv\\'")
 #+END_SRC
@@ -2663,7 +2659,6 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
-  :disabled
   :commands nix-update-fetch
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
@@ -2865,18 +2860,27 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
-**** TODO emacs-gif-screencast
-**** TODO epresent
-**** TODO eyebrowse
-**** TODO hackernews
+**** emacs-gif-screencast
+#+BEGIN_SRC emacs-lisp
+(use-package gif-screencast
+  :commands gif-screencast)
+#+END_SRC
 **** htmlize
 
 #+BEGIN_SRC emacs-lisp
   (use-package htmlize :no-require)
 #+END_SRC
 
-**** TODO idle-highlight-mode
-**** TODO iedit
+**** idle-highlight-mode
+#+BEGIN_SRC emacs-lisp
+(use-package idle-highlight-mode
+  :hook (prog-mode . idle-highlight-mode))
+#+END_SRC
+**** iedit
+#+BEGIN_SRC emacs-lisp
+(use-package iedit
+  :commands iedit-mode)
+#+END_SRC
 **** page-break-lines
 
 #+BEGIN_SRC emacs-lisp
@@ -2937,7 +2941,6 @@ Most of these are available in MELPA.
     :bind ("H-SPC" . shrink-whitespace))
 #+END_SRC
 
-**** TODO smex
 **** string-inflection
 
 #+BEGIN_SRC emacs-lisp
@@ -2950,22 +2953,53 @@ Most of these are available in MELPA.
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
-**** TODO sx
-**** TODO twittering-mode
-**** TODO undo-tree
-**** TODO unfill
-**** TODO yasnippet
-**** TODO git-timemachine
+**** url-util
+
+#+BEGIN_SRC emacs-lisp
+  (use-package url-util
+    :ensure nil
+    :functions (url-hexify-string url-unhex-string)
+    :preface
+    (defun func-region (start end func)
+      "Run a function over the region between START and END in current buffer."
+      (unless (region-active-p) (throw "No active region."))
+      (save-excursion
+        (let ((text (delete-and-extract-region start end)))
+          (insert (funcall func text)))))
+    (defun url-encode (start end)
+      "URL encode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-hexify-string))
+    (defun url-decode (start end)
+      "URL decode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-unhex-string)))
+#+END_SRC
+**** undo-tree
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :config (global-undo-tree-mode 1)
+    ;; (global-set-key (kbd "C-z") 'undo)
+    ;; (defalias 'redo 'undo-tree-redo)
+    ;; (global-set-key (kbd "C-S-z") 'redo)
+    )
+#+END_SRC
+**** git-timemachine
+#+BEGIN_SRC emacs-lisp
+(use-package git-timemachine
+  :commands git-timemachine)
+#+END_SRC
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
-    :disabled
     :hook
     ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
-**** TODO flycheck-pkg-config
-**** TODO dired-rsync
-**** TODO org-brain
+**** dired-rsync
+#+BEGIN_SRC emacs-lisp
+(use-package dired-rsync
+  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+#+END_SRC
 **** comment-tags
 #+BEGIN_SRC emacs-lisp
 (use-package comment-tags
@@ -3213,12 +3247,17 @@ shell_session_history_enable() {
 }
 
 shell_session_delete_expired() {
-    if [ ! -e "$SHELL_SESSION_TIMESTAMP_FILE" ] || [ -z "$(find "$SHELL_SESSION_TIMESTAMP_FILE" -mtime -1)" ]; then
+    if [ ! -e "$SHELL_SESSION_TIMESTAMP_FILE" ] || \
+       [ -z "$(find "$SHELL_SESSION_TIMESTAMP_FILE" -mtime -1)" ]; then
         local expiration_lock_file="$SHELL_SESSION_DIR/_expiration_lockfile"
         if shlock -f "$expiration_lock_file" -p $$; then
             echo -n 'Deleting expired sessions...'
             local delete_count=$(find "$SHELL_SESSION_DIR" -type f -mtime +14 -print -delete | wc -l)
-            [ "$delete_count" -gt 0 ] && echo $delete_count' completed.' || echo 'none found.'
+            if [ "$delete_count" -gt 0 ]; then
+                echo $delete_count' completed.'
+            else
+                echo 'none found.'
+            fi
             (umask 077; touch "$SHELL_SESSION_TIMESTAMP_FILE")
             rm "$expiration_lock_file"
         fi
@@ -3237,30 +3276,29 @@ shell_session_save_history() {
     shell_session_history_enable
     # history -a
     if [ -f "$SHELL_SESSION_HISTFILE_SHARED" ] && [ ! -s "$SHELL_SESSION_HISTFILE" ]; then
-        echo -ne '\n...copying shared history...'
+        echo '...copying shared history...'
         (umask 077; cp "$SHELL_SESSION_HISTFILE_SHARED" "$SHELL_SESSION_HISTFILE")
     fi
-    echo -ne '\n...saving history...'
+    echo '...saving history...'
     (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE_SHARED")
     (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE")
     : >| "$SHELL_SESSION_HISTFILE_NEW"
     if [ -n "$HISTFILESIZE" ]; then
-        echo -n 'truncating history files...'
+        echo 'truncating history files...'
         HISTFILE="$SHELL_SESSION_HISTFILE_SHARED"
         HISTFILESIZE="$HISTFILESIZE"
         HISTFILE="$SHELL_SESSION_HISTFILE"
         HISTFILESIZE="$size"
         HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
     fi
-    echo -ne '\n...'
+    echo '...'
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -z "$INSIDE_EMACS" ] \
    && [ ${SHELL_SESSION_DID_INIT:-0} -eq 0 ] \
    && [ -n "$TERM_SESSION_ID" ]; then
-    autoload add-zsh-hook
-    add-zsh-hook chpwd update_terminal_cwd
+    chpwd_functions+=(update_terminal_cwd)
     update_terminal_cwd
 
     SHELL_SESSION_DID_INIT=1
