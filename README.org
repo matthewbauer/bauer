@@ -3069,17 +3069,17 @@ bootstrap=$HOME/.nix-profile/etc/profile
 #+END_SRC
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
-that break how this works.
+that break how this works. Also need to set some common exports that are needed.
+Lots of common variables need to know about the =.nix-profile= directory. We
+leave the first MANPATH separator empty so it uses the default PATH lookup as
+well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
+store the bash or zsh history. We set the history size to 10000 for good
+measure. EDITOR should point to this editor.
 
 #+BEGIN_SRC shell :padline no
-export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
-export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
-#+END_SRC
-
-Here we setup =.profile=. First, setup exports.
-
-#+BEGIN_SRC shell :padline no
-  export PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
+  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels" \
+         NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
+         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
@@ -3346,10 +3346,11 @@ export PREFIX=@out@
 
 This will source everything in =/etc/profile.d=. We skip =nix-daemon.sh= because
 it is put in the global profile, and sets values incorrectly when we are in
-single user mode.
+single user mode. We need @out@ to come after $HOME so that it gets the last
+word in these settings.
 
 #+BEGIN_SRC shell
-for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
+for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
