@@ -3107,7 +3107,10 @@ fi
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
-[ -f $HOME/.profile ] && source $HOME/.profile
+if [ -f $HOME/.profile ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
+  export SHELL_SOURCED_PROFILE=1
+  source $HOME/.profile
+fi
 #+END_SRC
 
 ** =.zshrc=
@@ -3337,7 +3340,7 @@ This will source everything in =/etc/profile.d=.
 
 #+BEGIN_SRC shell
 for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
-  if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
+  if [ -r $i ]; then
     source $i
   fi
 done
