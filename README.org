@@ -3356,46 +3356,6 @@ for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   fi
 done
 #+END_SRC
-** =.gitignore=
-:PROPERTIES:
-:header-args: :tangle gitignore
-:END:
-
-Some basic gitignore paths.
-
-#+BEGIN_SRC gitignore :padline no
-*~
-\#*\#
-*.DS_Store
-#+END_SRC
-** =.gitconfig=
-:PROPERTIES:
-:header-args: :tangle gitconfig
-:END:
-
-#+BEGIN_SRC gitconfig :padline no
-[core]
-        editor = emacsclient
-#       fsmonitor = @out@/etc/fsmonitor
-
-[commit]
-        gpgSign = true
-
-[push]
-        default = simple
-
-[pull]
-        rebase = true
-
-[alias]
-        amend = commit --amend
-
-[help]
-        autcorrect = 1
-
-[color]
-        ui = true
-#+END_SRC
 * Bootstrapping
 :PROPERTIES:
 :CUSTOM_ID: bootstrap
@@ -4473,7 +4433,6 @@ in buildEnv {
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
-    # substituteAll ${./gitconfig} $out/etc/gitconfig
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
