@@ -1409,7 +1409,7 @@ line are available in an intuitive Emacs buffer.
     ;;                         "Add remote from github user name"
     ;;                         'magit-remote-github)))
 
-    :commands (magit-clone magit-blame)
+    :commands (magit-clone magit-blame-addition)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
            ("C-x G" . magit-dispatch)
@@ -2467,6 +2467,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package jdee
+    :disabled
     :mode ("\\.java\\'" . jdee-mode)
     :bind (:package jdee
            :map jdee-mode-map
@@ -2950,7 +2951,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package url-util
     :ensure nil
-    :functions (url-hexify-string url-unhex-string)
+    :functions (url-hexify-string url-unhex-string region-active-p)
     :preface
     (defun func-region (start end func)
       "Run a function over the region between START and END in current buffer."
@@ -2970,6 +2971,7 @@ Most of these are available in MELPA.
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
+    :commands global-undo-tree-mode
     :config (global-undo-tree-mode 1)
     ;; (global-set-key (kbd "C-z") 'undo)
     ;; (defalias 'redo 'undo-tree-redo)
