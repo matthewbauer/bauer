@@ -3081,7 +3081,7 @@ Here we setup =.profile=. First, setup exports.
 #+BEGIN_SRC shell :padline no
   export PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
-         MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
+         MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
          HISTFILE=$HOME/.history \
@@ -3439,7 +3439,8 @@ Setup =exec-path=.
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path `("@manpages@/share/man"
+(defvar man-path `(""
+                   "@manpages@/share/man"
                    ,(expand-file-name "share/man" output-directory)
                    "@MANPATH@"))
 #+END_SRC
@@ -4456,7 +4457,7 @@ user has the most direct access to.
                              ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
-  MANPATH = lib.makeSearchPathOutput "man" "share/man"
+  MANPATH = ":" + lib.makeSearchPathOutput "man" "share/man"
     ([ manpages customEmacsPackages.emacs pkgs.zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
