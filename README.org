@@ -3068,6 +3068,14 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
+Set some Nix variables that never seem to get set correctly. There are a few bug
+that break how this works.
+
+#+BEGIN_SRC shell :padline no
+export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
+#+END_SRC
+
 Here we setup =.profile=. First, setup exports.
 
 #+BEGIN_SRC shell :padline no
@@ -3108,7 +3116,7 @@ Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
 if [ -f $HOME/.profile ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
-  export SHELL_SOURCED_PROFILE=1
+  SHELL_SOURCED_PROFILE=1
   source $HOME/.profile
 fi
 #+END_SRC
@@ -3336,11 +3344,13 @@ used to reference the Nix output dir.
 export PREFIX=@out@
 #+END_SRC
 
-This will source everything in =/etc/profile.d=.
+This will source everything in =/etc/profile.d=. We skip =nix-daemon.sh= because
+it is put in the global profile, and sets values incorrectly when we are in
+single user mode.
 
 #+BEGIN_SRC shell
 for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
-  if [ -r $i ]; then
+  if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
 done
@@ -3447,9 +3457,6 @@ Set env vars provided by Nix,
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
-   ;; '("NIX_PATH"
-   ;;     ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
-   ;;      "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
@@ -3462,6 +3469,15 @@ Set env vars provided by Nix,
                                 ,(expand-file-name "share/info"
                                                    output-directory))
                               ":")))
+
+
+  (setenv "NIX_PATH"
+          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:%s/.nix-defexpr/channels"
+                  (getenv "HOME") (getenv "HOME")))
+  (setenv "NIX_PROFILES"
+          (string-join (list "/nix/var/nix/profiles/default/profile"
+                             (format "%s/.nix-profile"
+                                     (getenv "HOME"))) " "))
 #+END_SRC
 
 Set paths provided by Nix,
