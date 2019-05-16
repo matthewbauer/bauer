@@ -3972,13 +3972,6 @@ currently).
     (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
-Next, we define aspell with the English language. This is used by Emacs
-ispell.
-
-#+BEGIN_SRC nix
-  myAspell = pkgs.aspellWithDicts (ps : with ps; [ en ]);
-#+END_SRC
-
 Tex live provides some LaTeX commads for us.
 
 #+BEGIN_SRC nix
@@ -4011,10 +4004,11 @@ substitution of all the attributes set.
 
               # Nix paths
               manpages sysheaders sysframeworks
-              schemas bins infopages;
+              schemas bins infopages
+
+              aspell;
 
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
-      aspell = myAspell;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       gpg = gnupg1compat;
@@ -4401,8 +4395,6 @@ Full list of packages that will be made available.
     # Nix tools
     nix-zsh-completions # nix # nix-index
   ] ++ lib.optionals big ([
-    myAspell
-
     # Useful tools
     isync notmuch graphviz indent
     graphviz imagemagick
