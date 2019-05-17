@@ -3289,14 +3289,6 @@ shell_session_save_history() {
     (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE_SHARED")
     (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE")
     : >| "$SHELL_SESSION_HISTFILE_NEW"
-    if [ -n "$HISTFILESIZE" ]; then
-        echo 'truncating history files...'
-        HISTFILE="$SHELL_SESSION_HISTFILE_SHARED"
-        HISTFILESIZE="$HISTFILESIZE"
-        HISTFILE="$SHELL_SESSION_HISTFILE"
-        HISTFILESIZE="$size"
-        HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
-    fi
     echo '...'
 }
 
