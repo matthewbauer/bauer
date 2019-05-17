@@ -1754,15 +1754,15 @@ Base mode used for shell and terminal modes.
     (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
-      ;; Ignore timestamps in history file.  Assumes that zsh
-      ;; EXTENDED_HISTORY option is in use.
-      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
       (comint-read-input-ring 'silent))
     (defun save-history ()
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
                              (comint-write-input-ring))))
-    )
+    :hook (comint-mode . (lambda ()
+      ;; Ignore timestamps in history file.  Assumes that zsh
+      ;; EXTENDED_HISTORY option is in use.
+      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);"))))
 #+END_SRC
 
 **** compile
