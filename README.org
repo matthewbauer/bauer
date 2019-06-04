@@ -1746,6 +1746,10 @@ Provides links to bugs listed in sourvce code.
 Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
+  (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
+    "Possible prefix that may come before history elements. In
+    Zshell with extended_history, this is useful.")
+
   (use-package comint
     :ensure nil
     :preface
@@ -1791,10 +1795,20 @@ Base mode used for shell and terminal modes.
                                                  (if (re-search-backward comint-input-ring-separator
                                                                          nil t)
                                                      (progn
-                                                       ;; Skip zsh extended_history stamps
-                                                       (re-search-forward ": [[:digit:]]+:[[:digit:]]+;" nil t)
+                                                       (when (looking-at (concat comint-input-ring-separator
+                                                                                 comint-input-ring-prefix))
+                                                         ;; Skip zsh extended_history stamps
+                                                         (re-search-forward comint-input-ring-prefix
+                                                                            nil t))
                                                        (match-end 0))
-                                                   (point-min)))
+                                                   (progn
+                                                     (goto-char (point-min))
+                                                     (if (looking-at comint-input-ring-prefix)
+                                                         (progn
+                                                           (re-search-forward comint-input-ring-prefix
+                                                                              nil t)
+                                                           (match-end 0))
+                                                       (point-min)))))
                                            (setq history (buffer-substring start end))
                                            (goto-char start)
                                            (when (and (not (string-match comint-input-history-ignore
