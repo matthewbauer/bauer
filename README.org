@@ -296,7 +296,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
-   '(eshell-history-size 50000)
    '(eshell-review-quick-commands t)
    '(eshell-prompt-function
      (lambda ()
@@ -3472,16 +3471,44 @@ This will setup cacert-file var,
   :group 'environment)
 #+END_SRC
 
-Set env vars provided by Nix,
+Setup history and stuff. This gets messy, but we need to make sure these are set
+otherwise zsh will default to 500 and not save at all!
+
+#+BEGIN_SRC emacs-lisp
+  (defun bauer-set-history-file (sym val)
+    "Setter for history-file."
+    (setenv "HISTFILE" val)
+    val)
+
+  (defcustom history-file (expand-file-name ".history" (getenv "HOME"))
+    "The history file to use."
+    :type 'string
+    :group 'bauer
+    :set 'bauer-set-history-file
+    :initialize 'bauer-set-history-file)
+
+  (defun bauer-set-history-size (sym val)
+    "Setter for history-size."
+    (setenv "HISTSIZE" (format "%i" val))
+    (setenv "SAVEHIST" (format "%i" val))
+    (setq eshell-history-size val)
+    val)
+
+  (defcustom history-size 50000
+    "The history size to use."
+    :type 'integer
+    :group 'bauer
+    :set 'bauer-set-history-size
+    :initialize 'bauer-set-history-size)
+#+END_SRC
+
+Set some more misc. vars.
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
-   `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
-   `("SAVEHIST" "50000")
-   `("HISTSIZE" "50000")
    `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
                                      ,(expand-file-name "share"
                                                         output-directory))
@@ -3490,8 +3517,12 @@ Set env vars provided by Nix,
                                 ,(expand-file-name "share/info"
                                                    output-directory))
                               ":")))
+#+END_SRC
 
+Set env vars provided by Nix. We have to override this because the defaults Nix
+has are bad.
 
+#+BEGIN_SRC emacs-lisp
   (setenv "NIX_PATH"
           (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:%s/.nix-defexpr/channels"
                   (getenv "HOME") (getenv "HOME")))
