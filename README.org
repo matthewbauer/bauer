@@ -940,21 +940,19 @@ Automatically indent code as you type. Only enabled for Lisp currently.
             slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
-**** Apropospriate Theme
-
-[[https://github.com/waymondo/apropospriate-theme][GitHub]]
+**** Spacemacs Theme
 
 This is the theme I use & it works well for this configuration. It is dark
 with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package apropospriate-theme
+  (use-package spacemacs-theme
     :if window-system
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
-                   (locate-library "apropospriate-theme")))
-    (load-theme 'apropospriate-dark t))
+                   (locate-library "spacemacs-theme")))
+    (load-theme 'spacemacs-dark t))
 #+END_SRC
 
 **** Company
