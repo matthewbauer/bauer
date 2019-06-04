@@ -3148,8 +3148,8 @@ measure. EDITOR should point to this editor.
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
          HISTFILE=$HOME/.history \
-         SAVEHIST=10000 \
-         HISTSIZE=10000 \
+         SAVEHIST=50000 \
+         HISTSIZE=50000 \
          EDITOR=emacs
 #+END_SRC
 
@@ -3480,6 +3480,8 @@ Set env vars provided by Nix,
    `("MANPATH" ,man-path))
   (set-envs
    `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
+   `("SAVEHIST" "50000")
+   `("HISTSIZE" "50000")
    `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
                                      ,(expand-file-name "share"
                                                         output-directory))
