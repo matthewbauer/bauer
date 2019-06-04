@@ -5,7 +5,7 @@
 let
   ensure = f: n: if builtins.pathExists f then f
                  else builtins.fetchurl
-    "https://matthewbauer.us/bauer/${n}";
+    "https://raw.githubusercontent.com/codygman/bauer/master/${n}";
   bauer = import (ensure ./default.nix "default.nix") {
     inherit pkgs;
   };
