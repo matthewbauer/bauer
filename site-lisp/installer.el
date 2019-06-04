@@ -29,7 +29,7 @@
   "Installer package"
   :group 'emacs)
 
-(defcustom installer-repo-url "https://github.com/matthewbauer/bauer"
+(defcustom installer-repo-url "https://github.com/codygman/bauer"
   "URL to clone with git."
   :group 'installer
   :type 'string)
