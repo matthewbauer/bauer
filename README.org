@@ -3477,8 +3477,8 @@ otherwise zsh will default to 500 and not save at all!
 #+BEGIN_SRC emacs-lisp
   (defun bauer-set-history-file (sym val)
     "Setter for history-file."
-    (setenv "HISTFILE" val)
-    val)
+    (setenv "HISTFILE" (eval val))
+    t)
 
   (defcustom history-file (expand-file-name ".history" (getenv "HOME"))
     "The history file to use."
@@ -3492,7 +3492,7 @@ otherwise zsh will default to 500 and not save at all!
     (setenv "HISTSIZE" (format "%i" val))
     (setenv "SAVEHIST" (format "%i" val))
     (setq eshell-history-size val)
-    val)
+    t)
 
   (defcustom history-size 50000
     "The history size to use."
