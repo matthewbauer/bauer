@@ -799,7 +799,9 @@ with how Emacs key binding works, you should read through [[https://www.masterin
 
   (bind-keys
     :map help-map
-    ("C-r" . woman))
+    ("C-r" . woman)
+    ("j" . woman)
+    ("C-j" . man))
 
   (bind-keys
    :package view
@@ -3403,10 +3405,11 @@ Setup =exec-path=.
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path `(""
-                   "@manpages@/share/man"
-                   ,(expand-file-name "share/man" output-directory)
-                   "@MANPATH@"))
+  (defvar man-path (append
+                    `(""
+                      "@manpages@/share/man"
+                      ,(expand-file-name "share/man" output-directory))
+                    (split-string "@MANPATH@" ":")))
 #+END_SRC
 
 This will setup cacert-file var,
