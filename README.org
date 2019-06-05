@@ -3320,64 +3320,11 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
-Setup Apple Terminal so that CWD is shown and sessions are saved.
+Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
 update_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
-}
-
-shell_session_save() {
-    if [ -n "$SHELL_SESSION_FILE" ]; then
-        (umask 077; echo 'echo Restored session: "$(date -r '$(date +%s)')"' >| "$SHELL_SESSION_FILE")
-        shell_session_save_history
-    fi
-}
-
-shell_session_history_enable() {
-    (umask 077; touch "$SHELL_SESSION_HISTFILE_NEW")
-    HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
-    SHELL_SESSION_HISTORY=1
-}
-
-shell_session_delete_expired() {
-    if [ ! -e "$SHELL_SESSION_TIMESTAMP_FILE" ] || \
-       [ -z "$(find "$SHELL_SESSION_TIMESTAMP_FILE" -mtime -1)" ]; then
-        local expiration_lock_file="$SHELL_SESSION_DIR/_expiration_lockfile"
-        if shlock -f "$expiration_lock_file" -p $$; then
-            echo -n 'Deleting expired sessions...'
-            local delete_count=$(find "$SHELL_SESSION_DIR" -type f -mtime +14 -print -delete | wc -l)
-            if [ "$delete_count" -gt 0 ]; then
-                echo $delete_count' completed.'
-            else
-                echo 'none found.'
-            fi
-            (umask 077; touch "$SHELL_SESSION_TIMESTAMP_FILE")
-            rm "$expiration_lock_file"
-        fi
-    fi
-}
-
-shell_session_history_check() {
-    if [ ${SHELL_SESSION_DID_HISTORY_CHECK:-0} -eq 0 ]; then
-        SHELL_SESSION_DID_HISTORY_CHECK=1
-        shell_session_history_enable
-        precmd_functions=()
-    fi
-}
-
-shell_session_save_history() {
-    shell_session_history_enable
-    # history -a
-    if [ -f "$SHELL_SESSION_HISTFILE_SHARED" ] && [ ! -s "$SHELL_SESSION_HISTFILE" ]; then
-        echo '...copying shared history...'
-        (umask 077; cp "$SHELL_SESSION_HISTFILE_SHARED" "$SHELL_SESSION_HISTFILE")
-    fi
-    echo '...saving history...'
-    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE_SHARED")
-    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE")
-    : >| "$SHELL_SESSION_HISTFILE_NEW"
-    echo '...'
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
@@ -3386,30 +3333,6 @@ if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -n "$TERM_SESSION_ID" ]; then
     chpwd_functions+=(update_terminal_cwd)
     update_terminal_cwd
-
-    SHELL_SESSION_DID_INIT=1
-    SHELL_SESSION_DIR="$HOME/.zsh_sessions"
-    SHELL_SESSION_FILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.session"
-
-    mkdir -m 700 -p "$SHELL_SESSION_DIR"
-    if [ -r "$SHELL_SESSION_FILE" ]; then
-        source "$SHELL_SESSION_FILE"
-        rm "$SHELL_SESSION_FILE"
-    fi
-    if [ ${SHELL_SESSION_HISTORY:-1} -eq 1 ]; then
-        SHELL_SESSION_HISTFILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.history"
-        SHELL_SESSION_HISTFILE_NEW="$SHELL_SESSION_DIR/$TERM_SESSION_ID.historynew"
-        SHELL_SESSION_HISTFILE_SHARED="$HISTFILE"
-        if [ -s "$SHELL_SESSION_HISTFILE" ]; then
-            history -r "$SHELL_SESSION_HISTFILE"
-            shell_session_history_enable
-        else
-            precmd_functions+=(shell_session_history_check)
-        fi
-    fi
-    SHELL_SESSION_TIMESTAMP_FILE="$SHELL_SESSION_DIR/_expiration_check_timestamp"
-    exit_trap() { shell_session_save && shell_session_delete_expired }
-    trap exit_trap EXIT
 fi
 #+END_SRC
 
