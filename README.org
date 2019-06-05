@@ -3329,7 +3329,6 @@ update_terminal_cwd () {
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -z "$INSIDE_EMACS" ] \
-   && [ ${SHELL_SESSION_DID_INIT:-0} -eq 0 ] \
    && [ -n "$TERM_SESSION_ID" ]; then
     chpwd_functions+=(update_terminal_cwd)
     update_terminal_cwd
