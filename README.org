@@ -956,6 +956,20 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
     (load-theme 'apropospriate-dark t))
 #+END_SRC
 
+While apropospriate is the default, other themes can be used as well! For
+instance spacemacs-theme can be enabled:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package spacemacs-common
+    :ensure spacemacs-theme
+    :if window-system
+    :init
+    (add-to-list 'custom-theme-load-path
+                 (file-name-directory
+                   (locate-library "spacemacs-theme-pkg")))
+    (load-theme 'spacemacs-dark t))
+#+END_SRC
+
 **** Company
 
 [[http://company-mode.github.io][Website]]
