@@ -263,7 +263,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                          substring))
    '(completions-cycle-threshold t)
    '(completions-format 'vertical)
-   '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
    '(custom-file (expand-file-name
@@ -2258,7 +2257,10 @@ Make scripts executable automatically.
     (autoload 'tramp-dissect-file-name "tramp"))
 
   (use-package tramp-term
-    :commands tramp-term)
+    :commands tramp-term
+    :functions term-send-raw-string
+    :hook (tramp-term-after-initialized . (lambda (host)
+      (term-send-raw-string (concat "cd " default-directory (kbd "RET"))))))
 #+END_SRC
 
 **** text-mode
@@ -3137,6 +3139,15 @@ leave the first MANPATH separator empty so it uses the default PATH lookup as
 well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
 store the bash or zsh history. We set the history size to 10000 for good
 measure. EDITOR should point to this editor.
+
+#+BEGIN_SRC shell :padline no
+export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
+#+END_SRC
+
+Here we setup =.profile=. First, setup exports. We leave the first part of
+MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
+just in case.
 
 #+BEGIN_SRC shell :padline no
   export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels" \
@@ -4344,13 +4355,16 @@ Setup man pages...
     ignoreCollisions = (!(config.bauer.small or false));
     paths = userPackages ++ [pkgs.posix_man_pages
                              pkgs.stdman
-                             # pkgs.stdmanpages
                              # pkgs.llvmPackages.clang-manpages
                              # pkgs.llvmPackages.llvm-manpages
                              ]
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                        "${apple_sdk}/usr"
-      ++ lib.optional hostPlatform.isLinux pkgs.man-pages;
+      ++ lib.optionals (hostPlatform.isLinux && big) [
+        pkgs.man-pages
+        pkgs.glibcInfo
+        pkgs.stdmanpages
+      ];
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
