@@ -4368,7 +4368,9 @@ Setup system headers...
 #+BEGIN_SRC nix
   sysheaders = buildEnv {
     name = "headers";
-    paths = [ pkgs.libcxx ]
+    pathsToLink = [ "/include" ];
+    extraOutputsToInstall = [ "dev" ];
+    paths = [ pkgs.libcxx stdenv.cc.libc ]
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                       "${apple_sdk}/usr";
   };
