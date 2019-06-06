@@ -238,7 +238,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(comint-input-ignoredups t)
    '(comint-process-echoes t)
    '(comint-prompt-read-only t)
-   '(comint-move-point-for-output 'this)
    '(comint-scroll-to-bottom-on-input 'this)
    '(comint-password-prompt-regexp (concat
                                     "\\(^ *\\|"
@@ -264,7 +263,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                          substring))
    '(completions-cycle-threshold t)
    '(completions-format 'vertical)
-   '(create-lockfiles nil)
    '(cursor-in-non-selected-windows nil)
    '(custom-buffer-done-kill t)
    '(custom-file (expand-file-name
@@ -297,7 +295,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
-   '(eshell-history-size 50000)
    '(eshell-review-quick-commands t)
    '(eshell-prompt-function
      (lambda ()
@@ -717,6 +714,7 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("s-SPC" . cycle-spacing)
    ("C-c w w" . whitespace-mode)
    ("<C-return>" . other-window)
+   ("<C-M-return>" . other-window)
    ("s-o" . other-window)
    ("C-z" . delete-other-windows)
    ("M-g l" . goto-line)
@@ -801,7 +799,9 @@ with how Emacs key binding works, you should read through [[https://www.masterin
 
   (bind-keys
     :map help-map
-    ("C-r" . woman))
+    ("C-r" . woman)
+    ("j" . woman)
+    ("C-j" . man))
 
   (bind-keys
    :package view
@@ -956,6 +956,20 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
                  (file-name-directory
                    (locate-library "apropospriate-theme")))
     (load-theme 'apropospriate-dark t))
+#+END_SRC
+
+While apropospriate is the default, other themes can be used as well! For
+instance spacemacs-theme can be enabled:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package spacemacs-common
+    :ensure spacemacs-theme
+    :if window-system
+    :init
+    (add-to-list 'custom-theme-load-path
+                 (file-name-directory
+                   (locate-library "spacemacs-theme-pkg")))
+    (load-theme 'spacemacs-dark t))
 #+END_SRC
 
 **** Company
@@ -1409,7 +1423,7 @@ line are available in an intuitive Emacs buffer.
     ;;                         "Add remote from github user name"
     ;;                         'magit-remote-github)))
 
-    :commands (magit-clone magit-blame)
+    :commands (magit-clone magit-blame-addition)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
            ("C-x G" . magit-dispatch)
@@ -1746,6 +1760,10 @@ Provides links to bugs listed in sourvce code.
 Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
+  (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
+    "Possible prefix that may come before history elements. In
+    Zshell with extended_history, this is useful.")
+
   (use-package comint
     :ensure nil
     :preface
@@ -1754,15 +1772,73 @@ Base mode used for shell and terminal modes.
     (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
       (setq comint-input-ring-file-name history-file)
-      ;; Ignore timestamps in history file.  Assumes that zsh
-      ;; EXTENDED_HISTORY option is in use.
-      (setq-local comint-input-ring-separator "\n: \\([0-9]+\\):\\([0-9]+\\);")
       (comint-read-input-ring 'silent))
     (defun save-history ()
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
-                             (comint-write-input-ring))))
-    )
+          (comint-write-input-ring))))
+    :config
+    (advice-add 'comint-read-input-ring
+                :override (lambda (&optional silent)
+                            (cond ((or (null comint-input-ring-file-name)
+                                       (equal comint-input-ring-file-name ""))
+                                   nil)
+                                  ((not (file-readable-p comint-input-ring-file-name))
+                                   (or silent
+                                       (message "Cannot read history file %s"
+                                                comint-input-ring-file-name)))
+                                  (t
+                                   (let* ((file comint-input-ring-file-name)
+                                          (count 0)
+                                          ;; Some users set HISTSIZE or `comint-input-ring-size'
+                                          ;; to huge numbers.  Don't allocate a huge ring right
+                                          ;; away; there might not be that much history.
+                                          (ring-size (min 1500 comint-input-ring-size))
+                                          (ring (make-ring ring-size)))
+                                     (with-temp-buffer
+                                       (insert-file-contents file)
+                                       ;; Save restriction in case file is already visited...
+                                       ;; Watch for those date stamps in history files!
+                                       (goto-char (point-max))
+                                       (let (start end history)
+                                         (while (and (< count comint-input-ring-size)
+                                                     (re-search-backward comint-input-ring-separator
+                                                                         nil t)
+                                                     (setq end (match-beginning 0)))
+                                           (setq start
+                                                 (if (re-search-backward comint-input-ring-separator
+                                                                         nil t)
+                                                     (progn
+                                                       (when (looking-at (concat comint-input-ring-separator
+                                                                                 comint-input-ring-prefix))
+                                                         ;; Skip zsh extended_history stamps
+                                                         (re-search-forward comint-input-ring-prefix
+                                                                            nil t))
+                                                       (match-end 0))
+                                                   (progn
+                                                     (goto-char (point-min))
+                                                     (if (looking-at comint-input-ring-prefix)
+                                                         (progn
+                                                           (re-search-forward comint-input-ring-prefix
+                                                                              nil t)
+                                                           (match-end 0))
+                                                       (point-min)))))
+                                           (setq history (buffer-substring start end))
+                                           (goto-char start)
+                                           (when (and (not (string-match comint-input-history-ignore
+                                                                         history))
+                                                      (or (null comint-input-ignoredups)
+                                                          (ring-empty-p ring)
+                                                          (not (string-equal (ring-ref ring 0)
+                                                                             history))))
+                                             (when (= count ring-size)
+                                               (ring-extend ring (min (- comint-input-ring-size ring-size)
+                                                                      ring-size))
+                                               (setq ring-size (ring-size ring)))
+                                             (ring-insert-at-beginning ring history)
+                                             (setq count (1+ count))))))
+                                     (setq comint-input-ring ring
+                                           comint-input-ring-index nil)))))))
 #+END_SRC
 
 **** compile
@@ -2197,7 +2273,10 @@ Make scripts executable automatically.
     (autoload 'tramp-dissect-file-name "tramp"))
 
   (use-package tramp-term
-    :commands tramp-term)
+    :commands tramp-term
+    :functions term-send-raw-string
+    :hook (tramp-term-after-initialized . (lambda (host)
+      (term-send-raw-string (concat "cd " default-directory (kbd "RET"))))))
 #+END_SRC
 
 **** text-mode
@@ -2467,6 +2546,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package jdee
+    :disabled
     :mode ("\\.java\\'" . jdee-mode)
     :bind (:package jdee
            :map jdee-mode-map
@@ -2950,7 +3030,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package url-util
     :ensure nil
-    :functions (url-hexify-string url-unhex-string)
+    :functions (url-hexify-string url-unhex-string region-active-p)
     :preface
     (defun func-region (start end func)
       "Run a function over the region between START and END in current buffer."
@@ -2970,6 +3050,7 @@ Most of these are available in MELPA.
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
+    :commands global-undo-tree-mode
     :config (global-undo-tree-mode 1)
     ;; (global-set-key (kbd "C-z") 'undo)
     ;; (defalias 'redo 'undo-tree-redo)
@@ -2984,6 +3065,7 @@ Most of these are available in MELPA.
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
+    :disabled
     :hook
     ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
@@ -3066,17 +3148,34 @@ bootstrap=$HOME/.nix-profile/etc/profile
 [ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
-Here we setup =.profile=. First, setup exports.
+Set some Nix variables that never seem to get set correctly. There are a few bug
+that break how this works. Also need to set some common exports that are needed.
+Lots of common variables need to know about the =.nix-profile= directory. We
+leave the first MANPATH separator empty so it uses the default PATH lookup as
+well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
+store the bash or zsh history. We set the history size to 10000 for good
+measure. EDITOR should point to this editor.
 
 #+BEGIN_SRC shell :padline no
-  export PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
+export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
+#+END_SRC
+
+Here we setup =.profile=. First, setup exports. We leave the first part of
+MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
+just in case.
+
+#+BEGIN_SRC shell :padline no
+  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels" \
+         NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
+         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
-         MANPATH=$HOME/.nix-profile/share/man:@MANPATH@ \
+         MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
          HISTFILE=$HOME/.history \
-         SAVEHIST=10000 \
-         HISTSIZE=10000 \
+         SAVEHIST=50000 \
+         HISTSIZE=50000 \
          EDITOR=emacs
 #+END_SRC
 
@@ -3105,7 +3204,10 @@ fi
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
-[ -f $HOME/.profile ] && source $HOME/.profile
+if [ -f $HOME/.profile ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
+  SHELL_SOURCED_PROFILE=1
+  source $HOME/.profile
+fi
 #+END_SRC
 
 ** =.zshrc=
@@ -3151,20 +3253,22 @@ Turn on ZSH-specific options.
 
 #+BEGIN_SRC shell
 setopt always_to_end \
-       append_history \
        auto_cd \
        auto_menu \
        auto_name_dirs \
        auto_pushd \
-       cdablevarS \
+       cdable_vars \
+       extended_history \
        extended_glob \
        hist_expire_dups_first \
        hist_find_no_dups \
        hist_ignore_dups \
        hist_ignore_space \
        hist_reduce_blanks \
+       hist_save_no_dups \
        hist_verify \
        interactive_comments \
+       inc_append_history_time \
        long_list_jobs \
        multios \
        no_beep \
@@ -3218,104 +3322,18 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
 #+END_SRC
 
-Setup Apple Terminal so that CWD is shown and sessions are saved.
+Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
 update_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
 }
 
-shell_session_save() {
-    if [ -n "$SHELL_SESSION_FILE" ]; then
-        (umask 077; echo 'echo Restored session: "$(date -r '$(date +%s)')"' >| "$SHELL_SESSION_FILE")
-        shell_session_save_history
-    fi
-}
-
-shell_session_history_enable() {
-    (umask 077; touch "$SHELL_SESSION_HISTFILE_NEW")
-    HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
-    SHELL_SESSION_HISTORY=1
-}
-
-shell_session_delete_expired() {
-    if [ ! -e "$SHELL_SESSION_TIMESTAMP_FILE" ] || \
-       [ -z "$(find "$SHELL_SESSION_TIMESTAMP_FILE" -mtime -1)" ]; then
-        local expiration_lock_file="$SHELL_SESSION_DIR/_expiration_lockfile"
-        if shlock -f "$expiration_lock_file" -p $$; then
-            echo -n 'Deleting expired sessions...'
-            local delete_count=$(find "$SHELL_SESSION_DIR" -type f -mtime +14 -print -delete | wc -l)
-            if [ "$delete_count" -gt 0 ]; then
-                echo $delete_count' completed.'
-            else
-                echo 'none found.'
-            fi
-            (umask 077; touch "$SHELL_SESSION_TIMESTAMP_FILE")
-            rm "$expiration_lock_file"
-        fi
-    fi
-}
-
-shell_session_history_check() {
-    if [ ${SHELL_SESSION_DID_HISTORY_CHECK:-0} -eq 0 ]; then
-        SHELL_SESSION_DID_HISTORY_CHECK=1
-        shell_session_history_enable
-        precmd_functions=()
-    fi
-}
-
-shell_session_save_history() {
-    shell_session_history_enable
-    # history -a
-    if [ -f "$SHELL_SESSION_HISTFILE_SHARED" ] && [ ! -s "$SHELL_SESSION_HISTFILE" ]; then
-        echo '...copying shared history...'
-        (umask 077; cp "$SHELL_SESSION_HISTFILE_SHARED" "$SHELL_SESSION_HISTFILE")
-    fi
-    echo '...saving history...'
-    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE_SHARED")
-    (umask 077; cat "$SHELL_SESSION_HISTFILE_NEW" >> "$SHELL_SESSION_HISTFILE")
-    : >| "$SHELL_SESSION_HISTFILE_NEW"
-    if [ -n "$HISTFILESIZE" ]; then
-        echo 'truncating history files...'
-        HISTFILE="$SHELL_SESSION_HISTFILE_SHARED"
-        HISTFILESIZE="$HISTFILESIZE"
-        HISTFILE="$SHELL_SESSION_HISTFILE"
-        HISTFILESIZE="$size"
-        HISTFILE="$SHELL_SESSION_HISTFILE_NEW"
-    fi
-    echo '...'
-}
-
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -z "$INSIDE_EMACS" ] \
-   && [ ${SHELL_SESSION_DID_INIT:-0} -eq 0 ] \
    && [ -n "$TERM_SESSION_ID" ]; then
     chpwd_functions+=(update_terminal_cwd)
     update_terminal_cwd
-
-    SHELL_SESSION_DID_INIT=1
-    SHELL_SESSION_DIR="$HOME/.zsh_sessions"
-    SHELL_SESSION_FILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.session"
-
-    mkdir -m 700 -p "$SHELL_SESSION_DIR"
-    if [ -r "$SHELL_SESSION_FILE" ]; then
-        source "$SHELL_SESSION_FILE"
-        rm "$SHELL_SESSION_FILE"
-    fi
-    if [ ${SHELL_SESSION_HISTORY:-1} -eq 1 ]; then
-        SHELL_SESSION_HISTFILE="$SHELL_SESSION_DIR/$TERM_SESSION_ID.history"
-        SHELL_SESSION_HISTFILE_NEW="$SHELL_SESSION_DIR/$TERM_SESSION_ID.historynew"
-        SHELL_SESSION_HISTFILE_SHARED="$HISTFILE"
-        if [ -s "$SHELL_SESSION_HISTFILE" ]; then
-            history -r "$SHELL_SESSION_HISTFILE"
-            shell_session_history_enable
-        else
-            precmd_functions+=(shell_session_history_check)
-        fi
-    fi
-    SHELL_SESSION_TIMESTAMP_FILE="$SHELL_SESSION_DIR/_expiration_check_timestamp"
-    exit_trap() { shell_session_save && shell_session_delete_expired }
-    trap exit_trap EXIT
 fi
 #+END_SRC
 
@@ -3331,54 +3349,17 @@ used to reference the Nix output dir.
 export PREFIX=@out@
 #+END_SRC
 
-This will source everything in =/etc/profile.d=.
+This will source everything in =/etc/profile.d=. We skip =nix-daemon.sh= because
+it is put in the global profile, and sets values incorrectly when we are in
+single user mode. We need @out@ to come after $HOME so that it gets the last
+word in these settings.
 
 #+BEGIN_SRC shell
-for i in @out@/etc/profile.d/*.sh $HOME/.nix-profile/etc/profile.d/*.sh; do
+for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
 done
-#+END_SRC
-** =.gitignore=
-:PROPERTIES:
-:header-args: :tangle gitignore
-:END:
-
-Some basic gitignore paths.
-
-#+BEGIN_SRC gitignore :padline no
-*~
-\#*\#
-*.DS_Store
-#+END_SRC
-** =.gitconfig=
-:PROPERTIES:
-:header-args: :tangle gitconfig
-:END:
-
-#+BEGIN_SRC gitconfig :padline no
-[core]
-        editor = emacsclient
-#       fsmonitor = @out@/etc/fsmonitor
-
-[commit]
-        gpgSign = true
-
-[push]
-        default = simple
-
-[pull]
-        rebase = true
-
-[alias]
-        amend = commit --amend
-
-[help]
-        autcorrect = 1
-
-[color]
-        ui = true
 #+END_SRC
 * Bootstrapping
 :PROPERTIES:
@@ -3424,31 +3405,51 @@ Setup =exec-path=.
 Setup =man-path=.
 
 #+BEGIN_SRC emacs-lisp
-(defvar man-path `("@manpages@/share/man"
-                   ,(expand-file-name "share/man" output-directory)
-                   "@MANPATH@"))
+  (defvar man-path (append
+                    `(""
+                      "@manpages@/share/man"
+                      ,(expand-file-name "share/man" output-directory))
+                    (split-string "@MANPATH@" ":")))
 #+END_SRC
 
-This will setup cacert-file var,
+Setup history and stuff. This gets messy, but we need to make sure these are set
+otherwise zsh will default to 500 and not save at all!
 
 #+BEGIN_SRC emacs-lisp
-(defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
-  "Path for SSL certificates."
-  :type 'string
-  :group 'environment)
+  (defun bauer-set-history-file (sym val)
+    "Setter for history-file."
+    (setenv "HISTFILE" (eval val))
+    (custom-set-default sym val))
+
+  (defcustom history-file (expand-file-name ".history" (getenv "HOME"))
+    "The history file to use."
+    :type 'string
+    :group 'bauer
+    :set 'bauer-set-history-file)
+
+  (defvar eshell-history-size)
+
+  (defun bauer-set-history-size (sym val)
+    "Setter for history-size."
+    (setenv "HISTSIZE" (format "%i" val))
+    (setenv "SAVEHIST" (format "%i" val))
+    (setq eshell-history-size val)
+    (custom-set-default sym val))
+
+  (defcustom history-size 50000
+    "The history size to use."
+    :type 'integer
+    :group 'bauer
+    :set 'bauer-set-history-size)
 #+END_SRC
 
-Set env vars provided by Nix,
+Set some more misc. vars.
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
-   ;; '("NIX_PATH"
-   ;;     ("nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs"
-   ;;      "nixos=/nix/var/nix/profiles/per-user/root/channels/nixos"))
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
-   `("HISTFILE" ,(expand-file-name ".history" (getenv "HOME")))
    `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
                                      ,(expand-file-name "share"
                                                         output-directory))
@@ -3457,6 +3458,19 @@ Set env vars provided by Nix,
                                 ,(expand-file-name "share/info"
                                                    output-directory))
                               ":")))
+#+END_SRC
+
+Set env vars provided by Nix. We have to override this because the defaults Nix
+has are bad.
+
+#+BEGIN_SRC emacs-lisp
+  (setenv "NIX_PATH"
+          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:%s/.nix-defexpr/channels"
+                  (getenv "HOME") (getenv "HOME")))
+  (setenv "NIX_PROFILES"
+          (string-join (list "/nix/var/nix/profiles/default/profile"
+                             (format "%s/.nix-profile"
+                                     (getenv "HOME"))) " "))
 #+END_SRC
 
 Set paths provided by Nix,
@@ -3485,7 +3499,6 @@ Set paths provided by Nix,
   (set-paths
    '(company-cmake-executable "@cmake@/bin/cmake")
    '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
-   '(cacert-file "@cacert@/etc/ssl/certs/ca-bundle.crt")
    '(calc-gnuplot-name "@gnuplot@/bin/gnuplot")
    '(gnuplot-program "@gnuplot@/bin/gnuplot")
    '(doc-view-ps2pdf-program "@ghostscript@/bin/ps2pdf")
@@ -3816,7 +3829,7 @@ nix-env -if .
 Install the profile.
 
 #+BEGIN_SRC shell
-echo "source $HOME/.nix-profile/etc/profile" >> $HOME/.profile
+echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
 
 echo "To use bauer correctly, you must first source the profile."
 echo
@@ -3970,13 +3983,6 @@ currently).
     (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
-Next, we define aspell with the English language. This is used by Emacs
-ispell.
-
-#+BEGIN_SRC nix
-  myAspell = pkgs.aspellWithDicts (ps : with ps; [ en ]);
-#+END_SRC
-
 Tex live provides some LaTeX commads for us.
 
 #+BEGIN_SRC nix
@@ -4009,10 +4015,11 @@ substitution of all the attributes set.
 
               # Nix paths
               manpages sysheaders sysframeworks
-              schemas bins infopages;
+              schemas bins infopages
+
+              aspell;
 
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
-      aspell = myAspell;
     } // (lib.optionalAttrs big {
       # random packages needed in site-paths
       gpg = gnupg1compat;
@@ -4236,8 +4243,8 @@ TODO use dump-emacs here to speed up config.
 #+BEGIN_SRC nix
   myEmacsPackages = buildEnv {
     name = "emacs-packages-env";
-    paths = (requiredPackages pkgs.emacsPackagesNg myEmacsPackages')
-          ++ [ pkgs.emacsPackagesNg.use-package pkgs.emacsPackagesNg.delight ];
+    paths = (requiredPackages customEmacsPackages myEmacsPackages')
+          ++ [ customEmacsPackages.use-package customEmacsPackages.delight ];
   };
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
@@ -4277,13 +4284,16 @@ Setup man pages...
     ignoreCollisions = (!(config.bauer.small or false));
     paths = userPackages ++ [pkgs.posix_man_pages
                              pkgs.stdman
-                             # pkgs.stdmanpages
                              # pkgs.llvmPackages.clang-manpages
                              # pkgs.llvmPackages.llvm-manpages
                              ]
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                        "${apple_sdk}/usr"
-      ++ lib.optional hostPlatform.isLinux pkgs.man-pages;
+      ++ lib.optionals (hostPlatform.isLinux && big) [
+        pkgs.man-pages
+        pkgs.glibcInfo
+        pkgs.stdmanpages
+      ];
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
@@ -4346,7 +4356,9 @@ Setup system headers...
 #+BEGIN_SRC nix
   sysheaders = buildEnv {
     name = "headers";
-    paths = [ pkgs.libcxx ]
+    pathsToLink = [ "/include" ];
+    extraOutputsToInstall = [ "dev" ];
+    paths = [ pkgs.libcxx stdenv.cc.libc ]
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                       "${apple_sdk}/usr";
   };
@@ -4399,8 +4411,6 @@ Full list of packages that will be made available.
     # Nix tools
     nix-zsh-completions # nix # nix-index
   ] ++ lib.optionals big ([
-    myAspell
-
     # Useful tools
     isync notmuch graphviz indent
     graphviz imagemagick
@@ -4443,7 +4453,7 @@ user has the most direct access to.
                              ++ global-dirs))
            (lib.makeSearchPath "sbin" [ "/usr" "" ])
          ];
-  MANPATH = lib.makeSearchPathOutput "man" "share/man"
+  MANPATH = ":" + lib.makeSearchPathOutput "man" "share/man"
     ([ manpages customEmacsPackages.emacs pkgs.zsh ] ++ global-dirs);
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
@@ -4458,7 +4468,6 @@ in buildEnv {
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
-    # substituteAll ${./gitconfig} $out/etc/gitconfig
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
       --subst-var-by completions ${zsh-completions}
@@ -4804,7 +4813,7 @@ in {
   git push origin gh-pages
 #+END_SRC
 ** LICENSE
-   Copyright (C) 2018-2019 Matthew Bauer
+   Copyright © 2018-2019 Matthew Bauer
 
    This program is free software: you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software

@@ -93,7 +93,7 @@ With a universal argument (just C-u), ask by how much."
 (defcustom bauer-org (expand-file-name "README.org" bauer-dir)
   "Org file."
   :group 'bauer
-  :type 'path)
+  :type 'string)
 
 ;; (defvar output-directory (expand-file-name ".nix-profile" (getenv "HOME")))
 
