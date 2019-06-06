@@ -3412,15 +3412,6 @@ Setup =man-path=.
                     (split-string "@MANPATH@" ":")))
 #+END_SRC
 
-This will setup cacert-file var,
-
-#+BEGIN_SRC emacs-lisp
-(defcustom cacert-file "/etc/ssl/certs/ca-bundle.crt"
-  "Path for SSL certificates."
-  :type 'string
-  :group 'environment)
-#+END_SRC
-
 Setup history and stuff. This gets messy, but we need to make sure these are set
 otherwise zsh will default to 500 and not save at all!
 
@@ -3428,14 +3419,13 @@ otherwise zsh will default to 500 and not save at all!
   (defun bauer-set-history-file (sym val)
     "Setter for history-file."
     (setenv "HISTFILE" (eval val))
-    t)
+    (custom-set-default sym val))
 
   (defcustom history-file (expand-file-name ".history" (getenv "HOME"))
     "The history file to use."
     :type 'string
     :group 'bauer
-    :set 'bauer-set-history-file
-    :initialize 'bauer-set-history-file)
+    :set 'bauer-set-history-file)
 
   (defvar eshell-history-size)
 
@@ -3444,14 +3434,13 @@ otherwise zsh will default to 500 and not save at all!
     (setenv "HISTSIZE" (format "%i" val))
     (setenv "SAVEHIST" (format "%i" val))
     (setq eshell-history-size val)
-    t)
+    (custom-set-default sym val))
 
   (defcustom history-size 50000
     "The history size to use."
     :type 'integer
     :group 'bauer
-    :set 'bauer-set-history-size
-    :initialize 'bauer-set-history-size)
+    :set 'bauer-set-history-size)
 #+END_SRC
 
 Set some more misc. vars.
@@ -3510,7 +3499,6 @@ Set paths provided by Nix,
   (set-paths
    '(company-cmake-executable "@cmake@/bin/cmake")
    '(doc-view-dvipdf-program "@ghostscript@/bin/dvipdf")
-   '(cacert-file "@cacert@/etc/ssl/certs/ca-bundle.crt")
    '(calc-gnuplot-name "@gnuplot@/bin/gnuplot")
    '(gnuplot-program "@gnuplot@/bin/gnuplot")
    '(doc-view-ps2pdf-program "@ghostscript@/bin/ps2pdf")
