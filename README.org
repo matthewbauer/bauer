@@ -4263,7 +4263,8 @@ First build the info pages...
   infopages = buildEnv {
     name = "info-pages";
     buildInputs = [ pkgs.texinfoInteractive ];
-    paths = userPackages ++ [customEmacsPackages.emacs];
+    paths = userPackages ++ [customEmacsPackages.emacs]
+      ++ lib.optional hostPlatform.isLinux pkgs.glibcInfo;
     extraOutputsToInstall = [ "info" "doc" "devdoc" ];
     pathsToLink = [ "/share/info" ];
     postBuild = ''
@@ -4289,11 +4290,7 @@ Setup man pages...
                              ]
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                        "${apple_sdk}/usr"
-      ++ lib.optionals (hostPlatform.isLinux && big) [
-        pkgs.man-pages
-        pkgs.glibcInfo
-        pkgs.stdmanpages
-      ];
+      ++ lib.optional hostPlatform.isLinux pkgs.man-pages;
     extraOutputsToInstall = [ "man" "doc" "devdoc" "devman" ];
     pathsToLink = [ "/share/man" ];
   };
