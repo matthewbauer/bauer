@@ -3862,6 +3862,17 @@ esac
 :CUSTOM_ID: build
 :END:
 
+No tests currently exists, but some things are important to keep in mind. Some
+high level goals that should be verified:
+
+- Keep closure size under 1GB (currently 800MB)
+- Don’t assume users’ language, locales, time zone, etc.
+- Don’t hard code any personal information
+- Everything should run on Linux, and macOS.
+- Nix usage is optional (see Withou Nix above).
+
+The editor and environment should be general purpose and portable
+
 ** =default.nix=: the tangler
 :PROPERTIES:
 :header-args: :tangle default.nix
