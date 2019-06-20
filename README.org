@@ -4008,9 +4008,10 @@ substitution of all the attributes set.
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" (with pkgs; ({
       inherit (customEmacsPackages) emacs;
+      bash = bashInteractive;
       inherit ripgrep ag # fortune # nethack
               coreutils findutils openssh
-              bash zsh diffutils man gawk
+              zsh diffutils man gawk
               gnugrep gnused cacert git
 
               # Nix paths
@@ -4397,7 +4398,7 @@ Full list of packages that will be made available.
   userPackages = (with pkgs; [
     # From common-path.nix
     coreutils findutils diffutils gnused gnugrep gawk gnutar
-    gzip bzip2 gnumake bash patch xz
+    gzip bzip2 gnumake bashInteractive patch xz
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
