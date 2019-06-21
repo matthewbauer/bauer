@@ -18,7 +18,7 @@ FORCE=
 GIST_ID=
 while [ $# -gt 0 ]; do
     case "$1" in
-	--force)
+	-f|--force)
 	    echo "Forcing install..." >&2
 	    FORCE=1
 	    shift
@@ -26,6 +26,7 @@ while [ $# -gt 0 ]; do
 	*)
 	    if [ -n "$GIST_ID" ]; then
 		echo "Multiple Gist ids passed!" >&2
+		exit 1
 	    fi
 	    GIST_ID=$1
 	    echo "Using gist $GIST_ID" >&2
