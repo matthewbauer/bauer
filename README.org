@@ -4367,7 +4367,8 @@ Setup system headers...
     name = "headers";
     pathsToLink = [ "/include" ];
     extraOutputsToInstall = [ "dev" ];
-    paths = [ pkgs.libcxx stdenv.cc.libc ]
+    paths = [ stdenv.cc.libc ]
+      ++ lib.optional hostPlatform.isDarwin pkgs.libcxx
       ++ lib.optional (hostPlatform.isDarwin && big && allowUnfree)
                       "${apple_sdk}/usr";
   };
