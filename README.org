@@ -4822,6 +4822,101 @@ in {
   git commit -m "Regen"
   git push origin gh-pages
 #+END_SRC
+** Gist script
+:PROPERTIES:
+:header-args: :tangle gist-unpack.sh :shebang "#!/usr/bin/env sh"
+:END:
+
+Private file handling for new environments. Unpack private files from a Gist
+into your environment. Must have already setup SSH GitHub authentication. To set
+up GitHub SSH run:
+
+#+BEGIN_SRC shell :tangle no
+$ ssh-keygen
+#+END_SRC
+
+Then, add =$HOME/.ssh/id_rsa=.pub through GitHub’s Web UI. Invoke the script
+with:
+
+#+BEGIN_SRC shell :tangle no
+$ ./gist-unpack.sh 862843ce9216abda0b10e1d753ce9d0f
+#+END_SRC
+
+The actual script follows. =--force= can be passed to allow overriding your
+current HOME files.
+
+#+BEGIN_SRC shell
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 GIST_ID" >&2
+    exit 1
+fi
+
+FORCE=
+GIST_ID=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -f|--force)
+            echo "Forcing install..." >&2
+            FORCE=1
+            shift
+            ;;
+        *)
+            if [ -n "$GIST_ID" ]; then
+                echo "Multiple Gist ids passed!" >&2
+                exit 1
+            fi
+            GIST_ID=$1
+            echo "Using gist $GIST_ID" >&2
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$GIST_ID" ]; then
+    echo "No gist id provided." >&2
+    exit 1
+fi
+
+gistdir=$(mktemp -d)
+setup() {
+    git clone git@github.com:$GIST_ID.git $gistdir
+    pushd $gistdir >/dev/null
+}
+
+cleanup() {
+    popd >/dev/null
+    rm -rf $gistdir
+}
+
+setup
+trap cleanup EXIT
+
+shopt -s dotglob
+for f in *; do
+    if [ "$f" = ".git" ]; then
+        continue
+    fi
+    if ! [ -f "$f" ]; then
+        echo "Skipping $f, not a file" >&2
+        continue
+    fi
+    DEST=
+    case "$f" in
+        settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
+        *) DEST="$HOME/$f" ;;
+    esac
+    if [ -z "$DEST" ]; then
+        echo "Skipping $f, no destination found" >&2
+        continue
+    fi
+    if [ -f "$DEST" ] && [ -z "$FORCE" ]; then
+        echo "Skipping $f, destination already exists" >&2
+        continue
+    fi
+    cp "$f" "$DEST"
+done
+#+END_SRC
+
 ** LICENSE
    Copyright © 2018-2019 Matthew Bauer
 
