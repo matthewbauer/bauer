@@ -35,6 +35,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+if [ -z "$GIST_ID" ]; then
+    echo "No gist id provided." >&2
+    exit 1
+fi
+
 gistdir=$(mktemp -d)
 setup() {
     git clone git@github.com:$GIST_ID.git $gistdir
