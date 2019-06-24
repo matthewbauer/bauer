@@ -2159,11 +2159,11 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package prog-mode
     :ensure nil
-    :hook ((prog-mode . prettify-symbols-mode)
-           (lisp-mode . prettify-symbols-lisp)
-           (c-mode . prettify-symbols-c)
-           (c++-mode . prettify-symbols-c++)
-           ((js-mode js2-mode) . prettify-symbols-js)
+    :hook (;; (prog-mode . prettify-symbols-mode)
+           ;; (lisp-mode . prettify-symbols-lisp)
+           ;; (c-mode . prettify-symbols-c)
+           ;; (c++-mode . prettify-symbols-c++)
+           ;; ((js-mode js2-mode) . prettify-symbols-js)
            (prog-mode . (lambda ()
              (setq-local scroll-margin 3))))
     :preface
@@ -4026,15 +4026,13 @@ substitution of all the attributes set.
       inherit ripgrep ag
               coreutils findutils openssh
               zsh diffutils man gawk
-              gnugrep gnused cacert git aspell
+              gnugrep gnused cacert git aspell;
 
-      inherit # Nix paths
-              manpages sysheaders sysframeworks
+      inherit manpages sysheaders sysframeworks
               schemas bins infopages;
 
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
     } // (lib.optionalAttrs big {
-      # random packages needed in site-paths
       gpg = gnupg1compat;
       inherit ant perl perlcritic
         asciidoc lessc lua gcc
