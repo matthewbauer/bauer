@@ -264,7 +264,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(completions-cycle-threshold t)
    '(completions-format 'vertical)
    '(cursor-in-non-selected-windows nil)
-   '(custom-buffer-done-kill t)
    '(custom-file (expand-file-name
                   "settings.el"
                   user-emacs-directory))
@@ -279,9 +278,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(dired-recursive-copies 'always)
    '(dired-recursive-deletes 'always)
    '(disabled-command-function nil)
-   '(display-buffer-reuse-frames t)
    '(dtrt-indent-verbosity 0)
-   '(echo-keystrokes 0)
    '(eshell-bad-command-tolerance 1.0e+INF)
    '(eshell-banner-message "")
    '(eshell-cmpl-autolist t)
@@ -342,6 +339,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(flyspell-issue-welcome-flag nil)
    '(flymake-no-changes-timeout nil)
    '(flymake-start-syntax-check-on-newline nil)
+   '(fortune-always-compile nil)
    '(frame-title-format
      '(:eval
        (if (buffer-file-name)
@@ -497,7 +495,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(proof-tidy-response t)
    '(reb-re-syntax 'string)
    '(resize-mini-windows t)
-   '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
    '(save-abbrevs 'silently)
    '(save-interprogram-paste-before-kill t)
@@ -533,8 +530,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(uniquify-buffer-name-style 'forward)
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
-   '(use-dialog-box nil)
-   '(use-file-dialog nil)
    '(use-package-always-defer t)
    '(version-control t)
    '(vc-allow-async-revert t)
@@ -558,7 +553,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-style '(face trailing lines space-before-tab
                         empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode))
-   '(fortune-always-compile nil)
    )
 #+END_SRC
 
@@ -3195,7 +3189,7 @@ alias ls="TERM=ansi ls --color=always" \
 Configure INSIDE_EMACS.
 
 #+BEGIN_SRC shell
-if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
+if [ "$TERM" = dumb ] && [ -n "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
@@ -3787,7 +3781,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    source $HOME/.profile
+    [ -f $HOME/.profile ] && source $HOME/.profile
 fi
 #+END_SRC
 
@@ -4216,7 +4210,7 @@ listed in =use-package= above is pulled into the closure.
     local pkg=$1
     local origin_path=$2
     local dest_path=$3
-    if [[ -d "$pkg/$origin_path" ]]; then
+    if [ -d "$pkg/$origin_path" ]; then
       lndir -silent "$pkg/$origin_path" \
                                "$out/$dest_path"
     fi
@@ -4350,7 +4344,7 @@ Next, ZSH completions are built. These all reside in the
 #+BEGIN_SRC nix
   zsh-completions = buildEnv {
     name = "zsh-completions";
-    paths = userPackages;
+    paths = [ pkgs.zsh-completions pkgs.nix-zsh-completions ] ++ userPackages;
     pathsToLink = [ "/share/zsh/site-functions" ];
   };
 #+END_SRC
@@ -4430,9 +4424,6 @@ Full listing of packages that will be made available.
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep
     tree gnutls
-
-    # Nix tools
-    nix-zsh-completions # nix # nix-index
   ] ++ lib.optionals big ([
     # Useful tools
     isync notmuch graphviz indent
