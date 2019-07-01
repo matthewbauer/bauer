@@ -3318,12 +3318,26 @@ Turn on prompt with colors.
 PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
 #+END_SRC
 
+Update eterm cwds.
+
+#+BEGIN_SRC shell
+update_eterm_cwd () {
+    printf '\033AnSiTc %s\n' "$PWD"
+    printf '\033AnSiTh %s\n' "$HOSTNAME"
+    printf '\033AnSiTu %s\n' "$USER"
+}
+
+if [ "$TERM" = "eterm-color" ]; then
+    chpwd_functions+=(update_eterm_cwd)
+    update_eterm_cwd
+fi
+#+END_SRC
+
 Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
-update_terminal_cwd () {
+update_apple_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
-    printf '\eAnSiTc%s\n' "$PWD"
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
