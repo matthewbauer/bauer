@@ -275,6 +275,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(dired-omit-verbose nil)
    '(dired-recursive-copies 'top)
    '(dired-recursive-deletes 'top)
+   '(dirtrack-list '("^[^:]*:\\(?:\033\\[[0-9]+m\\)?\\([^$#\033]+\\)" 1))
    '(dtrt-indent-verbosity 0)
    '(eshell-bad-command-tolerance 1.0e+INF)
    '(eshell-banner-message "")
@@ -488,7 +489,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(proof-splash-enable nil)
    '(proof-sticky-errors t)
    '(proof-tidy-response t)
-   '(reb-re-syntax 'string)
    '(resize-mini-windows t)
    '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
@@ -3315,7 +3315,7 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
+PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
 #+END_SRC
 
 Setup Apple Terminal so that CWD is shown.
@@ -3323,6 +3323,7 @@ Setup Apple Terminal so that CWD is shown.
 #+BEGIN_SRC shell
 update_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
+    printf '\eAnSiTc%s\n' "$PWD"
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
