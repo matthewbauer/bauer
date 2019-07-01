@@ -3038,10 +3038,12 @@ Most of these are available in MELPA.
       "URL encode the region between START and END in current buffer."
       (interactive "r")
       (func-region start end 'url-hexify-string))
+    (defalias 'url-escape 'url-encode)
     (defun url-decode (start end)
       "URL decode the region between START and END in current buffer."
       (interactive "r")
-      (func-region start end 'url-unhex-string)))
+      (func-region start end 'url-unhex-string))
+    (defalias 'url-unescape 'url-decode))
 #+END_SRC
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
@@ -3321,16 +3323,16 @@ PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
 Update eterm cwds.
 
 #+BEGIN_SRC shell
-update_eterm_cwd () {
-    printf '\033AnSiTc %s\n' "$PWD"
-    printf '\033AnSiTh %s\n' "$HOSTNAME"
-    printf '\033AnSiTu %s\n' "$USER"
-}
+  update_eterm_cwd () {
+      printf '\033AnSiTc %s\n' "$PWD"
+      # printf '\033AnSiTh %s\n' "$HOSTNAME"
+      printf '\033AnSiTu %s\n' "$USER"
+  }
 
-if [ "$TERM" = "eterm-color" ]; then
-    chpwd_functions+=(update_eterm_cwd)
-    update_eterm_cwd
-fi
+  if [ "$TERM" = "eterm-color" ]; then
+      chpwd_functions+=(update_eterm_cwd)
+      update_eterm_cwd
+  fi
 #+END_SRC
 
 Setup Apple Terminal so that CWD is shown.
