@@ -786,11 +786,18 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c i i" . imenu)
    ("C-c I"   . bauer-find-config))
 
+  (defun web-search (start end)
+    (interactive "r")
+    (let ((q (buffer-substring-no-properties start end)))
+      (browse-url (concat "http://www.google.com/search?btnI&q="
+        (url-hexify-string q)))))
+
   (bind-keys
     :map help-map
     ("C-r" . woman)
     ("j" . woman)
-    ("C-j" . man))
+    ("C-j" . man)
+    ("C-s" . web-search))
 
   (bind-keys
    :package view
