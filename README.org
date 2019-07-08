@@ -3155,7 +3155,7 @@ store the bash or zsh history. We set the history size to 10000 for good
 measure. EDITOR should point to this editor.
 
 #+BEGIN_SRC shell :padline no
-export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels"
 export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
 #+END_SRC
 
@@ -3164,7 +3164,7 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell :padline no
-  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels" \
+  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs::nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
          PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
@@ -3478,7 +3478,7 @@ has are bad.
 
 #+BEGIN_SRC emacs-lisp
   (setenv "NIX_PATH"
-          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:%s/.nix-defexpr/channels"
+          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:%s/.nix-defexpr/channels"
                   (getenv "HOME") (getenv "HOME")))
   (setenv "NIX_PROFILES"
           (string-join (list "/nix/var/nix/profiles/default/profile"
