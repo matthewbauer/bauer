@@ -12,7 +12,7 @@
 , pkgs ? import (builtins.fetchTarball nixpkgs-url) {
   inherit crossSystem system config overlays;
 }
-, small ? false
+, small ? true
 , ...
 } @ args:
 
@@ -33,4 +33,4 @@ in import (pkgs.runCommand "README" {
         -l ob-tangle \
         --eval "(org-babel-tangle-file \"README.org\")"
   cp bauer.nix default.nix
-'')) { inherit ensure pkgs; }
+'')) { inherit ensure pkgs small; }

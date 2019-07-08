@@ -203,8 +203,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(auth-source-save-behavior t)
    '(auto-revert-check-vc-info t)
    '(auto-revert-verbose nil)
-   '(auto-save-visited-file-name t)
-   '(auto-window-vscroll nil)
    '(bug-reference-bug-regexp
      "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
    '(backward-delete-char-untabify-method 'hungry)
@@ -264,7 +262,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(completions-cycle-threshold t)
    '(completions-format 'vertical)
    '(cursor-in-non-selected-windows nil)
-   '(custom-buffer-done-kill t)
    '(custom-file (expand-file-name
                   "settings.el"
                   user-emacs-directory))
@@ -276,12 +273,10 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(dired-listing-switches "-alhv")
    '(dired-omit-files "^\\.\\|^#.*#$")
    '(dired-omit-verbose nil)
-   '(dired-recursive-copies 'always)
-   '(dired-recursive-deletes 'always)
-   '(disabled-command-function nil)
-   '(display-buffer-reuse-frames t)
+   '(dired-recursive-copies 'top)
+   '(dired-recursive-deletes 'top)
+   '(dirtrack-list '("^[^:]*:\\(?:\033\\[[0-9]+m\\)?\\([^$#\033]+\\)" 1))
    '(dtrt-indent-verbosity 0)
-   '(echo-keystrokes 0)
    '(eshell-bad-command-tolerance 1.0e+INF)
    '(eshell-banner-message "")
    '(eshell-cmpl-autolist t)
@@ -342,6 +337,7 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(flyspell-issue-welcome-flag nil)
    '(flymake-no-changes-timeout nil)
    '(flymake-start-syntax-check-on-newline nil)
+   '(fortune-always-compile nil)
    '(frame-title-format
      '(:eval
        (if (buffer-file-name)
@@ -357,7 +353,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
    '(haskell-tags-on-save t)
    '(help-window-select t)
-   '(highlight-nonselected-windows nil)
    '(history-delete-duplicates t)
    '(ibuffer-default-display-maybe-show-predicates t)
    '(ibuffer-expert t)
@@ -378,7 +373,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(ispell-quietly t)
    '(ispell-silently-savep t)
-   '(jit-lock-defer-time 0.25)
    '(js2-mode-show-parse-errors nil)
    '(js2-mode-show-strict-warnings nil)
    '(js2-strict-missing-semi-warning nil)
@@ -495,7 +489,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(proof-splash-enable nil)
    '(proof-sticky-errors t)
    '(proof-tidy-response t)
-   '(reb-re-syntax 'string)
    '(resize-mini-windows t)
    '(ring-bell-function 'ignore)
    '(ruby-insert-encoding-magic-comment nil)
@@ -533,8 +526,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(uniquify-buffer-name-style 'forward)
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
-   '(use-dialog-box nil)
-   '(use-file-dialog nil)
    '(use-package-always-defer t)
    '(version-control t)
    '(vc-allow-async-revert t)
@@ -549,7 +540,6 @@ The format of arguments to =set-defaults= is identical to the one used by
              "(\\`/[^/|:][^/|]*:\\)"))
    '(vc-make-backup-files t)
    '(view-read-only t)
-   '(view-inhibit-help-message t)
    '(woman-imenu t)
    '(x-stretch-cursor t)
    '(which-key-lighter "")
@@ -558,7 +548,6 @@ The format of arguments to =set-defaults= is identical to the one used by
    '(whitespace-style '(face trailing lines space-before-tab
                         empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode))
-   '(fortune-always-compile nil)
    )
 #+END_SRC
 
@@ -797,11 +786,18 @@ with how Emacs key binding works, you should read through [[https://www.masterin
    ("C-c i i" . imenu)
    ("C-c I"   . bauer-find-config))
 
+  (defun web-search (start end)
+    (interactive "r")
+    (let ((q (buffer-substring-no-properties start end)))
+      (browse-url (concat "http://www.google.com/search?btnI&q="
+        (url-hexify-string q)))))
+
   (bind-keys
     :map help-map
     ("C-r" . woman)
     ("j" . woman)
-    ("C-j" . man))
+    ("C-j" . man)
+    ("C-s" . web-search))
 
   (bind-keys
    :package view
@@ -2159,11 +2155,11 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package prog-mode
     :ensure nil
-    :hook ((prog-mode . prettify-symbols-mode)
-           (lisp-mode . prettify-symbols-lisp)
-           (c-mode . prettify-symbols-c)
-           (c++-mode . prettify-symbols-c++)
-           ((js-mode js2-mode) . prettify-symbols-js)
+    :hook (;; (prog-mode . prettify-symbols-mode)
+           ;; (lisp-mode . prettify-symbols-lisp)
+           ;; (c-mode . prettify-symbols-c)
+           ;; (c++-mode . prettify-symbols-c++)
+           ;; ((js-mode js2-mode) . prettify-symbols-js)
            (prog-mode . (lambda ()
              (setq-local scroll-margin 3))))
     :preface
@@ -3042,10 +3038,12 @@ Most of these are available in MELPA.
       "URL encode the region between START and END in current buffer."
       (interactive "r")
       (func-region start end 'url-hexify-string))
+    (defalias 'url-escape 'url-encode)
     (defun url-decode (start end)
       "URL decode the region between START and END in current buffer."
       (interactive "r")
-      (func-region start end 'url-unhex-string)))
+      (func-region start end 'url-unhex-string))
+    (defalias 'url-unescape 'url-decode))
 #+END_SRC
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
@@ -3157,7 +3155,7 @@ store the bash or zsh history. We set the history size to 10000 for good
 measure. EDITOR should point to this editor.
 
 #+BEGIN_SRC shell :padline no
-export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels"
 export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
 #+END_SRC
 
@@ -3166,7 +3164,7 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell :padline no
-  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels" \
+  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs::nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
          PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
@@ -3195,7 +3193,7 @@ alias ls="TERM=ansi ls --color=always" \
 Configure INSIDE_EMACS.
 
 #+BEGIN_SRC shell
-if [ "$TERM" = dumb ] && ! [ -z "$INSIDE_EMACS" ]; then
+if [ "$TERM" = dumb ] && [ -n "$INSIDE_EMACS" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
@@ -3319,21 +3317,36 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-PROMPT='%F{blue}%n@%m:%F{cyan}%c%F{yellow} $ %F{reset}'
+PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+#+END_SRC
+
+Update eterm cwds.
+
+#+BEGIN_SRC shell
+  update_eterm_cwd () {
+      printf '\033AnSiTc %s\n' "$PWD"
+      # printf '\033AnSiTh %s\n' "$HOSTNAME"
+      printf '\033AnSiTu %s\n' "$USER"
+  }
+
+  if [ "$TERM" = "eterm-color" ]; then
+      chpwd_functions+=(update_eterm_cwd)
+      update_eterm_cwd
+  fi
 #+END_SRC
 
 Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
-update_terminal_cwd () {
+update_apple_terminal_cwd () {
     printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
    && [ -z "$INSIDE_EMACS" ] \
    && [ -n "$TERM_SESSION_ID" ]; then
-    chpwd_functions+=(update_terminal_cwd)
-    update_terminal_cwd
+    chpwd_functions+=(update_apple_terminal_cwd)
+    update_apple_terminal_cwd
 fi
 #+END_SRC
 
@@ -3465,7 +3478,7 @@ has are bad.
 
 #+BEGIN_SRC emacs-lisp
   (setenv "NIX_PATH"
-          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:%s/.nix-defexpr/channels"
+          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:%s/.nix-defexpr/channels"
                   (getenv "HOME") (getenv "HOME")))
   (setenv "NIX_PROFILES"
           (string-join (list "/nix/var/nix/profiles/default/profile"
@@ -3768,7 +3781,7 @@ Set some defaults that depend on the path variables below,
 
 ** =bootstrap.sh=
 :PROPERTIES:
-:header-args: :tangle install :shebang "#!/usr/bin/env sh"
+:header-args: :tangle bootstrap.sh :shebang "#!/usr/bin/env sh"
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
@@ -3787,7 +3800,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    source $HOME/.profile
+    [ -f $HOME/.profile ] && source $HOME/.profile
 fi
 #+END_SRC
 
@@ -3820,23 +3833,36 @@ if ! [ -f default.nix ]; then
 fi
 #+END_SRC
 
-The last action is to install our new derivation.
+Install our new derivation.
 
 #+BEGIN_SRC shell
 nix-env -if .
 #+END_SRC
 
-Install the profile.
+Source the profile.
 
 #+BEGIN_SRC shell
-echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
+    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+fi
 
-echo "To use bauer correctly, you must first source the profile."
+source $HOME/.nix-profile/etc/profile
+
+echo To use bauer correctly, you must first source the profile.
 echo
-echo "To do this, just run:"
-echo "  source $HOME/.nix-profile/etc/profile"
-echo "From you command line"
-echo "You can also run either emacs or zsh to launch the environment"
+echo To do this, just run:
+echo $ source $HOME/.nix-profile/etc/profile
+echo From you command line
+echo You can also run either emacs or zsh to launch the environment
+#+END_SRC
+
+#+BEGIN_SRC shell
+if [ -n "$1" ] && \
+   command -v git >/dev/null 2>&1 \
+   && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+    echo Found Gist commit $1, cloning now.
+    ./gist-unpack.sh "$1"
+fi
 #+END_SRC
 
 ** =runemacs.sh=
@@ -3845,7 +3871,8 @@ echo "You can also run either emacs or zsh to launch the environment"
 :CUSTOM_ID: runemacs
 :END:
 
-Cross-platform script to execute app.
+Cross-platform script to execute the app. Uses =open= on macOS to get the
+graphical version of Emacs.
 
 #+BEGIN_SRC shell :padline no
 case $(uname) in
@@ -3908,7 +3935,7 @@ args.
   , pkgs ? import (builtins.fetchTarball nixpkgs-url) {
     inherit crossSystem system config overlays;
   }
-  , small ? false
+  , small ? true
   , ...
   } @ args:
 #+END_SRC
@@ -3934,7 +3961,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
           -l ob-tangle \
           --eval "(org-babel-tangle-file \"README.org\")"
     cp bauer.nix default.nix
-  '')) { inherit ensure pkgs; }
+  '')) { inherit ensure pkgs small; }
 #+END_SRC
 
 ** =bauer.nix=: the build script
@@ -4020,20 +4047,16 @@ substitution of all the attributes set.
     site-paths = runCommand "site-paths.el" (with pkgs; ({
       inherit (customEmacsPackages) emacs;
       bash = bashInteractive;
-      inherit ripgrep ag # fortune # nethack
+      inherit ripgrep ag
               coreutils findutils openssh
               zsh diffutils man gawk
-              gnugrep gnused cacert git
+              gnugrep gnused cacert git aspell;
 
-              # Nix paths
-              manpages sysheaders sysframeworks
-              schemas bins infopages
-
-              aspell;
+      inherit manpages sysheaders sysframeworks
+              schemas bins infopages;
 
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
     } // (lib.optionalAttrs big {
-      # random packages needed in site-paths
       gpg = gnupg1compat;
       inherit ant perl perlcritic
         asciidoc lessc lua gcc
@@ -4041,20 +4064,15 @@ substitution of all the attributes set.
         sqliteInteractive freetds
         parallel unixODBC ncompress
         texinfoInteractive notmuch gnuplot
-        gdb coq rtags # mariadb go golint
-        gnutls
+        gdb coq rtags gnutls
         ;
       inherit (pythonPackages) flake8;
       inherit (nodePackages) jshint eslint;
-      inherit (haskellPackages) hoogle hlint; # hasktags
+      inherit (haskellPackages) hoogle hlint;
       texlive = myTex;
       markdown2 = pythonPackages.markdown2;
       tidy = html-tidy;
       libxml2 = libxml2.bin;
-      # stylish = haskellPackages.stylish-haskell;
-      # intero = haskellPackages.intero-nix-shim;
-      # irony = irony-server;
-      # jdeeserver = jdee-server;
     }))) ''
       substituteAll ${./site-paths.el.in} $out
       substituteInPlace $out \
@@ -4179,6 +4197,9 @@ emacs --batch --quick \
 
 **** Phase 3: wrapping into Emacs
 
+This phase wraps the byte compiled lisp into an Emacs binary. Each package
+listed in =use-package= above is pulled into the closure.
+
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
    runCommand "emacs-packages-deps"
@@ -4219,7 +4240,7 @@ emacs --batch --quick \
     local pkg=$1
     local origin_path=$2
     local dest_path=$3
-    if [[ -d "$pkg/$origin_path" ]]; then
+    if [ -d "$pkg/$origin_path" ]; then
       lndir -silent "$pkg/$origin_path" \
                                "$out/$dest_path"
     fi
@@ -4250,7 +4271,7 @@ requiredPackages = epkgs: map (x:
 
 Now we build our Emacs distribution.
 
-TODO use dump-emacs here to speed up config.
+TODO: use dump-emacs here to speed up config.
 
 #+BEGIN_SRC nix
   myEmacsPackages = buildEnv {
@@ -4267,9 +4288,13 @@ TODO use dump-emacs here to speed up config.
 
 *** The environment
 
-Finally, we can actually build the environment.
+Finally, we can actually build the environment. This just uses Nixpkgs
+=buildEnv= to generate Nix paths for the different packages. Some need special handling.
 
-First build the info pages...
+First, we build the info pages. This takes all of the packages listed in
+=userPackages= and runs =install-info= on them. Info pages are usually found in
+the =$out/share/info= directory, but in Emacs packages can be found anywhere in
+=$out/share/emacs=.
 
 #+BEGIN_SRC nix
   infopages = buildEnv {
@@ -4289,7 +4314,11 @@ First build the info pages...
   };
 #+END_SRC
 
-Setup man pages...
+Next, we build the man pages. Again, these come from =userPackages= and are in
+the =/share/man= directory. In addition, some extra man pages are added like the
+POSIX man pages, and the C++ stdlib man pages. Other OS-specific ones are also
+included where appropriate Linux man pages (=man-pages=), and the ones from the
+Apple SDK.
 
 #+BEGIN_SRC nix
   manpages = buildEnv {
@@ -4308,7 +4337,10 @@ Setup man pages...
   };
 #+END_SRC
 
-Setup XDG data directory..
+Next, build the XDG / FreeDesktop directory paths. These come from
+=userPackages= and include relevnt information for Desktop files, MIME info,
+menus, and icons. This updates the caches where appropriate as well. The
+location of these directories is defined in the FreeDesktop specification.
 
 #+BEGIN_SRC nix
   xdg-data = buildEnv {
@@ -4336,17 +4368,20 @@ Setup XDG data directory..
   };
 #+END_SRC
 
-ZSH completions...
+Next, ZSH completions are built. These all reside in the
+=$out/share/zsh/site-functions= directory.
 
 #+BEGIN_SRC nix
   zsh-completions = buildEnv {
     name = "zsh-completions";
-    paths = userPackages;
+    paths = [ pkgs.zsh-completions pkgs.nix-zsh-completions ] ++ userPackages;
     pathsToLink = [ "/share/zsh/site-functions" ];
   };
 #+END_SRC
 
-Setup binaries
+Next, setup the binary directory. This will be put in the user’s =PATH=. We also
+remove binaries starting with =.=, as they are used in Nixpkgs for the “wrapped”
+version of executables.
 
 #+BEGIN_SRC nix
   bins = buildEnv {
@@ -4360,7 +4395,8 @@ Setup binaries
   };
 #+END_SRC
 
-Setup system headers...
+Setup the system headers path. This is delibirately light to avoid huge
+closures. Right now, only =libc= and =libcxx= are included by default.
 
 #+BEGIN_SRC nix
   sysheaders = buildEnv {
@@ -4374,7 +4410,8 @@ Setup system headers...
   };
 #+END_SRC
 
-Setup some Apple frameworks.
+Also setup the Apple framework paths. These are a mix between lib directory and
+include directory. This is oinly useful on macOS/Darwin machines.
 
 #+BEGIN_SRC nix
   apple_sdk = "${pkgs.darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
@@ -4386,7 +4423,8 @@ Setup some Apple frameworks.
   };
 #+END_SRC
 
-Setup schemas...
+Setup XML schema needed for editing some docbooks in Emacs. Not entirely sure
+why this is necessary, but nXML complains otherwise.
 
 #+BEGIN_SRC nix
   schemas = writeText "schemas.xml" ''
@@ -4404,7 +4442,7 @@ Setup schemas...
   '';
 #+END_SRC
 
-Full list of packages that will be made available.
+Full listing of packages that will be made available.
 
 #+BEGIN_SRC nix
   userPackages = (with pkgs; [
@@ -4414,12 +4452,8 @@ Full list of packages that will be made available.
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
-    unzip man openssh less calc ag ripgrep # sqlite
-    tree gnutls # cvs # gnuplot # subversion # gnupg # watchman
-    # (pkgs.git.override { withManual = true; })
-
-    # Nix tools
-    nix-zsh-completions # nix # nix-index
+    unzip man openssh less calc ag ripgrep
+    tree gnutls
   ] ++ lib.optionals big ([
     # Useful tools
     isync notmuch graphviz indent
@@ -4432,10 +4466,7 @@ Full list of packages that will be made available.
     openjdk nodejs gcc gdb
 
     travis v8
-
-    # Disabled
-    # gcal ocrad mailutils dirmngr jwhois moe
-  ] ++ (with netbsd; [ getent getconf ]) # games
+  ] ++ (with netbsd; [ getent getconf ])
     ++ (with nodePackages; [ tern heroku node2nix ])
     ++ (with gitAndTools; [ hub ])
     ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
@@ -4443,15 +4474,13 @@ Full list of packages that will be made available.
   ));
 #+END_SRC
 
-Setup global environment variables & directories. Most of the global
-directories will not exist, but the way search paths work, means that is okay.
-We aim to support all directories in a common system, prioritizing ones that the
-user has the most direct access to.
+Setup global environment variables & directories. Most of the global directories
+will not exist, but the way search paths work, means that is okay. We aim to
+support all directories in a common system, prioritizing ones that the user has
+the most direct access to. Global directories should only contain system paths.
 
 #+BEGIN_SRC nix
-  global-dirs = [ # "~/.nix-profile"
-                  # "~/.local"
-                  "/nix/var/nix/profiles/default"
+  global-dirs = [ "/nix/var/nix/profiles/default"
                   "/run/wrappers"
                   "/run/current-system/sw"
                   "/usr/local"
@@ -4470,7 +4499,8 @@ user has the most direct access to.
     ([ xdg-data ] ++ global-dirs);
 #+END_SRC
 
-The actual environment.
+Finally, build the final environment. This only contains Emacs and ZSH, which
+have been configured to use the paths above.
 
 #+BEGIN_SRC nix
 in buildEnv {
@@ -4513,7 +4543,7 @@ in buildEnv {
     myEmacs
     (runCommand "my-profile" {
       emacs = myEmacs;
-      inherit (pkgs) cacert; # fortune
+      inherit (pkgs) cacert;
       inherit PATH MANPATH XDG_DATA_DIRS INFOPATH;
     } ''
       mkdir -p $out/etc/profile.d
@@ -4608,13 +4638,16 @@ notifications:
 :CUSTOM_ID: extra
 :END:
 
+These are some extra files that are checked in. They mostly deal with
+maintainence and advanced usage of BAUER.
+
 ** =update.sh=
 :PROPERTIES:
 :header-args: :tangle update.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 This is a simple script that I use to make sure I've updated the generated
-files.
+files. It runs ORG mode tangler and then exports README.org to html.
 
 #+BEGIN_SRC shell :padline no
 emacs --batch \
@@ -4646,10 +4679,9 @@ flycheck_*.el
 *.toc
 #+END_SRC
 
-Nix-related stuff.
+Nix-related stuff. These are generate by =nix-build=.
 
 #+BEGIN_SRC gitignore
-# nix stuff
 result
 result-*
 #+END_SRC
@@ -4680,20 +4712,27 @@ auto/
 :header-args: :tangle .gitattributes
 :END:
 
+Mark generated files.
+
 #+BEGIN_SRC gitattributes :padline no
-config.nix     linguist-generated=true
-default.nix    linguist-generated=true
-bootstrap.sh   linguist-generated=true
-install        linguist-generated=true
-update.sh      linguist-generated=true
-.travis.yml    linguist-generated=true
 .gitattributes linguist-generated=true
 .gitignore     linguist-generated=true
+.travis.yml    linguist-generated=true
+LICENSE        linguist-generated=true
+bootstrap.sh   linguist-generated=true
+config.nix     linguist-generated=true
+default.nix    linguist-generated=true
+deploy.sh      linguist-generated=true
+gist-unpack.sh linguist-generated=true
+init.el        linguist-generated=true
+install        linguist-generated=true
 module.nix     linguist-generated=true
+nixos.nix      linguist-generated=true
+update.sh      linguist-generated=true
 #+END_SRC
 ** =init.el=
 
-You can use this as [[~/.emacs.d/init.el][your Emacs init file]]:
+You can use this as part of [[~/.emacs.d/init.el][your Emacs init file]]:
 
 #+BEGIN_SRC emacs-lisp :tangle init.el
 (load
@@ -4714,6 +4753,10 @@ You can use this as [[~/.emacs.d/init.el][your Emacs init file]]:
                           "emacs-lisp")))
 (load (expand-file-name "README.el" bauer-dir) t)
 #+END_SRC
+
+This will boot the IDE. Note that this is done for you in the Nix-based
+installation process. The above script should be used in places where Nix is
+unavailable.
 
 ** NixOS module
 
@@ -4770,6 +4813,9 @@ in {
 #+END_SRC
 ** NixOS virtualbox & installer
 
+Use this to build a .ova file for demonstration purposes. This file can be
+booted by VirtualBox. Useful for Windows users especially.
+
 #+BEGIN_SRC nix :tangle no :padline no
 # -*- mode: nix; coding: utf-8; -*-
 { system ? builtins.currentSystem }:
@@ -4800,6 +4846,10 @@ in {
 :header-args: :tangle deploy.sh :shebang "#!/usr/bin/env sh"
 :END:
 
+I use this script to deploy to the gh-pages branch. It merges master into
+gh-pages and then runs ORG mode tangle and export. Unfortunately, merge
+conflicts are not handled, and must be dealt with manually.
+
 #+BEGIN_SRC shell
   setup() {
     git stash push
@@ -4822,6 +4872,127 @@ in {
   git commit -m "Regen"
   git push origin gh-pages
 #+END_SRC
+** Gist script
+:PROPERTIES:
+:header-args: :tangle gist-unpack.sh :shebang "#!/usr/bin/env sh"
+:END:
+
+Private file handling for new environments. Unpack private files from a Gist
+into your environment. Must have already setup SSH GitHub authentication. To set
+up GitHub SSH run:
+
+#+BEGIN_SRC shell :tangle no
+$ ssh-keygen
+#+END_SRC
+
+Then, add =$HOME/.ssh/id_rsa=.pub through GitHub’s Web UI. Invoke the script
+with:
+
+#+BEGIN_SRC shell :tangle no
+$ ./gist-unpack.sh 862843ce9216abda0b10e1d753ce9d0f
+#+END_SRC
+
+Files that can be included in the gist are:
+
+- .authinfo: stores your passwords and credentials. Domains like smtp.gmail.com,
+  api.github.com, and irc.freenode.net require credentials.
+- .gitconfig: stores your personal Git configuration and settings. Things like
+  user.email, user.name, github.user should go here. Unfortunately, it also may
+  have credentials for smtpmail. Ideally these would be put in .authinfo to
+  avoid mixing secrets. See [[https://lists.gnu.org/archive/html/guix-devel/2018-04/msg00254.html][this thread]] for more info.
+- .sshconfig: stores your SSH configuration corresponding to .ssh/config. Put
+  global host names and relates settings here.
+- settings.el: store your personal Emacs configurations. Settings like
+  =erc-nick=, =message-send-mail-function=, =send-mail-function=,
+  =smtpmail-smtp-server=, =smtpmail-smtp-service=, =user-full-name=, and
+  =user-mail-address= should go here.
+
+The actual script follows. The main idea is just to download all of the files
+from the Gist and copy them to the =$HOME= directory. =--force= can be passed to
+allow overriding your current =$HOME= files.
+
+#+BEGIN_SRC shell
+if [ $# -eq 0 ]; then
+    echo Usage: $0 GIST_ID >&2
+    exit 1
+fi
+
+FORCE=
+GIST_ID=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -f|--force)
+            echo Forcing install... >&2
+            FORCE=1
+            shift
+            ;;
+        *)
+            if [ -n "$GIST_ID" ]; then
+                echo Multiple Gist ids passed! >&2
+                exit 1
+            fi
+            GIST_ID=$1
+            echo Using gist $GIST_ID >&2
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$GIST_ID" ]; then
+    echo No gist id provided. >&2
+    exit 1
+fi
+
+gistdir=$(mktemp -d)
+setup() {
+    git clone git@github.com:$GIST_ID.git $gistdir
+    pushd $gistdir >/dev/null
+}
+
+cleanup() {
+    popd >/dev/null
+    rm -rf $gistdir
+}
+
+setup
+trap cleanup EXIT
+
+shopt -s dotglob
+for f in *; do
+    if [ "$f" = ".git" ]; then
+        continue
+    fi
+    if ! [ -f "$f" ]; then
+        echo Skipping $f, not a file >&2
+        continue
+    fi
+    DEST=
+    case "$f" in
+        settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
+        .sshconfig) DEST="$HOME/.ssh/config" ;;
+        *) DEST="$HOME/$f" ;;
+    esac
+    CONCAT=
+    case "$f" in
+        .authinfo) CONCAT=1 ;;
+        .sshconfig) CONCAT=1 ;;
+    esac
+    if [ -z "$DEST" ]; then
+        echo Skipping $f, no destination found >&2
+        continue
+    fi
+    if [ -f "$DEST" ] && [ -z "$FORCE" ] && [ -z "$CONCAT" ]; then
+        echo Skipping $f, destination already exists >&2
+        continue
+    fi
+    if [ -n "$CONCAT" ]; then
+        tee -a "$DEST" < "$f" > /dev/null
+    else
+        cp "$f" "$DEST"
+    fi
+done
+#+END_SRC
+
 ** LICENSE
    Copyright © 2018-2019 Matthew Bauer
 
