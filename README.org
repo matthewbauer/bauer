@@ -3781,7 +3781,7 @@ Set some defaults that depend on the path variables below,
 
 ** =bootstrap.sh=
 :PROPERTIES:
-:header-args: :tangle install :shebang "#!/usr/bin/env sh"
+:header-args: :tangle bootstrap.sh :shebang "#!/usr/bin/env sh"
 :END:
 
 This is the bootstrap script that is mentioned above. We use it to install the
@@ -3833,26 +3833,37 @@ if ! [ -f default.nix ]; then
 fi
 #+END_SRC
 
-The last action is to install our new derivation.
+Install our new derivation.
 
 #+BEGIN_SRC shell
 nix-env -if .
 #+END_SRC
 
-Install the profile.
+Source the profile.
 
 #+BEGIN_SRC shell
-echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
+    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+fi
 
-echo "To use bauer correctly, you must first source the profile."
+source $HOME/.nix-profile/etc/profile
+
+echo To use bauer correctly, you must first source the profile.
 echo
-echo "To do this, just run:"
-echo "  source $HOME/.nix-profile/etc/profile"
-echo "From you command line"
-echo "You can also run either emacs or zsh to launch the environment"
+echo To do this, just run:
+echo $ source $HOME/.nix-profile/etc/profile
+echo From you command line
+echo You can also run either emacs or zsh to launch the environment
 #+END_SRC
 
-TODO: add support for gist-unpack.sh.
+#+BEGIN_SRC shell
+if [ -n "$1" ] && \
+   command -v git >/dev/null 2>&1 \
+   && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+    echo Found Gist commit $1, cloning now.
+    ./gist-unpack.sh "$1"
+fi
+#+END_SRC
 
 ** =runemacs.sh=
 :PROPERTIES:
@@ -4881,13 +4892,28 @@ with:
 $ ./gist-unpack.sh 862843ce9216abda0b10e1d753ce9d0f
 #+END_SRC
 
+Files that can be included in the gist are:
+
+- .authinfo: stores your passwords and credentials. Domains like smtp.gmail.com,
+  api.github.com, and irc.freenode.net require credentials.
+- .gitconfig: stores your personal Git configuration and settings. Things like
+  user.email, user.name, github.user should go here. Unfortunately, it also may
+  have credentials for smtpmail. Ideally these would be put in .authinfo to
+  avoid mixing secrets. See [[https://lists.gnu.org/archive/html/guix-devel/2018-04/msg00254.html][this thread]] for more info.
+- .sshconfig: stores your SSH configuration corresponding to .ssh/config. Put
+  global host names and relates settings here.
+- settings.el: store your personal Emacs configurations. Settings like
+  =erc-nick=, =message-send-mail-function=, =send-mail-function=,
+  =smtpmail-smtp-server=, =smtpmail-smtp-service=, =user-full-name=, and
+  =user-mail-address= should go here.
+
 The actual script follows. The main idea is just to download all of the files
 from the Gist and copy them to the =$HOME= directory. =--force= can be passed to
 allow overriding your current =$HOME= files.
 
 #+BEGIN_SRC shell
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 GIST_ID" >&2
+    echo Usage: $0 GIST_ID >&2
     exit 1
 fi
 
@@ -4896,24 +4922,24 @@ GIST_ID=
 while [ $# -gt 0 ]; do
     case "$1" in
         -f|--force)
-            echo "Forcing install..." >&2
+            echo Forcing install... >&2
             FORCE=1
             shift
             ;;
         *)
             if [ -n "$GIST_ID" ]; then
-                echo "Multiple Gist ids passed!" >&2
+                echo Multiple Gist ids passed! >&2
                 exit 1
             fi
             GIST_ID=$1
-            echo "Using gist $GIST_ID" >&2
+            echo Using gist $GIST_ID >&2
             shift
             ;;
     esac
 done
 
 if [ -z "$GIST_ID" ]; then
-    echo "No gist id provided." >&2
+    echo No gist id provided. >&2
     exit 1
 fi
 
@@ -4937,23 +4963,33 @@ for f in *; do
         continue
     fi
     if ! [ -f "$f" ]; then
-        echo "Skipping $f, not a file" >&2
+        echo Skipping $f, not a file >&2
         continue
     fi
     DEST=
     case "$f" in
         settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
+        .sshconfig) DEST="$HOME/.ssh/config" ;;
         *) DEST="$HOME/$f" ;;
     esac
+    CONCAT=
+    case "$f" in
+        .authinfo) CONCAT=1 ;;
+        .sshconfig) CONCAT=1 ;;
+    esac
     if [ -z "$DEST" ]; then
-        echo "Skipping $f, no destination found" >&2
+        echo Skipping $f, no destination found >&2
         continue
     fi
-    if [ -f "$DEST" ] && [ -z "$FORCE" ]; then
-        echo "Skipping $f, destination already exists" >&2
+    if [ -f "$DEST" ] && [ -z "$FORCE" ] && [ -z "$CONCAT" ]; then
+        echo Skipping $f, destination already exists >&2
         continue
     fi
-    cp "$f" "$DEST"
+    if [ -n "$CONCAT" ]; then
+        tee -a "$DEST" < "$f" > /dev/null
+    else
+        cp "$f" "$DEST"
+    fi
 done
 #+END_SRC
 
