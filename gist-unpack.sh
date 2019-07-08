@@ -73,7 +73,7 @@ for f in *; do
         continue
     fi
     if [ -n "$CONCAT" ]; then
-        tee -a "$DEST" < "$f" > /dev/null
+        cat "$f" >> "$DEST"
     else
         cp "$f" "$DEST"
     fi
