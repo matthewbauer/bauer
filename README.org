@@ -3426,7 +3426,7 @@ word in these settings.
 
 #+BEGIN_SRC shell
 for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
-  if [ -r $i ] && [ "$(basename $i)" != nix-daemon.sh ]; then
+  if [ -r $i ] && [ "$(@coreutils@/bin/basename $i)" != nix-daemon.sh ]; then
     source $i
   fi
 done
@@ -4581,6 +4581,8 @@ in buildEnv {
     ln -s $out/etc/.zshrc $out/etc/zshrc
     makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
     substituteAll ${./etc-profile.sh} $out/etc/profile
+    substituteInPlace $out/etc/profile \
+      --subst-var-by coreutils ${pkgs.coreutils}
     substitute ${./runemacs.sh} $out/bin/run \
       --subst-var-by emacs ${myEmacs}
     chmod +x $out/bin/run
