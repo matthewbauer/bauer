@@ -191,25 +191,182 @@ almost no time to run (meaning they probably shouldn’t have custom init hooks)
 The format of arguments to =set-defaults= is identical to the one used by
 =custom-set-variables=.
 
+#+NAME: defaults
+| Default Variable                              | Default Value                                      |
+|-----------------------------------------------+----------------------------------------------------|
+| TeX-auto-save                                 | t                                                  |
+| TeX-auto-untabify                             | t                                                  |
+| TeX-electric-escape                           | t                                                  |
+| TeX-parse-self                                | t                                                  |
+| ad-redefinition-action                        | 'accept                                            |
+| apropos-do-all                                | t                                                  |
+| async-shell-command-buffer                    | 'new-buffer                                        |
+| auth-source-save-behavior                     | t                                                  |
+| auto-revert-check-vc-info                     | t                                                  |
+| auto-revert-verbose                           | nil                                                |
+| backward-delete-char-untabify-method          | 'hungry                                            |
+| checkdoc-spellcheck-documentation-flag        | t                                                  |
+| comint-input-ignoredups                       | t                                                  |
+| comint-input-ring-size                        | 100000                                             |
+| comint-process-echoes                         | t                                                  |
+| comint-prompt-read-only                       | t                                                  |
+| comint-scroll-to-bottom-on-input              | 'this                                              |
+| company-require-match                         | nil                                                |
+| company-selection-wrap-around                 | t                                                  |
+| compilation-always-kill                       | t                                                  |
+| compilation-ask-about-save                    | nil                                                |
+| compilation-skip-threshold                    | 2                                                  |
+| completions-cycle-threshold                   | t                                                  |
+| completions-format                            | 'vertical                                          |
+| cursor-in-non-selected-windows                | nil                                                |
+| custom-safe-themes                            | t                                                  |
+| custom-search-field                           | nil                                                |
+| delete-by-moving-to-trash                     | t                                                  |
+| delete-old-versions                           | t                                                  |
+| dired-hide-details-hide-symlink-targets       | nil                                                |
+| dired-omit-verbose                            | nil                                                |
+| dired-recursive-copies                        | 'top                                               |
+| dired-recursive-deletes                       | 'top                                               |
+| dtrt-indent-verbosity                         | 0                                                  |
+| eshell-bad-command-tolerance                  | 1                                                  |
+| eshell-cmpl-autolist                          | t                                                  |
+| eshell-cmpl-cycle-completions                 | nil                                                |
+| eshell-cmpl-cycle-cutoff-length               | 2                                                  |
+| eshell-cmpl-ignore-case                       | t                                                  |
+| eshell-cp-overwrite-files                     | nil                                                |
+| eshell-default-target-is-dot                  | t                                                  |
+| eshell-destroy-buffer-when-process-dies       | t                                                  |
+| eshell-hist-ignoredups                        | t                                                  |
+| eshell-list-files-after-cd                    | t                                                  |
+| eshell-review-quick-commands                  | t                                                  |
+| eshell-save-history-on-exit                   | t                                                  |
+| eshell-scroll-show-maximum-output             | nil                                                |
+| eshell-stringify                              | nil                                                |
+| eshell-visual-options                         | nil                                                |
+| eval-expression-print-level                   | nil                                                |
+| flycheck-display-errors-function              | 'flycheck-display-error-messages-unless-error-list |
+| flycheck-emacs-lisp-load-path                 | 'inherit                                           |
+| flycheck-standard-error-navigation            | nil                                                |
+| flymake-no-changes-timeout                    | nil                                                |
+| flymake-start-syntax-check-on-newline         | nil                                                |
+| flyspell-highlight-properties                 | nil                                                |
+| flyspell-issue-welcome-flag                   | nil                                                |
+| fortune-always-compile                        | nil                                                |
+| haskell-process-auto-import-loaded-modules    | nil                                                |
+| haskell-process-check-cabal-config-on-load    | nil                                                |
+| haskell-process-suggest-haskell-docs-imports  | nil                                                |
+| haskell-process-suggest-hoogle-imports        | nil                                                |
+| haskell-process-suggest-remove-import-lines   | nil                                                |
+| haskell-process-suggest-restart               | nil                                                |
+| haskell-tags-on-save                          | t                                                  |
+| help-window-select                            | t                                                  |
+| history-delete-duplicates                     | t                                                  |
+| ibuffer-default-display-maybe-show-predicates | t                                                  |
+| ibuffer-expert                                | t                                                  |
+| ibuffer-show-empty-filter-groups              | nil                                                |
+| ibuffer-shrink-to-minimum-size                | t                                                  |
+| ibuffer-use-other-window                      | t                                                  |
+| imenu-auto-rescan                             | t                                                  |
+| indicate-empty-lines                          | t                                                  |
+| ispell-quietly                                | t                                                  |
+| ispell-silently-savep                         | t                                                  |
+| js2-mode-show-parse-errors                    | nil                                                |
+| js2-mode-show-strict-warnings                 | nil                                                |
+| js2-strict-missing-semi-warning               | nil                                                |
+| kill-do-not-save-duplicates                   | t                                                  |
+| kill-whole-line                               | t                                                  |
+| load-prefer-newer                             | t                                                  |
+| mac-allow-anti-aliasing                       | t                                                  |
+| mac-command-key-is-meta                       | t                                                  |
+| mac-command-modifier                          | 'meta                                              |
+| mac-option-key-is-meta                        | nil                                                |
+| mac-option-modifier                           | 'super                                             |
+| mac-right-option-modifier                     | nil                                                |
+| magit-clone-set-remote\.                      | 'pushDefault                                       |
+| magit-log-auto-more                           | t                                                  |
+| magit-no-confirm                              | t                                                  |
+| magit-process-popup-time                      | 15                                                 |
+| magit-remote-add-set-remote\.                 | 'pushDefault                                       |
+| magit-save-repository-buffers                 | 'dontask                                           |
+| mmm-global-mode                               | 'buffers-with-submode-classes                      |
+| mmm-submode-decoration-level                  | 2                                                  |
+| mode-line-default-help-echo                   | nil                                                |
+| next-error-recenter                           | t                                                  |
+| ns-function-modifier                          | 'hyper                                             |
+| ns-pop-up-frames                              | nil                                                |
+| nsm-save-host-names                           | t                                                  |
+| nxml-sexp-element-flag                        | t                                                  |
+| nxml-slash-auto-complete-flag                 | t                                                  |
+| org-confirm-babel-evaluate                    | nil                                                |
+| org-export-with-toc                           | nil                                                |
+| org-html-htmlize-output-type                  | 'css                                               |
+| org-log-done                                  | 'time                                              |
+| org-special-ctrl-a/e                          | t                                                  |
+| org-support-shift-select                      | t                                                  |
+| projectile-ignored-project-function           | 'file-remote-p                                     |
+| projectile-require-project-root               | t                                                  |
+| projectile-switch-project-action              | 'projectile-dired                                  |
+| projectile-verbose                            | nil                                                |
+| proof-auto-action-when-deactivating-scripting | 'retract                                           |
+| proof-autosend-enable                         | nil                                                |
+| proof-electric-terminator-enable              | t                                                  |
+| proof-fast-process-buffer                     | nil                                                |
+| proof-script-fly-past-comments                | t                                                  |
+| proof-shell-fiddle-frames                     | nil                                                |
+| proof-splash-enable                           | nil                                                |
+| proof-sticky-errors                           | t                                                  |
+| proof-tidy-response                           | t                                                  |
+| resize-mini-windows                           | t                                                  |
+| ring-bell-function                            | 'ignore                                            |
+| ruby-insert-encoding-magic-comment            | nil                                                |
+| save-abbrevs                                  | 'silently                                          |
+| save-interprogram-paste-before-kill           | t                                                  |
+| scroll-conservatively                         | 101                                                |
+| scroll-preserve-screen-position               | 'always                                            |
+| sentence-end-double-space                     | nil                                                |
+| set-mark-command-repeat-pop                   | t                                                  |
+| sh-learn-basic-offset                         | t                                                  |
+| shell-completion-execonly                     | nil                                                |
+| shell-input-autoexpand                        | nil                                                |
+| sp-autoskip-closing-pair                      | 'always                                            |
+| sp-highlight-pair-overlay                     | nil                                                |
+| tab-always-indent                             | 'complete                                          |
+| tags-add-tables                               | t                                                  |
+| tags-revert-without-query                     | t                                                  |
+| term-input-autoexpand                         | t                                                  |
+| term-input-ignoredups                         | t                                                  |
+| text-quoting-style                            | 'quote                                             |
+| tls-checktrust                                | t                                                  |
+| uniquify-buffer-name-style                    | 'forward                                           |
+| use-package-always-defer                      | t                                                  |
+| vc-allow-async-revert                         | t                                                  |
+| vc-command-messages                           | t                                                  |
+| vc-follow-symlinks                            | nil                                                |
+| vc-make-backup-files                          | t                                                  |
+| version-control                               | t                                                  |
+| view-read-only                                | t                                                  |
+| whitespace-line-column                        | 120                                                |
+| woman-imenu                                   | t                                                  |
+| x-stretch-cursor                              | t                                                  |
+
+#+BEGIN_SRC emacs-lisp :var defaults=defaults :exports code
+  (apply 'set-defaults
+         (mapcar (lambda (x) (list (intern (car x))
+                                   (if (stringp (cadr x))
+                                       (car (read-from-string (cadr x)))
+                                     (cadr x)))) defaults))
+#+END_SRC
+
+Misc. defaults that don’t fit above. TODO: move these above.
+
 #+BEGIN_SRC emacs-lisp
   (set-defaults
-   '(TeX-auto-save t)
-   '(TeX-auto-untabify t)
-   '(TeX-electric-escape t)
-   '(TeX-parse-self t)
-   '(ad-redefinition-action 'accept)
-   '(apropos-do-all t)
-   '(async-shell-command-buffer 'new-buffer)
-   '(auth-source-save-behavior t)
-   '(auto-revert-check-vc-info t)
-   '(auto-revert-verbose nil)
    '(bug-reference-bug-regexp
-     "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-   '(backward-delete-char-untabify-method 'hungry)
+     (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
+             "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
    '(backup-directory-alist `(("." .
                                ,(expand-file-name "backup"
                                                   user-emacs-directory))))
-   '(checkdoc-spellcheck-documentation-flag t)
    '(company-auto-complete (lambda ()
                              (and (company-tooltip-visible-p)
                                   (company-explicit-action-p))))
@@ -221,8 +378,6 @@ The format of arguments to =set-defaults= is identical to the one used by
            comint-previous-matching-input-from-input
            comint-next-matching-input-from-input
            completion-at-point))
-   '(company-require-match nil)
-   '(company-selection-wrap-around t)
    '(company-backends '(company-elisp
                         company-css
                         company-cmake
@@ -232,11 +387,6 @@ The format of arguments to =set-defaults= is identical to the one used by
                          company-keywords
                          company-dabbrev-code)
                         company-dabbrev))
-   '(comint-input-ring-size 100000)
-   '(comint-input-ignoredups t)
-   '(comint-process-echoes t)
-   '(comint-prompt-read-only t)
-   '(comint-scroll-to-bottom-on-input 'this)
    '(comint-password-prompt-regexp (concat
                                     "\\(^ *\\|"
                                     (regexp-opt
@@ -251,46 +401,20 @@ The format of arguments to =set-defaults= is identical to the one used by
                                     "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
                                     ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
                                     "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
-   '(compilation-always-kill t)
-   '(compilation-ask-about-save nil)
    '(compilation-environment '("TERM=xterm-256color"))
-   '(compilation-skip-threshold 2)
    '(completion-styles '(basic
                          partial-completion
                          emacs22
                          substring))
-   '(completions-cycle-threshold t)
-   '(completions-format 'vertical)
-   '(cursor-in-non-selected-windows nil)
    '(custom-file (expand-file-name
                   "settings.el"
                   user-emacs-directory))
-   '(custom-safe-themes t)
-   '(custom-search-field nil)
-   '(delete-by-moving-to-trash t)
-   '(delete-old-versions t)
-   '(dired-hide-details-hide-symlink-targets nil)
    '(dired-listing-switches "-alhv")
    '(dired-omit-files "^\\.\\|^#.*#$")
-   '(dired-omit-verbose nil)
-   '(dired-recursive-copies 'top)
-   '(dired-recursive-deletes 'top)
    '(dirtrack-list '("^[^:]*:\\(?:\033\\[[0-9]+m\\)?\\([^$#\033]+\\)" 1))
-   '(dtrt-indent-verbosity 0)
-   '(eshell-bad-command-tolerance 1.0e+INF)
    '(eshell-banner-message "")
-   '(eshell-cmpl-autolist t)
-   '(eshell-cmpl-cycle-completions nil)
-   '(eshell-cmpl-cycle-cutoff-length 2)
-   '(eshell-cmpl-ignore-case t)
-   '(eshell-cp-overwrite-files nil)
-   '(eshell-default-target-is-dot t)
-   '(eshell-destroy-buffer-when-process-dies t)
-   '(eshell-hist-ignoredups t)
-   '(eshell-list-files-after-cd t)
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
-   '(eshell-review-quick-commands t)
    '(eshell-prompt-function
      (lambda ()
        (concat (when (tramp-tramp-file-p default-directory)
@@ -306,22 +430,15 @@ The format of arguments to =set-defaults= is identical to the one used by
                    (let ((dirname (file-name-nondirectory dir)))
                      (if (string= dirname "") "/" dirname))))
                (if (= (user-uid) 0) " # " " $ "))))
-   '(eshell-save-history-on-exit t)
-   '(eshell-stringify nil)
-   '(eshell-scroll-show-maximum-output nil)
    '(eshell-visual-commands
      '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
        "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
        "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
        "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
        "telnet" "rlogin"))
-   '(eshell-visual-options nil)
    '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
-   '(eval-expression-print-level nil)
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
-   '(flycheck-display-errors-function
-     'flycheck-display-error-messages-unless-error-list)
    '(flycheck-global-modes '(not erc-mode
                                  message-mode
                                  git-commit-mode
@@ -329,83 +446,28 @@ The format of arguments to =set-defaults= is identical to the one used by
                                  outline-mode
                                  text-mode
                                  org-mode))
-   '(flycheck-emacs-lisp-load-path (quote inherit))
    '(flycheck-disabled-checkers '(haskell-stack-ghc))
-   '(flycheck-standard-error-navigation nil)
    '(flycheck-check-syntax-automatically '(save mode-enabled))
-   '(flyspell-highlight-properties nil)
-   '(flyspell-issue-welcome-flag nil)
-   '(flymake-no-changes-timeout nil)
-   '(flymake-start-syntax-check-on-newline nil)
-   '(fortune-always-compile nil)
    '(frame-title-format
      '(:eval
        (if (buffer-file-name)
            (abbreviate-file-name (buffer-file-name))
          "%b")))
-   '(haskell-process-check-cabal-config-on-load nil)
-   '(haskell-process-auto-import-loaded-modules nil)
-   '(haskell-process-suggest-restart nil)
-   '(haskell-process-suggest-haskell-docs-imports nil)
-   '(haskell-process-suggest-hoogle-imports nil)
-   '(haskell-process-suggest-remove-import-lines nil)
    '(haskell-compile-cabal-build-command "cabal new-build")
    '(haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
-   '(haskell-tags-on-save t)
-   '(help-window-select t)
-   '(history-delete-duplicates t)
-   '(ibuffer-default-display-maybe-show-predicates t)
-   '(ibuffer-expert t)
    '(ibuffer-formats
      '((mark modified read-only " " (name 16 -1) " "
              (size 6 -1 :right) " " (mode 16 16) " " filename)
        (mark " " (name 16 -1) " " filename)))
-   '(ibuffer-show-empty-filter-groups nil)
-   '(ibuffer-shrink-to-minimum-size t)
-   '(ibuffer-use-other-window t)
    '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
-   '(imenu-auto-rescan t)
-   '(indicate-empty-lines t)
    '(ispell-extra-args '("--sug-mode=ultra"))
-   '(ispell-quietly t)
-   '(ispell-silently-savep t)
-   '(js2-mode-show-parse-errors nil)
-   '(js2-mode-show-strict-warnings nil)
-   '(js2-strict-missing-semi-warning nil)
-   '(kill-do-not-save-duplicates t)
-   '(kill-whole-line t)
-   '(load-prefer-newer t)
-   '(mac-allow-anti-aliasing t)
-   '(mac-command-key-is-meta t)
-   '(mac-command-modifier 'meta)
-   '(mac-option-key-is-meta nil)
-   '(mac-option-modifier 'super)
-   '(mac-right-option-modifier nil)
-   '(magit-remote-add-set-remote\.pushDefault t)
-   '(magit-clone-set-remote\.pushDefault t)
-   '(magit-log-auto-more t)
-   '(magit-no-confirm t)
+   '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
-   '(magit-process-popup-time 15)
-   '(magit-save-repository-buffers 'dontask)
-   '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-   '(mode-line-default-help-echo nil)
-   '(mmm-global-mode 'buffers-with-submode-classes)
-   '(mmm-submode-decoration-level 2)
    '(minibuffer-prompt-properties
      '(read-only t
                  cursor-intangible t
                  face minibuffer-prompt))
-   '(next-error-recenter t)
-   '(ns-function-modifier 'hyper)
-   '(ns-pop-up-frames nil)
-   '(nsm-save-host-names t)
-   '(nxml-sexp-element-flag t)
-   '(nxml-slash-auto-complete-flag t)
-   '(org-confirm-babel-evaluate nil)
-   '(org-export-with-toc nil)
-   '(org-html-htmlize-output-type 'css)
    '(org-latex-listings-langs
      (quote
       ((emacs-lisp "Lisp")
@@ -458,38 +520,17 @@ The format of arguments to =set-defaults= is identical to the one used by
        ("" "alltt" nil nil)
        ("" "upquote" nil nil)
        ("" "listings" nil nil))))
-   '(org-log-done 'time)
-   '(org-special-ctrl-a/e t)
-   '(org-support-shift-select t)
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
        ("org" . "http://orgmode.org/elpa/")
        ("gnu" . "https://elpa.gnu.org/packages/")))
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
-   '(projectile-ignored-project-function 'file-remote-p)
    '(projectile-mode-line-prefix "")
    '(projectile-mode-line-function
      (lambda () (if (and (ignore-errors (projectile-project-p))
                          (not (file-remote-p default-directory)))
                     (format " Projectile[%s]" (projectile-project-name))
                   "")))
-   '(projectile-switch-project-action 'projectile-dired)
-   '(projectile-require-project-root t)
-   '(projectile-verbose nil)
-   '(proof-auto-action-when-deactivating-scripting 'retract)
-   '(proof-autosend-enable nil)
-   '(proof-electric-terminator-enable t)
-   '(proof-fast-process-buffer nil)
-   '(proof-script-fly-past-comments t)
-   '(proof-shell-fiddle-frames nil)
-   '(proof-splash-enable nil)
-   '(proof-sticky-errors t)
-   '(proof-tidy-response t)
-   '(resize-mini-windows t)
-   '(ring-bell-function 'ignore)
-   '(ruby-insert-encoding-magic-comment nil)
-   '(save-abbrevs 'silently)
-   '(save-interprogram-paste-before-kill t)
    '(savehist-additional-variables '(search-ring
                                      regexp-search-ring
                                      kill-ring
@@ -498,53 +539,25 @@ The format of arguments to =set-defaults= is identical to the one used by
                                      sr-history-registry
                                      file-name-history
                                      tablist-name-filter))
-   '(scroll-preserve-screen-position 'always)
-   '(scroll-conservatively 101)
-   '(sentence-end-double-space nil)
-   '(set-mark-command-repeat-pop t)
-   '(shell-completion-execonly nil)
-   '(shell-input-autoexpand nil)
-   '(sh-learn-basic-offset t)
-   '(sp-autoskip-closing-pair 'always)
-   '(sp-highlight-pair-overlay nil)
-   '(tab-always-indent 'complete)
    '(tab-stop-list (number-sequence 4 200 4))
-   '(tags-add-tables t)
-   '(tags-revert-without-query t)
-   '(term-input-autoexpand t)
-   '(term-input-ignoredups t)
-   '(text-quoting-style 'quote)
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
        (".*" "\\`root\\'" "/ssh:%h:")))
-   '(tls-checktrust t)
-   '(uniquify-buffer-name-style 'forward)
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
-   '(use-package-always-defer t)
-   '(version-control t)
-   '(vc-allow-async-revert t)
-   '(vc-command-messages t)
    '(vc-git-diff-switches '("-w" "-U3"))
-   '(vc-follow-symlinks nil)
    '(vc-ignore-dir-regexp
      (concat "\\(\\(\\`"
              "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/"
              "\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
              "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\"
              "(\\`/[^/|:][^/|]*:\\)"))
-   '(vc-make-backup-files t)
-   '(view-read-only t)
-   '(woman-imenu t)
-   '(x-stretch-cursor t)
    '(which-key-lighter "")
    '(whitespace-action '(cleanup auto-cleanup))
-   '(whitespace-line-column 120)
    '(whitespace-style '(face trailing lines space-before-tab
                         empty lines-style))
-   '(whitespace-global-modes '(not erc-mode ses-mode))
-   )
+   '(whitespace-global-modes '(not erc-mode ses-mode)))
 #+END_SRC
 
 *** Site paths
@@ -675,133 +688,93 @@ used as key bindings.
 
 #+BEGIN_SRC emacs-lisp
   (require 'bauer)
+  (require 'files)
 #+END_SRC
 
 Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
-with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]].
+with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]]. Some
+things done below include:
 
-Make frame and window management a little bit easier. These are all used to
+- Make frame and window management a little bit easier. These are all used to
 better navigations.
+- Scale text size for different context. Defaults to 12pt fonts.
+- Add evaluator keys, useful for executing lisp expressions.
+- Add some read-only mode keybindings.
 
-#+BEGIN_SRC emacs-lisp
-  (bind-keys
-   ("<s-return>" . toggle-frame-fullscreen)
+#+NAME: keybinds
+| Key combination | Action                          |
+|-----------------+---------------------------------|
+| <s-return>      | toggle-frame-fullscreen         |
+| s-C-<left>      | enlarge-window-horizontally     |
+| s-C-<right>     | shrink-window-horizontally      |
+| s-C-<down>      | shrink-window                   |
+| s-C-<up>        | enlarge-window                  |
+| <S-s-up>        | shrink-window                   |
+| <S-s-down>      | enlarge-window                  |
+| <s-down>        | windmove-down                   |
+| <s-up>          | windmove-up                     |
+| <s-left>        | windmove-left                   |
+| <s-right>       | windmove-right                  |
+| C-x 5 3         | iconify-frame                   |
+| C-x 5 4         | toggle-frame-fullscreen         |
+| <C-return>      | other-window                    |
+| <C-M-return>    | other-window                    |
+| s-o             | other-window                    |
+| C-z             | delete-other-windows            |
+| s-1             | other-frame                     |
+| M-+             | text-scale-increase             |
+| M-_             | text-scale-decrease             |
+| C-c m b         | eval-buffer                     |
+| C-c m e         | eval-last-sexp                  |
+| C-c m i         | eval-expression                 |
+| C-c m d         | eval-defun                      |
+| C-c m n         | eval-print-last-sexp            |
+| C-c m r         | eval-region                     |
+| C-c C-u         | rename-uniquely                 |
+| C-c C-o         | browse-url-at-point             |
+| H-l             | browse-url-at-point             |
+| H-c             | compile                         |
+| s-c             | compile                         |
+| s-r             | revert-buffer                   |
+| M-s d           | find-grep-dired                 |
+| M-s F           | find-grep                       |
+| M-s G           | grep                            |
+| C-x r q         | save-buffers-kill-terminal      |
+| C-c C-<return>  | delete-blank-lines              |
+| C-<f10>         | menu-bar-mode                   |
+| C-x M-g         | browse-url-at-point             |
+| M-s f           | find-name-dired                 |
+| s-SPC           | cycle-spacing                   |
+| C-c w w         | whitespace-mode                 |
+| M-g l           | goto-line                       |
+| <C-M-backspace> | backward-kill-sexp              |
+| C-x t           | toggle-truncate-lines           |
+| C-x v H         | vc-region-history               |
+| C-c SPC         | just-one-space                  |
+| C-c f           | flush-lines                     |
+| C-c o           | customize-option                |
+| C-c O           | customize-group                 |
+| C-c F           | customize-face                  |
+| C-c q           | fill-region                     |
+| C-c s           | replace-string                  |
+| C-c u           | rename-uniquely                 |
+| C-c z           | clean-buffer-list               |
+| C-c =           | count-matches                   |
+| C-c ;           | comment-or-uncomment-region     |
+| C-c [           | align-regexp                    |
+| s-/             | comment-or-uncomment-region     |
+| C-s             | isearch-forward-regexp          |
+| C-r             | isearch-backward-regexp         |
+| C-S-s           | isearch-forward                 |
+| C-S-r           | isearch-backward                |
+| M-s l           | sort-lines                      |
+| M-s m           | multi-occur                     |
+| M-s M           | multi-occur-in-matching-buffers |
+| C-c i i         | imenu                           |
 
-   ("s-C-<left>"  . enlarge-window-horizontally)
-   ("s-C-<right>" . shrink-window-horizontally)
-   ("s-C-<down>"  . shrink-window)
-   ("s-C-<up>"    . enlarge-window)
-
-   ("<S-s-up>"   . shrink-window)
-   ("<S-s-down>" . enlarge-window)
-
-   ("<s-down>"  . windmove-down)
-   ("<s-up>"    . windmove-up)
-   ("<s-left>"  . windmove-left)
-   ("<s-right>" . windmove-right)
-
-   ("C-x 5 3" . iconify-frame)
-   ("C-x 5 4" . toggle-frame-fullscreen)
-
-   ("<C-return>" . other-window)
-   ("<C-M-return>" . other-window)
-   ("s-o" . other-window)
-   ("C-z" . delete-other-windows)
-   ("s-1" . other-frame))
-#+END_SRC
-
-Scale text size for different context. Defaults to 12pt fonts.
-
-#+BEGIN_SRC emacs-lisp
-  (bind-keys
-   ("M-+" . text-scale-increase)
-   ("M-_" . text-scale-decrease)
-   ("C-x M-p" . (lambda () (interactive)
-                  (save-excursion (other-window 1)
-                                  (quit-window))))
-
-   ("C-M--" . (lambda () (interactive)
-                (update-font-size -1 t)))
-   ("C-M-=" . (lambda () (interactive)
-                (update-font-size 1 t)))
-   ("C-M-0" . (lambda () (interactive)
-                (update-font-size 12 nil))))
-#+END_SRC
-
-Add evaluator keys, useful for executing lisp expressions.
-
-#+BEGIN_SRC emacs-lisp
-  (bind-keys
-   ("C-c m b" . eval-buffer)
-   ("C-c m e" . eval-last-sexp)
-   ("C-c m i" . eval-expression)
-   ("C-c m d" . eval-defun)
-   ("C-c m n" . eval-print-last-sexp)
-   ("C-c m r" . eval-region))
-#+END_SRC
-
-Bind help map keys.
-
-#+BEGIN_SRC emacs-lisp
-  (defun web-search (start end)
-    (interactive "r")
-    (let ((q (buffer-substring-no-properties start end)))
-      (browse-url (concat "http://www.google.com/search?btnI&q="
-        (url-hexify-string q)))))
-
-  (bind-keys
-    :map help-map
-    ("C-r" . woman)
-    ("j" . woman)
-    ("C-j" . man)
-    ("C-s" . web-search))
-#+END_SRC
-
-Add some read-only mode keybindings.
-
-#+BEGIN_SRC emacs-lisp
-  (bind-keys
-   :package view
-   :map view-mode-map
-   ("n" . next-line)
-   ("p" . previous-line)
-   ("j" . next-line)
-   ("k" . previous-line)
-   ("l" . forward-char)
-   ("f" . forward-char)
-   ("b" . backward-char)
-   ("e" . end-of-line)
-   ("a" . beginning-of-line))
-#+END_SRC
-
-Add special quotes and arrows to ctrl x 8 keymap.
-
-#+BEGIN_SRC emacs-lisp
-  (bind-keys
-   :package iso-transl
-   :map iso-transl-ctl-x-8-map
-   ("' /"       . "′")
-   ("\" /"      . "″")
-   ("\" ("      . "“")
-   ("\" )"      . "”")
-   ("' ("       . "‘")
-   ("' )"       . "’")
-   ("4 < -"     . "←")
-   ("4 - >"     . "→")
-   ("4 b"       . "←")
-   ("4 f"       . "→")
-   ("4 p"       . "↑")
-   ("4 n"       . "↓")
-   ("<down>"    . "⇓")
-   ("<S-down>"  . "↓")
-   ("<left>"    . "⇐")
-   ("<S-left>"  . "←")
-   ("<right>"   . "⇒")
-   ("<S-right>" . "→")
-   ("<up>"      . "⇑")
-   ("<S-up>"    . "↑")
-   (","         . "…"))
+#+BEGIN_SRC emacs-lisp :var keybinds=keybinds :exports code
+  (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
 #+END_SRC
 
 Some bauer-specific custom keybindings.
@@ -854,75 +827,71 @@ drop needs a special binding.
                      'ns-drag-n-drop-as-text)))
 #+END_SRC
 
-Text editing and navigation
+Add special quotes and arrows to ctrl x 8 keymap.
 
 #+BEGIN_SRC emacs-lisp
   (bind-keys
-   ("s-SPC" . cycle-spacing)
-   ("C-c w w" . whitespace-mode)
-
-   ("M-g l" . goto-line)
-   ("<C-M-backspace>" . backward-kill-sexp)
-
-   ("C-x t"   . toggle-truncate-lines)
-   ("C-x v H" . vc-region-history)
-   ("C-c SPC" . just-one-space)
-   ("C-c f"   . flush-lines)
-   ("C-c o"   . customize-option)
-   ("C-c O"   . customize-group)
-   ("C-c F"   . customize-face)
-   ("C-c q"   . fill-region)
-   ("C-c s"   . replace-string)
-   ("C-c u"   . rename-uniquely)
-   ("C-c z"   . clean-buffer-list)
-   ("C-c ="   . count-matches)
-   ("C-c ;"   . comment-or-uncomment-region)
-   ("C-c ["   . align-regexp)
-   ("s-/"     . comment-or-uncomment-region)
-   ("C-s"     . isearch-forward-regexp)
-   ("C-r"     . isearch-backward-regexp)
-   ("C-S-s"   . isearch-forward)
-   ("C-S-r"   . isearch-backward)
-   ("M-s l"   . sort-lines)
-   ("M-s m"   . multi-occur)
-   ("M-s M"   . multi-occur-in-matching-buffers)
-
-   ("C-c i i" . imenu))
+   :package iso-transl
+   :map iso-transl-ctl-x-8-map
+   ("' /"       . "′")
+   ("\" /"      . "″")
+   ("\" ("      . "“")
+   ("\" )"      . "”")
+   ("' ("       . "‘")
+   ("' )"       . "’")
+   ("4 < -"     . "←")
+   ("4 - >"     . "→")
+   ("4 b"       . "←")
+   ("4 f"       . "→")
+   ("4 p"       . "↑")
+   ("4 n"       . "↓")
+   ("<down>"    . "⇓")
+   ("<S-down>"  . "↓")
+   ("<left>"    . "⇐")
+   ("<S-left>"  . "←")
+   ("<right>"   . "⇒")
+   ("<S-right>" . "→")
+   ("<up>"      . "⇑")
+   ("<S-up>"    . "↑")
+   (","         . "…"))
 #+END_SRC
 
-Miscellaneous key bindings.
+Bind help map keys.
 
 #+BEGIN_SRC emacs-lisp
-  (require 'files)
-  (bind-keys
-   ("C-c C-u" . rename-uniquely)
+  (defun web-search (start end)
+    (interactive "r")
+    (let ((q (buffer-substring-no-properties start end)))
+      (browse-url (concat "http://www.google.com/search?btnI&q="
+        (url-hexify-string q)))))
 
-   ("C-x ~" . (lambda () (interactive) (find-file "~")))
+  (bind-keys
+    :map help-map
+    ("C-r" . woman)
+    ("j" . woman)
+    ("C-j" . man)
+    ("C-s" . web-search))
+#+END_SRC
+
+More keys that have custom functions. TODO: move these above
+
+#+BEGIN_SRC emacs-lisp
+  (bind-keys
+   ("" . (lambda () (interactive) (find-file "~")))
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x 4 C-x ~" . (lambda () (interactive) (find-file-other-window "~")))
    ("C-x 4 C-x /" . (lambda () (interactive) (find-file-other-window "/")))
 
-   ("C-c C-o" . browse-url-at-point)
-   ("H-l" . browse-url-at-point)
+   ("C-x M-p" . (lambda () (interactive)
+                  (save-excursion (other-window 1)
+                                  (quit-window))))
 
-   ("H-c" . compile)
-   ("s-c" . compile)
-   ("s-r" . revert-buffer)
-
-   ("M-s d" . find-grep-dired)
-   ("M-s F" . find-grep)
-   ("M-s G" . grep)
-
-   ("C-x r q"        . save-buffers-kill-terminal)
-   ("C-c C-<return>" . delete-blank-lines)
-   ("C-<f10>"        . menu-bar-mode)
-   ("C-x M-g"        . browse-url-at-point)
-
-   ("M-s f"   . find-name-dired)
-
-   ;; ("M-n" . next-error)
-   ;; ("M-p" . previous-error)
-   )
+   ("C-M--" . (lambda () (interactive)
+                (update-font-size -1 t)))
+   ("C-M-=" . (lambda () (interactive)
+                (update-font-size 1 t)))
+   ("C-M-0" . (lambda () (interactive)
+                (update-font-size 12 nil))))
 #+END_SRC
 
 ** Setup installer
