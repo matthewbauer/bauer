@@ -349,7 +349,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | woman-imenu                                   | t                                                  |
 | x-stretch-cursor                              | t                                                  |
 
-#+BEGIN_SRC emacs-lisp :var defaults=defaults :exports code
+#+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
          (mapcar (lambda (x) (list (intern (car x))
                                    (if (stringp (cadr x))
@@ -469,8 +469,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
                  cursor-intangible t
                  face minibuffer-prompt))
    '(org-latex-listings-langs
-     (quote
-      ((emacs-lisp "Lisp")
+     '((emacs-lisp "Lisp")
        (lisp "Lisp")
        (clojure "Lisp")
        (c "C")
@@ -498,10 +497,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
        (gitattributes "{}")
        (gitignore "{}")
        (shell "{}")
-       (gitconfig "{}"))))
+       (gitconfig "{}")))
    '(org-latex-default-packages-alist
-     (quote
-      (("utf8" "inputenc" t
+     '(("utf8" "inputenc" t
         ("pdflatex"))
        ("T1" "fontenc" t
         ("pdflatex"))
@@ -519,7 +517,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
        ("" "parskip" nil nil)
        ("" "alltt" nil nil)
        ("" "upquote" nil nil)
-       ("" "listings" nil nil))))
+       ("" "listings" nil nil)))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
        ("org" . "http://orgmode.org/elpa/")
@@ -556,7 +554,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(which-key-lighter "")
    '(whitespace-action '(cleanup auto-cleanup))
    '(whitespace-style '(face trailing lines space-before-tab
-                        empty lines-style))
+                             empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode)))
 #+END_SRC
 
@@ -773,7 +771,7 @@ better navigations.
 | M-s M           | multi-occur-in-matching-buffers |
 | C-c i i         | imenu                           |
 
-#+BEGIN_SRC emacs-lisp :var keybinds=keybinds :exports code
+#+BEGIN_SRC emacs-lisp :var keybinds=keybinds
   (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
 #+END_SRC
 
@@ -877,7 +875,7 @@ More keys that have custom functions. TODO: move these above
 
 #+BEGIN_SRC emacs-lisp
   (bind-keys
-   ("" . (lambda () (interactive) (find-file "~")))
+   ("C-x ~" . (lambda () (interactive) (find-file "~")))
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x 4 C-x ~" . (lambda () (interactive) (find-file-other-window "~")))
    ("C-x 4 C-x /" . (lambda () (interactive) (find-file-other-window "/")))
