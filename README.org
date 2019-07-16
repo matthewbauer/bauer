@@ -689,6 +689,16 @@ used as key bindings.
   (require 'files)
 #+END_SRC
 
+Define some helper functions.
+
+#+BEGIN_SRC emacs-lisp
+  (defun web-search (start end)
+    (interactive "r")
+    (let ((q (buffer-substring-no-properties start end)))
+      (browse-url (concat "http://www.google.com/search?btnI&q="
+        (url-hexify-string q)))))
+#+END_SRC
+
 Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]]. Some
@@ -857,12 +867,6 @@ Add special quotes and arrows to ctrl x 8 keymap.
 Bind help map keys.
 
 #+BEGIN_SRC emacs-lisp
-  (defun web-search (start end)
-    (interactive "r")
-    (let ((q (buffer-substring-no-properties start end)))
-      (browse-url (concat "http://www.google.com/search?btnI&q="
-        (url-hexify-string q)))))
-
   (bind-keys
     :map help-map
     ("C-r" . woman)
