@@ -32,12 +32,22 @@ if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
     echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
 fi
 
+if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
+    echo 'source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+fi
+
 source $HOME/.nix-profile/etc/profile
 
 echo To use bauer correctly, you must first source the profile.
 echo
 echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
+
+if [ "$(basename $SHELL)" = zsh ]; then
+    source $HOME/.nix-profile/etc/zshrc
+    echo $ source $HOME/.nix-profile/etc/zshrc
+fi
+
 echo From you command line
 echo You can also run either emacs or zsh to launch the environment
 
