@@ -7,7 +7,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    source $HOME/.profile
+    [ -f $HOME/.profile ] && source $HOME/.profile
 fi
 
 if ! command -v git >/dev/null 2>&1; then
@@ -28,11 +28,32 @@ fi
 
 nix-env -if .
 
-echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
+    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+fi
 
-echo "To use bauer correctly, you must first source the profile."
+if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
+    echo 'source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+fi
+
+source $HOME/.nix-profile/etc/profile
+
+echo To use bauer correctly, you must first source the profile.
 echo
-echo "To do this, just run:"
-echo "  source $HOME/.nix-profile/etc/profile"
-echo "From you command line"
-echo "You can also run either emacs or zsh to launch the environment"
+echo To do this, just run:
+echo $ source $HOME/.nix-profile/etc/profile
+
+if [ "$(basename $SHELL)" = zsh ]; then
+    source $HOME/.nix-profile/etc/zshrc
+    echo $ source $HOME/.nix-profile/etc/zshrc
+fi
+
+echo From you command line
+echo You can also run either emacs or zsh to launch the environment
+
+if [ -n "$1" ] && \
+   command -v git >/dev/null 2>&1 \
+   && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+    echo Found Gist commit $1, cloning now.
+    ./gist-unpack.sh "$1"
+fi
