@@ -3189,7 +3189,7 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell :padline no
-  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs::nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
+  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
          PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
@@ -3266,10 +3266,13 @@ case "$TERM" in
 esac
 #+END_SRC
 
-Load up site-functions in ZSH.
+Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
 
 #+BEGIN_SRC shell
-fpath+=@completions@/share/zsh/site-functions
+for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
+  fpath+=$dir/zsh/site-functions
+  fpath+=$dir/zsh/vendor-completions
+done
 #+END_SRC
 
 Turn on ZSH-specific options.
@@ -4410,7 +4413,7 @@ Next, ZSH completions are built. These all reside in the
   zsh-completions = buildEnv {
     name = "zsh-completions";
     paths = [ pkgs.zsh-completions pkgs.nix-zsh-completions ] ++ userPackages;
-    pathsToLink = [ "/share/zsh/site-functions" ];
+    pathsToLink = [ "/share/zsh" ];
   };
 #+END_SRC
 
