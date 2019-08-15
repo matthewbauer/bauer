@@ -1860,6 +1860,11 @@ Base mode used for shell and terminal modes.
                                              (setq count (1+ count))))))
                                      (setq comint-input-ring ring
                                            comint-input-ring-index nil)))))))
+
+(use-package comint-hyperlink
+  :ensure nil
+  :commands (comint-hyperlink-process-output)
+  :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -3247,6 +3252,12 @@ Setup ZSH profile. First, we just source the global profile.
 source @out@/etc/profile
 #+END_SRC
 
+Aliases.
+
+#+BEGIN_SRC shell
+alias ls="ls --hyperlink=auto"
+#+END_SRC
+
 Handle dumb options.
 
 #+BEGIN_SRC shell
@@ -4208,6 +4219,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
+  install -D ${ensure ./site-lisp/comint-hyperlink.el
+                      "site-lisp/comint-hyperlink.el"} \
+          $out/share/emacs/site-lisp/comint-hyperlink.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
