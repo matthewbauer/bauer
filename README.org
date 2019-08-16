@@ -3234,7 +3234,12 @@ if [ "$TERM" != "dumb" ]; then
           ls="ls --hyperlink=auto --color=auto" \
           grep='grep -n --color=auto' \
           egrep='grep -E -n --color=auto' \
-          diff='diff --color=auto'
+          diff='diff --color=auto' \
+          less='less -R'
+else
+    alias l="ls -lF" \
+          grep='grep -n' \
+          egrep='grep -E -n'
 fi
 #+END_SRC
 
