@@ -3207,17 +3207,35 @@ just in case.
          EDITOR=emacs
 #+END_SRC
 
+Dircolors
+
+#+BEGIN_SRC shell
+eval $(dircolors)
+#+END_SRC
+
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias ls="TERM=ansi ls --color=always" \
-      l="ls -lF" \
-      ..="cd .." \
+alias ..="cd .." \
       ...="cd ../.." \
       ....="cd ../../.." \
       .....="cd ../../../.." \
-      tree='tree -Csuh' \
-      grep="grep --color=auto"
+      rm='rm -I --preserve-root' \
+      mv='mv -i' \
+      cp='cp -i' \
+      ln='ln -i' \
+      chown='chown --preserve-root' \
+      chmod='chmod --preserve-root' \
+      chgrp='chgrp --preserve-root' \
+      curl='curl -L'
+
+if [ "$TERM" != "dumb" ]; then
+    alias l="ls -lF --hyperlink=auto --color=auto" \
+          ls="ls --hyperlink=auto --color=auto" \
+          grep='grep -n --color=auto' \
+          egrep='grep -E -n --color=auto' \
+          diff='diff --color=auto'
+fi
 #+END_SRC
 
 Configure INSIDE_EMACS.
@@ -3250,12 +3268,6 @@ Setup ZSH profile. First, we just source the global profile.
 
 #+BEGIN_SRC shell :padline no
 source @out@/etc/profile
-#+END_SRC
-
-Aliases.
-
-#+BEGIN_SRC shell
-alias ls="ls --hyperlink=auto"
 #+END_SRC
 
 Handle dumb options.
