@@ -5,7 +5,7 @@
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Created: 15 Aug 2019
 ;; Keywords: comint, shell, processes, hypermedia, terminals
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Homepage: https://github.com/matthewbauer/comint-hyperlink
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -30,21 +30,24 @@
 ;;; adding the below snippet to your init.el file.
 
 ;; (require 'comint-hyperlink)
-;; (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output)
+;; (add-to-list 'comint-output-filter-functions
+;;              'comint-hyperlink-process-output)
 
 ;;; Alternatively if you use use-package, this looks like the following.
 
 ;; (use-package comint-hyperlink
 ;;   :commands (comint-hyperlink-process-output)
-;;   :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
+;;   :init (add-to-list 'comint-output-filter-functions
+;;                   'comint-hyperlink-process-output))
 
 ;;; Code:
 
 (require 'comint)
 (require 'button)
+(require 'url-util)
 
 (defvar comint-hyperlink-control-seq-regexp
-  "\e\\]8;;\\([^\a]*\\)\a\\([^\e]*\\)\e]8;;\a")
+  "\e\\]8;;\\([^\a\e]*\\)[\a\e]\\(?:\\\\\\)?\\([^\e]*\\)\e]8;;[\a\e]\\(?:\\\\\\)?")
 
 (defgroup comint-hyperlink nil
   "Comint hyperlink handling"
@@ -70,11 +73,12 @@ Falls back to ‘browse-url’."
   "Use ‘browse-url’ to open the URL."
   ;; Need to strip hostname from file urls
   (browse-url
-   (replace-regexp-in-string "^file:///?[^/]+" "file://" (match-string 1))))
+   (replace-regexp-in-string "^file:///?[^/]+" "file://" url)))
 
 (define-button-type 'comint-hyperlink
   'follow-link t
-  'action (lambda (x) (funcall comint-hyperlink-action (button-get x 'comint-hyperlink-url))))
+  'action (lambda (x) (funcall comint-hyperlink-action
+			       (button-get x 'comint-hyperlink-url))))
 
 ;;;###autoload
 (defun comint-hyperlink-process-output (&optional _)
@@ -93,12 +97,13 @@ This is a good function to put in
     (save-excursion
       (goto-char start-marker)
       (while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
-	(let* ((url (match-string 1))
-	       (text (match-string 2))
-	       start)
+	(let ((url (match-string 1)) (text (match-string 2))
+	      start)
 	  (delete-region (match-beginning 0) (point))
 	  (setq start (point))
-	  (insert-button text 'type 'comint-hyperlink 'comint-hyperlink-url url))))))
+	  (insert-button text
+			 'type 'comint-hyperlink
+			 'comint-hyperlink-url (url-unhex-string url)))))))
 
 (provide 'comint-hyperlink)
 ;;; comint-hyperlink.el ends here
