@@ -5,7 +5,7 @@
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Created: 15 Aug 2019
 ;; Keywords: comint, shell, processes, hypermedia, terminals
-;; Version: 0.1.2
+;; Version: 0.1.3
 ;; Homepage: https://github.com/matthewbauer/comint-hyperlink
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -45,9 +45,16 @@
 (require 'comint)
 (require 'button)
 (require 'url-util)
+(require 'regexp-opt)
 
 (defvar comint-hyperlink-control-seq-regexp
   "\e\\]8;;\\([^\a\e]*\\)[\a\e]\\(?:\\\\\\)?\\([^\e]*\\)\e]8;;[\a\e]\\(?:\\\\\\)?")
+
+(defvar comint-hyperlink-file-regexp
+  "^file://\\([^/]*\\)")
+
+(defvar comint-hyperlink-url-protocols
+  (regexp-opt '("http" "https" "ftp" "man" "mailto" "news")))
 
 (defgroup comint-hyperlink nil
   "Comint hyperlink handling"
@@ -56,8 +63,8 @@
 (defcustom comint-hyperlink-action 'comint-hyperlink-find-file
   "Action to use in comint-hyperlink button."
   :group 'comint-hyperlink
-  :type '(choice (const :tag "Browse url" 'comint-hyperlink-browse-url)
-		 (const :tag "Find file" 'comint-hyperlink-find-file)
+  :type '(choice (function :tag "Browse url" 'comint-hyperlink-browse-url)
+		 (function :tag "Find file" 'comint-hyperlink-find-file)
 		 (function :tag "Custom function")))
 
 (defcustom comint-hyperlink-for-comint-mode t
@@ -81,17 +88,20 @@ Falls back to ‘browse-url’."
   (cond
    ((string-match-p "^file://" url)
     (find-file
-     (replace-regexp-in-string "^file:///?[^/]+" "" url)))
+     (replace-regexp-in-string comint-hyperlink-file-regexp "" url)))
    (t (comint-hyperlink-browse-url url))))
 
 (defun comint-hyperlink-browse-url (url)
   "Use ‘browse-url’ to open the URL."
   ;; Need to strip hostname from file urls
-  (browse-url
-   (replace-regexp-in-string "^file:///?[^/]+" "file://" url)))
+  (if (string-match-p comint-hyperlink-url-protocols url)
+      (browse-url
+       (replace-regexp-in-string comint-hyperlink-file-regexp "file://" url))
+    (error "Protocol for %s not supported by browse-url" url)))
 
 (define-button-type 'comint-hyperlink
   'follow-link t
+  'face nil
   'action (lambda (x) (funcall comint-hyperlink-action
 			       (button-get x 'comint-hyperlink-url))))
 
