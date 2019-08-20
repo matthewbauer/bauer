@@ -105,6 +105,8 @@ Falls back to ‘browse-url’."
   'action (lambda (x) (funcall comint-hyperlink-action
 			       (button-get x 'comint-hyperlink-url))))
 
+(defvar comint-hyperlink-escape-start nil)
+
 ;;;###autoload
 (defun comint-hyperlink-process-output (&optional _)
   "Convert SGR control sequences of comint into clickable text properties.
@@ -120,6 +122,13 @@ This is a good function to put in
 			    comint-last-output-start
 			  (point-min-marker)))
 	  (end-marker (process-mark (get-buffer-process (current-buffer)))))
+
+      ;; Handle partial process output by starting earlier than normal
+      (when (and comint-hyperlink-escape-start
+		 (< comint-hyperlink-escape-start start-marker))
+	(setq start-marker comint-hyperlink-escape-start)
+	(setq comint-hyperlink-escape-start nil))
+
       (save-excursion
 	(goto-char start-marker)
 	(while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
@@ -135,7 +144,11 @@ This is a good function to put in
 			     'type 'comint-hyperlink
 			     'comint-hyperlink-url (url-unhex-string url)
 			     'help-echo (format "Visit %s"
-						(url-unhex-string url)))))))))))
+						(url-unhex-string url)))))))
+
+	;; Save ending escape sequence that isn’t closed
+	(when (re-search-forward "\e\\]8;;" end-marker t)
+	  (setq comint-hyperlink-escape-start (match-beginning 0)))))))
 
 (provide 'comint-hyperlink)
 ;;; comint-hyperlink.el ends here
