@@ -3222,14 +3222,14 @@ scripts as well.
 
 ** =.profile=
 :PROPERTIES:
-:header-args: :tangle profile.sh :tangle-mode (identity #o755)
+:header-args: :tangle profile.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 To use this, you must create a short ~/.profile file. Here is an example,
 
-#+BEGIN_SRC shell :tangle no
+#+BEGIN_SRC shell :tangle no :padline no
 bootstrap=$HOME/.nix-profile/etc/profile
-[ -f $bootstrap ] && source $bootstrap
+[ -f $bootstrap ] && . $bootstrap
 #+END_SRC
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
@@ -3244,7 +3244,7 @@ Here we setup =.profile=. First, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
-#+BEGIN_SRC shell :padline no
+#+BEGIN_SRC shell
   export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
          PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@ \
@@ -3306,15 +3306,16 @@ fi
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
-if [ -f $HOME/.profile ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
+if [ -f "$HOME/.profile" ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
   SHELL_SOURCED_PROFILE=1
-  source $HOME/.profile
+  # shellcheck source=/dev/null
+  . "$HOME/.profile"
 fi
 #+END_SRC
 
 ** =.zshrc=
 :PROPERTIES:
-:header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
+:header-args: :tangle zshrc.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env bash"
 :CUSTOM_ID: zshrc
 :END:
 
@@ -3322,8 +3323,9 @@ This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based 
 
 Setup ZSH profile. First, we just source the global profile.
 
-#+BEGIN_SRC shell :padline no
-source @out@/etc/profile
+#+BEGIN_SRC shell
+# shellcheck source=/dev/null
+. @out@/etc/profile
 #+END_SRC
 
 Handle dumb options.
@@ -3348,6 +3350,7 @@ esac
 Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
 
 #+BEGIN_SRC shell
+# shellcheck disable=SC2154
 for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
   fpath+=$dir/zsh/site-functions
   fpath+=$dir/zsh/vendor-completions
@@ -3424,7 +3427,7 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+export PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
 
 unset RPS1
 #+END_SRC
@@ -3461,13 +3464,13 @@ fi
 
 ** =etc-profile.sh=
 :PROPERTIES:
-:header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
+:header-args: :tangle etc-profile.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
 used to reference the Nix output dir.
 
-#+BEGIN_SRC shell :padline no
+#+BEGIN_SRC shell
 export PREFIX=@out@
 #+END_SRC
 
@@ -3477,9 +3480,10 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
-  if [ -r $i ] && [ "$(@coreutils@/bin/basename $i)" != nix-daemon.sh ]; then
-    source $i
+for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
+  if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
+    # shellcheck source=/dev/null
+    . "$i"
   fi
 done
 #+END_SRC
@@ -3909,7 +3913,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
+    [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 #+END_SRC
 
@@ -4643,6 +4647,8 @@ in buildEnv {
     chmod +x $out/bin/run
     patchShebangs $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
+
+    ${pkgs.shellcheck}/bin/shellcheck $out/etc/profile $out/etc/zshrc $out/bin/run
   '';
   pathsToLink = [
     "/bin"
@@ -4678,6 +4684,8 @@ in buildEnv {
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
         --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+
+      ${pkgs.shellcheck}/bin/shellcheck -x $out/etc/profile.d/my-profile.sh
     '')
     pkgs.git
   ];
