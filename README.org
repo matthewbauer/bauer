@@ -3283,9 +3283,14 @@ alias ..="cd .." \
       curl='curl -L'
 
 if [ "$TERM" != "dumb" ]; then
-    alias l="ls -lF --hyperlink=auto --color=auto" \
-          ls="ls --hyperlink=auto --color=auto" \
-          grep='grep -n --color=auto' \
+    if [ "$TERM" != eterm-color ]; then
+        alias l="ls -lF --hyperlink=auto --color=auto" \
+              ls="ls --hyperlink=auto --color=auto"
+    else
+        alias l="ls -lF --color=auto" \
+              ls="ls --color=auto"
+    fi
+    alias grep='grep -n --color=auto' \
           egrep='grep -E -n --color=auto' \
           diff='diff --color=auto' \
           less='less -R'
