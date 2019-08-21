@@ -29,11 +29,11 @@ fi
 nix-env -if .
 
 if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
-    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+    echo '[ -f $HOME/.nix-profile/etc/profile ] && source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
 fi
 
 if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
-    echo 'source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+    echo '[ -f $HOME/.nix-profile/etc/zshrc ] && source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
 fi
 
 source $HOME/.nix-profile/etc/profile
