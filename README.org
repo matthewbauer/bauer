@@ -3935,7 +3935,7 @@ Check for Git. Install if it’s not there.
 
 #+BEGIN_SRC shell
 if ! command -v git >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.git
+    nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 #+END_SRC
 
