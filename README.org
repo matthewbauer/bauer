@@ -3240,11 +3240,6 @@ well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
 store the bash or zsh history. We set the history size to 10000 for good
 measure. EDITOR should point to this editor.
 
-#+BEGIN_SRC shell :padline no
-export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels"
-export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
-#+END_SRC
-
 Here we setup =.profile=. First, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
@@ -3252,7 +3247,7 @@ just in case.
 #+BEGIN_SRC shell :padline no
   export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
-         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
+         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@ \
          INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
          MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@ \
          XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
