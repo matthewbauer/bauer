@@ -7,11 +7,11 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
+    [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 
 if ! command -v git >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.git
+    nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 
 if [ -d .git ]; then
