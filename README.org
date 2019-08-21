@@ -3261,7 +3261,9 @@ just in case.
 Dircolors
 
 #+BEGIN_SRC shell
-eval $(dircolors)
+  if [ "$TERM" != dumb ]; then
+    eval "$(dircolors)"
+  fi
 #+END_SRC
 
 Then setup aliases.
