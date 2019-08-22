@@ -3538,8 +3538,8 @@ Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
 (setq exec-path
-      (append `("@bins@/bin"
-                ,(expand-file-name "bin" output-directory))
+      (append `(,(expand-file-name "bin" output-directory)
+                "@bins@/bin")
               (split-string "@PATH@" ":")
               exec-path))
 #+END_SRC
@@ -3549,8 +3549,8 @@ Setup =man-path=.
 #+BEGIN_SRC emacs-lisp
   (defvar man-path (append
                     `(""
-                      "@manpages@/share/man"
-                      ,(expand-file-name "share/man" output-directory))
+                      ,(expand-file-name "share/man" output-directory)
+                      "@manpages@/share/man")
                     (split-string "@MANPATH@" ":")))
 #+END_SRC
 
@@ -3592,13 +3592,13 @@ Set some more misc. vars.
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
-   `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
-                                     ,(expand-file-name "share"
-                                                        output-directory))
+   `("XDG_DATA_DIRS" ,(string-join `(,(expand-file-name "share"
+                                                        output-directory)
+                                     "@XDG_DATA_DIRS@")
                                    ":"))
-   `("INFOPATH" ,(string-join `("@INFOPATH@"
-                                ,(expand-file-name "share/info"
-                                                   output-directory))
+   `("INFOPATH" ,(string-join `(,(expand-file-name "share/info"
+                                                   output-directory)
+                                "@INFOPATH@")
                               ":")))
 #+END_SRC
 
