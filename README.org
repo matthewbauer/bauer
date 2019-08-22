@@ -3539,8 +3539,8 @@ Setup =exec-path=.
 #+BEGIN_SRC emacs-lisp
 (setq exec-path
       (append `("@bins@/bin"
-                ,(expand-file-name "bin" output-directory)
-                "@PATH@")
+                ,(expand-file-name "bin" output-directory))
+              (split-string "@PATH@" ":")
               exec-path))
 #+END_SRC
 
