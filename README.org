@@ -3252,16 +3252,18 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
+  PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
+  INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
+  MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
+  XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+
+  HISTFILE=$HOME/.history
+  SAVEHIST=50000
+  HISTSIZE=50000
+
   export NIX_PATH=nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
-         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH \
-         INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH \
-         MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH \
-         XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS \
          CVS_RSH=ssh \
-         HISTFILE=$HOME/.history \
-         SAVEHIST=50000 \
-         HISTSIZE=50000 \
          EDITOR=emacs
 #+END_SRC
 
