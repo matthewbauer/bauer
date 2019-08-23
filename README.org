@@ -3271,7 +3271,7 @@ just in case.
 Dircolors
 
 #+BEGIN_SRC shell
-  if [ "$TERM" != dumb ]; then
+  if [ "$TERM" != dumb ] && [ -n "$SHELL" ]; then
     eval "$(dircolors)"
   fi
 #+END_SRC
