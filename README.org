@@ -18,6 +18,7 @@
 #+html_head: <link rel="stylesheet" href="https://matthewbauer.us/style.css" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 #+link_home: https://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
+#+version: 1.4.1
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -192,162 +193,158 @@ The format of arguments to =set-defaults= is identical to the one used by
 =custom-set-variables=.
 
 #+NAME: defaults
-| Default Variable                              | Default Value                                      |
-|-----------------------------------------------+----------------------------------------------------|
-| TeX-auto-save                                 | t                                                  |
-| TeX-auto-untabify                             | t                                                  |
-| TeX-electric-escape                           | t                                                  |
-| TeX-parse-self                                | t                                                  |
-| ad-redefinition-action                        | 'accept                                            |
-| apropos-do-all                                | t                                                  |
-| async-shell-command-buffer                    | 'new-buffer                                        |
-| auth-source-save-behavior                     | t                                                  |
-| auto-revert-check-vc-info                     | t                                                  |
-| auto-revert-verbose                           | nil                                                |
-| backward-delete-char-untabify-method          | 'hungry                                            |
-| checkdoc-spellcheck-documentation-flag        | t                                                  |
-| comint-input-ignoredups                       | t                                                  |
-| comint-input-ring-size                        | 100000                                             |
-| comint-process-echoes                         | t                                                  |
-| comint-prompt-read-only                       | t                                                  |
-| comint-scroll-to-bottom-on-input              | 'this                                              |
-| company-require-match                         | nil                                                |
-| company-selection-wrap-around                 | t                                                  |
-| compilation-always-kill                       | t                                                  |
-| compilation-ask-about-save                    | nil                                                |
-| compilation-skip-threshold                    | 2                                                  |
-| completions-cycle-threshold                   | t                                                  |
-| completions-format                            | 'vertical                                          |
-| cursor-in-non-selected-windows                | nil                                                |
-| custom-safe-themes                            | t                                                  |
-| custom-search-field                           | nil                                                |
-| delete-by-moving-to-trash                     | t                                                  |
-| delete-old-versions                           | t                                                  |
-| dired-hide-details-hide-symlink-targets       | nil                                                |
-| dired-omit-verbose                            | nil                                                |
-| dired-recursive-copies                        | 'top                                               |
-| dired-recursive-deletes                       | 'top                                               |
-| dtrt-indent-verbosity                         | 0                                                  |
-| eshell-bad-command-tolerance                  | 1                                                  |
-| eshell-cmpl-autolist                          | t                                                  |
-| eshell-cmpl-cycle-completions                 | nil                                                |
-| eshell-cmpl-cycle-cutoff-length               | 2                                                  |
-| eshell-cmpl-ignore-case                       | t                                                  |
-| eshell-cp-overwrite-files                     | nil                                                |
-| eshell-default-target-is-dot                  | t                                                  |
-| eshell-destroy-buffer-when-process-dies       | t                                                  |
-| eshell-hist-ignoredups                        | t                                                  |
-| eshell-list-files-after-cd                    | t                                                  |
-| eshell-review-quick-commands                  | t                                                  |
-| eshell-save-history-on-exit                   | t                                                  |
-| eshell-scroll-show-maximum-output             | nil                                                |
-| eshell-stringify                              | nil                                                |
-| eshell-visual-options                         | nil                                                |
-| eval-expression-print-level                   | nil                                                |
-| flycheck-display-errors-function              | 'flycheck-display-error-messages-unless-error-list |
-| flycheck-emacs-lisp-load-path                 | 'inherit                                           |
-| flycheck-standard-error-navigation            | nil                                                |
-| flymake-no-changes-timeout                    | nil                                                |
-| flymake-start-syntax-check-on-newline         | nil                                                |
-| flyspell-highlight-properties                 | nil                                                |
-| flyspell-issue-welcome-flag                   | nil                                                |
-| fortune-always-compile                        | nil                                                |
-| haskell-process-auto-import-loaded-modules    | nil                                                |
-| haskell-process-check-cabal-config-on-load    | nil                                                |
-| haskell-process-suggest-haskell-docs-imports  | nil                                                |
-| haskell-process-suggest-hoogle-imports        | nil                                                |
-| haskell-process-suggest-remove-import-lines   | nil                                                |
-| haskell-process-suggest-restart               | nil                                                |
-| haskell-tags-on-save                          | t                                                  |
-| help-window-select                            | t                                                  |
-| history-delete-duplicates                     | t                                                  |
-| ibuffer-default-display-maybe-show-predicates | t                                                  |
-| ibuffer-expert                                | t                                                  |
-| ibuffer-show-empty-filter-groups              | nil                                                |
-| ibuffer-shrink-to-minimum-size                | t                                                  |
-| ibuffer-use-other-window                      | t                                                  |
-| imenu-auto-rescan                             | t                                                  |
-| indicate-empty-lines                          | t                                                  |
-| ispell-quietly                                | t                                                  |
-| ispell-silently-savep                         | t                                                  |
-| js2-mode-show-parse-errors                    | nil                                                |
-| js2-mode-show-strict-warnings                 | nil                                                |
-| js2-strict-missing-semi-warning               | nil                                                |
-| kill-do-not-save-duplicates                   | t                                                  |
-| kill-whole-line                               | t                                                  |
-| load-prefer-newer                             | t                                                  |
-| mac-allow-anti-aliasing                       | t                                                  |
-| mac-command-key-is-meta                       | t                                                  |
-| mac-command-modifier                          | 'meta                                              |
-| mac-option-key-is-meta                        | nil                                                |
-| mac-option-modifier                           | 'super                                             |
-| mac-right-option-modifier                     | nil                                                |
-| magit-clone-set-remote\.                      | 'pushDefault                                       |
-| magit-log-auto-more                           | t                                                  |
-| magit-no-confirm                              | t                                                  |
-| magit-process-popup-time                      | 15                                                 |
-| magit-remote-add-set-remote\.                 | 'pushDefault                                       |
-| magit-save-repository-buffers                 | 'dontask                                           |
-| mmm-global-mode                               | 'buffers-with-submode-classes                      |
-| mmm-submode-decoration-level                  | 2                                                  |
-| mode-line-default-help-echo                   | nil                                                |
-| next-error-recenter                           | t                                                  |
-| ns-function-modifier                          | 'hyper                                             |
-| ns-pop-up-frames                              | nil                                                |
-| nsm-save-host-names                           | t                                                  |
-| nxml-sexp-element-flag                        | t                                                  |
-| nxml-slash-auto-complete-flag                 | t                                                  |
-| org-confirm-babel-evaluate                    | nil                                                |
-| org-export-with-toc                           | nil                                                |
-| org-html-htmlize-output-type                  | 'css                                               |
-| org-log-done                                  | 'time                                              |
-| org-special-ctrl-a/e                          | t                                                  |
-| org-support-shift-select                      | t                                                  |
-| projectile-ignored-project-function           | 'file-remote-p                                     |
-| projectile-require-project-root               | t                                                  |
-| projectile-switch-project-action              | 'projectile-dired                                  |
-| projectile-verbose                            | nil                                                |
-| proof-auto-action-when-deactivating-scripting | 'retract                                           |
-| proof-autosend-enable                         | nil                                                |
-| proof-electric-terminator-enable              | t                                                  |
-| proof-fast-process-buffer                     | nil                                                |
-| proof-script-fly-past-comments                | t                                                  |
-| proof-shell-fiddle-frames                     | nil                                                |
-| proof-splash-enable                           | nil                                                |
-| proof-sticky-errors                           | t                                                  |
-| proof-tidy-response                           | t                                                  |
-| resize-mini-windows                           | t                                                  |
-| ring-bell-function                            | 'ignore                                            |
-| ruby-insert-encoding-magic-comment            | nil                                                |
-| save-abbrevs                                  | 'silently                                          |
-| save-interprogram-paste-before-kill           | t                                                  |
-| scroll-conservatively                         | 101                                                |
-| scroll-preserve-screen-position               | 'always                                            |
-| sentence-end-double-space                     | nil                                                |
-| set-mark-command-repeat-pop                   | t                                                  |
-| sh-learn-basic-offset                         | t                                                  |
-| shell-completion-execonly                     | nil                                                |
-| shell-input-autoexpand                        | nil                                                |
-| sp-autoskip-closing-pair                      | 'always                                            |
-| sp-highlight-pair-overlay                     | nil                                                |
-| tab-always-indent                             | 'complete                                          |
-| tags-add-tables                               | t                                                  |
-| tags-revert-without-query                     | t                                                  |
-| term-input-autoexpand                         | t                                                  |
-| term-input-ignoredups                         | t                                                  |
-| text-quoting-style                            | 'quote                                             |
-| tls-checktrust                                | t                                                  |
-| uniquify-buffer-name-style                    | 'forward                                           |
-| use-package-always-defer                      | t                                                  |
-| vc-allow-async-revert                         | t                                                  |
-| vc-command-messages                           | t                                                  |
-| vc-follow-symlinks                            | nil                                                |
-| vc-make-backup-files                          | t                                                  |
-| version-control                               | t                                                  |
-| view-read-only                                | t                                                  |
-| whitespace-line-column                        | 120                                                |
-| woman-imenu                                   | t                                                  |
-| x-stretch-cursor                              | t                                                  |
+| Default Variable                              | Default Value     |
+|-----------------------------------------------+-------------------|
+| TeX-auto-save                                 | t                 |
+| TeX-auto-untabify                             | t                 |
+| TeX-electric-escape                           | t                 |
+| TeX-parse-self                                | t                 |
+| ad-redefinition-action                        | 'accept           |
+| apropos-do-all                                | t                 |
+| async-shell-command-buffer                    | 'new-buffer       |
+| auth-source-save-behavior                     | t                 |
+| auto-revert-check-vc-info                     | t                 |
+| auto-revert-verbose                           | nil               |
+| backward-delete-char-untabify-method          | 'hungry           |
+| checkdoc-spellcheck-documentation-flag        | t                 |
+| comint-input-ignoredups                       | t                 |
+| comint-process-echoes                         | t                 |
+| comint-prompt-read-only                       | t                 |
+| comint-scroll-to-bottom-on-input              | 'this             |
+| company-require-match                         | nil               |
+| company-selection-wrap-around                 | t                 |
+| compilation-always-kill                       | t                 |
+| compilation-ask-about-save                    | nil               |
+| compilation-skip-threshold                    | 2                 |
+| completions-cycle-threshold                   | t                 |
+| completions-format                            | 'vertical         |
+| cursor-in-non-selected-windows                | nil               |
+| custom-safe-themes                            | t                 |
+| custom-search-field                           | nil               |
+| delete-by-moving-to-trash                     | t                 |
+| delete-old-versions                           | t                 |
+| dired-hide-details-hide-symlink-targets       | nil               |
+| dired-omit-verbose                            | nil               |
+| dired-recursive-copies                        | 'top              |
+| dired-recursive-deletes                       | 'top              |
+| dtrt-indent-verbosity                         | 0                 |
+| eshell-bad-command-tolerance                  | 1                 |
+| eshell-cmpl-autolist                          | t                 |
+| eshell-cmpl-cycle-completions                 | nil               |
+| eshell-cmpl-cycle-cutoff-length               | 2                 |
+| eshell-cmpl-ignore-case                       | t                 |
+| eshell-cp-overwrite-files                     | nil               |
+| eshell-default-target-is-dot                  | t                 |
+| eshell-destroy-buffer-when-process-dies       | t                 |
+| eshell-hist-ignoredups                        | t                 |
+| eshell-list-files-after-cd                    | t                 |
+| eshell-review-quick-commands                  | t                 |
+| eshell-save-history-on-exit                   | t                 |
+| eshell-scroll-show-maximum-output             | nil               |
+| eshell-stringify                              | nil               |
+| eshell-visual-options                         | nil               |
+| eval-expression-print-level                   | nil               |
+| flycheck-emacs-lisp-load-path                 | 'inherit          |
+| flycheck-standard-error-navigation            | nil               |
+| flymake-no-changes-timeout                    | nil               |
+| flymake-start-syntax-check-on-newline         | nil               |
+| flyspell-highlight-properties                 | nil               |
+| flyspell-issue-welcome-flag                   | nil               |
+| fortune-always-compile                        | nil               |
+| haskell-process-auto-import-loaded-modules    | nil               |
+| haskell-process-check-cabal-config-on-load    | nil               |
+| haskell-process-suggest-haskell-docs-imports  | nil               |
+| haskell-process-suggest-hoogle-imports        | nil               |
+| haskell-process-suggest-remove-import-lines   | nil               |
+| haskell-process-suggest-restart               | nil               |
+| haskell-tags-on-save                          | t                 |
+| help-window-select                            | t                 |
+| history-delete-duplicates                     | t                 |
+| ibuffer-default-display-maybe-show-predicates | t                 |
+| ibuffer-expert                                | t                 |
+| ibuffer-show-empty-filter-groups              | nil               |
+| ibuffer-shrink-to-minimum-size                | t                 |
+| ibuffer-use-other-window                      | t                 |
+| imenu-auto-rescan                             | t                 |
+| indicate-empty-lines                          | t                 |
+| ispell-quietly                                | t                 |
+| ispell-silently-savep                         | t                 |
+| js2-mode-show-parse-errors                    | nil               |
+| js2-mode-show-strict-warnings                 | nil               |
+| js2-strict-missing-semi-warning               | nil               |
+| kill-do-not-save-duplicates                   | t                 |
+| kill-whole-line                               | t                 |
+| load-prefer-newer                             | t                 |
+| mac-allow-anti-aliasing                       | t                 |
+| mac-command-key-is-meta                       | t                 |
+| mac-command-modifier                          | 'meta             |
+| mac-option-key-is-meta                        | nil               |
+| mac-option-modifier                           | 'super            |
+| mac-right-option-modifier                     | nil               |
+| magit-clone-set-remote.pushDefault            | t                 |
+| magit-log-auto-more                           | t                 |
+| magit-no-confirm                              | t                 |
+| magit-remote-add-set-remote.pushDefault       | t                 |
+| magit-save-repository-buffers                 | 'dontask          |
+| mmm-submode-decoration-level                  | 2                 |
+| mode-line-default-help-echo                   | nil               |
+| next-error-recenter                           | t                 |
+| ns-function-modifier                          | 'hyper            |
+| ns-pop-up-frames                              | nil               |
+| nsm-save-host-names                           | t                 |
+| nxml-sexp-element-flag                        | t                 |
+| nxml-slash-auto-complete-flag                 | t                 |
+| org-confirm-babel-evaluate                    | nil               |
+| org-export-with-toc                           | nil               |
+| org-html-htmlize-output-type                  | 'css              |
+| org-log-done                                  | 'time             |
+| org-special-ctrl-a/e                          | t                 |
+| org-support-shift-select                      | t                 |
+| projectile-ignored-project-function           | 'file-remote-p    |
+| projectile-require-project-root               | t                 |
+| projectile-switch-project-action              | 'projectile-dired |
+| projectile-verbose                            | nil               |
+| proof-auto-action-when-deactivating-scripting | 'retract          |
+| proof-autosend-enable                         | nil               |
+| proof-electric-terminator-enable              | t                 |
+| proof-fast-process-buffer                     | nil               |
+| proof-script-fly-past-comments                | t                 |
+| proof-shell-fiddle-frames                     | nil               |
+| proof-splash-enable                           | nil               |
+| proof-sticky-errors                           | t                 |
+| proof-tidy-response                           | t                 |
+| resize-mini-windows                           | t                 |
+| ring-bell-function                            | 'ignore           |
+| ruby-insert-encoding-magic-comment            | nil               |
+| save-abbrevs                                  | 'silently         |
+| save-interprogram-paste-before-kill           | t                 |
+| scroll-conservatively                         | 101               |
+| scroll-preserve-screen-position               | 'always           |
+| sentence-end-double-space                     | nil               |
+| set-mark-command-repeat-pop                   | t                 |
+| sh-learn-basic-offset                         | t                 |
+| shell-completion-execonly                     | nil               |
+| shell-input-autoexpand                        | nil               |
+| sp-autoskip-closing-pair                      | 'always           |
+| sp-highlight-pair-overlay                     | nil               |
+| tab-always-indent                             | 'complete         |
+| tags-add-tables                               | t                 |
+| tags-revert-without-query                     | t                 |
+| term-input-autoexpand                         | t                 |
+| term-input-ignoredups                         | t                 |
+| text-quoting-style                            | 'quote            |
+| tls-checktrust                                | t                 |
+| uniquify-buffer-name-style                    | 'forward          |
+| use-package-always-defer                      | t                 |
+| vc-allow-async-revert                         | t                 |
+| vc-command-messages                           | t                 |
+| vc-follow-symlinks                            | nil               |
+| vc-make-backup-files                          | t                 |
+| version-control                               | t                 |
+| view-read-only                                | t                 |
+| whitespace-line-column                        | 120               |
+| woman-imenu                                   | t                 |
+| x-stretch-cursor                              | t                 |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -364,9 +361,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(bug-reference-bug-regexp
      (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
              "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
-   '(backup-directory-alist `(("." .
-                               ,(expand-file-name "backup"
-                                                  user-emacs-directory))))
    '(company-auto-complete (lambda ()
                              (and (company-tooltip-visible-p)
                                   (company-explicit-action-p))))
@@ -432,11 +426,11 @@ Misc. defaults that don’t fit above. TODO: move these above.
                (if (= (user-uid) 0) " # " " $ "))))
    '(eshell-visual-commands
      '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-       "trn" "elm" "ssh" "mutt" "tmux" "htop" "fish"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim" "zsh"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
        "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
        "telnet" "rlogin"))
-   '(eshell-visual-subcommands '(("nix" "build" "repl") ("vagrant" "ssh")))
+   '(eshell-visual-subcommands '(("vagrant" "ssh")))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
    '(flycheck-global-modes '(not erc-mode
@@ -689,6 +683,72 @@ used as key bindings.
   (require 'files)
 #+END_SRC
 
+Define some helper functions.
+
+#+BEGIN_SRC emacs-lisp
+  (defun web-search (start end)
+    (interactive "r")
+    (let ((q (buffer-substring-no-properties start end)))
+      (browse-url (concat "http://www.google.com/search?btnI&q="
+        (url-hexify-string q)))))
+#+END_SRC
+
+Override browse-url to handle man protocol better.
+
+#+BEGIN_SRC emacs-lisp
+(defun my-browse-url (url &rest args)
+  "Ask a WWW browser to load URL.
+Prompt for a URL, defaulting to the URL at or before point.
+Invokes a suitable browser function which does the actual job.
+The variable `browse-url-browser-function' says which browser function to
+use.  If the URL is a mailto: URL, consult `browse-url-mailto-function'
+first, if that exists.
+
+The additional ARGS are passed to the browser function.  See the doc
+strings of the actual functions, starting with `browse-url-browser-function',
+for information about the significance of ARGS (most of the functions
+ignore it).
+If ARGS are omitted, the default is to pass `browse-url-new-window-flag'
+as ARGS."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (unless (called-interactively-p 'interactive)
+    (setq args (or args (list browse-url-new-window-flag))))
+  (when (and url-handler-mode
+             (not (file-name-absolute-p url))
+             (not (string-match "\\`[a-z]+:" url)))
+    (setq url (expand-file-name url)))
+  (let ((process-environment (copy-sequence process-environment))
+	(function (or (and (string-match "\\`mailto:" url)
+			   browse-url-mailto-function)
+                      (and (string-match "\\`man:" url)
+                           browse-url-man-function)
+		      browse-url-browser-function))
+	;; Ensure that `default-directory' exists and is readable (b#6077).
+	(default-directory (or (unhandled-file-name-directory default-directory)
+			       (expand-file-name "~/"))))
+    ;; When connected to various displays, be careful to use the display of
+    ;; the currently selected frame, rather than the original start display,
+    ;; which may not even exist any more.
+    (if (stringp (frame-parameter nil 'display))
+        (setenv "DISPLAY" (frame-parameter nil 'display)))
+    (if (and (consp function)
+	     (not (functionp function)))
+	;; The `function' can be an alist; look down it for first match
+	;; and apply the function (which might be a lambda).
+	(catch 'done
+	  (dolist (bf function)
+	    (when (string-match (car bf) url)
+	      (apply (cdr bf) url args)
+	      (throw 'done t)))
+	  (error "No browse-url-browser-function matching URL %s"
+		 url))
+      ;; Unbound symbols go down this leg, since void-function from
+      ;; apply is clearer than wrong-type-argument from dolist.
+      (apply function url args))))
+
+(advice-add 'browse-url :override 'my-browse-url)
+#+END_SRC
+
 Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]]. Some
@@ -857,12 +917,6 @@ Add special quotes and arrows to ctrl x 8 keymap.
 Bind help map keys.
 
 #+BEGIN_SRC emacs-lisp
-  (defun web-search (start end)
-    (interactive "r")
-    (let ((q (buffer-substring-no-properties start end)))
-      (browse-url (concat "http://www.google.com/search?btnI&q="
-        (url-hexify-string q)))))
-
   (bind-keys
     :map help-map
     ("C-r" . woman)
@@ -1859,6 +1913,11 @@ Base mode used for shell and terminal modes.
                                              (setq count (1+ count))))))
                                      (setq comint-input-ring ring
                                            comint-input-ring-index nil)))))))
+
+(use-package comint-hyperlink
+  :ensure nil
+  :commands (comint-hyperlink-process-output)
+  :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -1969,8 +2028,7 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package dired-x
     :ensure nil
-    :hook ((dired-mode . dired-omit-mode)
-           (dired-mode . dired-hide-details-mode))
+    :hook ((dired-mode . dired-omit-mode))
     :bind (("s-\\" . dired-jump-other-window)
            :package dired
            :map dired-mode-map
@@ -2821,6 +2879,7 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package scala-mode
+    :mode "\\.scala\\'"
     :interpreter ("scala" . scala-mode))
 #+END_SRC
 
@@ -2945,6 +3004,13 @@ Most of these are available in MELPA.
            ([shift return] . crux-smart-open-line)))
 #+END_SRC
 
+**** daemons
+
+https://github.com/cbowdon/daemons.el
+
+#+BEGIN_SRC emacs-lisp
+  (use-package daemons)
+#+END_SRC
 **** delight
 
 
@@ -3160,14 +3226,14 @@ scripts as well.
 
 ** =.profile=
 :PROPERTIES:
-:header-args: :tangle profile.sh :tangle-mode (identity #o755)
+:header-args: :tangle profile.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 To use this, you must create a short ~/.profile file. Here is an example,
 
-#+BEGIN_SRC shell :tangle no
+#+BEGIN_SRC shell :tangle no :padline no
 bootstrap=$HOME/.nix-profile/etc/profile
-[ -f $bootstrap ] && source $bootstrap
+[ -f $bootstrap ] && . $bootstrap
 #+END_SRC
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
@@ -3178,40 +3244,67 @@ well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
 store the bash or zsh history. We set the history size to 10000 for good
 measure. EDITOR should point to this editor.
 
-#+BEGIN_SRC shell :padline no
-export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels"
-export NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile"
-#+END_SRC
-
 Here we setup =.profile=. First, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
-#+BEGIN_SRC shell :padline no
-  export NIX_PATH="nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs::nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels" \
+#+BEGIN_SRC shell
+  PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
+  INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
+  MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
+  XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+
+  HISTFILE=$HOME/.history
+  HISTSIZE=50000
+  export SAVEHIST=50000
+
+  export NIX_PATH=nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels \
          NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
-         PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@
-         INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@ \
-         MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@ \
-         XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@ \
          CVS_RSH=ssh \
-         HISTFILE=$HOME/.history \
-         SAVEHIST=50000 \
-         HISTSIZE=50000 \
          EDITOR=emacs
+#+END_SRC
+
+Dircolors
+
+#+BEGIN_SRC shell
+  if [ "$TERM" != dumb ] && [ -n "$SHELL" ]; then
+    eval "$(dircolors)"
+  fi
 #+END_SRC
 
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias ls="TERM=ansi ls --color=always" \
-      l="ls -lF" \
-      ..="cd .." \
+alias ..="cd .." \
       ...="cd ../.." \
       ....="cd ../../.." \
       .....="cd ../../../.." \
-      tree='tree -Csuh' \
-      grep="grep --color=auto"
+      rm='rm -I --preserve-root' \
+      mv='mv -i' \
+      cp='cp -i' \
+      ln='ln -i' \
+      chown='chown --preserve-root' \
+      chmod='chmod --preserve-root' \
+      chgrp='chgrp --preserve-root' \
+      curl='curl -L'
+
+if [ "$TERM" != "dumb" ]; then
+    if [ "$TERM" != eterm-color ]; then
+        alias l="ls -lF --hyperlink=auto --color=auto" \
+              ls="ls --hyperlink=auto --color=auto"
+    else
+        alias l="ls -lF --color=auto" \
+              ls="ls --color=auto"
+    fi
+    alias grep='grep -n --color=auto' \
+          egrep='grep -E -n --color=auto' \
+          diff='diff --color=auto' \
+          less='less -R'
+else
+    alias l="ls -lF" \
+          grep='grep -n' \
+          egrep='grep -E -n'
+fi
 #+END_SRC
 
 Configure INSIDE_EMACS.
@@ -3226,15 +3319,16 @@ fi
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
-if [ -f $HOME/.profile ] && [ -z "$SHELL_SOURCED_PROFILE" ]; then
-  SHELL_SOURCED_PROFILE=1
-  source $HOME/.profile
+if [ -f "$HOME/.profile" ] && [ -z "$__BAUER_SOURCED_PROFILE" ]; then
+  __BAUER_SOURCED_PROFILE=1
+  # shellcheck source=/dev/null
+  . "$HOME/.profile"
 fi
 #+END_SRC
 
 ** =.zshrc=
 :PROPERTIES:
-:header-args: :tangle zshrc.sh :tangle-mode (identity #o755)
+:header-args: :tangle zshrc.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env bash"
 :CUSTOM_ID: zshrc
 :END:
 
@@ -3242,8 +3336,9 @@ This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based 
 
 Setup ZSH profile. First, we just source the global profile.
 
-#+BEGIN_SRC shell :padline no
-source @out@/etc/profile
+#+BEGIN_SRC shell
+# shellcheck source=/dev/null
+. @out@/etc/profile
 #+END_SRC
 
 Handle dumb options.
@@ -3265,10 +3360,14 @@ case "$TERM" in
 esac
 #+END_SRC
 
-Load up site-functions in ZSH.
+Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
 
 #+BEGIN_SRC shell
-fpath+=@completions@/share/zsh/site-functions
+# shellcheck disable=SC2154
+for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
+  fpath+=$dir/zsh/site-functions
+  fpath+=$dir/zsh/vendor-completions
+done
 #+END_SRC
 
 Turn on ZSH-specific options.
@@ -3341,7 +3440,9 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+export PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+
+unset RPS1
 #+END_SRC
 
 Update eterm cwds.
@@ -3376,13 +3477,13 @@ fi
 
 ** =etc-profile.sh=
 :PROPERTIES:
-:header-args: :tangle etc-profile.sh :tangle-mode (identity #o755)
+:header-args: :tangle etc-profile.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
 :END:
 
 This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
 used to reference the Nix output dir.
 
-#+BEGIN_SRC shell :padline no
+#+BEGIN_SRC shell
 export PREFIX=@out@
 #+END_SRC
 
@@ -3392,9 +3493,10 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-for i in $HOME/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
-  if [ -r $i ] && [ "$(@coreutils@/bin/basename $i)" != nix-daemon.sh ]; then
-    source $i
+for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
+  if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
+    # shellcheck source=/dev/null
+    . "$i"
   fi
 done
 #+END_SRC
@@ -3433,9 +3535,9 @@ Setup =exec-path=.
 
 #+BEGIN_SRC emacs-lisp
 (setq exec-path
-      (append `("@bins@/bin"
-                ,(expand-file-name "bin" output-directory)
-                "@PATH@")
+      (append `(,(expand-file-name "bin" output-directory)
+                "@bins@/bin")
+              (split-string "@PATH@" ":")
               exec-path))
 #+END_SRC
 
@@ -3444,8 +3546,8 @@ Setup =man-path=.
 #+BEGIN_SRC emacs-lisp
   (defvar man-path (append
                     `(""
-                      "@manpages@/share/man"
-                      ,(expand-file-name "share/man" output-directory))
+                      ,(expand-file-name "share/man" output-directory)
+                      "@manpages@/share/man")
                     (split-string "@MANPATH@" ":")))
 #+END_SRC
 
@@ -3487,13 +3589,13 @@ Set some more misc. vars.
    `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
   (set-envs
-   `("XDG_DATA_DIRS" ,(string-join `("@XDG_DATA_DIRS@"
-                                     ,(expand-file-name "share"
-                                                        output-directory))
+   `("XDG_DATA_DIRS" ,(string-join `(,(expand-file-name "share"
+                                                        output-directory)
+                                     "@XDG_DATA_DIRS@")
                                    ":"))
-   `("INFOPATH" ,(string-join `("@INFOPATH@"
-                                ,(expand-file-name "share/info"
-                                                   output-directory))
+   `("INFOPATH" ,(string-join `(,(expand-file-name "share/info"
+                                                   output-directory)
+                                "@INFOPATH@")
                               ":")))
 #+END_SRC
 
@@ -3824,15 +3926,18 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
+    [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 #+END_SRC
 
 Check for Git. Install if it’s not there.
 
 #+BEGIN_SRC shell
-if ! command -v git >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.git
+if ! command -v git >/dev/null 2>&1 || \
+   { [ "$(uname)" = Darwin ] && \
+     [ "$(command -v git)" = /usr/bin/git ] &&
+     xcode-select -p 1>/dev/null; }; then
+    nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 #+END_SRC
 
@@ -3867,11 +3972,11 @@ Source the profile.
 
 #+BEGIN_SRC shell
 if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
-    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+    echo '[ -f $HOME/.nix-profile/etc/profile ] && source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
 fi
 
 if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
-    echo 'source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+    echo '[ -f $HOME/.nix-profile/etc/zshrc ] && source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
 fi
 
 source $HOME/.nix-profile/etc/profile
@@ -4204,6 +4309,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
+  install -D ${ensure ./site-lisp/comint-hyperlink.el
+                      "site-lisp/comint-hyperlink.el"} \
+          $out/share/emacs/site-lisp/comint-hyperlink.el
 #+END_SRC
 
 This is fairly complicated. What happens is we batch compile all of the .el
@@ -4409,7 +4517,7 @@ Next, ZSH completions are built. These all reside in the
   zsh-completions = buildEnv {
     name = "zsh-completions";
     paths = [ pkgs.zsh-completions pkgs.nix-zsh-completions ] ++ userPackages;
-    pathsToLink = [ "/share/zsh/site-functions" ];
+    pathsToLink = [ "/share/zsh" ];
   };
 #+END_SRC
 
@@ -4538,7 +4646,7 @@ have been configured to use the paths above.
 
 #+BEGIN_SRC nix
 in buildEnv {
-  name = "bauer";
+  name = "bauer-1.4.1";
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
@@ -4555,6 +4663,8 @@ in buildEnv {
     chmod +x $out/bin/run
     patchShebangs $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
+
+    ${pkgs.shellcheck}/bin/shellcheck $out/etc/profile $out/etc/zshrc $out/bin/run
   '';
   pathsToLink = [
     "/bin"
@@ -4590,6 +4700,8 @@ in buildEnv {
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
         --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+
+      ${pkgs.shellcheck}/bin/shellcheck -x $out/etc/profile.d/my-profile.sh
     '')
     pkgs.git
   ];
@@ -5046,8 +5158,6 @@ done
 
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
-** Version
-This is version 1.2.1.
 * COMMENT Footer
 # Local Variables:
 # mode: org
