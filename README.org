@@ -3567,12 +3567,14 @@ otherwise zsh will default to 500 and not save at all!
     :set 'bauer-set-history-file)
 
   (defvar eshell-history-size)
+  (defvar comint-input-ring-size)
 
   (defun bauer-set-history-size (sym val)
     "Setter for history-size."
     (setenv "HISTSIZE" (format "%i" val))
     (setenv "SAVEHIST" (format "%i" val))
-    (setq eshell-history-size val)
+    (setq eshell-history-size val
+          comint-input-ring-size val)
     (custom-set-default sym val))
 
   (defcustom history-size 50000
