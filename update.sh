@@ -2,4 +2,6 @@
 emacs --batch \
       -l ob-tangle \
       --eval "(org-babel-tangle-file \"README.org\")"
-emacs README.org --batch -f org-html-export-to-html
+emacs README.org --batch \
+  --eval "(setq org-html-htmlize-output-type 'css)" \
+  -f org-html-export-to-html

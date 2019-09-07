@@ -10,7 +10,10 @@ if ! command -v nix-env >/dev/null 2>&1; then
     [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 
-if ! command -v git >/dev/null 2>&1; then
+if ! command -v git >/dev/null 2>&1 || \
+   { [ "$(uname)" = Darwin ] && \
+     [ "$(command -v git)" = /usr/bin/git ] &&
+     xcode-select -p 1>/dev/null; }; then
     nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 
