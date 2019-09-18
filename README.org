@@ -2735,6 +2735,28 @@ macho-mode to toggle then M-x hexl-mode.
            ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
+**** OCaml
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tuareg
+    :mode (("\\.mli?\\'" . tuareg-mode))
+    :config
+;; Use Merlin if available
+(when (require 'merlin nil t)
+  (setq merlin-command 'opam)
+
+  (when (functionp 'merlin-document)
+    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+
+  ;; Run Merlin if a .merlin file in the parent dirs is detected
+  (add-hook 'tuareg-mode-hook
+            (lambda()
+              (let ((fn (buffer-file-name)))
+                (if (and fn (locate-dominating-file fn ".merlin"))
+                    (merlin-mode)))))))
+#+END_SRC
+
+
 **** git-modes
 
 ***** gitattributes
