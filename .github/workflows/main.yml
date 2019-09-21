@@ -10,8 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Nix install
-      run: |
-        curl https://nixos.org/nix/install | sh
-        source $HOME/.nix-profile/etc/profile.d/nix.sh
+      run: curl https://nixos.org/nix/install | sh
     - name: Build
-      run: nix-build
+      run: |
+        source $HOME/.nix-profile/etc/profile.d/nix.sh
+        nix-build
