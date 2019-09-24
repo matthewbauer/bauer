@@ -1986,7 +1986,9 @@ Base mode used for shell and terminal modes.
     :ensure nil
     :demand
     :commands delete-save-mode
-    :config (desktop-save-mode t))
+    :config
+      (setq desktop-dirname user-emacs-directory)
+      (desktop-save-mode t))
 #+END_SRC
 
 **** dired
