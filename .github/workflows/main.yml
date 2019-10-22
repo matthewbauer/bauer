@@ -1,0 +1,17 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Nix install
+      run: curl https://nixos.org/nix/install | sh
+    - name: Build
+      run: |
+        source $HOME/.nix-profile/etc/profile.d/nix.sh
+        nix-build

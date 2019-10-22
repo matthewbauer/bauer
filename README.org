@@ -18,7 +18,7 @@
 #+html_head: <link rel="stylesheet" href="https://matthewbauer.us/style.css" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 #+link_home: https://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
-#+version: 1.4.1
+#+version: 1.4.2
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -253,8 +253,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 | fortune-always-compile                        | nil               |
 | haskell-process-auto-import-loaded-modules    | nil               |
 | haskell-process-check-cabal-config-on-load    | nil               |
+| haskell-process-suggest-add-package           | nil               |
 | haskell-process-suggest-haskell-docs-imports  | nil               |
 | haskell-process-suggest-hoogle-imports        | nil               |
+| haskell-process-suggest-language-pragmas      | nil               |
+| haskell-process-suggest-no-warn-orphans       | nil               |
+| haskell-process-suggest-overloaded-strings    | nil               |
 | haskell-process-suggest-remove-import-lines   | nil               |
 | haskell-process-suggest-restart               | nil               |
 | haskell-tags-on-save                          | t                 |
@@ -538,6 +542,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
        (".*" "\\`root\\'" "/ssh:%h:")))
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
+   '(undo-tree-mode-lighter "")
    '(vc-git-diff-switches '("-w" "-U3"))
    '(vc-ignore-dir-regexp
      (concat "\\(\\(\\`"
@@ -838,6 +843,13 @@ better navigations.
 Some bauer-specific custom keybindings.
 
 #+BEGIN_SRC emacs-lisp
+  (bind-keys
+    ([f12] . next-error)
+    ([f11] . previous-error)
+    ([shift f12] . previous-error)
+    ([mouse-9] . next-buffer)
+    ([mouse-8] . previous-buffer))
+
   (bind-keys
    ("C-c I"   . bauer-find-config)
    :prefix-map bauer-git
@@ -1829,6 +1841,15 @@ Provides links to bugs listed in sourvce code.
            (text-mode . bug-reference-mode)))
 #+END_SRC
 
+**** conf-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package conf-mode
+    :ensure nil
+    :mode (("/\\.merlin\\'" . conf-mode)
+           ("_oasis\\'" . conf-mode)
+           ("_tags\\'" . conf-mode)
+           ("_log\\'" . conf-mode)))
+#+END_SRC
 **** comint
 
 Base mode used for shell and terminal modes.
@@ -1958,6 +1979,19 @@ Base mode used for shell and terminal modes.
     :demand
     :commands delete-selection-mode
     :config (delete-selection-mode t))
+#+END_SRC
+
+**** desktop
+
+#+BEGIN_SRC emacs-lisp
+  (use-package desktop
+    :disabled
+    :ensure nil
+    :demand
+    :commands delete-save-mode
+    :config
+      (setq desktop-dirname user-emacs-directory)
+      (desktop-save-mode t))
 #+END_SRC
 
 **** dired
@@ -2206,6 +2240,13 @@ Make scripts executable automatically.
            (org-mode . hl-line-mode)
            (dired-mode . hl-line-mode)))
 #+END_SRC
+**** makefile-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package makefile-mode
+    :ensure nil
+    :mode (("\\(/\\|\\`\\)[Mm]akefile" . makefile-mode)))
+#+END_SRC
+
 **** paren
 
 #+BEGIN_SRC emacs-lisp
@@ -2455,6 +2496,15 @@ packages (for completion, syntax checking, etc.)
   (use-package irony-eldoc
     :hook (irony-mode . irony-eldoc))
 #+END_SRC
+
+**** CMake
+
+#+BEGIN_SRC emacs-lisp
+  (use-package cmake-mode
+    :mode (("\\.cmake\\'" . cmake-mode)
+           ("\\CMakeLists.txt$" . cmake-mode)))
+#+END_SRC
+
 
 **** CoffeeScript
 
@@ -2735,6 +2785,28 @@ macho-mode to toggle then M-x hexl-mode.
            ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
+**** OCaml
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tuareg
+    :mode (("\\.mli?\\'" . tuareg-mode))
+    :config
+;; Use Merlin if available
+(when (require 'merlin nil t)
+  (setq merlin-command 'opam)
+
+  (when (functionp 'merlin-document)
+    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+
+  ;; Run Merlin if a .merlin file in the parent dirs is detected
+  (add-hook 'tuareg-mode-hook
+            (lambda()
+              (let ((fn (buffer-file-name)))
+                (if (and fn (locate-dominating-file fn ".merlin"))
+                    (merlin-mode)))))))
+#+END_SRC
+
+
 **** git-modes
 
 ***** gitattributes
@@ -2826,7 +2898,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package proof-site
-    :disabled
     :ensure proofgeneral
     :demand
     :if (not needs-package-init))
@@ -3138,6 +3209,7 @@ https://github.com/cbowdon/daemons.el
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
+    :demand
     :commands global-undo-tree-mode
     :config (global-undo-tree-mode 1)
     ;; (global-set-key (kbd "C-z") 'undo)
@@ -3567,12 +3639,14 @@ otherwise zsh will default to 500 and not save at all!
     :set 'bauer-set-history-file)
 
   (defvar eshell-history-size)
+  (defvar comint-input-ring-size)
 
   (defun bauer-set-history-size (sym val)
     "Setter for history-size."
     (setenv "HISTSIZE" (format "%i" val))
     (setenv "SAVEHIST" (format "%i" val))
-    (setq eshell-history-size val)
+    (setq eshell-history-size val
+          comint-input-ring-size val)
     (custom-set-default sym val))
 
   (defcustom history-size 50000
@@ -4646,7 +4720,7 @@ have been configured to use the paths above.
 
 #+BEGIN_SRC nix
 in buildEnv {
-  name = "bauer-1.4.1";
+  name = "bauer-1.4.2";
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
@@ -4803,7 +4877,10 @@ files. It runs ORG mode tangler and then exports README.org to html.
 emacs --batch \
       -l ob-tangle \
       --eval "(org-babel-tangle-file \"README.org\")"
-emacs README.org --batch -f org-html-export-to-html
+emacs README.org --batch \
+  --eval "(setq org-html-htmlize-output-type 'css)" \
+  -l nix-mode \
+  -f org-html-export-to-html
 #+END_SRC
 ** =.gitignore=
 :PROPERTIES:
