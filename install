@@ -7,11 +7,14 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
+    [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 
-if ! command -v git >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.git
+if ! command -v git >/dev/null 2>&1 || \
+   { [ "$(uname)" = Darwin ] && \
+     [ "$(command -v git)" = /usr/bin/git ] &&
+     xcode-select -p 1>/dev/null; }; then
+    nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 
 if [ -d .git ]; then
@@ -29,11 +32,11 @@ fi
 nix-env -if .
 
 if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
-    echo 'source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+    echo '[ -f $HOME/.nix-profile/etc/profile ] && source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
 fi
 
 if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
-    echo 'source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+    echo '[ -f $HOME/.nix-profile/etc/zshrc ] && source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
 fi
 
 source $HOME/.nix-profile/etc/profile
