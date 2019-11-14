@@ -3347,7 +3347,11 @@ Dircolors
 
 #+BEGIN_SRC shell
   if [ "$TERM" != dumb ] && [ -n "$SHELL" ]; then
-    eval "$(dircolors)"
+    if [ "$TERM" = dumb-emacs-ansi ]; then
+      eval "$(TERM=ansi dircolors)"
+    else
+      eval "$(dircolors)"
+    fi
   fi
 #+END_SRC
 
