@@ -4747,8 +4747,6 @@ in buildEnv {
     chmod +x $out/bin/run
     patchShebangs $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
-
-    ${pkgs.shellcheck}/bin/shellcheck $out/etc/profile $out/etc/zshrc $out/bin/run
   '';
   pathsToLink = [
     "/bin"
@@ -4784,8 +4782,6 @@ in buildEnv {
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
         --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
-
-      ${pkgs.shellcheck}/bin/shellcheck -x $out/etc/profile.d/my-profile.sh
     '')
     pkgs.git
   ];
