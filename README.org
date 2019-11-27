@@ -127,8 +127,7 @@ this.
 
   (defvar file-name-handler-alist-backup
           file-name-handler-alist)
-  (setq gc-cons-threshold
-          most-positive-fixnum
+  (setq gc-cons-threshold most-positive-fixnum
         file-name-handler-alist nil)
   (add-hook 'after-init-hook
     (lambda ()
@@ -251,7 +250,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | flyspell-highlight-properties                 | nil               |
 | flyspell-issue-welcome-flag                   | nil               |
 | fortune-always-compile                        | nil               |
-| haskell-process-auto-import-loaded-modules    | nil               |
 | haskell-process-check-cabal-config-on-load    | nil               |
 | haskell-process-suggest-add-package           | nil               |
 | haskell-process-suggest-haskell-docs-imports  | nil               |
@@ -259,9 +257,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | haskell-process-suggest-language-pragmas      | nil               |
 | haskell-process-suggest-no-warn-orphans       | nil               |
 | haskell-process-suggest-overloaded-strings    | nil               |
-| haskell-process-suggest-remove-import-lines   | nil               |
 | haskell-process-suggest-restart               | nil               |
-| haskell-tags-on-save                          | t                 |
 | help-window-select                            | t                 |
 | history-delete-duplicates                     | t                 |
 | ibuffer-default-display-maybe-show-predicates | t                 |
@@ -1861,6 +1857,7 @@ Base mode used for shell and terminal modes.
 
   (use-package comint
     :ensure nil
+    :hook (comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
@@ -3575,6 +3572,7 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
+shopt -s nullglob
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
