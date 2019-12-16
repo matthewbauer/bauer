@@ -3521,7 +3521,32 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-export PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+PROMPT='%F{blue}'
+if [ -n "$SSH_CLIENT" ]; then
+    PROMPT+='ssh://%n@'
+    echo "$SSH_CLIENT" | read ip outport inport
+    if [ "$ip" != 127.0.0.1 ] && [ "$ip" != ::1 ] && \
+       command -v nslookup > /dev/null; then
+        host="$(nslookup "$ip" | sed 's/.*arpa.*name = \(.*\)/\1/' | sed 's/\.$//')"
+        if [ -n "$host" ]; then
+            PROMPT+="$host"
+        else
+            PROMPT+='%M'
+        fi
+    else
+        PROMPT+='%M'
+    fi
+    if [ "$inport" -ne 22 ]; then
+        PROMPT+=":$inport"
+    fi
+    PROMPT+=' '
+    unset host ip outport inport
+else
+    PROMPT+='%n@%M:'
+fi
+PROMPT+='%F{cyan}%~%F{yellow} $ '
+PROMPT+='%F{reset}'
+export PROMPT
 
 unset RPS1
 #+END_SRC
