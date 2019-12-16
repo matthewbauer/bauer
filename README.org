@@ -18,7 +18,7 @@
 #+html_head: <link rel="stylesheet" href="https://matthewbauer.us/style.css" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 #+link_home: https://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
-#+version: 1.4.2
+#+version: 1.4.4
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -127,8 +127,7 @@ this.
 
   (defvar file-name-handler-alist-backup
           file-name-handler-alist)
-  (setq gc-cons-threshold
-          most-positive-fixnum
+  (setq gc-cons-threshold most-positive-fixnum
         file-name-handler-alist nil)
   (add-hook 'after-init-hook
     (lambda ()
@@ -251,7 +250,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | flyspell-highlight-properties                 | nil               |
 | flyspell-issue-welcome-flag                   | nil               |
 | fortune-always-compile                        | nil               |
-| haskell-process-auto-import-loaded-modules    | nil               |
 | haskell-process-check-cabal-config-on-load    | nil               |
 | haskell-process-suggest-add-package           | nil               |
 | haskell-process-suggest-haskell-docs-imports  | nil               |
@@ -259,9 +257,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | haskell-process-suggest-language-pragmas      | nil               |
 | haskell-process-suggest-no-warn-orphans       | nil               |
 | haskell-process-suggest-overloaded-strings    | nil               |
-| haskell-process-suggest-remove-import-lines   | nil               |
 | haskell-process-suggest-restart               | nil               |
-| haskell-tags-on-save                          | t                 |
 | help-window-select                            | t                 |
 | history-delete-duplicates                     | t                 |
 | ibuffer-default-display-maybe-show-predicates | t                 |
@@ -1861,6 +1857,7 @@ Base mode used for shell and terminal modes.
 
   (use-package comint
     :ensure nil
+    :hook (comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
@@ -2525,7 +2522,8 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
-    :mode "\\.csv\\'")
+    :mode "\\.csv\\'"
+    :hook (csv-mode . (lambda () (toggle-truncate-lines -1))))
 #+END_SRC
 
 **** ELF
@@ -2665,7 +2663,8 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package nix-haskell-mode
     :ensure nil
-    :hook (haskell-mode . nix-haskell-mode))
+    ;; :hook (haskell-mode . nix-haskell-mode)
+    )
 #+END_SRC
 
 
@@ -3222,6 +3221,13 @@ https://github.com/cbowdon/daemons.el
 (use-package git-timemachine
   :commands git-timemachine)
 #+END_SRC
+**** git-attr
+#+BEGIN_SRC emacs-lisp
+(use-package git-attr-linguist
+  :ensure git-attr
+  :commands git-attr-linguist
+  :hook (find-file . git-attr-linguist))
+#+END_SRC
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
@@ -3234,10 +3240,10 @@ https://github.com/cbowdon/daemons.el
 (use-package dired-rsync
   :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
 #+END_SRC
-**** comment-tags
+**** fic-mode
 #+BEGIN_SRC emacs-lisp
-(use-package comment-tags
-  :hook (prog-mode . comment-tags-mode))
+(use-package fic-mode
+  :hook (prog-mode . fic-mode))
 #+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
@@ -3340,7 +3346,11 @@ Dircolors
 
 #+BEGIN_SRC shell
   if [ "$TERM" != dumb ] && [ -n "$SHELL" ]; then
-    eval "$(dircolors)"
+    if [ "$TERM" = dumb-emacs-ansi ]; then
+      eval "$(TERM=ansi dircolors)"
+    else
+      eval "$(dircolors)"
+    fi
   fi
 #+END_SRC
 
@@ -3368,14 +3378,14 @@ if [ "$TERM" != "dumb" ]; then
         alias l="ls -lF --color=auto" \
               ls="ls --color=auto"
     fi
-    alias grep='grep -n --color=auto' \
-          egrep='grep -E -n --color=auto' \
+    alias grep='grep --color=auto' \
+          egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
           less='less -R'
 else
     alias l="ls -lF" \
-          grep='grep -n' \
-          egrep='grep -E -n'
+          grep='grep' \
+          egrep='grep -E'
 fi
 #+END_SRC
 
@@ -3452,7 +3462,6 @@ setopt always_to_end \
        auto_pushd \
        cdable_vars \
        extended_history \
-       extended_glob \
        hist_expire_dups_first \
        hist_find_no_dups \
        hist_ignore_dups \
@@ -3565,6 +3574,7 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
+shopt -s nullglob
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
@@ -3972,10 +3982,10 @@ Set some defaults that depend on the path variables below,
            "@schemas@"
            ,(expand-file-name
               "schema/schemas.xml" data-directory)))
-   '(irony-additional-clang-options
-     '("-I@sysheaders@/include"
-           "-I@sysheaders@/include/c++/v1"
-           "-F@sysframeworks@/Library/Frameworks"))
+   ;; '(irony-additional-clang-options
+   ;;   '("-I@sysheaders@/include"
+   ;;         "-I@sysheaders@/include/c++/v1"
+   ;;         "-F@sysframeworks@/Library/Frameworks"))
    )
 #+END_SRC
 
@@ -4135,7 +4145,7 @@ args.
 
 #+BEGIN_SRC nix :padline no
   # -*- mode: nix; coding: utf-8; -*-
-  { version ? "19.03"
+  { version ? "19.09"
   , channel ? {
       "x86_64-darwin" = "nixpkgs-${version}-darwin";
     }.${builtins.currentSystem} or "nixos-${version}"
@@ -4720,7 +4730,7 @@ have been configured to use the paths above.
 
 #+BEGIN_SRC nix
 in buildEnv {
-  name = "bauer-1.4.2";
+  name = "bauer-1.4.4";
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
@@ -4737,8 +4747,6 @@ in buildEnv {
     chmod +x $out/bin/run
     patchShebangs $out/bin/run
     ln -s $out/bin/run $out/bin/bauer
-
-    ${pkgs.shellcheck}/bin/shellcheck $out/etc/profile $out/etc/zshrc $out/bin/run
   '';
   pathsToLink = [
     "/bin"
@@ -4774,8 +4782,6 @@ in buildEnv {
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
         --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
-
-      ${pkgs.shellcheck}/bin/shellcheck -x $out/etc/profile.d/my-profile.sh
     '')
     pkgs.git
   ];
@@ -4836,9 +4842,14 @@ matrix:
       env: CHANNEL=nixos-19.03
     - os: linux
       dist: trusty
+      env: CHANNEL=nixos-19.09
+    - os: linux
+      dist: trusty
       env: CHANNEL=nixos-unstable
     - os: osx
       env: CHANNEL=nixpkgs-19.03-darwin
+    - os: osx
+      env: CHANNEL=nixpkgs-19.09-darwin
     - os: osx
       env: CHANNEL=nixpkgs-unstable
 #+END_SRC

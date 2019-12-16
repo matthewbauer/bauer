@@ -1,11 +1,11 @@
-;;; comint-hyperlink.el --- Create hyperlinks in comint for SGR URL control sequences
+;;; comint-hyperlink.el --- Create hyperlinks in comint for SGR URL control sequences -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Matthew Bauer
 
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Created: 15 Aug 2019
 ;; Keywords: comint, shell, processes, hypermedia, terminals
-;; Version: 0.1.3
+;; Version: 0.1.6
 ;; Homepage: https://github.com/matthewbauer/comint-hyperlink
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -64,8 +64,9 @@
   "Action to use in comint-hyperlink button."
   :group 'comint-hyperlink
   :type '(choice (function :tag "Browse url" 'comint-hyperlink-browse-url)
-		 (function :tag "Find file" 'comint-hyperlink-find-file)
-		 (function :tag "Custom function")))
+                 (function :tag "Find file" 'comint-hyperlink-find-file)
+                 (function :tag "Browse url (don’t ask)" 'comint-hyperlink-browse-url-no-ask)
+                 (function :tag "Custom function")))
 
 (defcustom comint-hyperlink-for-comint-mode t
   "Determines what to do with comint output.
@@ -77,8 +78,8 @@ into button.
 In order for this to have any effect, `comint-hyperlink-process-output' must
 be in `comint-output-filter-functions'."
   :type '(choice (const :tag "Do nothing" nil)
-		 (const :tag "Filter" filter)
-		 (const :tag "Translate" t))
+                 (const :tag "Filter" filter)
+                 (const :tag "Translate" t))
   :group 'comint-hyperlink)
 
 (defun comint-hyperlink-find-file (url)
@@ -92,6 +93,13 @@ Falls back to ‘browse-url’."
    (t (comint-hyperlink-browse-url url))))
 
 (defun comint-hyperlink-browse-url (url)
+  "Use ‘browse-url’ to open the URL.
+
+Asks for confirmation with ‘yes-or-no-p’"
+  (when (yes-or-no-p (format "Open %s in a web browser? " url))
+    (comint-hyperlink-browse-url-no-ask url)))
+
+(defun comint-hyperlink-browse-url-no-ask (url)
   "Use ‘browse-url’ to open the URL."
   ;; Need to strip hostname from file urls
   (if (string-match-p comint-hyperlink-url-protocols url)
@@ -103,9 +111,9 @@ Falls back to ‘browse-url’."
   'follow-link t
   'face nil
   'action (lambda (x) (funcall comint-hyperlink-action
-			       (button-get x 'comint-hyperlink-url))))
+                               (button-get x 'comint-hyperlink-url))))
 
-(defvar comint-hyperlink-escape-start nil)
+(defvar-local comint-hyperlink-escape-start nil)
 
 ;;;###autoload
 (defun comint-hyperlink-process-output (&optional _)
@@ -115,40 +123,38 @@ This is a good function to put in
 `comint-output-filter-functions'."
   (interactive)
   (when comint-hyperlink-for-comint-mode
-    (let ((start-marker (if (and (markerp comint-last-output-start)
-				 (eq (marker-buffer comint-last-output-start)
-				     (current-buffer))
-				 (marker-position comint-last-output-start))
-			    comint-last-output-start
-			  (point-min-marker)))
-	  (end-marker (process-mark (get-buffer-process (current-buffer)))))
-
-      ;; Handle partial process output by starting earlier than normal
-      (when (and comint-hyperlink-escape-start
-		 (< comint-hyperlink-escape-start start-marker))
-	(setq start-marker comint-hyperlink-escape-start)
-	(setq comint-hyperlink-escape-start nil))
+    (let ((start-marker (or (cadr ansi-color-context-region)
+			    comint-hyperlink-escape-start
+                            (if (and (markerp comint-last-output-start)
+                                     (eq (marker-buffer comint-last-output-start)
+                                         (current-buffer))
+                                     (marker-position comint-last-output-start))
+                                comint-last-output-start
+                              (point-min-marker))))
+          (end-marker (process-mark (get-buffer-process (current-buffer)))))
 
       (save-excursion
-	(goto-char start-marker)
-	(while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
-	  (let ((url (match-string 1)) (text (match-string 2))
-		start)
-	    (delete-region (match-beginning 0) (point))
-	    (setq start (point))
-	    (cond
-	     ((eq comint-hyperlink-for-comint-mode 'filter)
-	      (insert text))
-	     ((eq comint-hyperlink-for-comint-mode t)
-	      (insert-button text
-			     'type 'comint-hyperlink
-			     'comint-hyperlink-url (url-unhex-string url)
-			     'help-echo (format "Visit %s"
-						(url-unhex-string url)))))))
+        (goto-char start-marker)
+        (while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
+          (let ((url (match-string 1)) (text (match-string 2)))
+            (cond
+             ((eq comint-hyperlink-for-comint-mode 'filter)
+              (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
+              (delete-region (match-beginning 0) (match-end 0))
+              (insert text))
+             ((eq comint-hyperlink-for-comint-mode t)
+              (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
+              (delete-region (match-beginning 0) (match-end 0))
+              (insert-button text
+                             'type 'comint-hyperlink
+                             'comint-hyperlink-url (url-unhex-string url)
+                             'help-echo (format "Visit %s"
+                                                (url-unhex-string url)))))))
 
-	;; Save ending escape sequence that isn’t closed
-	(when (re-search-forward "\e\\]8;;" end-marker t)
-	  (setq comint-hyperlink-escape-start (match-beginning 0)))))))
+        ;; Save ending escape sequence that isn’t closed
+	(if (re-search-forward "\e\\]8" end-marker t)
+	    (setq comint-hyperlink-escape-start (match-beginning 0))
+	  (setq comint-hyperlink-escape-start nil))))))
 
 (provide 'comint-hyperlink)
 ;;; comint-hyperlink.el ends here

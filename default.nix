@@ -1,5 +1,5 @@
 # -*- mode: nix; coding: utf-8; -*-
-{ version ? "19.03"
+{ version ? "19.09"
 , channel ? {
     "x86_64-darwin" = "nixpkgs-${version}-darwin";
   }.${builtins.currentSystem} or "nixos-${version}"
