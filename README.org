@@ -1837,15 +1837,6 @@ Provides links to bugs listed in sourvce code.
            (text-mode . bug-reference-mode)))
 #+END_SRC
 
-**** conf-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package conf-mode
-    :ensure nil
-    :mode (("/\\.merlin\\'" . conf-mode)
-           ("_oasis\\'" . conf-mode)
-           ("_tags\\'" . conf-mode)
-           ("_log\\'" . conf-mode)))
-#+END_SRC
 **** comint
 
 Base mode used for shell and terminal modes.
@@ -1968,6 +1959,15 @@ Base mode used for shell and terminal modes.
            compilation-ansi-color-process-output))
 #+END_SRC
 
+**** conf-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package conf-mode
+    :ensure nil
+    :mode (("/\\.merlin\\'" . conf-mode)
+           ("_oasis\\'" . conf-mode)
+           ("_tags\\'" . conf-mode)
+           ("_log\\'" . conf-mode)))
+#+END_SRC
 **** delsel
 
 #+BEGIN_SRC emacs-lisp
@@ -2573,6 +2573,35 @@ packages (for completion, syntax checking, etc.)
            ))
 #+END_SRC
 
+**** git-modes
+
+***** gitattributes
+#+BEGIN_SRC emacs-lisp
+  (use-package gitattributes-mode
+    :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
+           ("/info/attributes\\'"   . gitattributes-mode)
+           ("/git/attributes\\'"    . gitattributes-mode)))
+#+END_SRC
+
+***** gitconfig
+#+BEGIN_SRC emacs-lisp
+  (use-package gitconfig-mode
+    :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
+           ("/\\.git/config\\'"     . gitconfig-mode)
+           ("/modules/.*/config\\'" . gitconfig-mode)
+           ("/git/config\\'"        . gitconfig-mode)
+           ("/\\.gitmodules\\'"     . gitconfig-mode)
+           ("/etc/gitconfig\\'"     . gitconfig-mode)))
+#+END_SRC
+
+***** gitignore
+#+BEGIN_SRC emacs-lisp
+  (use-package gitignore-mode
+    :mode (("/\\.gitignore\\'"      . gitignore-mode)
+           ("/info/exclude\\'"      . gitignore-mode)
+           ("/git/ignore\\'"        . gitignore-mode)))
+#+END_SRC
+
 **** Go
 
 #+BEGIN_SRC emacs-lisp
@@ -2784,65 +2813,6 @@ macho-mode to toggle then M-x hexl-mode.
            ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
-**** OCaml
-
-#+BEGIN_SRC emacs-lisp
-  (use-package tuareg
-    :mode (("\\.mli?\\'" . tuareg-mode))
-    :config
-;; Use Merlin if available
-(when (require 'merlin nil t)
-  (setq merlin-command 'opam)
-
-  (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
-
-  ;; Run Merlin if a .merlin file in the parent dirs is detected
-  (add-hook 'tuareg-mode-hook
-            (lambda()
-              (let ((fn (buffer-file-name)))
-                (if (and fn (locate-dominating-file fn ".merlin"))
-                    (merlin-mode)))))))
-#+END_SRC
-
-
-**** git-modes
-
-***** gitattributes
-#+BEGIN_SRC emacs-lisp
-  (use-package gitattributes-mode
-    :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
-           ("/info/attributes\\'"   . gitattributes-mode)
-           ("/git/attributes\\'"    . gitattributes-mode)))
-#+END_SRC
-
-***** gitconfig
-#+BEGIN_SRC emacs-lisp
-  (use-package gitconfig-mode
-    :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
-           ("/\\.git/config\\'"     . gitconfig-mode)
-           ("/modules/.*/config\\'" . gitconfig-mode)
-           ("/git/config\\'"        . gitconfig-mode)
-           ("/\\.gitmodules\\'"     . gitconfig-mode)
-           ("/etc/gitconfig\\'"     . gitconfig-mode)))
-#+END_SRC
-
-***** gitignore
-#+BEGIN_SRC emacs-lisp
-  (use-package gitignore-mode
-    :mode (("/\\.gitignore\\'"      . gitignore-mode)
-           ("/info/exclude\\'"      . gitignore-mode)
-           ("/git/ignore\\'"        . gitignore-mode)))
-#+END_SRC
-
-**** restclient
-
-#+BEGIN_SRC emacs-lisp
-  (use-package restclient
-    :mode (("\\.rest\\'" . restclient-mode)
-           ("\\.restclient\\'" . restclient-mode)))
-#+END_SRC
-
 **** Nix
 
 ***** nix-mode
@@ -2884,6 +2854,28 @@ macho-mode to toggle then M-x hexl-mode.
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
+**** OCaml
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tuareg
+    :mode (("\\.mli?\\'" . tuareg-mode))
+    :config
+;; Use Merlin if available
+(when (require 'merlin nil t)
+  (setq merlin-command 'opam)
+
+  (when (functionp 'merlin-document)
+    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+
+  ;; Run Merlin if a .merlin file in the parent dirs is detected
+  (add-hook 'tuareg-mode-hook
+            (lambda()
+              (let ((fn (buffer-file-name)))
+                (if (and fn (locate-dominating-file fn ".merlin"))
+                    (merlin-mode)))))))
+#+END_SRC
+
+
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -2921,6 +2913,14 @@ macho-mode to toggle then M-x hexl-mode.
     :interpreter ("python" . python-mode))
 #+END_SRC
 
+
+**** restclient
+
+#+BEGIN_SRC emacs-lisp
+  (use-package restclient
+    :mode (("\\.rest\\'" . restclient-mode)
+           ("\\.restclient\\'" . restclient-mode)))
+#+END_SRC
 
 **** Ruby
 
@@ -3081,6 +3081,15 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
 #+END_SRC
+**** deadgrep
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package ripgrep :commands ripgrep-regexp)
+  ;; (use-package rg :commands rg-dwim)
+  (use-package deadgrep
+    :commands deadgrep
+    :bind (:map projectile-command-map
+           ("s g" . deadgrep)))
+#+END_SRC
 **** delight
 
 
@@ -3088,10 +3097,32 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
+**** dired-rsync
+#+BEGIN_SRC emacs-lisp
+(use-package dired-rsync
+  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+#+END_SRC
 **** emacs-gif-screencast
 #+BEGIN_SRC emacs-lisp
 (use-package gif-screencast
   :commands gif-screencast)
+#+END_SRC
+**** fic-mode
+#+BEGIN_SRC emacs-lisp
+(use-package fic-mode
+  :hook (prog-mode . fic-mode))
+#+END_SRC
+**** git-attr
+#+BEGIN_SRC emacs-lisp
+(use-package git-attr-linguist
+  :ensure git-attr
+  :commands git-attr-linguist
+  :hook (find-file . git-attr-linguist))
+#+END_SRC
+**** git-timemachine
+#+BEGIN_SRC emacs-lisp
+(use-package git-timemachine
+  :commands git-timemachine)
 #+END_SRC
 **** htmlize
 
@@ -3108,6 +3139,22 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
 (use-package iedit
   :commands iedit-mode)
+#+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line]
+            . mwim-beginning-of-code-or-line)
+           ([remap move-end-of-line]
+            . mwim-end-of-code-or-line)))
+#+END_SRC
+
+**** org-static-blog
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog :commands org-static-blog-publish)
 #+END_SRC
 **** page-break-lines
 
@@ -3132,6 +3179,24 @@ https://github.com/cbowdon/daemons.el
            (pandoc-mode . pandoc-load-default-settings)))
 #+END_SRC
 
+**** pcomplette
+#+BEGIN_SRC emacs-lisp
+  (use-package pcomplete
+    :ensure nil
+    :demand
+    :commands pcomplete-here
+    :preface
+    (autoload 'pcomplete-comint-setup "pcomplete")
+    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
+           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
+           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
+           ;;                                'pcomplete-completions-at-point
+           ;;                                nil t)))
+           ))
+  (use-package pcmpl-args)
+  ;; (use-package pcmpl-git)
+#+END_SRC
 **** rainbow-delimiters
 
 #+BEGIN_SRC emacs-lisp
@@ -3181,6 +3246,22 @@ https://github.com/cbowdon/daemons.el
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
+**** undo-tree
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :demand
+    :commands global-undo-tree-mode
+    :config (global-undo-tree-mode 1)
+    ;; (global-set-key (kbd "C-z") 'undo)
+    ;; (defalias 'redo 'undo-tree-redo)
+    ;; (global-set-key (kbd "C-S-z") 'redo)
+    )
+#+END_SRC
+**** unfill
+#+BEGIN_SRC emacs-lisp
+(use-package unfill
+  :bind ([remap fill-paragraph] . unfill-toggle))
+#+END_SRC
 **** url-util
 
 #+BEGIN_SRC emacs-lisp
@@ -3205,29 +3286,6 @@ https://github.com/cbowdon/daemons.el
       (func-region start end 'url-unhex-string))
     (defalias 'url-unescape 'url-decode))
 #+END_SRC
-**** undo-tree
-#+BEGIN_SRC emacs-lisp
-  (use-package undo-tree
-    :demand
-    :commands global-undo-tree-mode
-    :config (global-undo-tree-mode 1)
-    ;; (global-set-key (kbd "C-z") 'undo)
-    ;; (defalias 'redo 'undo-tree-redo)
-    ;; (global-set-key (kbd "C-S-z") 'redo)
-    )
-#+END_SRC
-**** git-timemachine
-#+BEGIN_SRC emacs-lisp
-(use-package git-timemachine
-  :commands git-timemachine)
-#+END_SRC
-**** git-attr
-#+BEGIN_SRC emacs-lisp
-(use-package git-attr-linguist
-  :ensure git-attr
-  :commands git-attr-linguist
-  :hook (find-file . git-attr-linguist))
-#+END_SRC
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
@@ -3235,64 +3293,6 @@ https://github.com/cbowdon/daemons.el
     :hook
     ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
-**** dired-rsync
-#+BEGIN_SRC emacs-lisp
-(use-package dired-rsync
-  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
-#+END_SRC
-**** fic-mode
-#+BEGIN_SRC emacs-lisp
-(use-package fic-mode
-  :hook (prog-mode . fic-mode))
-#+END_SRC
-**** unfill
-#+BEGIN_SRC emacs-lisp
-(use-package unfill
-  :bind ([remap fill-paragraph] . unfill-toggle))
-#+END_SRC
-**** deadgrep
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package ripgrep :commands ripgrep-regexp)
-  ;; (use-package rg :commands rg-dwim)
-  (use-package deadgrep
-    :commands deadgrep
-    :bind (:map projectile-command-map
-           ("s g" . deadgrep)))
-#+END_SRC
-**** org-static-blog
-#+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog :commands org-static-blog-publish)
-#+END_SRC
-**** pcomplette
-#+BEGIN_SRC emacs-lisp
-  (use-package pcomplete
-    :ensure nil
-    :demand
-    :commands pcomplete-here
-    :preface
-    (autoload 'pcomplete-comint-setup "pcomplete")
-    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
-           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
-           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
-           ;;                                'pcomplete-completions-at-point
-           ;;                                nil t)))
-           ))
-  (use-package pcmpl-args)
-  ;; (use-package pcmpl-git)
-#+END_SRC
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mwim
-    :bind (([remap move-beginning-of-line]
-            . mwim-beginning-of-code-or-line)
-           ([remap move-end-of-line]
-            . mwim-end-of-code-or-line)))
-#+END_SRC
-
 * Profiles
 :PROPERTIES:
 :CUSTOM_ID: profiles
