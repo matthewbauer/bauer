@@ -3599,7 +3599,9 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-shopt -s nullglob
+if [ -n "$BASH_VERSION" ]; then
+    shopt -s nullglob
+fi
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
@@ -5220,7 +5222,9 @@ cleanup() {
 setup
 trap cleanup EXIT
 
-shopt -s dotglob
+if [ -n "$BASH_VERSION" ]; then
+    shopt -s dotglob
+fi
 for f in *; do
     if [ "$f" = ".git" ]; then
         continue
