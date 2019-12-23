@@ -3336,10 +3336,8 @@ just in case.
   HISTSIZE=50000
   export SAVEHIST=50000
 
-  export NIX_PATH=nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels \
-         NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
-         CVS_RSH=ssh \
-         EDITOR=emacs
+  export CVS_RSH=ssh
+  export EDITOR=emacs
 #+END_SRC
 
 Dircolors
@@ -3708,19 +3706,6 @@ Set some more misc. vars.
                                                    output-directory)
                                 "@INFOPATH@")
                               ":")))
-#+END_SRC
-
-Set env vars provided by Nix. We have to override this because the defaults Nix
-has are bad.
-
-#+BEGIN_SRC emacs-lisp
-  (setenv "NIX_PATH"
-          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:%s/.nix-defexpr/channels"
-                  (getenv "HOME") (getenv "HOME")))
-  (setenv "NIX_PROFILES"
-          (string-join (list "/nix/var/nix/profiles/default/profile"
-                             (format "%s/.nix-profile"
-                                     (getenv "HOME"))) " "))
 #+END_SRC
 
 Set paths provided by Nix,
