@@ -2342,7 +2342,6 @@ Make scripts executable automatically.
              ("M-@" . shell))
       :hook ((shell-mode . ansi-color-for-comint-mode-on)
              (shell-mode . dirtrack-mode)
-             (shell-mode . pcomplete-shell-setup)
              ;; (shell-mode . (lambda ()
              ;;            (turn-on-comint-history (expand-file-name "sh-history"
              ;;            user-emacs-directory))))
@@ -3453,20 +3452,6 @@ case "$TERM" in
 esac
 #+END_SRC
 
-Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
-
-#+BEGIN_SRC shell
-# shellcheck disable=SC2154
-for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
-  if [ -d "$dir/zsh/site-functions" ]; then
-    fpath+=$dir/zsh/site-functions
-  fi
-  if [ -d "$dir/zsh/vendor-completions" ]; then
-    fpath+=$dir/zsh/vendor-completions
-  fi
-done
-#+END_SRC
-
 Turn on ZSH-specific options.
 
 #+BEGIN_SRC shell
@@ -3496,10 +3481,23 @@ setopt always_to_end \
        menu_complete
 #+END_SRC
 
-Setup completions & colors.
+Load up site-functions in ZSH. Use XDG_DATA_DIRS variable. Then we use this to
+initialize completions.
 
 #+BEGIN_SRC shell
-autoload -U compinit && compinit -d $HOME/.zcompdump
+if [ "$TERM" != dumb-emacs-ansi ]; then
+  # shellcheck disable=SC2154
+  for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
+    if [ -d "$dir/zsh/site-functions" ]; then
+      fpath+=$dir/zsh/site-functions
+    fi
+    if [ -d "$dir/zsh/vendor-completions" ]; then
+      fpath+=$dir/zsh/vendor-completions
+    fi
+  done
+
+  autoload -U compinit && compinit -d "$HOME/.zcompdump"
+fi
 #+END_SRC
 
 Bind to emacs...
@@ -3518,7 +3516,7 @@ zstyle ':completion:*' menu select=1 \
 zstyle ':completion:*' matcher-list \
        'm:{a-zA-Z-_}={A-Za-z_-}' \
        'r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' select-prompt \
        '%SScrolling active: current selection at %p%s'
 zstyle ':completion:*' \
