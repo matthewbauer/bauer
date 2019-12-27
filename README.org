@@ -3195,8 +3195,20 @@ https://github.com/cbowdon/daemons.el
            ;;                                'pcomplete-completions-at-point
            ;;                                nil t)))
            ))
-  (use-package pcmpl-args)
-  ;; (use-package pcmpl-git)
+  (use-package pcmpl-args
+    :init
+    ;; see https://github.com/JonWaltman/pcmpl-args.el/pull/4
+    (setq pcmpl-args-man-function
+          (lambda (name)
+            (let ((process-environment process-environment))
+              ;; Setting MANWIDTH to a high number makes most paragraphs fit on a single
+              ;; line, reducing the number of false positives that result from lines
+              ;; starting with `-' that aren't really options.
+              (push "MANWIDTH=10000" process-environment)
+              (pcmpl-args-process-file
+               shell-file-name shell-command-switch (format "man %s | col -b" name))))))
+
+    ;; (use-package pcmpl-git)
 #+END_SRC
 **** rainbow-delimiters
 
