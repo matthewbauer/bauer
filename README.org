@@ -3446,8 +3446,12 @@ Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
 #+BEGIN_SRC shell
 # shellcheck disable=SC2154
 for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
-  fpath+=$dir/zsh/site-functions
-  fpath+=$dir/zsh/vendor-completions
+  if [ -d "$dir/zsh/site-functions" ]; then
+    fpath+=$dir/zsh/site-functions
+  fi
+  if [ -d "$dir/zsh/vendor-completions" ]; then
+    fpath+=$dir/zsh/vendor-completions
+  fi
 done
 #+END_SRC
 
