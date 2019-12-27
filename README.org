@@ -3496,7 +3496,13 @@ if [ "$TERM" != dumb-emacs-ansi ]; then
     fi
   done
 
-  autoload -U compinit && compinit -d "$HOME/.zcompdump"
+  autoload -U compinit
+
+  if [ "$(date +%j)" != "$(date +%j -r ~/.zcompdump)" ]; then
+    compinit -i -d "$HOME/.zcompdump"
+  else
+    compinit -i -d "$HOME/.zcompdump" -C
+  fi
 fi
 #+END_SRC
 
