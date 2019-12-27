@@ -44,7 +44,9 @@ cleanup() {
 setup
 trap cleanup EXIT
 
-shopt -s dotglob
+if [ -n "$BASH_VERSION" ]; then
+    shopt -s dotglob
+fi
 for f in *; do
     if [ "$f" = ".git" ]; then
         continue
