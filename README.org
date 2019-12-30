@@ -3498,7 +3498,7 @@ if [ "$TERM" != dumb-emacs-ansi ]; then
 
   autoload -U compinit
 
-  if [ "$(date +%j)" != "$(date +%j -r ~/.zcompdump)" ]; then
+  if [ "$(@coreutils@/bin/date +%j)" != "$(@coreutils@/bin/date +%j -r ~/.zcompdump)" ]; then
     compinit -i -d "$HOME/.zcompdump"
   else
     compinit -i -d "$HOME/.zcompdump" -C
@@ -4768,7 +4768,8 @@ in buildEnv {
     mkdir -p $out/etc
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
-      --subst-var-by completions ${zsh-completions}
+      --subst-var-by completions ${zsh-completions} \
+      --subst-var-by coreutils ${pkgs.coreutils}
     ln -s $out/etc/.zshrc $out/etc/zshrc
     makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
     substituteAll ${./etc-profile.sh} $out/etc/profile
