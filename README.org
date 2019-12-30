@@ -448,7 +448,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
                                  outline-mode
                                  text-mode
                                  org-mode))
-   '(flycheck-disabled-checkers '(haskell-stack-ghc haskell-ghc))
    '(flycheck-check-syntax-automatically '(save mode-enabled))
    '(frame-title-format
      '(:eval
@@ -1408,7 +1407,9 @@ supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
-    :hook (prog-mode . flycheck-mode))
+    :hook ((prog-mode . flycheck-mode)
+           (haskell-mode . (lambda () (flycheck-mode -1)))
+           (c++-mode . (lambda () (flycheck-mode -1)))))
   ;; (use-package flycheck-haskell
   ;;   :hook (haskell-mode . flycheck-haskell-setup))
   (use-package flycheck-cask
