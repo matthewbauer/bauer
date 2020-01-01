@@ -3732,9 +3732,10 @@ otherwise zsh will default to 500 and not save at all!
 Set some more misc. vars.
 
 #+BEGIN_SRC emacs-lisp
-  (append-envs ":"
-   `("PATH" ,exec-path)
-   `("MANPATH" ,man-path))
+  (when (eq window-system 'mac)
+    (append-envs ":"                        ;
+     `("PATH" ,exec-path)
+     `("MANPATH" ,man-path)))
   (set-envs
    `("XDG_DATA_DIRS" ,(string-join `(,(expand-file-name "share"
                                                         output-directory)
