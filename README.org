@@ -3516,7 +3516,7 @@ if [ "$TERM" != dumb-emacs-ansi ]; then
 
   autoload -U compinit
 
-  if [ "$(@coreutils@/bin/date +%j)" != "$(@coreutils@/bin/date +%j -r ~/.zcompdump)" ]; then
+  if ! [ -f "$HOME/.zcompdump" ] || [ "$(@coreutils@/bin/date +%j)" != "$(@coreutils@/bin/date +%j -r "$HOME/.zcompdump")" ]; then
     compinit -i -d "$HOME/.zcompdump"
   else
     compinit -i -d "$HOME/.zcompdump" -C
