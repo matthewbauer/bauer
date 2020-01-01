@@ -3357,10 +3357,13 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-  PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
-  INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
-  MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
-  XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+  if [ -z "$__BAUER_ADD_PATHS" ]; then
+    export __BAUER_ADD_PATHS=1
+    PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
+    INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
+    MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
+    XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+  fi
 
   HISTFILE=$HOME/.history
   HISTSIZE=50000
