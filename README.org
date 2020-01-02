@@ -2541,7 +2541,9 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
     :mode "\\.csv\\'"
-    :hook (csv-mode . (lambda () (toggle-truncate-lines -1))))
+    :hook ((csv-mode . (lambda () (visual-line-mode -1)))
+           (csv-mode . (lambda () (auto-fill-mode -1)))
+           (csv-mode . (lambda () (toggle-truncate-lines 1)))))
 #+END_SRC
 
 **** ELF
