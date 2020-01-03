@@ -18,7 +18,7 @@
 #+html_head: <link rel="stylesheet" href="https://matthewbauer.us/style.css" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 #+link_home: https://matthewbauer.us
 #+link_up: http://matthewbauer.us/bauer/
-#+version: 1.4.4
+#+version: 1.5.0
 
 This ORG-mode file generates an Emacs configuration. I am calling it an
 [[https://www.gnu.org/s/emacs/][Emacs]]+[[https://nixos.org][Nix]] IDE. That is, the Emacs configuration is /integrated/ with hardcoded
@@ -138,6 +138,8 @@ this.
           (append
             file-name-handler-alist-backup
             file-name-handler-alist))))
+
+  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 #+END_SRC
 
 ** Autoloads & Misc.
@@ -203,6 +205,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | async-shell-command-buffer                    | 'new-buffer       |
 | auth-source-save-behavior                     | t                 |
 | auto-revert-check-vc-info                     | t                 |
+| auto-revert-interval                          | 2                 |
 | auto-revert-verbose                           | nil               |
 | backward-delete-char-untabify-method          | 'hungry           |
 | checkdoc-spellcheck-documentation-flag        | t                 |
@@ -227,6 +230,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | dired-recursive-copies                        | 'top              |
 | dired-recursive-deletes                       | 'top              |
 | dtrt-indent-verbosity                         | 0                 |
+| eldoc-idle-delay                              | 0.4               |
 | eshell-bad-command-tolerance                  | 1                 |
 | eshell-cmpl-autolist                          | t                 |
 | eshell-cmpl-cycle-completions                 | nil               |
@@ -267,6 +271,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | ibuffer-use-other-window                      | t                 |
 | imenu-auto-rescan                             | t                 |
 | indicate-empty-lines                          | t                 |
+| indent-tabs-mode                              | nil               |
 | ispell-quietly                                | t                 |
 | ispell-silently-savep                         | t                 |
 | js2-mode-show-parse-errors                    | nil               |
@@ -274,6 +279,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | js2-strict-missing-semi-warning               | nil               |
 | kill-do-not-save-duplicates                   | t                 |
 | kill-whole-line                               | t                 |
+| line-spacing                                  | 0.1               |
 | load-prefer-newer                             | t                 |
 | mac-allow-anti-aliasing                       | t                 |
 | mac-command-key-is-meta                       | t                 |
@@ -343,6 +349,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | version-control                               | t                 |
 | view-read-only                                | t                 |
 | whitespace-line-column                        | 120               |
+| which-key-idle-delay                          | 0.4               |
+| which-key-idle-secondary-delay                | 0.4               |
 | woman-imenu                                   | t                 |
 | x-stretch-cursor                              | t                 |
 
@@ -440,7 +448,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
                                  outline-mode
                                  text-mode
                                  org-mode))
-   '(flycheck-disabled-checkers '(haskell-stack-ghc))
    '(flycheck-check-syntax-automatically '(save mode-enabled))
    '(frame-title-format
      '(:eval
@@ -458,6 +465,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
+   '(mouse-wheel-scroll-amount '(1
+                                 ((shift) . 5)
+                                 ((control))))
    '(minibuffer-prompt-properties
      '(read-only t
                  cursor-intangible t
@@ -547,7 +557,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
              "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\"
              "(\\`/[^/|:][^/|]*:\\)"))
    '(which-key-lighter "")
-   '(whitespace-action '(cleanup auto-cleanup))
+   '(whitespace-action '(cleanup))
    '(whitespace-style '(face trailing lines space-before-tab
                              empty lines-style))
    '(whitespace-global-modes '(not erc-mode ses-mode)))
@@ -1397,9 +1407,11 @@ supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
-    :hook (prog-mode . flycheck-mode))
-  (use-package flycheck-haskell
-    :hook (haskell-mode . flycheck-haskell-setup))
+    :hook ((prog-mode . flycheck-mode)
+           (haskell-mode . (lambda () (flycheck-mode -1)))
+           (c++-mode . (lambda () (flycheck-mode -1)))))
+  ;; (use-package flycheck-haskell
+  ;;   :hook (haskell-mode . flycheck-haskell-setup))
   (use-package flycheck-cask
     :hook (emacs-lisp-mode . flycheck-cask-setup))
   (use-package flycheck-rust
@@ -1519,6 +1531,13 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit)
+#+END_SRC
+
+Magit todos
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-todos
+  :commands (magit-todos-list))
 #+END_SRC
 
 ***** git-commit
@@ -1837,15 +1856,6 @@ Provides links to bugs listed in sourvce code.
            (text-mode . bug-reference-mode)))
 #+END_SRC
 
-**** conf-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package conf-mode
-    :ensure nil
-    :mode (("/\\.merlin\\'" . conf-mode)
-           ("_oasis\\'" . conf-mode)
-           ("_tags\\'" . conf-mode)
-           ("_log\\'" . conf-mode)))
-#+END_SRC
 **** comint
 
 Base mode used for shell and terminal modes.
@@ -1968,6 +1978,15 @@ Base mode used for shell and terminal modes.
            compilation-ansi-color-process-output))
 #+END_SRC
 
+**** conf-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package conf-mode
+    :ensure nil
+    :mode (("/\\.merlin\\'" . conf-mode)
+           ("_oasis\\'" . conf-mode)
+           ("_tags\\'" . conf-mode)
+           ("_log\\'" . conf-mode)))
+#+END_SRC
 **** delsel
 
 #+BEGIN_SRC emacs-lisp
@@ -2341,7 +2360,6 @@ Make scripts executable automatically.
              ("M-@" . shell))
       :hook ((shell-mode . ansi-color-for-comint-mode-on)
              (shell-mode . dirtrack-mode)
-             (shell-mode . pcomplete-shell-setup)
              ;; (shell-mode . (lambda ()
              ;;            (turn-on-comint-history (expand-file-name "sh-history"
              ;;            user-emacs-directory))))
@@ -2523,7 +2541,9 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
     :mode "\\.csv\\'"
-    :hook (csv-mode . (lambda () (toggle-truncate-lines -1))))
+    :hook ((csv-mode . (lambda () (visual-line-mode -1)))
+           (csv-mode . (lambda () (auto-fill-mode -1)))
+           (csv-mode . (lambda () (toggle-truncate-lines 1)))))
 #+END_SRC
 
 **** ELF
@@ -2571,6 +2591,35 @@ packages (for completion, syntax checking, etc.)
            ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
            ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
            ))
+#+END_SRC
+
+**** git-modes
+
+***** gitattributes
+#+BEGIN_SRC emacs-lisp
+  (use-package gitattributes-mode
+    :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
+           ("/info/attributes\\'"   . gitattributes-mode)
+           ("/git/attributes\\'"    . gitattributes-mode)))
+#+END_SRC
+
+***** gitconfig
+#+BEGIN_SRC emacs-lisp
+  (use-package gitconfig-mode
+    :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
+           ("/\\.git/config\\'"     . gitconfig-mode)
+           ("/modules/.*/config\\'" . gitconfig-mode)
+           ("/git/config\\'"        . gitconfig-mode)
+           ("/\\.gitmodules\\'"     . gitconfig-mode)
+           ("/etc/gitconfig\\'"     . gitconfig-mode)))
+#+END_SRC
+
+***** gitignore
+#+BEGIN_SRC emacs-lisp
+  (use-package gitignore-mode
+    :mode (("/\\.gitignore\\'"      . gitignore-mode)
+           ("/info/exclude\\'"      . gitignore-mode)
+           ("/git/ignore\\'"        . gitignore-mode)))
 #+END_SRC
 
 **** Go
@@ -2784,65 +2833,6 @@ macho-mode to toggle then M-x hexl-mode.
            ("\\.markdown\\'" . gfm-mode)))
 #+END_SRC
 
-**** OCaml
-
-#+BEGIN_SRC emacs-lisp
-  (use-package tuareg
-    :mode (("\\.mli?\\'" . tuareg-mode))
-    :config
-;; Use Merlin if available
-(when (require 'merlin nil t)
-  (setq merlin-command 'opam)
-
-  (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
-
-  ;; Run Merlin if a .merlin file in the parent dirs is detected
-  (add-hook 'tuareg-mode-hook
-            (lambda()
-              (let ((fn (buffer-file-name)))
-                (if (and fn (locate-dominating-file fn ".merlin"))
-                    (merlin-mode)))))))
-#+END_SRC
-
-
-**** git-modes
-
-***** gitattributes
-#+BEGIN_SRC emacs-lisp
-  (use-package gitattributes-mode
-    :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
-           ("/info/attributes\\'"   . gitattributes-mode)
-           ("/git/attributes\\'"    . gitattributes-mode)))
-#+END_SRC
-
-***** gitconfig
-#+BEGIN_SRC emacs-lisp
-  (use-package gitconfig-mode
-    :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
-           ("/\\.git/config\\'"     . gitconfig-mode)
-           ("/modules/.*/config\\'" . gitconfig-mode)
-           ("/git/config\\'"        . gitconfig-mode)
-           ("/\\.gitmodules\\'"     . gitconfig-mode)
-           ("/etc/gitconfig\\'"     . gitconfig-mode)))
-#+END_SRC
-
-***** gitignore
-#+BEGIN_SRC emacs-lisp
-  (use-package gitignore-mode
-    :mode (("/\\.gitignore\\'"      . gitignore-mode)
-           ("/info/exclude\\'"      . gitignore-mode)
-           ("/git/ignore\\'"        . gitignore-mode)))
-#+END_SRC
-
-**** restclient
-
-#+BEGIN_SRC emacs-lisp
-  (use-package restclient
-    :mode (("\\.rest\\'" . restclient-mode)
-           ("\\.restclient\\'" . restclient-mode)))
-#+END_SRC
-
 **** Nix
 
 ***** nix-mode
@@ -2884,6 +2874,28 @@ macho-mode to toggle then M-x hexl-mode.
   :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
+**** OCaml
+
+#+BEGIN_SRC emacs-lisp
+  (use-package tuareg
+    :mode (("\\.mli?\\'" . tuareg-mode))
+    :config
+;; Use Merlin if available
+(when (require 'merlin nil t)
+  (setq merlin-command 'opam)
+
+  (when (functionp 'merlin-document)
+    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+
+  ;; Run Merlin if a .merlin file in the parent dirs is detected
+  (add-hook 'tuareg-mode-hook
+            (lambda()
+              (let ((fn (buffer-file-name)))
+                (if (and fn (locate-dominating-file fn ".merlin"))
+                    (merlin-mode)))))))
+#+END_SRC
+
+
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -2921,6 +2933,14 @@ macho-mode to toggle then M-x hexl-mode.
     :interpreter ("python" . python-mode))
 #+END_SRC
 
+
+**** restclient
+
+#+BEGIN_SRC emacs-lisp
+  (use-package restclient
+    :mode (("\\.rest\\'" . restclient-mode)
+           ("\\.restclient\\'" . restclient-mode)))
+#+END_SRC
 
 **** Ruby
 
@@ -3081,6 +3101,15 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
 #+END_SRC
+**** deadgrep
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package ripgrep :commands ripgrep-regexp)
+  ;; (use-package rg :commands rg-dwim)
+  (use-package deadgrep
+    :commands deadgrep
+    :bind (:map projectile-command-map
+           ("s g" . deadgrep)))
+#+END_SRC
 **** delight
 
 
@@ -3088,10 +3117,32 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
+**** dired-rsync
+#+BEGIN_SRC emacs-lisp
+(use-package dired-rsync
+  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+#+END_SRC
 **** emacs-gif-screencast
 #+BEGIN_SRC emacs-lisp
 (use-package gif-screencast
   :commands gif-screencast)
+#+END_SRC
+**** fic-mode
+#+BEGIN_SRC emacs-lisp
+(use-package fic-mode
+  :hook (prog-mode . fic-mode))
+#+END_SRC
+**** git-attr
+#+BEGIN_SRC emacs-lisp
+(use-package git-attr-linguist
+  :ensure git-attr
+  :commands git-attr-linguist
+  :hook (find-file . git-attr-linguist))
+#+END_SRC
+**** git-timemachine
+#+BEGIN_SRC emacs-lisp
+(use-package git-timemachine
+  :commands git-timemachine)
 #+END_SRC
 **** htmlize
 
@@ -3108,6 +3159,22 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
 (use-package iedit
   :commands iedit-mode)
+#+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line]
+            . mwim-beginning-of-code-or-line)
+           ([remap move-end-of-line]
+            . mwim-end-of-code-or-line)))
+#+END_SRC
+
+**** org-static-blog
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog :commands org-static-blog-publish)
 #+END_SRC
 **** page-break-lines
 
@@ -3132,6 +3199,36 @@ https://github.com/cbowdon/daemons.el
            (pandoc-mode . pandoc-load-default-settings)))
 #+END_SRC
 
+**** pcomplette
+#+BEGIN_SRC emacs-lisp
+  (use-package pcomplete
+    :ensure nil
+    :demand
+    :commands pcomplete-here
+    :preface
+    (autoload 'pcomplete-comint-setup "pcomplete")
+    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
+           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
+           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
+           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
+           ;;                                'pcomplete-completions-at-point
+           ;;                                nil t)))
+           ))
+  (use-package pcmpl-args
+    :init
+    ;; see https://github.com/JonWaltman/pcmpl-args.el/pull/4
+    (setq pcmpl-args-man-function
+          (lambda (name)
+            (let ((process-environment process-environment))
+              ;; Setting MANWIDTH to a high number makes most paragraphs fit on a single
+              ;; line, reducing the number of false positives that result from lines
+              ;; starting with `-' that aren't really options.
+              (push "MANWIDTH=10000" process-environment)
+              (pcmpl-args-process-file
+               shell-file-name shell-command-switch (format "man %s | col -b" name))))))
+
+    ;; (use-package pcmpl-git)
+#+END_SRC
 **** rainbow-delimiters
 
 #+BEGIN_SRC emacs-lisp
@@ -3181,6 +3278,22 @@ https://github.com/cbowdon/daemons.el
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
+**** undo-tree
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :demand
+    :commands global-undo-tree-mode
+    :config (global-undo-tree-mode 1)
+    ;; (global-set-key (kbd "C-z") 'undo)
+    ;; (defalias 'redo 'undo-tree-redo)
+    ;; (global-set-key (kbd "C-S-z") 'redo)
+    )
+#+END_SRC
+**** unfill
+#+BEGIN_SRC emacs-lisp
+(use-package unfill
+  :bind ([remap fill-paragraph] . unfill-toggle))
+#+END_SRC
 **** url-util
 
 #+BEGIN_SRC emacs-lisp
@@ -3205,29 +3318,6 @@ https://github.com/cbowdon/daemons.el
       (func-region start end 'url-unhex-string))
     (defalias 'url-unescape 'url-decode))
 #+END_SRC
-**** undo-tree
-#+BEGIN_SRC emacs-lisp
-  (use-package undo-tree
-    :demand
-    :commands global-undo-tree-mode
-    :config (global-undo-tree-mode 1)
-    ;; (global-set-key (kbd "C-z") 'undo)
-    ;; (defalias 'redo 'undo-tree-redo)
-    ;; (global-set-key (kbd "C-S-z") 'redo)
-    )
-#+END_SRC
-**** git-timemachine
-#+BEGIN_SRC emacs-lisp
-(use-package git-timemachine
-  :commands git-timemachine)
-#+END_SRC
-**** git-attr
-#+BEGIN_SRC emacs-lisp
-(use-package git-attr-linguist
-  :ensure git-attr
-  :commands git-attr-linguist
-  :hook (find-file . git-attr-linguist))
-#+END_SRC
 **** with-editor
 #+BEGIN_SRC emacs-lisp
   (use-package with-editor
@@ -3235,64 +3325,6 @@ https://github.com/cbowdon/daemons.el
     :hook
     ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
-**** dired-rsync
-#+BEGIN_SRC emacs-lisp
-(use-package dired-rsync
-  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
-#+END_SRC
-**** fic-mode
-#+BEGIN_SRC emacs-lisp
-(use-package fic-mode
-  :hook (prog-mode . fic-mode))
-#+END_SRC
-**** unfill
-#+BEGIN_SRC emacs-lisp
-(use-package unfill
-  :bind ([remap fill-paragraph] . unfill-toggle))
-#+END_SRC
-**** deadgrep
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package ripgrep :commands ripgrep-regexp)
-  ;; (use-package rg :commands rg-dwim)
-  (use-package deadgrep
-    :commands deadgrep
-    :bind (:map projectile-command-map
-           ("s g" . deadgrep)))
-#+END_SRC
-**** org-static-blog
-#+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog :commands org-static-blog-publish)
-#+END_SRC
-**** pcomplette
-#+BEGIN_SRC emacs-lisp
-  (use-package pcomplete
-    :ensure nil
-    :demand
-    :commands pcomplete-here
-    :preface
-    (autoload 'pcomplete-comint-setup "pcomplete")
-    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
-           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
-           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
-           ;;                                'pcomplete-completions-at-point
-           ;;                                nil t)))
-           ))
-  (use-package pcmpl-args)
-  ;; (use-package pcmpl-git)
-#+END_SRC
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mwim
-    :bind (([remap move-beginning-of-line]
-            . mwim-beginning-of-code-or-line)
-           ([remap move-end-of-line]
-            . mwim-end-of-code-or-line)))
-#+END_SRC
-
 * Profiles
 :PROPERTIES:
 :CUSTOM_ID: profiles
@@ -3327,19 +3359,20 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-  PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
-  INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
-  MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
-  XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+  if [ -z "$__BAUER_ADD_PATHS" ]; then
+    export __BAUER_ADD_PATHS=1
+    PATH=$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@:$PATH
+    INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
+    MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
+    XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+  fi
 
   HISTFILE=$HOME/.history
   HISTSIZE=50000
-  export SAVEHIST=50000
+  export SAVEHIST="$HISTSIZE"
 
-  export NIX_PATH=nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:nixos=$HOME/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:$HOME/.nix-defexpr/channels \
-         NIX_PROFILES="/nix/var/nix/profiles/default/profile $HOME/.nix-profile" \
-         CVS_RSH=ssh \
-         EDITOR=emacs
+  export CVS_RSH=ssh
+  export EDITOR=emacs
 #+END_SRC
 
 Dircolors
@@ -3442,16 +3475,6 @@ case "$TERM" in
 esac
 #+END_SRC
 
-Load up site-functions in ZSH. Use XDG_DATA_DIRS variable.
-
-#+BEGIN_SRC shell
-# shellcheck disable=SC2154
-for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
-  fpath+=$dir/zsh/site-functions
-  fpath+=$dir/zsh/vendor-completions
-done
-#+END_SRC
-
 Turn on ZSH-specific options.
 
 #+BEGIN_SRC shell
@@ -3481,11 +3504,29 @@ setopt always_to_end \
        menu_complete
 #+END_SRC
 
-Setup completions & colors.
+Load up site-functions in ZSH. Use XDG_DATA_DIRS variable. Then we use this to
+initialize completions.
 
 #+BEGIN_SRC shell
-autoload -U colors && colors
-autoload -U compinit && compinit
+if [ "$TERM" != dumb-emacs-ansi ]; then
+  # shellcheck disable=SC2154
+  for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
+    if [ -d "$dir/zsh/site-functions" ]; then
+      fpath+=$dir/zsh/site-functions
+    fi
+    if [ -d "$dir/zsh/vendor-completions" ]; then
+      fpath+=$dir/zsh/vendor-completions
+    fi
+  done
+
+  autoload -U compinit
+
+  if ! [ -f "$HOME/.zcompdump" ] || [ "$(@coreutils@/bin/date +%j)" != "$(@coreutils@/bin/date +%j -r "$HOME/.zcompdump")" ]; then
+    compinit -i -d "$HOME/.zcompdump"
+  else
+    compinit -i -d "$HOME/.zcompdump" -C
+  fi
+fi
 #+END_SRC
 
 Bind to emacs...
@@ -3504,7 +3545,7 @@ zstyle ':completion:*' menu select=1 \
 zstyle ':completion:*' matcher-list \
        'm:{a-zA-Z-_}={A-Za-z_-}' \
        'r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' select-prompt \
        '%SScrolling active: current selection at %p%s'
 zstyle ':completion:*' \
@@ -3521,7 +3562,32 @@ zstyle '*' single-ignored show
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-export PROMPT='%F{blue}%n@%m:%F{cyan}%~%F{yellow} $ %F{reset}'
+PROMPT='%F{blue}'
+if [ -n "$SSH_CLIENT" ]; then
+    PROMPT+='ssh://%n@'
+    echo "$SSH_CLIENT" | read ip outport inport
+    if [ "$ip" != 127.0.0.1 ] && [ "$ip" != ::1 ] && \
+       command -v nslookup > /dev/null; then
+        host="$(nslookup "$ip" | sed 's/.*arpa.*name = \(.*\)/\1/' | sed 's/\.$//')"
+        if [ -n "$host" ]; then
+            PROMPT+="$host"
+        else
+            PROMPT+='%M'
+        fi
+    else
+        PROMPT+='%M'
+    fi
+    if [ "$inport" -ne 22 ]; then
+        PROMPT+=":$inport"
+    fi
+    PROMPT+=' '
+    unset host ip outport inport
+else
+    PROMPT+='%n@%M:'
+fi
+PROMPT+='%F{cyan}%~%F{yellow} $ '
+PROMPT+='%F{reset}'
+export PROMPT
 
 unset RPS1
 #+END_SRC
@@ -3574,7 +3640,9 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-shopt -s nullglob
+if [ -n "$BASH_VERSION" ]; then
+    shopt -s nullglob
+fi
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
@@ -3681,19 +3749,6 @@ Set some more misc. vars.
                                                    output-directory)
                                 "@INFOPATH@")
                               ":")))
-#+END_SRC
-
-Set env vars provided by Nix. We have to override this because the defaults Nix
-has are bad.
-
-#+BEGIN_SRC emacs-lisp
-  (setenv "NIX_PATH"
-          (format "nixpkgs=%s/.nix-defexpr/channels/nixpkgs:nixos-config=/etc/nixos/configuration.nix:%s/.nix-defexpr/channels"
-                  (getenv "HOME") (getenv "HOME")))
-  (setenv "NIX_PROFILES"
-          (string-join (list "/nix/var/nix/profiles/default/profile"
-                             (format "%s/.nix-profile"
-                                     (getenv "HOME"))) " "))
 #+END_SRC
 
 Set paths provided by Nix,
@@ -4730,13 +4785,14 @@ have been configured to use the paths above.
 
 #+BEGIN_SRC nix
 in buildEnv {
-  name = "bauer-1.4.4";
+  name = "bauer-1.5.0";
   buildInputs = [ pkgs.makeWrapper pkgs.bash ];
   postBuild = ''
     mkdir -p $out/etc
     substituteAll ${./zshrc.sh} $out/etc/.zshrc
     substituteInPlace $out/etc/.zshrc \
-      --subst-var-by completions ${zsh-completions}
+      --subst-var-by completions ${zsh-completions} \
+      --subst-var-by coreutils ${pkgs.coreutils}
     ln -s $out/etc/.zshrc $out/etc/zshrc
     makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
     substituteAll ${./etc-profile.sh} $out/etc/profile
@@ -5195,7 +5251,9 @@ cleanup() {
 setup
 trap cleanup EXIT
 
-shopt -s dotglob
+if [ -n "$BASH_VERSION" ]; then
+    shopt -s dotglob
+fi
 for f in *; do
     if [ "$f" = ".git" ]; then
         continue
