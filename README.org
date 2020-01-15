@@ -365,10 +365,16 @@ The format of arguments to =set-defaults= is identical to the one used by
 Misc. defaults that don’t fit above. TODO: move these above.
 
 #+BEGIN_SRC emacs-lisp
+  (when (file-exists-p user-emacs-directory)
+    (mkdir (expand-file-name "backup" user-emacs-directory) t))
+
   (set-defaults
    '(bug-reference-bug-regexp
      (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
              "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
+   '(backup-directory-alist `(("." .
+                               ,(expand-file-name "backup"
+                                                  user-emacs-directory))))
    '(company-auto-complete (lambda ()
                              (and (company-tooltip-visible-p)
                                   (company-explicit-action-p))))
