@@ -366,14 +366,19 @@ Misc. defaults that don’t fit above. TODO: move these above.
 
 #+BEGIN_SRC emacs-lisp
   (when (file-exists-p user-emacs-directory)
-    (mkdir (expand-file-name "backup" user-emacs-directory) t))
+    (mkdir (expand-file-name "auto-save/" user-emacs-directory) t)
+    (mkdir (expand-file-name "backup/" user-emacs-directory) t)
+    (mkdir (expand-file-name "undo-tree/" user-emacs-directory) t))
 
   (set-defaults
+   '(auto-save-file-name-transforms `((".*"
+                                       ,(expand-file-name "auto-save/"
+                                                           user-emacs-directory) t)))
    '(bug-reference-bug-regexp
      (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
              "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
-   '(backup-directory-alist `(("." .
-                               ,(expand-file-name "backup"
+   '(backup-directory-alist `((".*" .
+                               ,(expand-file-name "backup/"
                                                   user-emacs-directory))))
    '(company-auto-complete (lambda ()
                              (and (company-tooltip-visible-p)
@@ -555,6 +560,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(uniquify-ignore-buffers-re "^\\*")
    '(uniquify-separator "/")
    '(undo-tree-mode-lighter "")
+   '(undo-tree-history-directory-alist
+      `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
+   '(undo-tree-auto-save-history t)
    '(vc-git-diff-switches '("-w" "-U3"))
    '(vc-ignore-dir-regexp
      (concat "\\(\\(\\`"
