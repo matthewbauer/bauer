@@ -998,7 +998,6 @@ These are the best & most useful modes available to us in Emacs world.
 #+BEGIN_SRC emacs-lisp
   (use-package align
     :bind ("M-[" . align)
-    :ensure nil
     :config
     (add-to-list 'align-rules-list
 		 '(haskell-types
@@ -1299,7 +1298,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
-    :ensure nil
     :bind (("C-c M-t" . eshell)
            ("C-c x" . eshell)
            ("C-c e" . eshell))
@@ -1389,15 +1387,15 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package em-dired
-    :preface
-    (autoload 'em-dired-new "em-dired")
-    :ensure nil
-    :bind (:package dired
-                    :map dired-mode-map
-                    ("e" . em-dired))
-    :hook (eshell-mode . em-dired-mode)
-    :init
-    (advice-add 'eshell :before 'em-dired-new))
+  :preface
+  (autoload 'em-dired-new "em-dired")
+  :ensure nil
+  :bind (:package dired
+         :map dired-mode-map
+         ("e" . em-dired))
+  :hook (eshell-mode . em-dired-mode)
+  :init
+  (advice-add 'eshell :before 'em-dired-new))
 #+END_SRC
 
 **** Flycheck
@@ -1428,7 +1426,6 @@ Gnus is an infamous email client & news reader.
 
 #+BEGIN_SRC emacs-lisp
   (use-package gnus
-    :ensure nil
     :commands gnus
     :hook ((dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
@@ -1468,7 +1465,6 @@ Hippie provides dynamic expansions. Try it out by pressing =M-/=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package hippie-exp
-    :ensure nil
     :bind* (("M-/" . hippie-expand)
             ("s-?" . hippie-expand-line))
     :hook ((emacs-lisp-mode ielm-mode) .
@@ -1649,7 +1645,6 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
     :disabled
-    :ensure nil
     :config (recentf-mode 1))
 #+END_SRC
 **** smart-hungry-delete
@@ -1824,7 +1819,6 @@ Get color/ansi codes in compilation mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ansi-color
-    :ensure nil
     :hook (compilation-filter . colorize-compilation-buffer)
     :preface
     (autoload 'ansi-color-apply-on-region "ansi-color")
@@ -1841,7 +1835,6 @@ investigate how to fix this.
 
 #+BEGIN_SRC emacs-lisp
   (use-package autorevert
-    :ensure nil
     :commands global-auto-revert-mode
     :demand
     :config (global-auto-revert-mode t))
@@ -1853,7 +1846,6 @@ Provides links to bugs listed in sourvce code.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
-    :ensure nil
     :hook ((prog-mode . bug-reference-prog-mode)
            (text-mode . bug-reference-mode)))
 #+END_SRC
@@ -1954,7 +1946,6 @@ Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
   (use-package compile
-    :ensure nil
     :bind (("C-c C-c" . compile)
            :map compilation-mode-map
            ("o" . compile-goto-error))
@@ -1983,7 +1974,6 @@ Base mode used for shell and terminal modes.
 **** conf-mode
 #+BEGIN_SRC emacs-lisp
   (use-package conf-mode
-    :ensure nil
     :mode (("/\\.merlin\\'" . conf-mode)
            ("_oasis\\'" . conf-mode)
            ("_tags\\'" . conf-mode)
@@ -1993,7 +1983,6 @@ Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
   (use-package delsel
-    :ensure nil
     :demand
     :commands delete-selection-mode
     :config (delete-selection-mode t))
@@ -2004,7 +1993,6 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package desktop
     :disabled
-    :ensure nil
     :demand
     :commands delete-save-mode
     :config
@@ -2093,7 +2081,6 @@ Provides some info for the thing at the point.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eldoc
-    :ensure nil
     :hook ((emacs-lisp-mode . eldoc-mode)
            (eval-expression-minibuffer-setup . eldoc-mode)
            (lisp-mode-interactive-mode . eldoc-mode)
@@ -2114,7 +2101,6 @@ Setup these modes:
 
 #+BEGIN_SRC emacs-lisp
   (use-package electric
-    :ensure nil
     :if (>= emacs-major-version 25)
     :hook ((prog-mode . electric-quote-local-mode)
            (text-mode . electric-quote-local-mode)
@@ -2133,7 +2119,6 @@ setup.
 
 #+BEGIN_SRC emacs-lisp
   (use-package elec-pair
-    :ensure nil
     :if (>= emacs-major-version 25)
     :hook
      ((prog-mode . electric-pair-local-mode)
@@ -2147,7 +2132,6 @@ eww is enabled so we can open files in non-graphical environments.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eww
-    :ensure nil
     :if (and (not window-system)
              (not (string-equal
                     (getenv "TERM_PROGRAM")
@@ -2166,7 +2150,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package executable
-    :ensure nil
     :hook
     ((after-save .
       executable-make-buffer-file-executable-if-script-p)))
@@ -2191,8 +2174,7 @@ Make scripts executable automatically.
     :hook ((gnus-summary-mode . ffap-gnus-hook)
            (gnus-article-mode . ffap-gnus-hook)
            (vm-mode . ffap-ro-mode-hook)
-           (rmail-mode . ffap-ro-mode-hook))
-    :ensure nil)
+           (rmail-mode . ffap-ro-mode-hook)))
 #+END_SRC
 **** files
 
@@ -2228,7 +2210,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
-    :ensure nil
     :if (locate-file
          (if (boundp 'ispell-program-name)
              ispell-program-name "ispell")
@@ -2243,7 +2224,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package goto-addr
-    :ensure nil
     :hook (((prog-mode conf-mode) . goto-address-prog-mode)
            ((help-mode org-mode text-mode) . goto-address-mode)
            (git-commit-mode . goto-address-mode)
@@ -2253,7 +2233,6 @@ Make scripts executable automatically.
 **** hl-line
 #+BEGIN_SRC emacs-lisp
   (use-package hl-line
-    :ensure nil
     :hook ((prog-mode . hl-line-mode)
            (org-mode . hl-line-mode)
            (dired-mode . hl-line-mode)))
@@ -2269,7 +2248,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package paren
-    :ensure nil
     :hook ((prog-mode . show-paren-mode)
            (smartparens-mode . (lambda () (show-paren-mode -1)))))
 #+END_SRC
@@ -2278,7 +2256,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package pp
-    :ensure nil
     :commands pp-eval-last-sexp
     :bind (([remap eval-expression] . pp-eval-expression))
     ;; :init
@@ -2339,7 +2316,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
-    :ensure nil
     :hook (after-init . savehist-mode))
 #+END_SRC
 
@@ -2347,7 +2323,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
-    :ensure nil
     :if (>= emacs-major-version 25)
     :hook (after-init . save-place-mode))
 #+END_SRC
@@ -2356,7 +2331,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
     (use-package shell
-      :ensure nil
       :bind (("C-c C-s" . shell)
              ("H-s" . shell)
              ("M-@" . shell))
@@ -2388,7 +2362,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package subword
-    :ensure nil
     :hook ((java-mode . subword-mode)))
 #+END_SRC
 
@@ -2396,7 +2369,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package term
-    :ensure nil
     :commands (term-mode term-char-mode)
     :hook ((term-mode .
              (lambda ()
@@ -2429,7 +2401,6 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package time
     :demand
-    :ensure nil
     :config (display-time-mode))
 #+END_SRC
 
@@ -2447,7 +2418,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-func
-    :ensure nil
     :commands which-function-mode
     :demand
     :config (which-function-mode))
@@ -2456,7 +2426,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
-    :ensure nil
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
 *** Programming languages
@@ -2469,7 +2438,6 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package cc-mode
-    :ensure nil
     :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
            ("\\.m\\'" . c-mode)
            ("\\.c\\'" . c-mode)
@@ -2534,7 +2502,6 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package css-mode
-    :ensure nil
     :mode "\\.css\\'")
 #+END_SRC
 
@@ -2792,7 +2759,6 @@ Auctex provides some helpful tools for working with LaTeX.
 ****** tex-mode
 #+BEGIN_SRC emacs-lisp
   (use-package tex-mode
-    :ensure nil
     :hook (TeX-mode . latex-electric-env-pair-mode))
 #+END_SRC
 **** Lisp
@@ -2807,7 +2773,6 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ielm
-    :ensure nil
     :bind ("C-c :" . ielm))
 #+END_SRC
 
@@ -2930,7 +2895,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package python
-    :ensure nil
     :mode ("\\.py\\'" . python-mode)
     :interpreter ("python" . python-mode))
 #+END_SRC
@@ -2948,7 +2912,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ruby-mode
-    :ensure nil
     :mode ("\\.rb\\'" . ruby-mode)
     :interpreter ("ruby" . ruby-mode))
 #+END_SRC
@@ -2986,7 +2949,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
 (use-package sh-script
-  :ensure nil
   :commands shell-command
   :mode (("\\.*shellrc$" . sh-mode)
          ("\\.*shell_profile" . sh-mode)
@@ -2997,7 +2959,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package texinfo
-    :ensure nil
     :mode ("\\.texi\\'" . texinfo-mode))
 #+END_SRC
 
@@ -3210,7 +3171,6 @@ https://github.com/cbowdon/daemons.el
 **** pcomplette
 #+BEGIN_SRC emacs-lisp
   (use-package pcomplete
-    :ensure nil
     :demand
     :commands pcomplete-here
     :preface
