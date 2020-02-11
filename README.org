@@ -1846,6 +1846,20 @@ investigate how to fix this.
     :commands global-auto-revert-mode
     :demand
     :config (global-auto-revert-mode t))
+
+  (advice-add 'vc-git-find-file-hook :override
+    (lambda ()
+      "Activate `smerge-mode' if there is a conflict."
+      (when (and buffer-file-name
+                 (eq (vc-state buffer-file-name 'Git) 'conflict)
+                 (save-excursion
+                   (goto-char (point-min))
+                   (re-search-forward "^<<<<<<< " nil 'noerror)))
+        (unless (and (boundp 'smerge-mode) smerge-mode)
+          (smerge-start-session))
+        (when vc-git-resolve-conflicts
+          (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
+        (vc-message-unresolved-conflicts buffer-file-name))))
 #+END_SRC
 
 **** bug-reference
