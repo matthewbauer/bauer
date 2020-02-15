@@ -167,8 +167,19 @@ When we are within a terminal we want to be able to use the mouse, so
 =xterm-mouse-mode= is enabled here.
 
 #+BEGIN_SRC emacs-lisp
-  (when (not window-system)
+  (unless (display-graphic-p)
     (xterm-mouse-mode 1))
+#+END_SRC
+
+Hack to avoid tty-run-terminal-initialization on non-graphical Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (unless (display-graphic-p)
+    (advice-add #'tty-run-terminal-initialization :override #'ignore)
+    (add-hook 'window-setup-hook
+      (lambda ()
+        (advice-remove #'tty-run-terminal-initialization #'ignore)
+        (tty-run-terminal-initialization (selected-frame) nil t))))
 #+END_SRC
 
 ** Custom config
@@ -247,6 +258,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | eshell-stringify                              | nil               |
 | eshell-visual-options                         | nil               |
 | eval-expression-print-level                   | nil               |
+| frame-inhibit-implied-resize                  | t                 |
 | flycheck-emacs-lisp-load-path                 | 'inherit          |
 | flycheck-standard-error-navigation            | nil               |
 | flymake-no-changes-timeout                    | nil               |
@@ -320,6 +332,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | proof-sticky-errors                           | t                 |
 | proof-tidy-response                           | t                 |
 | resize-mini-windows                           | t                 |
+| revert-without-query                          | '(".")            |
 | ring-bell-function                            | 'ignore           |
 | ruby-insert-encoding-magic-comment            | nil               |
 | save-abbrevs                                  | 'silently         |
