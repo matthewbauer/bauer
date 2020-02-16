@@ -4218,7 +4218,7 @@ args.
       "x86_64-darwin" = "nixpkgs-${version}-darwin";
     }.${builtins.currentSystem} or "nixos-${version}"
   , nixpkgs-url ?
-    "nixos.org/channels/${channel}/nixexprs.tar.xz"
+    "https://nixos.org/channels/${channel}/nixexprs.tar.xz"
   , system ? builtins.currentSystem
   , crossSystem ? null
   , config ? {}
@@ -4270,7 +4270,7 @@ we have some options that can be provided...
   , config ? {}
   , overlays ? []
   , pkgs ? import <nixpkgs> { inherit crossSystem system config overlays; }
-  , ensure ? (f: n: f)
+  , ensure ? f: n: f
   , small ? pkgs.config.bauer.small or true
   , ... }: let
   inherit (pkgs) stdenv lib runCommand buildEnv config writeText;
