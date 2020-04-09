@@ -734,6 +734,7 @@ Define some helper functions.
 Override browse-url to handle man protocol better.
 
 #+BEGIN_SRC emacs-lisp
+(require 'browse-url)
 (defun my-browse-url (url &rest args)
   "Ask a WWW browser to load URL.
 Prompt for a URL, defaulting to the URL at or before point.
@@ -1855,6 +1856,7 @@ investigate how to fix this.
     :demand
     :config (global-auto-revert-mode t))
 
+  (require 'vc-git)
   (advice-add 'vc-git-find-file-hook :override
     (lambda ()
       "Activate `smerge-mode' if there is a conflict."
@@ -1889,6 +1891,7 @@ Base mode used for shell and terminal modes.
     "Possible prefix that may come before history elements. In
     Zshell with extended_history, this is useful.")
 
+  (defvar ffap-url-at-point)
   (use-package comint
     :ensure nil
     :hook (comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
@@ -2267,9 +2270,9 @@ Make scripts executable automatically.
            (org-mode . hl-line-mode)
            (dired-mode . hl-line-mode)))
 #+END_SRC
-**** makefile-mode
+**** make-mode
 #+BEGIN_SRC emacs-lisp
-  (use-package makefile-mode
+  (use-package make-mode
     :ensure nil
     :mode (("\\(/\\|\\`\\)[Mm]akefile" . makefile-mode)))
 #+END_SRC
@@ -2868,7 +2871,6 @@ macho-mode to toggle then M-x hexl-mode.
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
   :commands nix-update-fetch
-  :ensure nil
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** OCaml
@@ -2879,6 +2881,7 @@ macho-mode to toggle then M-x hexl-mode.
     :config
 ;; Use Merlin if available
 (when (require 'merlin nil t)
+  (defvar merlin-command)
   (setq merlin-command 'opam)
 
   (when (functionp 'merlin-document)
@@ -3301,7 +3304,7 @@ https://github.com/cbowdon/daemons.el
     :preface
     (defun func-region (start end func)
       "Run a function over the region between START and END in current buffer."
-      (unless (region-active-p) (throw "No active region."))
+      (unless (region-active-p) (error "No active region."))
       (save-excursion
         (let ((text (delete-and-extract-region start end)))
           (insert (funcall func text)))))
