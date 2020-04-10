@@ -3492,6 +3492,7 @@ setopt always_to_end \
        auto_name_dirs \
        auto_pushd \
        cdable_vars \
+       complete_in_word \
        extended_history \
        hist_expire_dups_first \
        hist_find_no_dups \
@@ -3551,23 +3552,19 @@ bindkey -e
 Zstyle completions.
 
 #+BEGIN_SRC shell
-zstyle ':completion:*::::' completer \
-       _expand _complete _ignored _approximate
-zstyle ':completion:*' menu select=1 \
-       _complete _ignored _approximate
-zstyle ':completion:*' matcher-list \
-       'm:{a-zA-Z-_}={A-Za-z_-}' \
-       'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' ignored-patterns '*~' '_*' '*\\\#*\\\#'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' select-prompt \
-       '%SScrolling active: current selection at %p%s'
-zstyle ':completion:*' \
-       ignored-patterns '*~' '_*' '*\\\#*\\\#'
-zstyle ':completion:*:scp:*' group-order files \
-       all-files users hosts-domain \
-       hosts-host hosts-ipaddr
-zstyle ':completion:*:ssh:*' group-order hosts-domain \
-       hosts-host users hosts-ipaddr
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' special-dirs yes
+zstyle ':completion:*' squeeze-slashes yes
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*:history-words' list no
+zstyle ':completion:*:history-words' remove-all-dups yes
+zstyle ':completion:*:history-words' stop yes
+zstyle ':completion:*:rm:*' file-patterns '*:all-files'
+zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
+zstyle ':completion::complete:*' use-cache 1
 zstyle ':vcs_info:*' enable git
 zstyle '*' single-ignored show
 #+END_SRC
