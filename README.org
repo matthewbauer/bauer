@@ -490,6 +490,15 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
+   '(magit-process-password-prompt-regexps '(
+      "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+      "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+      "Please enter the passphrase for the ssh key"
+      "Please enter the passphrase to unlock the OpenPGP secret key"
+      "^.*'s password: ?$"
+      "^Yubikey for .*: ?$"
+      "^Enter PIN for .*: ?$"
+      "^\\[sudo\\] password for .*: ?$"))
    '(mouse-wheel-scroll-amount '(1
                                  ((shift) . 5)
                                  ((control))))
