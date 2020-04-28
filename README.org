@@ -3394,10 +3394,14 @@ just in case.
 
   export CVS_RSH=ssh
   export EDITOR='emacsclient -a emacs'
-  case "$TERM" in
-    dumb*|) EDITOR+=' -c';;
-    *) EDITOR=' -t';;
-  esac
+
+  if [ -z "$TERM" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
+    EDITOR+=' -c'
+  fi
+
+  if [ -n "$PS1" ]; then
+    EDITOR=' -t'
+  fi
 #+END_SRC
 
 Dircolors
