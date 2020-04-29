@@ -3397,9 +3397,7 @@ just in case.
 
   if [ -z "$TERM" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
     EDITOR+=' -c'
-  fi
-
-  if [ -n "$PS1" ]; then
+  elif [ -n "$PS1" ]; then
     EDITOR+=' -t'
   fi
 #+END_SRC
