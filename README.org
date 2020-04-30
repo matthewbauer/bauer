@@ -3393,12 +3393,13 @@ just in case.
   export SAVEHIST="$HISTSIZE"
 
   export CVS_RSH=ssh
-  export EDITOR='emacsclient -a emacs'
 
   if [ -z "$TERM" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
-    EDITOR+=' -c'
+    export EDITOR='emacsclient -a emacs -c'
   elif [ -n "$PS1" ]; then
-    EDITOR+=' -t'
+    export EDITOR='emacsclient -a "emacs -nw" -t'
+  else
+    export EDITOR='emacsclient -a emacs'
   fi
 #+END_SRC
 
