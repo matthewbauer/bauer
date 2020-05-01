@@ -3423,7 +3423,11 @@ alias ..="cd .." \
       chown='chown --preserve-root' \
       chmod='chmod --preserve-root' \
       chgrp='chgrp --preserve-root' \
-      curl='curl -L'
+      curl='curl -L' \
+      upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
+      upgrade=upgrade_bauer
+
+set -o noclobber
 
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ]; then
