@@ -3407,6 +3407,8 @@ just in case.
   else
     export EDITOR='emacsclient -a emacs'
   fi
+
+  set -uC
 #+END_SRC
 
 Dircolors
@@ -3451,8 +3453,6 @@ help() {
     exit 1
   fi
 }
-
-set -o noclobber
 
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ]; then
@@ -3528,6 +3528,8 @@ esac
 Turn on ZSH-specific options.
 
 #+BEGIN_SRC shell
+set -uC
+
 setopt always_to_end \
        auto_cd \
        auto_menu \
