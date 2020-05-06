@@ -3583,6 +3583,11 @@ fi
 Bind to emacs...
 
 #+BEGIN_SRC shell
+autoload -U tetris
+
+autoload -U bracketed-paste-magic
+zle -N bracketed-paste bracketed-paste-magic
+
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
 bindkey ' ' magic-space
