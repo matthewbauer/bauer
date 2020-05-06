@@ -3439,6 +3439,19 @@ alias ..="cd .." \
       upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
       upgrade=upgrade_bauer
 
+help() {
+  if command -v xdg-open > /dev/null; then
+    xdg-open https://matthewbauer.us/bauer/
+  elif command -v open > /dev/null; then
+    open https://matthewbauer.us/bauer/
+  elif [ -n "$EDITOR" ]; then
+    $EDITOR $HOME/.local/share/bauer/README.org
+  else
+    echo Can’t find help.
+    exit 1
+  fi
+}
+
 set -o noclobber
 
 if [ "$TERM" != "dumb" ]; then
