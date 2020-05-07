@@ -4365,7 +4365,6 @@ currently).
     };
     LIBRARY_PATH = "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib";
     patches = [];
-    makeFlags = o.makeFlags or [] ++ ["NATIVE_FAST_BOOT=1"];
     buildInputs = o.buildInputs or [] ++ [ pkgs.libgccjit pkgs.jansson ];
     configureFlags = o.configureFlags or [] ++ ["--with-nativecomp"];
   });
@@ -4546,6 +4545,16 @@ path. This works but is hacky & I am interested in fixing it.
 #+BEGIN_SRC nix
 cd $out/share/emacs/site-lisp
 export HOME=$PWD
+
+emacs --batch --quick \
+      --eval \
+"(let ((default-directory \"${emacsWrapper
+  ((requiredPackages customEmacsPackages myEmacsPackages')
+   ++ (with customEmacsPackages; [use-package delight]))
+}/share/emacs/site-lisp\"))
+  (normal-top-level-add-subdirs-to-load-path))" \
+      -L . -f batch-native-compile *.el
+
 emacs --batch --quick \
       --eval \
 "(let ((default-directory \"${emacsWrapper
@@ -4618,8 +4627,8 @@ listed in =use-package= above is pulled into the closure.
   for pkg in "''${requires[@]}"; do
     linkEmacsPackage $pkg
   done
-  emacs --batch -f batch-byte-compile \
-                "$siteStart"
+  emacs --batch -f batch-byte-compile "$siteStart"
+  emacs --batch -f batch-native-compile "$siteStart"
   '';
 #+END_SRC
 
