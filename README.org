@@ -1271,7 +1271,6 @@ info.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
-    :disabled
     :commands (ivy-read)
     :bind (([remap list-buffers] . ivy-switch-buffer)
            ([remap switch-to-buffer] . ivy-switch-buffer)
@@ -1522,6 +1521,27 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
+
+    ;; (defun magit-remote-github (username &optional args)
+    ;;   (interactive (list (magit-read-string-ns "User name")
+    ;;                      (magit-remote-arguments)))
+    ;;   (let* ((url (magit-get "remote.origin.url"))
+    ;;          (match (string-match
+    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
+    ;;                  url)))
+    ;;     (unless match
+    ;;       (error "Not a github remote"))
+    ;;     (let ((repo (match-string 1 url)))
+    ;;       (apply 'magit-remote-add username
+    ;;              (format "ssh://git@github.com/%s/%s"
+    ;;                      username repo) args))))
+    ;; :hook (magit-mode . (lambda ()
+    ;;                       (magit-define-popup-action
+    ;;                         'magit-remote-popup
+    ;;                         ?g
+    ;;                         "Add remote from github user name"
+    ;;                         'magit-remote-github)))
+
     :commands (magit-clone magit-blame-addition magit-log-buffer-file)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
@@ -1536,6 +1556,13 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit)
+#+END_SRC
+
+Magit todos
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit-todos
+  :commands (magit-todos-list))
 #+END_SRC
 
 ***** git-commit
