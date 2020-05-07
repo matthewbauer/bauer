@@ -1434,14 +1434,17 @@ supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
+    :disabled
     :hook ((prog-mode . flycheck-mode)
            (haskell-mode . (lambda () (flycheck-mode -1)))
            (c++-mode . (lambda () (flycheck-mode -1)))))
   ;; (use-package flycheck-haskell
   ;;   :hook (haskell-mode . flycheck-haskell-setup))
   (use-package flycheck-cask
+    :disabled
     :hook (emacs-lisp-mode . flycheck-cask-setup))
   (use-package flycheck-rust
+    :disabled
     :hook (rust-mode . flycheck-rust-setup))
 #+END_SRC
 
@@ -2523,6 +2526,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck-irony
+    :disabled
     :hook (flycheck-mode . flycheck-irony-setup))
 #+END_SRC
 
@@ -2754,6 +2758,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
+    :disabled
     :if (>= emacs-major-version 25)
     :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
@@ -3108,6 +3113,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package crux
+    :disabled
     :bind (("C-c D" . crux-delete-file-and-buffer)
            ("C-c C-e" . crux-eval-and-replace)
            ("C-c d" . crux-duplicate-current-line-or-region)
