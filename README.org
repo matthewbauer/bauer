@@ -4365,8 +4365,8 @@ currently).
     };
     LIBRARY_PATH = "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib";
     patches = [];
-    buildInputs = o.buildInputs or [] ++ [ pkgs.libgccjit ];
     makeFlags = o.makeFlags or [] ++ ["NATIVE_FAST_BOOT=1"];
+    buildInputs = o.buildInputs or [] ++ [ pkgs.libgccjit pkgs.jansson ];
     configureFlags = o.configureFlags or [] ++ ["--with-nativecomp"];
   });
 
