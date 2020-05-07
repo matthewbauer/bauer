@@ -4340,7 +4340,14 @@ currently).
     configureFlags = o.configureFlags or [] ++ ["--with-nativecomp"];
   });
 
-  customEmacsPackages = pkgs.emacsPackagesNgGen
+  emacs-overlays = pkgs.fetchFromGitHub {
+    owner = "nix-community";
+    repo = "emacs-overlay";
+    rev = "8c0a391ff034e54e57a7525fbb4074df9ce3d338";
+    sha256 = "sha256-MXA6+y70GPz/hu5+3uDjgJbWhAF40fh+S2WO1tSYEBg=";
+  };
+
+  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor
     (if hostPlatform.isDarwin then pkgs.emacsMacport
      else if hostPlatform.isLinux then gccemacs
      else pkgs.emacs);
