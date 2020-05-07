@@ -4509,6 +4509,13 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
+  emacs-overlays = pkgs.fetchFromGitHub {
+    owner = "nix-community";
+    repo = "emacs-overlay";
+    rev = "bfb416da4b3419a1a7d2766187b5fd52cae905c8";
+    sha256 = "sha256-3OLrp7cWcrfe1+qDBuzSdcHOTsB+z2KD0WE1ldlD79s=";
+  };
+
   emacs = (pkgs.emacs.override { srcRepo = true; }).overrideAttrs (o: {
      src = builtins.fetchGit {
        url = "https://git.savannah.gnu.org/git/emacs.git";
@@ -4518,7 +4525,7 @@ currently).
      patches = [];
    });
 
-  customEmacsPackages = pkgs.emacsPackagesNgGen emacs;
+  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor emacs;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
