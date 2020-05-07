@@ -1242,6 +1242,7 @@ info.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
+    :disabled
     :commands (ivy-read)
     :bind (([remap list-buffers] . ivy-switch-buffer)
            ([remap switch-to-buffer] . ivy-switch-buffer)
@@ -1404,14 +1405,17 @@ supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
+    :disabled
     :hook ((prog-mode . flycheck-mode)
            (haskell-mode . (lambda () (flycheck-mode -1)))
            (c++-mode . (lambda () (flycheck-mode -1)))))
   ;; (use-package flycheck-haskell
   ;;   :hook (haskell-mode . flycheck-haskell-setup))
   (use-package flycheck-cask
+    :disabled
     :hook (emacs-lisp-mode . flycheck-cask-setup))
   (use-package flycheck-rust
+    :disabled
     :hook (rust-mode . flycheck-rust-setup))
 #+END_SRC
 
@@ -1491,27 +1495,6 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
-
-    ;; (defun magit-remote-github (username &optional args)
-    ;;   (interactive (list (magit-read-string-ns "User name")
-    ;;                      (magit-remote-arguments)))
-    ;;   (let* ((url (magit-get "remote.origin.url"))
-    ;;          (match (string-match
-    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
-    ;;                  url)))
-    ;;     (unless match
-    ;;       (error "Not a github remote"))
-    ;;     (let ((repo (match-string 1 url)))
-    ;;       (apply 'magit-remote-add username
-    ;;              (format "ssh://git@github.com/%s/%s"
-    ;;                      username repo) args))))
-    ;; :hook (magit-mode . (lambda ()
-    ;;                       (magit-define-popup-action
-    ;;                         'magit-remote-popup
-    ;;                         ?g
-    ;;                         "Add remote from github user name"
-    ;;                         'magit-remote-github)))
-
     :commands (magit-clone magit-blame-addition magit-log-buffer-file)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
@@ -1526,13 +1509,6 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit)
-#+END_SRC
-
-Magit todos
-
-#+BEGIN_SRC emacs-lisp
-(use-package magit-todos
-  :commands (magit-todos-list))
 #+END_SRC
 
 ***** git-commit
@@ -2540,6 +2516,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck-irony
+    :disabled
     :hook (flycheck-mode . flycheck-irony-setup))
 #+END_SRC
 
@@ -2772,6 +2749,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
+    :disabled
     :if (>= emacs-major-version 25)
     :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
@@ -3128,6 +3106,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package crux
+    :disabled
     :bind (("C-c D" . crux-delete-file-and-buffer)
            ("C-c C-e" . crux-eval-and-replace)
            ("C-c d" . crux-duplicate-current-line-or-region)
