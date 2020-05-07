@@ -4328,8 +4328,23 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
+  gccemacs = (pkgs.emacs.override { stdenv = pkgs.gcc9Stdenv; srcRepo = true; }).overrideAttrs (o: {
+    src = pkgs.fetchgit {
+      url = "https://git.savannah.gnu.org/git/emacs.git";
+      rev = "766f4b96ee148adf8f4bbbf5fa4f1c47555d46de";
+      sha256 = "sha256-3SJ431AsdurrDESo8HLElGhUzl0eyADIlit/PNV2FR4=";
+    };
+    LIBRARY_PATH = "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib";
+    patches = [];
+    buildInputs = o.buildInputs or [] ++ [ pkgs.libgccjit ];
+    makeFlags = o.makeFlags or [] ++ ["NATIVE_FAST_BOOT=1"];
+    configureFlags = o.configureFlags or [] ++ ["--with-nativecomp"];
+  });
+
   customEmacsPackages = pkgs.emacsPackagesNgGen
-    (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
+    (if hostPlatform.isDarwin then pkgs.emacsMacport
+     else if hostPlatform.isLinux then gccemacs
+     else pkgs.emacs);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
