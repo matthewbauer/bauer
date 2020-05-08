@@ -4320,7 +4320,7 @@ we have some options that can be provided...
   , ensure ? f: n: f
   , small ? pkgs.config.bauer.small or true
   , ... }: let
-  inherit (pkgs) stdenv lib runCommand buildEnv config writeText;
+  inherit (pkgs) stdenv lib runCommand runCommandCC buildEnv config writeText;
   inherit (stdenv) hostPlatform;
   big = !small;
   allowUnfree = config.allowUnfree or false;
@@ -4487,8 +4487,9 @@ myEmacsPackages' = builtins.fromJSON
 **** Phase 2: byte compiling
 
 #+BEGIN_SRC nix
-  default = runCommand "bauer-emacs" {
-    buildInputs = [ pkgs.emacs ];
+  default = runCommandCC "bauer-emacs" {
+    nativeBuildInputs = [ customEmacsPackages.emacs ];
+    LIBRARY_PATH = "${lib.getLib stdenv.cc.libc}/lib";
   } ''
 #+END_SRC
 
