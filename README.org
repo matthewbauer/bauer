@@ -4448,7 +4448,7 @@ myEmacsPackages' = builtins.fromJSON
 
 #+BEGIN_SRC nix
   default = runCommandCC "bauer-emacs" {
-    nativeBuildInputs = [ customEmacsPackages.emacs ];
+    nativeBuildInputs = [ customEmacsPackages.emacs pkgs.git ];
     LIBRARY_PATH = "${lib.getLib stdenv.cc.libc}/lib";
   } ''
 #+END_SRC
