@@ -57,7 +57,7 @@
   :group 'eshell)
 
 ;;;###autoload
-(defun em-dired (&rest args)
+(defun em-dired (&rest _)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")
@@ -65,7 +65,7 @@ ARGS anything else Eshell needs."
   (eshell))
 
 ;;;###autoload
-(defun em-dired-new (&rest args)
+(defun em-dired-new (&rest _)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")
@@ -75,7 +75,7 @@ ARGS anything else Eshell needs."
 (defun em-dired-cd (&rest args)
   "Open each directory in a new buffer like dired.
 ARGS to open if none provided assume HOME dir."
-  (let* ((path (car (eshell-flatten-list args)))
+  (let* ((path (car (flatten-tree args)))
          (curdir (eshell/pwd))
          (newdir (or path "~")))
     (unless (equal curdir newdir)

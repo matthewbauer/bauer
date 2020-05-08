@@ -43,13 +43,12 @@
                             (add-to-list 'use-package-list--packages name))))
 
     (advice-add 'use-package-handler/:defer
-                :around (lambda (x name keyword arg rest state)
+                :around (lambda (_a name _b _c rest state)
                           (let ((body (use-package-process-keywords name rest
-                                        (plist-put state :deferred t)))
-                                (name-string (use-package-as-string name)))
+                                        (plist-put state :deferred t))))
                             (dolist (command
                                      (delete-dups (plist-get state :commands)))
-                              (fset command (lambda (&rest args))))
+                              (fset command (lambda (&rest _))))
                             body)))
 
     (advice-add 'use-package-load-name :override #'ignore)

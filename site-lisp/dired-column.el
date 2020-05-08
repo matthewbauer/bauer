@@ -74,8 +74,7 @@
     (window--display-buffer buffer
                             window
                             'window
-                            nil
-                            display-buffer-mark-dedicated)
+                            '(dedicated))
     window))
 
 ;;;###autoload

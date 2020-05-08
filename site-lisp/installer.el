@@ -70,7 +70,7 @@
   "Get relative path to Emacs."
   (pcase system-type
     ('darwin "Applications/Emacs.app/Contents/MacOS/Emacs")
-    (- "bin/emacs")))
+    (_ "bin/emacs")))
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
