@@ -1034,19 +1034,19 @@ These are the best & most useful modes available to us in Emacs world.
     (add-to-list 'align-rules-list
 		 '(haskell-types
 		   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+		   (modes quote (haskell-mode haskell-literate-mode))))
     (add-to-list 'align-rules-list
 		 '(haskell-assignment
 		   (regexp . "\\(\\s-+\\)=\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+		   (modes quote (haskell-mode haskell-literate-mode))))
     (add-to-list 'align-rules-list
 		 '(haskell-arrows
 		   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+		   (modes quote (haskell-mode haskell-literate-mode))))
     (add-to-list 'align-rules-list
 		 '(haskell-left-arrows
 		   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+		   (modes quote (haskell-mode haskell-literate-mode))))
     )
 #+END_SRC
 
@@ -1519,37 +1519,10 @@ line are available in an intuitive Emacs buffer.
     (autoload 'magit-get "magit")
     ;; (autoload 'magit-define-popup-action "magit")
     (autoload 'magit-remote-arguments "magit")
-    (defun magit-dired-other-window ()
-      (interactive)
-      (dired-other-window (magit-toplevel)))
-
-    ;; (defun magit-remote-github (username &optional args)
-    ;;   (interactive (list (magit-read-string-ns "User name")
-    ;;                      (magit-remote-arguments)))
-    ;;   (let* ((url (magit-get "remote.origin.url"))
-    ;;          (match (string-match
-    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
-    ;;                  url)))
-    ;;     (unless match
-    ;;       (error "Not a github remote"))
-    ;;     (let ((repo (match-string 1 url)))
-    ;;       (apply 'magit-remote-add username
-    ;;              (format "ssh://git@github.com/%s/%s"
-    ;;                      username repo) args))))
-    ;; :hook (magit-mode . (lambda ()
-    ;;                       (magit-define-popup-action
-    ;;                         'magit-remote-popup
-    ;;                         ?g
-    ;;                         "Add remote from github user name"
-    ;;                         'magit-remote-github)))
-
     :commands (magit-clone magit-blame-addition magit-log-buffer-file)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
-           ("C-x G" . magit-dispatch)
-           :package magit
-           :map magit-mode-map
-           ("C-o" . magit-dired-other-window)))
+           ("C-x G" . magit-dispatch)))
 #+END_SRC
 
 Magit forge.
@@ -2071,7 +2044,7 @@ Base mode used for shell and terminal modes.
           (term-set-escape-char ?\C-x))
         (set-process-sentinel
           (get-buffer-process buffer)
-          (lambda (proc event)
+          (lambda (proc _)
              (when (not (process-live-p proc))
                (kill-buffer (process-buffer proc)))))
         (switch-to-buffer buffer)))
@@ -2435,7 +2408,7 @@ Make scripts executable automatically.
   (use-package tramp-term
     :commands tramp-term
     :functions term-send-raw-string
-    :hook (tramp-term-after-initialized . (lambda (host)
+    :hook (tramp-term-after-initialized . (lambda (_)
       (term-send-raw-string (concat "cd " default-directory (kbd "RET"))))))
 #+END_SRC
 
@@ -2667,7 +2640,7 @@ packages (for completion, syntax checking, etc.)
     (load "haskell-mode-autoloads" t t)
     :ensure haskell-mode
     :mode (("\\.hs\\(c\\|-boot\\)?\\'" . haskell-mode)
-           ("\\.lhs\\'" . literate-haskell-mode)
+           ("\\.lhs\\'" . haskell-literate-mode)
            ("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
            (haskell-mode . flyspell-prog-mode)
@@ -2898,22 +2871,7 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tuareg
-    :mode (("\\.mli?\\'" . tuareg-mode))
-    :config
-;; Use Merlin if available
-(when (require 'merlin nil t)
-  (defvar merlin-command)
-  (setq merlin-command 'opam)
-
-  (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
-
-  ;; Run Merlin if a .merlin file in the parent dirs is detected
-  (add-hook 'tuareg-mode-hook
-            (lambda()
-              (let ((fn (buffer-file-name)))
-                (if (and fn (locate-dominating-file fn ".merlin"))
-                    (merlin-mode)))))))
+    :mode (("\\.mli?\\'" . tuareg-mode)))
 #+END_SRC
 
 
