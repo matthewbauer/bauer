@@ -138,8 +138,6 @@ this.
           (append
             file-name-handler-alist-backup
             file-name-handler-alist))))
-
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 #+END_SRC
 
 ** Autoloads & Misc.
@@ -4363,7 +4361,7 @@ currently).
       rev = "766f4b96ee148adf8f4bbbf5fa4f1c47555d46de";
       sha256 = "sha256-3SJ431AsdurrDESo8HLElGhUzl0eyADIlit/PNV2FR4=";
     };
-    LIBRARY_PATH = "${pkgs.lib.getLib pkgs.stdenv.cc.libc}/lib";
+    LIBRARY_PATH = "${lib.getLib stdenv.cc.libc}/lib";
     patches = [];
     buildInputs = o.buildInputs or [] ++ [ pkgs.libgccjit pkgs.jansson ];
     configureFlags = o.configureFlags or [] ++ ["--with-nativecomp"];
@@ -4577,7 +4575,7 @@ listed in =use-package= above is pulled into the closure.
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
    runCommand "emacs-packages-deps"
-   { nativeBuildInputs = [ pkgs.xorg.lndir pkgs.emacs ];
+   { nativeBuildInputs = [ pkgs.xorg.lndir ];
      inherit explicitRequires; } ''
   findInputsOld() {
       local pkg="$1"; shift
@@ -4627,8 +4625,6 @@ listed in =use-package= above is pulled into the closure.
   for pkg in "''${requires[@]}"; do
     linkEmacsPackage $pkg
   done
-  emacs --batch -f batch-byte-compile "$siteStart"
-  emacs --batch -f batch-native-compile "$siteStart"
   '';
 #+END_SRC
 
