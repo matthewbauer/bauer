@@ -1,4 +1,4 @@
-;;; restart-emacs.el --- Restart emacs from within emacs
+;;; restart-emacs.el --- Restart emacs from within emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2017  Iqbal Ansari
 

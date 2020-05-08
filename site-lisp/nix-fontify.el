@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 (require 'font-lock)
 
 (defvar nix-fontify-phases
