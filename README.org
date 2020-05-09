@@ -4516,19 +4516,13 @@ export HOME=$PWD
 
 emacs --batch --quick \
       --eval \
-"(let ((default-directory \"${emacsWrapper
-  ((requiredPackages customEmacsPackages myEmacsPackages')
-   ++ (with customEmacsPackages; [use-package delight]))
-}/share/emacs/site-lisp\"))
+"(let ((default-directory \"${myEmacsPackages}/share/emacs/site-lisp\"))
   (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-native-compile *.el
 
 emacs --batch --quick \
       --eval \
-"(let ((default-directory \"${emacsWrapper
-  ((requiredPackages customEmacsPackages myEmacsPackages')
-   ++ (with customEmacsPackages; [use-package delight]))
-}/share/emacs/site-lisp\"))
+"(let ((default-directory \"${myEmacsPackages}/share/emacs/site-lisp\"))
   (normal-top-level-add-subdirs-to-load-path))" \
       -L . -f batch-byte-compile *.el
 #+END_SRC
@@ -4544,9 +4538,11 @@ listed in =use-package= above is pulled into the closure.
 
 #+BEGIN_SRC nix
   emacsWrapper = explicitRequires:
-   runCommand "emacs-packages-deps"
-   { nativeBuildInputs = [ pkgs.xorg.lndir ];
-     inherit explicitRequires; } ''
+   runCommandCC "emacs-packages-deps"
+   { nativeBuildInputs = [ pkgs.xorg.lndir customEmacsPackages.emacs pkgs.git ];
+     inherit explicitRequires;
+     LIBRARY_PATH = "${lib.getLib stdenv.cc.libc}/lib";
+   } ''
   findInputsOld() {
       local pkg="$1"; shift
       local var="$1"; shift
@@ -4583,17 +4579,25 @@ listed in =use-package= above is pulled into the closure.
     local origin_path=$2
     local dest_path=$3
     if [ -d "$pkg/$origin_path" ]; then
-      lndir -silent "$pkg/$origin_path" \
-                               "$out/$dest_path"
+      lndir -silent "$pkg/$origin_path" "$out/$dest_path"
     fi
   }
   linkEmacsPackage() {
     linkPath "$1" "bin" "bin"
-    linkPath "$1" "share/emacs/site-lisp" \
-                  "share/emacs/site-lisp"
+    linkPath "$1" "share/emacs/site-lisp" "share/emacs/site-lisp"
   }
   for pkg in "''${requires[@]}"; do
     linkEmacsPackage $pkg
+  done
+  for dir in $out/share/emacs/site-lisp/elpa/*; do
+    rm -f $dir/*.elc
+    pushd $dir
+    emacs --batch --quick \
+          --eval \
+          "(let ((default-directory \"$out/share/emacs/site-lisp\"))
+          (normal-top-level-add-subdirs-to-load-path))" \
+          -L . -f batch-native-compile $(printf '%s\n' $dir/*.el | grep -v \\\(-autoloads\\.el$\\\|-pkg\\.el$\\\)) || true
+    popd
   done
   '';
 #+END_SRC
@@ -4614,16 +4618,11 @@ Now we build our Emacs distribution.
 TODO: use dump-emacs here to speed up config.
 
 #+BEGIN_SRC nix
-  myEmacsPackages = buildEnv {
-    name = "emacs-packages-env";
-    paths = (requiredPackages customEmacsPackages myEmacsPackages')
-          ++ [ customEmacsPackages.use-package customEmacsPackages.delight ];
-  };
+  myEmacsPackages = emacsWrapper
+    ((requiredPackages customEmacsPackages myEmacsPackages')
+     ++ (with customEmacsPackages; [use-package delight]));
 
-  myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
-    (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.use-package epkgs.delight]
-  );
+  myEmacs = customEmacsPackages.emacsWithPackages (epkgs: [myEmacsPackages default]);
 #+END_SRC
 
 *** The environment
