@@ -1164,19 +1164,6 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                                                   company-auctex-symbols
                                                   company-capf))))))
 #+END_SRC
-***** company-web
-#+BEGIN_SRC emacs-lisp
-  (use-package company-web
-    :preface
-    (autoload 'company-web-html "company-web-html")
-    (autoload 'company-web-jade "company-web-jade")
-    (autoload 'company-web-slim "company-web-slim")
-    :hook ((web-mode . (lambda ()
-                         (setq-local company-backends '(company-web-html
-                                                        company-web-jade
-                                                        company-web-slim
-                                                        company-capf))))))
-#+END_SRC
 ***** company-math
 #+BEGIN_SRC emacs-lisp
   (use-package company-math
