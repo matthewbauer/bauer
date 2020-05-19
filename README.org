@@ -383,14 +383,14 @@ Misc. defaults that don’t fit above. TODO: move these above.
 
 #+BEGIN_SRC emacs-lisp
   (when (file-exists-p user-emacs-directory)
-    (mkdir (expand-file-name "auto-save/" user-emacs-directory) t)
-    (mkdir (expand-file-name "backup/" user-emacs-directory) t)
-    (mkdir (expand-file-name "undo-tree/" user-emacs-directory) t))
+    (make-directory (expand-file-name "auto-save/" user-emacs-directory) t)
+    (make-directory (expand-file-name "backup/" user-emacs-directory) t)
+    (make-directory (expand-file-name "undo-tree/" user-emacs-directory) t))
 
   (set-defaults
    '(auto-save-file-name-transforms `((".*"
                                        ,(expand-file-name "auto-save/"
-                                                           user-emacs-directory) t)))
+                                                          user-emacs-directory) t)))
    '(bug-reference-bug-regexp
      (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
              "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
