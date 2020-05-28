@@ -3438,6 +3438,17 @@ alias ..="cd .." \
       upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
       upgrade=upgrade_bauer
 
+open() {
+  if command -v xdg-open > /dev/null; then
+    xdg-open "$@"
+  elif command -v open > /dev/null; then
+    open "$@"
+  else
+    echo Can’t find open.
+    exit 1
+  fi
+}
+
 help() {
   if command -v xdg-open > /dev/null; then
     xdg-open https://matthewbauer.us/bauer/
