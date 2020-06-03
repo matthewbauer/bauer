@@ -562,6 +562,11 @@ Misc. defaults that don’t fit above. TODO: move these above.
        ("org" . "http://orgmode.org/elpa/")
        ("gnu" . "https://elpa.gnu.org/packages/")))
    '(projectile-globally-ignored-files '(".DS_Store" "TAGS"))
+   '(projectile-ignored-project-function
+     (lambda (file) (or (file-remote-p file)
+                        (string-prefix-p "/nix" file)
+                        (string-prefix-p "/nix/store" file)
+                        (string-suffix-p "/.local/share/Trash/files/" file))))
    '(projectile-mode-line-prefix "")
    '(projectile-mode-line-function
      (lambda () (if (and (ignore-errors (projectile-project-p))
