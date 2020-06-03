@@ -3390,6 +3390,7 @@ just in case.
     INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@:$INFOPATH
     MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@:$MANPATH
     XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@:$XDG_DATA_DIRS
+    TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
   HISTFILE=$HOME/.history
@@ -3800,6 +3801,7 @@ Set some more misc. vars.
                                                         output-directory)
                                      "@XDG_DATA_DIRS@")
                                    ":"))
+   `("TERMINFO_DIRS" "@TERMINFO_DIRS@")
    `("INFOPATH" ,(string-join `(,(expand-file-name "share/info"
                                                    output-directory)
                                 "@INFOPATH@")
@@ -4387,7 +4389,7 @@ substitution of all the attributes set.
       inherit manpages sysheaders sysframeworks
               schemas bins infopages;
 
-      inherit MANPATH PATH XDG_DATA_DIRS INFOPATH;
+      inherit MANPATH PATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
     } // (lib.optionalAttrs big {
       gpg = gnupg1compat;
       inherit ant perl perlcritic
@@ -4411,7 +4413,8 @@ substitution of all the attributes set.
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
-        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS} \
+        --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS}
   '';
 #+END_SRC
 
@@ -4832,6 +4835,8 @@ the most direct access to. Global directories should only contain system paths.
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
     ([ xdg-data ] ++ global-dirs);
+  TERMINFO_DIRS = lib.makeSearchPathOutput "terminfo" "share/terminfo"
+    ([ pkgs.ncurses ]);
 #+END_SRC
 
 Finally, build the final environment. This only contains Emacs and ZSH, which
@@ -4877,13 +4882,14 @@ in buildEnv {
     MANPATH = makeSearchPath "share/man" [manpages];
     INFOPATH = makeSearchPath "share/info" [infopages];
     XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
+    TERMINFO_DIRS = makeSearchPath "share/terminfo" [terminfo];
   };
   paths = [
     myEmacs
     (runCommand "my-profile" {
       emacs = myEmacs;
       inherit (pkgs) cacert;
-      inherit PATH MANPATH XDG_DATA_DIRS INFOPATH;
+      inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
     } ''
       mkdir -p $out/etc/profile.d
       substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
@@ -4891,7 +4897,8 @@ in buildEnv {
         --subst-var-by PATH ${PATH} \
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
-        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS}
+        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS} \
+        --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS}
     '')
     pkgs.git
   ];
@@ -5157,6 +5164,7 @@ in {
       variables = with lib; {
         PATH = [bauer.PATH];
         XDG_DATA_DIRS = [bauer.XDG_DATA_DIRS];
+        TERMINFO_DIRS = [bauer.TERMINFO_DIRS];
         MANPATH = [bauer.MANPATH];
         INFOPATH = [bauer.INFOPATH];
       };
