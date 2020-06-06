@@ -2273,7 +2273,7 @@ Make scripts executable automatically.
   (use-package flyspell
     :if (locate-file
          (if (boundp 'ispell-program-name)
-             ispell-program-name "ispell")
+             ispell-program-name "aspell")
          exec-path)
     :hook ((text-mode . flyspell-mode)
            (prog-mode . flyspell-prog-mode))
@@ -3884,7 +3884,6 @@ Set paths provided by Nix,
    '(haskell-check-command "@hlint@/bin/hlint")
    '(haskell-hoogle-command "@hoogle@/bin/hoogle")
    '(haskell-hasktags-path "@hasktags@/bin/hasktags")
-   '(ispell-program-name "@aspell@/bin/aspell")
    '(ispell-grep-command "@gnugrep@/bin/grep")
    '(irony-cmake-executable "@cmake@/bin/cmake")
    '(jka-compr-info-compress-program "@ncompress@/bin/compress")
@@ -4400,7 +4399,7 @@ substitution of all the attributes set.
       inherit ripgrep ag
               coreutils findutils openssh
               zsh diffutils man gawk
-              gnugrep gnused cacert git aspell;
+              gnugrep gnused cacert git;
 
       inherit manpages sysheaders sysframeworks
               schemas bins infopages;
