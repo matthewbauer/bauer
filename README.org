@@ -3647,17 +3647,56 @@ Turn on prompt with colors.
 
 #+BEGIN_SRC shell
 PROMPT='%F{blue}'
-if [ -n "$SSH_CLIENT" ]; then
-    PROMPT+='ssh://%n@%M'
-    if [ "$inport" -ne 22 ]; then
-        PROMPT+=":$inport"
+if [ -n "$SSH_CONNECTION" ]; then
+    PROMPT+='ssh://%n@'
+    echo "$SSH_CONNECTION" | read client_ip client_port server_ip server_port
+
+    hostname=
+
+    if [[ "$server_ip" =~ fe80::* ]]; then
+        server_ip="$(echo "$server_ip" | sed 's,%[a-z0-9]*$,,')"
     fi
-    PROMPT+=' '
-    unset host ip outport inport
+
+    if [[ "$client_ip" =~ fe80::* ]]; then
+        client_ip="$(echo "$client_ip" | sed 's,%[a-z0-9]*$,,')"
+    fi
+
+    # localhost
+    if [ "$server_ip" = 127.0.0.1 ] || [ "$server_ip" = ::1 ] || [ "$server_ip" = "$client_ip" ]; then
+        hostname=localhost
+
+    # private network
+    elif { [[ "$server_ip" =~ 192.168.* ]] && [[ "$client_ip" =~ 192.168.* ]] } || { [[ "$server_ip" =~ 10.* ]] && [[ "$client_ip" =~ 10.* ]] } || { [[ "$server_ip" =~ fe80::* ]] && [[ "$client_ip" =~ fe80::* ]] }; then
+        if command -v avahi-resolve-address > /dev/null; then
+            hostname="$(avahi-resolve-address "$server_ip" | awk '{ print $2 }')"
+        fi
+
+        if [ -z "$hostname" ] && command -v dig > /dev/null; then
+            hostname="$(dig +noall +answer -x "$server_ip" | awk '{ print $5 }' | sed 's,\.$,,')"
+        fi
+    fi
+
+    if [ -z "$hostname" ] && command -v getent > /dev/null; then
+        hostname="$(getent hosts "$server_ip" | awk '{ print $2 }')"
+    fi
+
+    if [ -n "$hostname" ]; then
+        PROMPT+="$hostname"
+    else
+        PROMPT+=%M
+    fi
+
+    if [ "$server_port" -ne 22 ]; then
+        PROMPT+=":$server_port"
+    fi
+
+    unset client_ip client_port server_ip server_port hostname
+
+    PROMPT+='%F{cyan}%/'
 else
-    PROMPT+='%n@%M:'
+    PROMPT+='%n@%M:%F{cyan}%~'
 fi
-PROMPT+='%F{cyan}%~%F{yellow} $ '
+PROMPT+='%F{yellow} $ '
 PROMPT+='%F{reset}'
 export PROMPT
 
