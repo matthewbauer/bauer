@@ -3456,10 +3456,10 @@ alias ..="cd .." \
       upgrade=upgrade_bauer
 
 open() {
-  if command -v xdg-open > /dev/null; then
+  if [ -x /usr/bin/open ]; then
+    /usr/bin/open "$@"
+  elif command -v xdg-open > /dev/null; then
     xdg-open "$@"
-  elif command -v open > /dev/null; then
-    open "$@"
   else
     echo Can’t find open.
     exit 1
