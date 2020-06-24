@@ -3849,8 +3849,9 @@ Set some more misc. vars.
 
 #+BEGIN_SRC emacs-lisp
   (append-envs ":"
-   `("PATH" ,exec-path)
    `("MANPATH" ,man-path))
+  (prepend-envs ":"
+   `("PATH" ,exec-path))
   (set-envs
    `("XDG_DATA_DIRS" ,(string-join `(,(expand-file-name "share"
                                                         output-directory)

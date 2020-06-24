@@ -75,6 +75,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
     (setenv (car x) (string-join (cons (getenv (car x))
 				       (cadr x)) sep))))
 
+(defun prepend-envs (sep &rest env)
+  "Prepend environment variables with SEP from ENV alist."
+  (dolist (x env)
+    (setenv (car x) (string-join (cons (cadr x)
+                                       (cons (getenv (car x)) nil)) sep))))
+
 (defun set-envs (&rest env)
   "Set environment variables from ENV alist."
   (dolist (x env)
