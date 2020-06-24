@@ -2128,7 +2128,8 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package display-line-numbers
     :commands (display-line-numbers-mode)
-    :hook (prog-mode . display-line-numbers-mode))
+    :hook ((prog-mode . display-line-numbers-mode)
+           (conf-mode . display-line-numbers-mode)))
 #+END_SRC
 **** eldoc
 
