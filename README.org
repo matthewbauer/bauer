@@ -4207,8 +4207,10 @@ If we can’t find default.nix then we’ll clone from GitHub. This will be stor
 if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
     mkdir -p $(dirname $repo_dir)
-    git clone https://github.com/matthewbauer/bauer \
-              $repo_dir
+    if ! [ -d $repo_dir/.git ]; then
+      git clone https://github.com/matthewbauer/bauer \
+                $repo_dir
+    fi
     cd $repo_dir
 fi
 #+END_SRC
