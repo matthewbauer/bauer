@@ -4174,7 +4174,7 @@ echo if they are not already installed.
 
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
-    curl -s https://nixos.org/nix/install \
+    curl -L -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
     [ -f $HOME/.profile ] && . $HOME/.profile
