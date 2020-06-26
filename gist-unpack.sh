@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 if [ $# -eq 0 ]; then
-    echo Usage: $0 GIST_ID >&2
+    echo Usage: "$0" GIST_ID >&2
     exit 1
 fi
 
@@ -18,8 +18,8 @@ while [ $# -gt 0 ]; do
                 echo Multiple Gist ids passed! >&2
                 exit 1
             fi
-            GIST_ID=$1
-            echo Using gist $GIST_ID >&2
+            GIST_ID="$1"
+            echo Using gist "$GIST_ID"x >&2
             shift
             ;;
     esac
@@ -30,15 +30,15 @@ if [ -z "$GIST_ID" ]; then
     exit 1
 fi
 
-gistdir=$(mktemp -d)
+gistdir="$(mktemp -d)"
 setup() {
-    git clone git@github.com:$GIST_ID.git $gistdir
-    pushd $gistdir >/dev/null
+    git clone git@github.com:"$GIST_ID".git "$gistdir"
+    pushd "$gistdir" >/dev/null
 }
 
 cleanup() {
     popd >/dev/null
-    rm -rf $gistdir
+    rm -rf "$gistdir"
 }
 
 setup
@@ -52,31 +52,37 @@ for f in *; do
         continue
     fi
     if ! [ -f "$f" ]; then
-        echo Skipping $f, not a file >&2
+        echo Skipping "$f", not a file >&2
         continue
     fi
     DEST=
     case "$f" in
         settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
+        nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
     case "$f" in
         .authinfo) CONCAT=1 ;;
         .sshconfig) CONCAT=1 ;;
+        nix.conf) CONCAT=1 ;;
     esac
     if [ -z "$DEST" ]; then
-        echo Skipping $f, no destination found >&2
+        echo Skipping "$f", no destination found >&2
         continue
     fi
     if [ -f "$DEST" ] && [ -z "$FORCE" ] && [ -z "$CONCAT" ]; then
-        echo Skipping $f, destination already exists >&2
+        echo Skipping "$f", destination already exists >&2
         continue
     fi
+    mkdir -p "$(dirname "$DEST")"
     if [ -n "$CONCAT" ]; then
         cat "$f" >> "$DEST"
     else
         cp "$f" "$DEST"
+    fi
+    if [ "$f" = .authinfo ]; then
+        chmod 600 "$DEST"
     fi
 done

@@ -4,7 +4,7 @@ echo if they are not already installed.
 
 if ! command -v nix-env >/dev/null 2>&1; then
     nix_installer=$(mktemp)
-    curl -s https://nixos.org/nix/install \
+    curl -L -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
     [ -f $HOME/.profile ] && . $HOME/.profile
@@ -13,7 +13,7 @@ fi
 if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
-     xcode-select -p 1>/dev/null; }; then
+     xcode-select -p 2>/dev/null; }; then
     nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 
@@ -24,8 +24,10 @@ fi
 if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
     mkdir -p $(dirname $repo_dir)
-    git clone https://github.com/matthewbauer/bauer \
-              $repo_dir
+    if ! [ -d $repo_dir/.git ]; then
+      git clone https://github.com/matthewbauer/bauer \
+                $repo_dir
+    fi
     cd $repo_dir
 fi
 
@@ -46,7 +48,7 @@ echo
 echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
-if [ "$(basename $SHELL)" = zsh ]; then
+if [ -n "$ZSH_NAME" ]; then
     source $HOME/.nix-profile/etc/zshrc
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
