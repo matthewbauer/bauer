@@ -5392,12 +5392,15 @@ for f in *; do
         settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
+        .gitignore) DEST="$HOME/.config/git/ignore" ;;
+        .gitconfig) DEST="$HOME/.config/git/config" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
     case "$f" in
         .authinfo) CONCAT=1 ;;
         .sshconfig) CONCAT=1 ;;
+        .gitignore) CONCAT=1 ;;
         nix.conf) CONCAT=1 ;;
     esac
     if [ -z "$DEST" ]; then
