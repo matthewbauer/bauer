@@ -1889,7 +1889,7 @@ investigate how to fix this.
 
 **** bug-reference
 
-Provides links to bugs listed in sourvce code.
+Provides links to bugs listed in source code.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
@@ -3416,9 +3416,8 @@ just in case.
     TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
-  HISTFILE=$HOME/.history
-  HISTSIZE=50000
-  export SAVEHIST="$HISTSIZE"
+  [ "${HISTSIZE:-0}" -lt 50000 ] && HISTSIZE=50000
+  [ "${SAVEHIST:-0}" -lt 10000 ] && SAVEHIST=10000
 
   export CVS_RSH=ssh
 
@@ -3428,6 +3427,12 @@ just in case.
     export EDITOR='emacsclient -a "emacs -nw" -t'
   else
     export EDITOR='emacsclient -a emacs'
+  fi
+
+  export LESS='-F -g -i -R'
+
+  if [ -n "$SSH_CONNECTION" ]; then
+    export PINENTRY_USER_DATA=USE_CURSES=1
   fi
 #+END_SRC
 
@@ -3459,11 +3464,13 @@ alias ..="cd .." \
       chgrp='chgrp --preserve-root' \
       curl='curl -L' \
       upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
-      upgrade=upgrade_bauer
+      upgrade=upgrade_bauer \
+      df='df -h' \
+      du='du -h'
 
 open() {
-  if [ -x /usr/bin/open ]; then
-    /usr/bin/open "$@"
+  if command -v open > /dev/null; then
+    command open "$@"
   elif command -v xdg-open > /dev/null; then
     xdg-open "$@"
   else
@@ -3497,7 +3504,8 @@ if [ "$TERM" != "dumb" ]; then
     fi
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
-          diff='diff --color=auto'
+          diff='diff --color=auto' \
+          rsync='rsync --progress --human-readable' \
 else
     alias l="ls -lF" \
           grep='grep' \
@@ -3544,9 +3552,9 @@ Handle dumb options.
 #+BEGIN_SRC shell
 case "$TERM" in
     dumb)
-        unsetopt zle \
-                 prompt_cr \
-                 prompt_subst
+        setopt no_zle \
+               no_prompt_cr \
+               no_prompt_subst
         PS1='$ '
         PROMPT='$ '
         return
@@ -3563,29 +3571,25 @@ Turn on ZSH-specific options.
 #+BEGIN_SRC shell
 setopt always_to_end \
        auto_cd \
-       auto_menu \
        auto_name_dirs \
        auto_pushd \
        cdable_vars \
        complete_in_word \
+       correct \
+       correct_all \
        extended_history \
-       hist_expire_dups_first \
-       hist_find_no_dups \
-       hist_ignore_dups \
        hist_ignore_space \
        hist_reduce_blanks \
        hist_save_no_dups \
        hist_verify \
-       interactive_comments \
        inc_append_history_time \
+       interactive_comments \
        long_list_jobs \
        multios \
        no_beep \
+       notify \
        prompt_subst \
-       pushd_ignore_dups \
-       pushdminus \
-       transient_rprompt \
-       menu_complete
+       transient_rprompt
 #+END_SRC
 
 Load up site-functions in ZSH. Use XDG_DATA_DIRS variable. Then we use this to
@@ -3621,8 +3625,6 @@ autoload -U tetris
 autoload -U bracketed-paste-magic
 zle -N bracketed-paste bracketed-paste-magic
 
-autoload -U up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
 bindkey ' ' magic-space
 bindkey ';5D' emacs-backward-word
 bindkey ';5C' emacs-forward-word
@@ -3633,6 +3635,8 @@ Zstyle completions.
 
 #+BEGIN_SRC shell
 zstyle ':completion:*' ignored-patterns '*~' '_*' '*\\\#*\\\#'
+zstyle ':completion:*:*:*:users' ignored-patterns 'nixbld*' '_*' 'systemd-*' \
+  apache avahi daemon dbus messagebus nobody nginx nscd polkituser rpc sshd
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' special-dirs yes
