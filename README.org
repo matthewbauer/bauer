@@ -3409,13 +3409,14 @@ just in case.
 #+BEGIN_SRC shell
   if [ -z "$__BAUER_ADD_PATHS" ]; then
     export __BAUER_ADD_PATHS=1
-    PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH}
-    INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH}
-    MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@${MANPATH:+:$MANPATH}
-    XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
-    TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+    export PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH}
+    export INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH}
+    export MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@${MANPATH:+:$MANPATH}
+    export XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+    export TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
+  HISTFILE=$HOME/.zsh_history
   [ "${HISTSIZE:-0}" -lt 50000 ] && HISTSIZE=50000
   [ "${SAVEHIST:-0}" -lt 10000 ] && SAVEHIST=10000
 
@@ -3431,9 +3432,11 @@ just in case.
 
   export LESS='-F -g -i -R'
 
-  if [ -n "$SSH_CONNECTION" ]; then
+  if [ -n "${SSH_CONNECTION-}" ]; then
     export PINENTRY_USER_DATA=USE_CURSES=1
   fi
+
+  export PS1='\e[34m\u@\h:\e[36m\W \e[33m\$\e[0m '
 #+END_SRC
 
 Dircolors
@@ -3493,6 +3496,21 @@ help() {
 }
 
 set -o noclobber
+set -o notify
+
+if [ -n "${BASH_VERSION-}" ]; then
+  HISTCONTROL=ignoredups:erasedups:ignorespace
+  shopt -s \
+      autocd \
+      cdable_vars \
+      cdspell \
+      checkjobs \
+      direxpand \
+      dirspell \
+      histappend \
+      histverify \
+      no_empty_cmd_completion
+fi
 
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ]; then
@@ -3505,7 +3523,7 @@ if [ "$TERM" != "dumb" ]; then
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
-          rsync='rsync --progress --human-readable' \
+          rsync='rsync --progress --human-readable'
 else
     alias l="ls -lF" \
           grep='grep' \
@@ -3525,7 +3543,7 @@ fi
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
-if [ -f "$HOME/.profile" ] && [ -z "$__BAUER_SOURCED_PROFILE" ]; then
+if [ -f "$HOME/.profile" ] && [ -z "${__BAUER_SOURCED_PROFILE-}" ]; then
   __BAUER_SOURCED_PROFILE=1
   # shellcheck source=/dev/null
   . "$HOME/.profile"
@@ -3586,8 +3604,6 @@ setopt always_to_end \
        interactive_comments \
        long_list_jobs \
        multios \
-       no_beep \
-       notify \
        prompt_subst \
        transient_rprompt
 #+END_SRC
@@ -3598,7 +3614,7 @@ initialize completions.
 #+BEGIN_SRC shell
 if [ "$TERM" != dumb-emacs-ansi ]; then
   # shellcheck disable=SC2154
-  for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS}; do
+  for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS-}; do
     if [ -d "$dir/zsh/site-functions" ]; then
       fpath+=$dir/zsh/site-functions
     fi
@@ -3657,7 +3673,7 @@ Turn on prompt with colors.
 
 #+BEGIN_SRC shell
 PROMPT='%F{blue}'
-if [ -n "$SSH_CONNECTION" ]; then
+if [ -n "${SSH_CONNECTION-}" ]; then
     PROMPT+='ssh://%n@'
     echo "$SSH_CONNECTION" | read client_ip client_port server_ip server_port
 
@@ -3732,11 +3748,11 @@ Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
 update_apple_terminal_cwd () {
-    printf '\e]7;%s\a' "file://$HOSTNAME${PWD// /%20}"
+    printf '\e]7;%s\a' "file://${HOSTNAME-}${PWD// /%20}"
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
-   && [ -z "$INSIDE_EMACS" ] \
+   && [ -z "${INSIDE_EMACS-}" ] \
    && [ -n "$TERM_SESSION_ID" ]; then
     chpwd_functions+=(update_apple_terminal_cwd)
     update_apple_terminal_cwd
@@ -3752,7 +3768,7 @@ This just sources everything in the =/etc/profile.d= dir. =PREFIX= can be
 used to reference the Nix output dir.
 
 #+BEGIN_SRC shell
-export PREFIX=@out@
+PREFIX=@out@
 #+END_SRC
 
 This will source everything in =/etc/profile.d=. We skip =nix-daemon.sh= because
@@ -3761,7 +3777,7 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-if [ -n "$BASH_VERSION" ]; then
+if [ -n "${BASH_VERSION-}" ]; then
     shopt -s nullglob
 fi
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
