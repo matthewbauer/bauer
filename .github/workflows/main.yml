@@ -1,13 +1,14 @@
 name: CI
-
 on:
   pull_request:
   push:
-
 jobs:
-  build:
-
-    runs-on: [ubuntu-latest, macos-latest]
-    - uses: actions/checkout@v1
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v10
     - run: nix-build
