@@ -3500,16 +3500,15 @@ set -o notify
 
 if [ -n "${BASH_VERSION-}" ]; then
   HISTCONTROL=ignoredups:erasedups:ignorespace
-  shopt -s \
-      autocd \
-      cdable_vars \
-      cdspell \
-      checkjobs \
-      direxpand \
-      dirspell \
-      histappend \
-      histverify \
-      no_empty_cmd_completion
+  shopt -s autocd \
+           cdable_vars \
+           cdspell \
+           checkjobs \
+           direxpand \
+           dirspell \
+           histappend \
+           histverify \
+           no_empty_cmd_completion
 fi
 
 if [ "$TERM" != "dumb" ]; then
@@ -3748,7 +3747,7 @@ Setup Apple Terminal so that CWD is shown.
 
 #+BEGIN_SRC shell
 update_apple_terminal_cwd () {
-    printf '\e]7;%s\a' "file://${HOSTNAME-}${PWD// /%20}"
+    printf '\e]7;%s\a' "file://${HOST-}${PWD// /%20}"
 }
 
 if [ "$TERM_PROGRAM" = Apple_Terminal ] \
