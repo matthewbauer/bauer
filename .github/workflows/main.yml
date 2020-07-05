@@ -1,17 +1,16 @@
 name: CI
 
-on: [push]
+on:
+  pull_request:
+  push:
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    
-    steps:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     - uses: actions/checkout@v1
-    - name: Nix install
-      run: curl https://nixos.org/nix/install | sh
-    - name: Build
-      run: |
-        source $HOME/.nix-profile/etc/profile.d/nix.sh
-        nix-build
+    - uses: cachix/install-nix-action@v10
+    - run: nix-build
