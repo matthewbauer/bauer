@@ -14,7 +14,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         *)
-            if [ -n "$GIST_ID" ]; then
+            if [ -n "${GIST_ID-}" ]; then
                 echo Multiple Gist ids passed! >&2
                 exit 1
             fi
@@ -44,7 +44,7 @@ cleanup() {
 setup
 trap cleanup EXIT
 
-if [ -n "$BASH_VERSION" ]; then
+if [ -n "${BASH_VERSION-}" ]; then
     shopt -s dotglob
 fi
 for f in *; do
@@ -59,13 +59,18 @@ for f in *; do
     case "$f" in
         settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
+        .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
+        .gitignore) DEST="$HOME/.config/git/ignore" ;;
+        .gitconfig) DEST="$HOME/.config/git/config" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
     case "$f" in
         .authinfo) CONCAT=1 ;;
         .sshconfig) CONCAT=1 ;;
+        .ssh_authorized_keys) CONCAT=1 ;;
+        .gitignore) CONCAT=1 ;;
         nix.conf) CONCAT=1 ;;
     esac
     if [ -z "$DEST" ]; then

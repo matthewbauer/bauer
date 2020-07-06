@@ -4248,6 +4248,8 @@ if ! [ -f default.nix ]; then
     if ! [ -d $repo_dir/.git ]; then
       git clone https://github.com/matthewbauer/bauer \
                 $repo_dir
+    else
+      git -C $repo_dir pull
     fi
     cd $repo_dir
 fi

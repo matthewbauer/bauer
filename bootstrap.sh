@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+set -e
+
 echo This script will install Nix and Git
 echo if they are not already installed.
 
@@ -27,6 +29,8 @@ if ! [ -f default.nix ]; then
     if ! [ -d $repo_dir/.git ]; then
       git clone https://github.com/matthewbauer/bauer \
                 $repo_dir
+    else
+      git -C $repo_dir pull
     fi
     cd $repo_dir
 fi
@@ -48,7 +52,7 @@ echo
 echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
-if [ -n "$ZSH_NAME" ]; then
+if [ -n "${ZSH_NAME-}" ]; then
     source $HOME/.nix-profile/etc/zshrc
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
