@@ -3571,9 +3571,12 @@ case "$TERM" in
     dumb)
         setopt no_zle \
                no_prompt_cr \
-               no_prompt_subst
+               no_prompt_subst \
+               no_rcs
         PS1='$ '
         PROMPT='$ '
+        whence -w precmd >/dev/null && unfunction precmd
+        whence -w preexec >/dev/null && unfunction preexec
         return
         ;;
     eterm*)
