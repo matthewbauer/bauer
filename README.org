@@ -3406,7 +3406,7 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-  if [ -z "$__BAUER_ADD_PATHS" ]; then
+  if [ -z "${__BAUER_ADD_PATHS-}" ]; then
     export __BAUER_ADD_PATHS=1
     export PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH}
     export INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH}
@@ -3420,9 +3420,9 @@ just in case.
 
   export CVS_RSH=ssh
 
-  if [ -z "$TERM" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
+  if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
     export EDITOR='emacsclient -a emacs -c'
-  elif [ -n "$PS1" ]; then
+  elif [ -n "${PS1-}" ]; then
     export EDITOR='emacsclient -a "emacs -nw" -t'
   else
     export EDITOR='emacsclient -a emacs'
@@ -3442,7 +3442,7 @@ just in case.
 Dircolors
 
 #+BEGIN_SRC shell
-  if [ "$TERM" != dumb ] && [ -n "$SHELL" ]; then
+  if [ "$TERM" != dumb ] && [ -n "${SHELL-}" ]; then
     if [ "$TERM" = dumb-emacs-ansi ]; then
       eval "$(TERM=ansi dircolors)"
     else
@@ -3487,7 +3487,7 @@ help() {
     xdg-open https://matthewbauer.us/bauer/
   elif command -v open > /dev/null; then
     open https://matthewbauer.us/bauer/
-  elif [ -n "$EDITOR" ]; then
+  elif [ -n "${EDITOR-}" ]; tbhen
     $EDITOR $HOME/.local/share/bauer/README.org
   else
     echo Can’t find help.
@@ -3533,7 +3533,7 @@ fi
 Configure INSIDE_EMACS.
 
 #+BEGIN_SRC shell
-if [ "$TERM" = dumb ] && [ -n "$INSIDE_EMACS" ]; then
+if [ "${TERM-}" = dumb ] && [ -n "${INSIDE_EMACS-}" ]; then
     export TERM=dumb-emacs-ansi \
            COLORTERM=1
 fi
@@ -3758,9 +3758,9 @@ update_apple_terminal_cwd () {
     printf '\e]7;%s\a' "file://${HOST-}${PWD// /%20}"
 }
 
-if [ "$TERM_PROGRAM" = Apple_Terminal ] \
+if [ "${TERM_PROGRAM-}" = Apple_Terminal ] \
    && [ -z "${INSIDE_EMACS-}" ] \
-   && [ -n "$TERM_SESSION_ID" ]; then
+   && [ -n "${TERM_SESSION_ID-}" ]; then
     chpwd_functions+=(update_apple_terminal_cwd)
     update_apple_terminal_cwd
 fi
@@ -4272,7 +4272,7 @@ echo
 echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
-if [ -n "$ZSH_NAME" ]; then
+if [ -n "${ZSH_NAME-}" ]; then
     source $HOME/.nix-profile/etc/zshrc
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
@@ -5396,7 +5396,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         *)
-            if [ -n "$GIST_ID" ]; then
+            if [ -n "${GIST_ID-}" ]; then
                 echo Multiple Gist ids passed! >&2
                 exit 1
             fi
@@ -5426,7 +5426,7 @@ cleanup() {
 setup
 trap cleanup EXIT
 
-if [ -n "$BASH_VERSION" ]; then
+if [ -n "${BASH_VERSION-}" ]; then
     shopt -s dotglob
 fi
 for f in *; do
