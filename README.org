@@ -332,7 +332,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | proof-tidy-response                           | t                 |
 | resize-mini-windows                           | t                 |
 | revert-without-query                          | '(".")            |
-| ring-bell-function                            | 'ignore           |
 | ruby-insert-encoding-magic-comment            | nil               |
 | save-abbrevs                                  | 'silently         |
 | save-interprogram-paste-before-kill           | t                 |
@@ -3416,7 +3415,6 @@ just in case.
     export TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
-  HISTFILE=$HOME/.zsh_history
   [ "${HISTSIZE:-0}" -lt 50000 ] && HISTSIZE=50000
   [ "${SAVEHIST:-0}" -lt 10000 ] && SAVEHIST=10000
 
@@ -3437,6 +3435,8 @@ just in case.
   fi
 
   export PS1='\e[34m\u@\h:\e[36m\w \e[33m\$\e[0m '
+
+  export INPUTRC=@INPUTRC@
 #+END_SRC
 
 Dircolors
@@ -3726,6 +3726,8 @@ PROMPT+='%F{reset}'
 export PROMPT
 
 unset RPS1
+
+HISTFILE=$HOME/.zsh_history
 #+END_SRC
 
 Update eterm cwds.
@@ -3786,6 +3788,7 @@ for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   fi
 done
 #+END_SRC
+
 * Bootstrapping
 :PROPERTIES:
 :CUSTOM_ID: bootstrap
@@ -4919,6 +4922,22 @@ the most direct access to. Global directories should only contain system paths.
     ([ xdg-data ] ++ global-dirs);
   TERMINFO_DIRS = lib.makeSearchPathOutput "terminfo" "share/terminfo"
     ([ pkgs.ncurses ]);
+
+  INPUTRC = builtins.toFile "inputrc" ''
+    $include /etc/Inputrc
+
+    "\C-p":history-search-backward
+    "\C-n":history-search-forward
+
+    set colored-stats On
+    set completion-ignore-case On
+    set completion-prefix-display-length 3
+    set mark-symlinked-directories On
+    set show-all-if-ambiguous On
+    set show-all-if-unmodified On
+    set visible-stats On
+    set editing-mode emacs
+  '';
 #+END_SRC
 
 Finally, build the final environment. This only contains Emacs and ZSH, which
@@ -4980,7 +4999,8 @@ in buildEnv {
         --subst-var-by INFOPATH ${INFOPATH} \
         --subst-var-by MANPATH ${MANPATH} \
         --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS} \
-        --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS}
+        --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS} \
+        --subst-var-by INPUTRC ${INPUTRC}
     '')
     pkgs.git
   ];
