@@ -3454,10 +3454,10 @@ Dircolors
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias ..="cd .." \
-      ...="cd ../.." \
-      ....="cd ../../.." \
-      .....="cd ../../../.." \
+alias ..='cd ..' \
+      ...='cd ../..' \
+      ....='cd ../../..' \
+      .....='cd ../../../..' \
       rm='rm -I --preserve-root' \
       mv='mv -i' \
       cp='cp -i' \
@@ -3513,18 +3513,18 @@ fi
 
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ]; then
-        alias l="ls -lF --hyperlink=auto --color=auto" \
-              ls="ls --hyperlink=auto --color=auto"
+        alias l='ls -lFh --hyperlink=auto --color=auto' \
+              ls='ls -h --hyperlink=auto --color=auto'
     else
-        alias l="ls -lF --color=auto" \
-              ls="ls --color=auto"
+        alias l='ls -lFh --color=auto' \
+              ls='ls -h --color=auto'
     fi
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
           rsync='rsync --progress --human-readable'
 else
-    alias l="ls -lF" \
+    alias l='ls -lFh' \
           grep='grep' \
           egrep='grep -E'
 fi
