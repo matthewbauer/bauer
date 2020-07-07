@@ -1029,6 +1029,22 @@ resort, go to one of the package group headings & type =C-c ^ a=.
 
 These are the best & most useful modes available to us in Emacs world.
 
+**** aggressive-indent
+[[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
+
+Automatically indent code as you type. Only enabled for Lisp currently.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package aggressive-indent
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            isp-interaction-mode
+            slime-repl-mode) . aggressive-indent-mode))
+#+END_SRC
+
 **** align
 
 #+BEGIN_SRC emacs-lisp
@@ -1052,53 +1068,6 @@ These are the best & most useful modes available to us in Emacs world.
 		   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
 		   (modes quote (haskell-mode literate-haskell-mode))))
     )
-#+END_SRC
-
-**** aggressive-indent
-[[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
-
-Automatically indent code as you type. Only enabled for Lisp currently.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package aggressive-indent
-    :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
-            ielm-mode
-            lisp-mode
-            inferior-lisp-mode
-            isp-interaction-mode
-            slime-repl-mode) . aggressive-indent-mode))
-#+END_SRC
-
-**** Apropospriate Theme
-
-[[https://github.com/waymondo/apropospriate-theme][GitHub]]
-
-This is the theme I use & it works well for this configuration. It is dark
-with high contrast. We will only enable it when we are running with GUI Emacs.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package apropospriate-theme
-    :if window-system
-    :init
-    (add-to-list 'custom-theme-load-path
-                 (file-name-directory
-                   (locate-library "apropospriate-theme")))
-    (load-theme 'apropospriate-dark t))
-#+END_SRC
-
-While apropospriate is the default, other themes can be used as well! For
-instance spacemacs-theme can be enabled:
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package spacemacs-common
-    :ensure spacemacs-theme
-    :if window-system
-    :init
-    (add-to-list 'custom-theme-load-path
-                 (file-name-directory
-                   (locate-library "spacemacs-theme-pkg")))
-    (load-theme 'spacemacs-dark t))
 #+END_SRC
 
 **** Company
@@ -1816,6 +1785,43 @@ achieve this).
 #+BEGIN_SRC emacs-lisp
   (use-package sudo-edit
     :bind (("C-c C-r" . sudo-edit)))
+#+END_SRC
+
+**** Theme
+
+[[https://github.com/waymondo/apropospriate-theme][GitHub]]
+
+This is the theme I use & it works well for this configuration. It is dark
+with high contrast. We will only enable it when we are running with GUI Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package apropospriate-theme
+    :if window-system
+    :init
+    (add-to-list 'custom-theme-load-path
+                 (file-name-directory
+                   (locate-library "apropospriate-theme")))
+    (load-theme 'apropospriate-dark t))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (unless (display-graphic-p)
+    (set-background-color "black")
+    (set-foreground-color "white"))
+#+END_SRC
+
+While apropospriate is the default, other themes can be used as well! For
+instance spacemacs-theme can be enabled:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package spacemacs-common
+    :ensure spacemacs-theme
+    :if window-system
+    :init
+    (add-to-list 'custom-theme-load-path
+                 (file-name-directory
+                   (locate-library "spacemacs-theme-pkg")))
+    (load-theme 'spacemacs-dark t))
 #+END_SRC
 
 **** try
@@ -3598,7 +3604,6 @@ setopt always_to_end \
        cdable_vars \
        complete_in_word \
        correct \
-       correct_all \
        extended_history \
        hist_ignore_space \
        hist_reduce_blanks \
