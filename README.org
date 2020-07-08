@@ -3660,6 +3660,10 @@ bindkey '\e[A' history-search-backward
 bindkey '\e[B' history-search-forward
 
 bindkey -e
+
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "^X^E" edit-command-line
 #+END_SRC
 
 Zstyle completions.
