@@ -219,6 +219,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | auto-revert-interval                          | 2                 |
 | auto-revert-verbose                           | nil               |
 | backward-delete-char-untabify-method          | 'hungry           |
+| bookmark-save-flag                            | 1                 |
 | checkdoc-spellcheck-documentation-flag        | t                 |
 | comint-input-ignoredups                       | t                 |
 | comint-process-echoes                         | t                 |
@@ -2043,6 +2044,8 @@ Base mode used for shell and terminal modes.
 
 **** desktop
 
+You may want to enable this to persist info across Emacs sessions.
+
 #+BEGIN_SRC emacs-lisp
   (use-package desktop
     :disabled
@@ -3413,18 +3416,16 @@ just in case.
 
 #+BEGIN_SRC shell
   if [ -z "${__BAUER_ADD_PATHS-}" ]; then
-    export __BAUER_ADD_PATHS=1
-    export PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH}
-    export INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH}
-    export MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@${MANPATH:+:$MANPATH}
-    export XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
-    export TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+    export __BAUER_ADD_PATHS=1 \
+           PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH} \
+           INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH} \
+           MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@${MANPATH:+:$MANPATH} \
+           XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
+           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
-  [ "${HISTSIZE:-0}" -lt 50000 ] && HISTSIZE=50000
-  [ "${SAVEHIST:-0}" -lt 10000 ] && SAVEHIST=10000
-
-  export CVS_RSH=ssh
+  HISTSIZE=50000
+  SAVEHIST=10000
 
   if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
     export EDITOR='emacsclient -a emacs -c'
@@ -3434,17 +3435,16 @@ just in case.
     export EDITOR='emacsclient -a emacs'
   fi
 
-  export LESS='-F -g -i -R'
-
   if [ -n "${SSH_CONNECTION-}" ]; then
     export PINENTRY_USER_DATA=USE_CURSES=1
   fi
 
-  export PS1='\e[34m\u@\H:\e[36m\w \e[33m\$\e[0m '
-
-  export INPUTRC=@INPUTRC@
-
-  export GPG_TTY=$(tty)
+  export LESS='-FRSMi' \
+         SYSTEMD_LESS=FRSMi \
+         PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] ' \
+         INPUTRC=@INPUTRC@ \
+         GPG_TTY=$(tty)
+         CVS_RSH=ssh
 #+END_SRC
 
 Dircolors
@@ -3503,19 +3503,22 @@ help() {
   fi
 }
 
-set -o noclobber
-set -o notify
+set -u -o noclobber -o notify
 
 if [ -n "${BASH_VERSION-}" ]; then
   HISTCONTROL=ignoredups:erasedups:ignorespace
+  PROMPT_DIRTRIM=2
   shopt -s autocd \
            cdable_vars \
            cdspell \
            checkjobs \
+           checkwinsize \
            direxpand \
            dirspell \
            histappend \
+           histreedit \
            histverify \
+           lithist \
            no_empty_cmd_completion
 fi
 
@@ -4957,14 +4960,16 @@ the most direct access to. Global directories should only contain system paths.
     "\C-p":history-search-backward
     "\C-n":history-search-forward
 
-    set colored-stats On
-    set completion-ignore-case On
+    set colored-stats on
+    set completion-ignore-case on
     set completion-prefix-display-length 3
-    set mark-symlinked-directories On
-    set show-all-if-ambiguous On
-    set show-all-if-unmodified On
-    set visible-stats On
+    set mark-symlinked-directories on
+    set show-all-if-ambiguous on
+    set show-all-if-unmodified on
+    set visible-stats on
     set editing-mode emacs
+
+    Space:magic-space
   '';
 #+END_SRC
 
