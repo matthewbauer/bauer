@@ -3671,19 +3671,23 @@ bindkey ' ' magic-space
 bindkey ';5D' emacs-backward-word
 bindkey ';5C' emacs-forward-word
 
-bindkey '^P' history-search-backward
-bindkey '^N' history-search-forward
-bindkey '\e[A' history-search-backward
-bindkey '\e[B' history-search-forward
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+bindkey '^[[A'  up-line-or-beginning-search
+bindkey '^[OA'  up-line-or-beginning-search
+bindkey '^[[B'  down-line-or-beginning-search
+bindkey '^[OB'  down-line-or-beginning-search
 
 autoload -U edit-command-line
 zle -N edit-command-line
 bindkey "^X^E" edit-command-line
+
 bindkey "^[m" copy-prev-shell-word
-bindkey -s '^[l' 'ls\n'
 bindkey '^[w' kill-region
 bindkey '^[[Z' reverse-menu-complete
-bindkey '^R' history-incremental-search-backward
+bindkey "^[^R" history-incremental-search-forward
 #+END_SRC
 
 Zstyle completions.
