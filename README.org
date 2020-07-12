@@ -439,7 +439,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
                   user-emacs-directory))
    '(dired-listing-switches "-alhv")
    '(dired-omit-files "^\\.\\|^#.*#$")
-   '(dirtrack-list '("^[^:]*:\\(?:\033\\[[0-9]+m\\)?\\([^$#\033]+\\)" 1))
+   '(dirtrack-list '("^[^:]*:\\(?:\e\\[[0-9]+m\\)?\\([^$#\e]+\\)" 1))
    '(eshell-banner-message "")
    '(eshell-ls-dired-initial-args '("-h"))
    '(eshell-ls-initial-args "-h")
@@ -3775,9 +3775,9 @@ Update eterm cwds.
 
 #+BEGIN_SRC shell
   update_eterm_cwd () {
-      printf '\033AnSiTc %s\n' "$PWD"
-      # printf '\033AnSiTh %s\n' "$HOSTNAME"
-      printf '\033AnSiTu %s\n' "$USER"
+      printf '\eAnSiTc %s\n' "$PWD"
+      printf '\eAnSiTh %s\n' "$HOST"
+      printf '\eAnSiTu %s\n' "$USER"
   }
 
   if [ "$TERM" = "eterm-color" ]; then
