@@ -3428,7 +3428,11 @@ just in case.
   SAVEHIST=10000
 
   if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
-    export EDITOR='emacsclient -a emacs -c'
+    if [ -n "${DISPLAY-}" ]; then
+      export EDITOR='emacsclient -a emacs -c'
+    else
+      export EDITOR='emacsclient -a emacs'
+    fi
   elif [ -n "${PS1-}" ]; then
     export EDITOR='emacsclient -a "emacs -nw" -t'
   else
