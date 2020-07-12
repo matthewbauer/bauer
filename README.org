@@ -138,8 +138,6 @@ this.
           (append
             file-name-handler-alist-backup
             file-name-handler-alist))))
-
-  (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 #+END_SRC
 
 ** Autoloads & Misc.
@@ -2751,6 +2749,7 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package nix-haskell-mode
     :ensure nil
+    :disabled
     ;; :hook (haskell-mode . nix-haskell-mode)
     )
 #+END_SRC
@@ -2916,20 +2915,22 @@ macho-mode to toggle then M-x hexl-mode.
   (use-package tuareg
     :mode (("\\.mli?\\'" . tuareg-mode))
     :config
-;; Use Merlin if available
-(when (require 'merlin nil t)
-  (defvar merlin-command)
-  (setq merlin-command 'opam)
+    ;; Use Merlin if available
+    (when (require 'merlin nil t)
+      (defvar merlin-command)
+      (setq merlin-command 'opam)
 
-  (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+      (declare-function merlin-mode "merlin.el")
 
-  ;; Run Merlin if a .merlin file in the parent dirs is detected
-  (add-hook 'tuareg-mode-hook
-            (lambda()
-              (let ((fn (buffer-file-name)))
-                (if (and fn (locate-dominating-file fn ".merlin"))
-                    (merlin-mode)))))))
+      (when (functionp 'merlin-document)
+        (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+
+      ;; Run Merlin if a .merlin file in the parent dirs is detected
+      (add-hook 'tuareg-mode-hook
+                (lambda()
+                  (let ((fn (buffer-file-name)))
+                    (if (and fn (locate-dominating-file fn ".merlin"))
+                        (merlin-mode)))))))
 #+END_SRC
 
 
@@ -3195,9 +3196,10 @@ https://github.com/cbowdon/daemons.el
   :hook (prog-mode . idle-highlight-mode))
 #+END_SRC
 **** iedit
+
 #+BEGIN_SRC emacs-lisp
 (use-package iedit
-  :commands iedit-mode)
+  :bind (("C-;" . iedit-mode)))
 #+END_SRC
 **** ledger-mode
 
@@ -3259,6 +3261,7 @@ https://github.com/cbowdon/daemons.el
            ))
   (use-package pcmpl-args
     :init
+    (declare-function pcmpl-args-process-file "pcmpl-args.el")
     ;; see https://github.com/JonWaltman/pcmpl-args.el/pull/4
     (setq pcmpl-args-man-function
           (lambda (name)
@@ -4634,8 +4637,6 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/use-package-list.el
                        "site-lisp/use-package-list.el"} \
           $out/share/emacs/site-lisp/use-package-list.el
-  install -D ${builtins.fetchurl "https://raw.githubusercontent.com/matthewbauer/nix-haskell-mode/master/nix-haskell-mode.el"} \
-          $out/share/emacs/site-lisp/nix-haskell-mode.el
   install -D ${ensure ./site-lisp/bauer.el
                       "site-lisp/bauer.el"} \
           $out/share/emacs/site-lisp/bauer.el
@@ -4779,7 +4780,7 @@ the =$out/share/info= directory, but in Emacs packages can be found anywhere in
     postBuild = ''
       shopt -s nullglob
       find -L ${myEmacsPackages}/share/emacs/ -name '*.info*' -exec ln -s {} $out/share/info \;
-      for i in $out/share/info/*; do
+      for i in $out/share/info/*.info*; do
         install-info $i $out/share/info/dir
       done
     '';
