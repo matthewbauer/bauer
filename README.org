@@ -3447,7 +3447,7 @@ just in case.
          SYSTEMD_LESS=FRSMi \
          PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] ' \
          INPUTRC=@INPUTRC@ \
-         GPG_TTY=$(tty)
+         GPG_TTY=$TTY
          CVS_RSH=ssh
 #+END_SRC
 
@@ -3466,11 +3466,7 @@ Dircolors
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias ..='cd ..' \
-      ...='cd ../..' \
-      ....='cd ../../..' \
-      .....='cd ../../../..' \
-      rm='rm -I --preserve-root' \
+alias rm='rm -I --preserve-root' \
       mv='mv -i' \
       cp='cp -i' \
       ln='ln -i' \
@@ -3543,7 +3539,6 @@ if [ "$TERM" != "dumb" ]; then
           rsync='rsync --progress --human-readable'
 else
     alias l='ls -lFh' \
-          grep='grep' \
           egrep='grep -E'
 fi
 #+END_SRC
@@ -3624,7 +3619,13 @@ setopt always_to_end \
        long_list_jobs \
        multios \
        prompt_subst \
+       pushd_minus \
        transient_rprompt
+
+alias -g ...='../..' \
+         ....='../../..' \
+         .....='../../../..' \
+         ......='../../../../..'
 #+END_SRC
 
 Load up site-functions in ZSH. Use XDG_DATA_DIRS variable. Then we use this to
@@ -3678,6 +3679,11 @@ bindkey '\e[B' history-search-forward
 autoload -U edit-command-line
 zle -N edit-command-line
 bindkey "^X^E" edit-command-line
+bindkey "^[m" copy-prev-shell-word
+bindkey -s '^[l' 'ls\n'
+bindkey '^[w' kill-region
+bindkey '^[[Z' reverse-menu-complete
+bindkey '^R' history-incremental-search-backward
 #+END_SRC
 
 Zstyle completions.
@@ -3697,9 +3703,10 @@ zstyle ':completion:*:history-words' remove-all-dups yes
 zstyle ':completion:*:history-words' stop yes
 zstyle ':completion:*:rm:*' file-patterns '*:all-files'
 zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
-zstyle ':completion::complete:*' use-cache 1
+zstyle ':completion::complete:*' use-cache yes
 zstyle ':vcs_info:*' enable git
 zstyle '*' single-ignored show
+zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 #+END_SRC
 
 Turn on prompt with colors.
