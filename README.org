@@ -3448,10 +3448,36 @@ just in case.
 
   export LESS='-FRSMi' \
          SYSTEMD_LESS=FRSMi \
-         PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] ' \
          INPUTRC=@INPUTRC@ \
          GPG_TTY=$TTY
          CVS_RSH=ssh
+
+  if [ -n "${BASH_VERSION-}" ]; then
+    HISTCONTROL=ignoredups:erasedups:ignorespace
+    PROMPT_DIRTRIM=4
+    shopt -s autocd \
+             cdable_vars \
+             cdspell \
+             checkjobs \
+             checkwinsize \
+             histappend \
+             histreedit \
+             lithist \
+             globstar
+
+    shopt -s direxpand \
+             dirspell \
+             histverify \
+             no_empty_cmd_completion \
+    2>/dev/null || true
+  fi
+
+  if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
+    PROMPT_DIRTRIM=0
+    export PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
+  else
+    export PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+  fi
 #+END_SRC
 
 Dircolors
@@ -3507,26 +3533,6 @@ help() {
 }
 
 set -o noclobber -o notify
-
-if [ -n "${BASH_VERSION-}" ]; then
-  HISTCONTROL=ignoredups:erasedups:ignorespace
-  PROMPT_DIRTRIM=4
-  shopt -s autocd \
-           cdable_vars \
-           cdspell \
-           checkjobs \
-           checkwinsize \
-           histappend \
-           histreedit \
-           lithist \
-           globstar
-
-  shopt -s direxpand \
-           dirspell \
-           histverify \
-           no_empty_cmd_completion \
-  2>/dev/null || true
-fi
 
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ]; then
@@ -3719,78 +3725,80 @@ zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-PROMPT='%F{blue}'
-if [ -n "${SSH_CONNECTION-}" ]; then
-    if [ "$TERM" = dumb-emacs-ansi ]; then
-      PROMPT+='/ssh:'
-    else
-      PROMPT+='ssh://'
-    fi
-    PROMPT+='%n@'
+  PROMPT='%F{blue}'
+  if [ -n "${SSH_CONNECTION-}" ]; then
+      if [ "$TERM" = dumb-emacs-ansi ]; then
+        PROMPT+=':/ssh:'
+      else
+        PROMPT+='ssh://'
+      fi
+      PROMPT+='%n@'
 
-    echo "$SSH_CONNECTION" | read client_ip client_port server_ip server_port
+      echo "$SSH_CONNECTION" | read client_ip client_port server_ip server_port
 
-    hostname=
+      hostname=
 
-    if [[ "$server_ip" =~ fe80::* ]]; then
-        server_ip="$(echo "$server_ip" | sed 's,%[a-z0-9]*$,,')"
-    fi
+      if [[ "$server_ip" =~ fe80::* ]]; then
+          server_ip="$(echo "$server_ip" | sed 's,%[a-z0-9]*$,,')"
+      fi
 
-    if [[ "$client_ip" =~ fe80::* ]]; then
-        client_ip="$(echo "$client_ip" | sed 's,%[a-z0-9]*$,,')"
-    fi
+      if [[ "$client_ip" =~ fe80::* ]]; then
+          client_ip="$(echo "$client_ip" | sed 's,%[a-z0-9]*$,,')"
+      fi
 
-    # localhost
-    if [ "$server_ip" = 127.0.0.1 ] || [ "$server_ip" = ::1 ] || [ "$server_ip" = "$client_ip" ]; then
-        hostname=localhost
+      # localhost
+      if [ "$server_ip" = 127.0.0.1 ] || [ "$server_ip" = ::1 ] || [ "$server_ip" = "$client_ip" ]; then
+          hostname=localhost
 
-    # private network
-    elif { [[ "$server_ip" =~ 192.168.* ]] && [[ "$client_ip" =~ 192.168.* ]] } || { [[ "$server_ip" =~ 10.* ]] && [[ "$client_ip" =~ 10.* ]] } || { [[ "$server_ip" =~ fe80::* ]] && [[ "$client_ip" =~ fe80::* ]] }; then
-        if command -v avahi-resolve-address > /dev/null; then
-            hostname="$(avahi-resolve-address "$server_ip" | awk '{ print $2 }')"
-        fi
+      # private network
+      elif { [[ "$server_ip" =~ 192.168.* ]] && [[ "$client_ip" =~ 192.168.* ]] } || { [[ "$server_ip" =~ 10.* ]] && [[ "$client_ip" =~ 10.* ]] } || { [[ "$server_ip" =~ fe80::* ]] && [[ "$client_ip" =~ fe80::* ]] }; then
+          if command -v avahi-resolve-address > /dev/null; then
+              hostname="$(avahi-resolve-address "$server_ip" | awk '{ print $2 }')"
+          fi
 
-        if [ -z "$hostname" ] && command -v dig > /dev/null; then
-            hostname="$(dig +noall +answer -x "$server_ip" | awk '{ print $5 }' | sed 's,\.$,,')"
-        fi
-    fi
+          if [ -z "$hostname" ] && command -v dig > /dev/null; then
+              hostname="$(dig +noall +answer -x "$server_ip" | awk '{ print $5 }' | sed 's,\.$,,')"
+          fi
+      fi
 
-    if [ -z "$hostname" ] && command -v getent > /dev/null; then
-        hostname="$(getent hosts "$server_ip" | awk '{ print $2 }')"
-    fi
+      if [ -z "$hostname" ] && command -v getent > /dev/null; then
+          hostname="$(getent hosts "$server_ip" | awk '{ print $2 }')"
+      fi
 
-    if [ -n "$hostname" ]; then
-        PROMPT+="$hostname"
-    else
-        PROMPT+=%M
-    fi
+      if [ "$TERM" = dumb-emacs-ansi ]; then
+          PROMPT+="$HOST"
+      elif [ -n "$hostname" ]; then
+          PROMPT+="$hostname"
+      else
+          PROMPT+=%M
+      fi
 
-    if [ "$server_port" -ne 22 ]; then
-        if [ "$TERM" = dumb-emacs-ansi ]; then
-          PROMPT+="#"
-        else
-          PROMPT+=":"
-        fi
-        PROMPT+="$server_port"
-    fi
+      if [ "$server_port" -ne 22 ]; then
+          if [ "$TERM" = dumb-emacs-ansi ]; then
+            PROMPT+="#"
+          else
+            PROMPT+=":"
+          fi
+          PROMPT+="$server_port"
+      fi
 
-    unset client_ip client_port server_ip server_port hostname
+      unset client_ip client_port server_ip server_port hostname
 
-    if [ "$TERM" = dumb-emacs-ansi ]; then
-      PROMPT+=':%/'
-    else
-      PROMPT+='%F{cyan}%/'
-    fi
-else
-    PROMPT+='%n@%M:%F{cyan}%4~'
-fi
-PROMPT+='%F{yellow} $ '
-PROMPT+='%F{reset}'
-export PROMPT
+      if [ "$TERM" = dumb-emacs-ansi ]; then
+        PROMPT+=':%/'
+      else
+        PROMPT+='%F{cyan}%/'
+      fi
+  else
+      PROMPT+='%n@%M:%F{cyan}%4~'
+  fi
+  PROMPT+='%F{yellow} $ '
+  PROMPT+='%F{reset}'
+  export PROMPT
 
-unset RPS1
+  unset RPS1
 
-HISTFILE=$HOME/.zsh_history
+  HISTFILE=$HOME/.zsh_history
 #+END_SRC
 
 Update eterm cwds.
