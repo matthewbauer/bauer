@@ -3452,9 +3452,10 @@ just in case.
          GPG_TTY=$TTY
          CVS_RSH=ssh
 
+  HISTCONTROL=ignoredups:erasedups:ignorespace
+  PROMPT_DIRTRIM=4
+
   if [ -n "${BASH_VERSION-}" ]; then
-    HISTCONTROL=ignoredups:erasedups:ignorespace
-    PROMPT_DIRTRIM=4
     shopt -s autocd \
              cdable_vars \
              cdspell \
@@ -3474,9 +3475,9 @@ just in case.
 
   if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
     PROMPT_DIRTRIM=0
-    export PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
+    PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
   else
-    export PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+    PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
   fi
 #+END_SRC
 
