@@ -3721,7 +3721,13 @@ Turn on prompt with colors.
 #+BEGIN_SRC shell
 PROMPT='%F{blue}'
 if [ -n "${SSH_CONNECTION-}" ]; then
-    PROMPT+='ssh://%n@'
+    if [ "$TERM" = dumb-emacs-ansi ]; then
+      PROMPT+='/'
+    else
+      PROMPT+='ssh://'
+    fi
+    PROMPT+='%n@'
+
     echo "$SSH_CONNECTION" | read client_ip client_port server_ip server_port
 
     hostname=
@@ -3760,12 +3766,21 @@ if [ -n "${SSH_CONNECTION-}" ]; then
     fi
 
     if [ "$server_port" -ne 22 ]; then
-        PROMPT+=":$server_port"
+        if [ "$TERM" = dumb-emacs-ansi ]; then
+          PROMPT+="#"
+        else
+          PROMPT+=":"
+        fi
+        PROMPT+="$server_port"
     fi
 
     unset client_ip client_port server_ip server_port hostname
 
-    PROMPT+='%F{cyan}%/'
+    if [ "$TERM" = dumb-emacs-ansi ]; then
+      PROMPT+=':%/'
+    else
+      PROMPT+='%F{cyan}%/'
+    fi
 else
     PROMPT+='%n@%M:%F{cyan}%4~'
 fi
