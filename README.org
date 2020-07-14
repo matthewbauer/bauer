@@ -4454,7 +4454,7 @@ Now let's tangle README.org... This uses ORG’s babel functionality to generate
   '' + ''
     emacs --batch --quick \
           -l ob-tangle \
-          --eval "(org-babel-tangle-file \"README.org\")"
+          --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
     cp bauer.nix default.nix
   '')) { inherit ensure pkgs small; }
 #+END_SRC
@@ -4609,7 +4609,7 @@ package-list =
         -l ${ensure ./site-lisp/use-package-list.el
                      "site-lisp/use-package-list.el"} \
         --eval "(use-package-list \"${./README.el}\")" \
-        > $out
+        > $out 2>/dev/null
 #+END_SRC
 
 #+BEGIN_SRC nix

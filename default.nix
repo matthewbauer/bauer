@@ -31,6 +31,6 @@ in import (pkgs.runCommand "README" {
 '' + ''
   emacs --batch --quick \
         -l ob-tangle \
-        --eval "(org-babel-tangle-file \"README.org\")"
+        --eval "(org-babel-tangle-file \"README.org\")" >/dev/null
   cp bauer.nix default.nix
 '')) { inherit ensure pkgs small; }

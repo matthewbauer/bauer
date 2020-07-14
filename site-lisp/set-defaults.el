@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 ;; install advice to prevent custom-declare-variable from overwriting defaults
 ;; below
 (require 'custom)
