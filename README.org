@@ -3503,11 +3503,13 @@ alias rm='rm -I --preserve-root' \
       chown='chown --preserve-root' \
       chmod='chmod --preserve-root' \
       chgrp='chgrp --preserve-root' \
-      curl='curl -L' \
+      curl='curl -L --proto-default https' \
       upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
       upgrade=upgrade_bauer \
-      df='df -h' \
-      du='du -h'
+      df='df -hT' \
+      du='du -h' \
+      free='free -m' \
+      gdb='gdb --quiet --args'
 
 open() {
   if command -v open > /dev/null; then
@@ -3546,7 +3548,8 @@ if [ "$TERM" != "dumb" ]; then
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
-          rsync='rsync --progress --human-readable'
+          rsync='rsync --progress --human-readable' \
+          dd='dd status=progress'
 else
     alias l='ls -lFh' \
           egrep='grep -E'
@@ -3685,6 +3688,11 @@ autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 
+autoload -U zmv
+
+autoload -U url-quote-magic
+zle -N self-insert url-quote-magic
+
 bindkey '^[[A'  up-line-or-beginning-search
 bindkey '^[OA'  up-line-or-beginning-search
 bindkey '^[[B'  down-line-or-beginning-search
@@ -3800,6 +3808,7 @@ Turn on prompt with colors.
   unset RPS1
 
   HISTFILE=$HOME/.zsh_history
+  REPORTTIME=4
 #+END_SRC
 
 Update eterm cwds.
