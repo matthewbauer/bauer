@@ -3456,20 +3456,20 @@ just in case.
   PROMPT_DIRTRIM=4
 
   if [ -n "${BASH_VERSION-}" ]; then
-    shopt -s autocd \
-             cdable_vars \
+    shopt -s cdable_vars \
              cdspell \
-             checkjobs \
              checkwinsize \
              histappend \
              histreedit \
-             lithist \
-             globstar
+             lithist
 
-    shopt -s direxpand \
+    shopt -s autocd \
+             checkjobs \
+             direxpand \
              dirspell \
              histverify \
              no_empty_cmd_completion \
+             globstar
     2>/dev/null || true
   fi
 
