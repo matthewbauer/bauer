@@ -3715,9 +3715,13 @@ zstyle ':completion:*' ignored-patterns '*~' '_*' '*\\\#*\\\#'
 zstyle ':completion:*:*:*:users' ignored-patterns 'nixbld*' '_*' 'systemd-*' \
   apache avahi daemon dbus messagebus nobody nginx nscd polkituser rpc sshd
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' insert-tab pending
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' special-dirs yes
 zstyle ':completion:*' squeeze-slashes yes
+zstyle ':completion:*' expand yes
+zstyle ':completion:*:match:*' original only
+zstyle ':completion:*:approximate:*' max-errors 1 numeric
 zstyle ':completion:*:*:*:*:*' menu select
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:history-words' list no
