@@ -52,7 +52,7 @@ curl https://matthewbauer.us/bauer/install | sh
 Once it’s installed, you can open Emacs at any time with this command:
 
 #+BEGIN_SRC shell
-$HOME/.nix-profile/bin/run
+"$HOME/.nix-profile/bin/run"
 #+END_SRC
 
 If you don't like it, it's also very easy to uninstall. Just run:
@@ -3401,7 +3401,7 @@ scripts as well.
 To use this, you must create a short ~/.profile file. Here is an example,
 
 #+BEGIN_SRC shell :tangle no :padline no
-bootstrap=$HOME/.nix-profile/etc/profile
+bootstrap="$HOME/.nix-profile/etc/profile"
 [ -f $bootstrap ] && . $bootstrap
 #+END_SRC
 
@@ -3420,10 +3420,10 @@ just in case.
 #+BEGIN_SRC shell
   if [ -z "${__BAUER_ADD_PATHS-}" ]; then
     export __BAUER_ADD_PATHS=1 \
-           PATH=$HOME/bin:$HOME/.nix-profile/bin:$PREFIX/bin:@PATH@${PATH:+:$PATH} \
-           INFOPATH=$HOME/.nix-profile/share/info:@INFOPATH@${INFOPATH:+:$INFOPATH} \
-           MANPATH=:$HOME/.nix-profile/share/man:@MANPATH@${MANPATH:+:$MANPATH} \
-           XDG_DATA_DIRS=$HOME/.nix-profile/share:@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
+           PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:@PATH@${PATH:+:$PATH} \
+           INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
+           MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
+           XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
            TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
@@ -3504,7 +3504,7 @@ alias rm='rm -I --preserve-root' \
       chmod='chmod --preserve-root' \
       chgrp='chgrp --preserve-root' \
       curl='curl -L --proto-default https' \
-      upgrade_bauer='git -C $HOME/.local/share/bauer pull && nix-env -if $HOME/.local/share/bauer' \
+      upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
       upgrade=upgrade_bauer \
       df='df -hT' \
       du='du -h' \
@@ -3528,7 +3528,7 @@ help() {
   elif command -v open > /dev/null; then
     open https://matthewbauer.us/bauer/
   elif [ -n "${EDITOR-}" ]; then
-    $EDITOR $HOME/.local/share/bauer/README.org
+    $EDITOR "$HOME/.local/share/bauer/README.org"
   else
     echo Can’t find help.
     exit 1
@@ -3811,7 +3811,7 @@ Turn on prompt with colors.
 
   unset RPS1
 
-  HISTFILE=$HOME/.zsh_history
+  HISTFILE="$HOME/.zsh_history"
   REPORTTIME=4
 #+END_SRC
 
@@ -4340,15 +4340,19 @@ nix-env -if .
 Source the profile.
 
 #+BEGIN_SRC shell
-if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
-    echo '[ -f $HOME/.nix-profile/etc/profile ] && source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
 fi
 
-if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
-    echo '[ -f $HOME/.nix-profile/etc/zshrc ] && source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+    echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
 fi
 
-source $HOME/.nix-profile/etc/profile
+if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
+fi
+
+source "$HOME/.nix-profile/etc/profile"
 
 echo To use bauer correctly, you must first source the profile.
 echo
@@ -4356,7 +4360,7 @@ echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
 if [ -n "${ZSH_NAME-}" ]; then
-    source $HOME/.nix-profile/etc/zshrc
+    source "$HOME/.nix-profile/etc/zshrc"
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
 
