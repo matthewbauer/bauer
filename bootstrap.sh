@@ -15,7 +15,7 @@ fi
 if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
-     xcode-select -p 2>/dev/null; }; then
+     xcode-select -p >/dev/null 2>&1; }; then
     nix-env -iA nixpkgs.git || nix-env -iA nixos.git
 fi
 
@@ -37,15 +37,19 @@ fi
 
 nix-env -if .
 
-if ! grep -q 'source $HOME/.nix-profile/etc/profile' $HOME/.profile; then
-    echo '[ -f $HOME/.nix-profile/etc/profile ] && source $HOME/.nix-profile/etc/profile' >> $HOME/.profile
+if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
 fi
 
-if ! grep -q 'source $HOME/.nix-profile/etc/zshrc' $HOME/.zshrc; then
-    echo '[ -f $HOME/.nix-profile/etc/zshrc ] && source $HOME/.nix-profile/etc/zshrc' >> $HOME/.zshrc
+if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+    echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
 fi
 
-source $HOME/.nix-profile/etc/profile
+if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
+fi
+
+source "$HOME/.nix-profile/etc/profile"
 
 echo To use bauer correctly, you must first source the profile.
 echo
@@ -53,7 +57,7 @@ echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
 if [ -n "${ZSH_NAME-}" ]; then
-    source $HOME/.nix-profile/etc/zshrc
+    source "$HOME/.nix-profile/etc/zshrc"
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
 
