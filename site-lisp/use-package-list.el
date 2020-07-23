@@ -14,6 +14,7 @@
 
 (require 'json)
 (require 'use-package)
+(require 'package)
 (eval-when-compile
   (require 'cl))
 
@@ -32,7 +33,9 @@
                           (unless (or (and (member :disabled args)
                                            (plist-get args :disabled))
                                       (and (member :ensure args)
-                                           (not (plist-get args :ensure))))
+                                           (not (plist-get args :ensure)))
+                                      (and (not (member :ensure args))
+                                           (package-built-in-p name)))
                             (when (and (member :ensure args)
                                        (not (eq (plist-get args :ensure) t))
                                        (symbolp (plist-get args :ensure)))

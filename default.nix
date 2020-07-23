@@ -1,10 +1,10 @@
 # -*- mode: nix; coding: utf-8; -*-
-{ version ? "19.09"
+{ version ? "20.03"
 , channel ? {
     "x86_64-darwin" = "nixpkgs-${version}-darwin";
   }.${builtins.currentSystem} or "nixos-${version}"
 , nixpkgs-url ?
-  "nixos.org/channels/${channel}/nixexprs.tar.xz"
+  "https://nixos.org/channels/${channel}/nixexprs.tar.xz"
 , system ? builtins.currentSystem
 , crossSystem ? null
 , config ? {}
@@ -31,6 +31,6 @@ in import (pkgs.runCommand "README" {
 '' + ''
   emacs --batch --quick \
         -l ob-tangle \
-        --eval "(org-babel-tangle-file \"README.org\")"
+        --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
   cp bauer.nix default.nix
 '')) { inherit ensure pkgs small; }

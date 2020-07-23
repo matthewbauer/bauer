@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 ;; install advice to prevent custom-declare-variable from overwriting defaults
 ;; below
 (require 'custom)
@@ -74,6 +76,12 @@ ARGS are a list in the form of (SYMBOL VALUE)."
   (dolist (x env)
     (setenv (car x) (string-join (cons (getenv (car x))
 				       (cadr x)) sep))))
+
+(defun prepend-envs (sep &rest env)
+  "Prepend environment variables with SEP from ENV alist."
+  (dolist (x env)
+    (setenv (car x) (string-join (append (cadr x)
+                                         (list (getenv (car x)))) sep))))
 
 (defun set-envs (&rest env)
   "Set environment variables from ENV alist."
