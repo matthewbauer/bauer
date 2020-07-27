@@ -3449,7 +3449,7 @@ just in case.
   export LESS='-FRSMi' \
          SYSTEMD_LESS=FRSMi \
          INPUTRC=@INPUTRC@ \
-         GPG_TTY=$TTY
+         GPG_TTY=$TTY \
          CVS_RSH=ssh
 
   HISTCONTROL=ignoredups:erasedups:ignorespace
@@ -3538,13 +3538,14 @@ help() {
 set -o noclobber -o notify
 
 if [ "$TERM" != "dumb" ]; then
-    if [ "$TERM" != eterm-color ]; then
-        alias l='ls -lFh --hyperlink=auto --color=auto' \
+    if [ "$TERM" != eterm-color ] && [ "${TERM_PROGRAM-}" != iTerm.app ]; then
+        alias l='ls -lh --hyperlink=auto --color=auto' \
               ls='ls -h --hyperlink=auto --color=auto'
     else
-        alias l='ls -lFh --color=auto' \
+        alias l='ls -lh --color=auto' \
               ls='ls -h --color=auto'
     fi
+    export CLICOLOR=1
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
@@ -3552,6 +3553,7 @@ if [ "$TERM" != "dumb" ]; then
           dd='dd status=progress'
 else
     alias l='ls -lFh' \
+          ls='ls -F' \
           egrep='grep -E'
 fi
 #+END_SRC
@@ -4961,7 +4963,7 @@ Full listing of packages that will be made available.
 #+BEGIN_SRC nix
   userPackages = (with pkgs; [
     # From common-path.nix
-    coreutils findutils diffutils gnused gnugrep gawk gnutar
+    coreutils-full findutils diffutils gnused gnugrep gawk gnutar
     gzip bzip2 gnumake bashInteractive patch xz
 
     # Helpful core tools
