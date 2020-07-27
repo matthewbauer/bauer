@@ -3402,7 +3402,7 @@ To use this, you must create a short ~/.profile file. Here is an example,
 
 #+BEGIN_SRC shell :tangle no :padline no
 bootstrap="$HOME/.nix-profile/etc/profile"
-[ -f $bootstrap ] && . $bootstrap
+[ -f $bootstrap ] && source $bootstrap
 #+END_SRC
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
@@ -3573,7 +3573,7 @@ Last, we source the HOME profile to make sure it is used by zsh.
 if [ -f "$HOME/.profile" ] && [ -z "${__BAUER_SOURCED_PROFILE-}" ]; then
   __BAUER_SOURCED_PROFILE=1
   # shellcheck source=/dev/null
-  . "$HOME/.profile"
+  source "$HOME/.profile"
 fi
 #+END_SRC
 
@@ -3589,7 +3589,7 @@ Setup ZSH profile. First, we just source the global profile.
 
 #+BEGIN_SRC shell
 # shellcheck source=/dev/null
-. @out@/etc/profile
+source @out@/etc/profile
 #+END_SRC
 
 Handle dumb options.
@@ -3871,7 +3871,7 @@ fi
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
-    . "$i"
+    source "$i"
   fi
 done
 #+END_SRC
@@ -4293,7 +4293,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -L -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && . $HOME/.profile
+    [ -f $HOME/.profile ] && source $HOME/.profile
 fi
 #+END_SRC
 
@@ -4304,7 +4304,7 @@ if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
      xcode-select -p >/dev/null 2>&1; }; then
-    nix-env -iA nixpkgs.git || nix-env -iA nixos.git
+    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git
 fi
 #+END_SRC
 
