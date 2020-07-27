@@ -3471,6 +3471,10 @@ just in case.
              no_empty_cmd_completion \
              globstar \
     2>/dev/null || true
+
+    if [ "${TERM-}" != dumb ]; then
+      source @bash_completion@/share/bash-completion/bash_completion
+    fi
   fi
 
   if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
@@ -5086,6 +5090,7 @@ in buildEnv {
       emacs = myEmacs;
       inherit (pkgs) cacert;
       inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
+      bash_completion = pkgs.bash-completion;
     } ''
       mkdir -p $out/etc/profile.d
       substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
