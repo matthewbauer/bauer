@@ -3472,7 +3472,7 @@ just in case.
              globstar \
     2>/dev/null || true
 
-    if [ "${TERM-}" != dumb ]; then
+    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ]; then
       source @bash_completion@/share/bash-completion/bash_completion
     fi
   fi
@@ -3513,7 +3513,8 @@ alias rm='rm -I --preserve-root' \
       df='df -hT' \
       du='du -h' \
       free='free -m' \
-      gdb='gdb --quiet --args'
+      gdb='gdb --quiet --args' \
+      q=exit
 
 open() {
   if command -v open > /dev/null; then
