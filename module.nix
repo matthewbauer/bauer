@@ -1,4 +1,3 @@
-# [[file:~/.local/share/bauer/README.org::*NixOS%20module][NixOS module:2]]
 # -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
@@ -25,10 +24,10 @@ in {
       variables = with lib; {
         PATH = [bauer.PATH];
         XDG_DATA_DIRS = [bauer.XDG_DATA_DIRS];
+        TERMINFO_DIRS = [bauer.TERMINFO_DIRS];
         MANPATH = [bauer.MANPATH];
         INFOPATH = [bauer.INFOPATH];
       };
     };
   };
 }
-# NixOS module:2 ends here

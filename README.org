@@ -5263,8 +5263,8 @@ gist-unpack.sh linguist-generated=true
 init.el        linguist-generated=true
 install        linguist-generated=true
 module.nix     linguist-generated=true
-nixos.nix      linguist-generated=true
 update.sh      linguist-generated=true
+flake.nix      linguist-generated=true
 #+END_SRC
 ** =init.el=
 
@@ -5295,6 +5295,9 @@ installation process. The above script should be used in places where Nix is
 unavailable.
 
 ** NixOS module
+:PROPERTIES:
+:header-args: :tangle module.nix :padline no
+:END:
 
 I’ve provided a module suitable for use with a NixOS configuration. To use it,
 just add something like the following to your configuration.nix file.
@@ -5313,7 +5316,7 @@ just add something like the following to your configuration.nix file.
 The actual module implementation follow here. It will pull in some files needed
 for all of this to work. It should provide ‘bauer’ as a runnable command.
 
-#+BEGIN_SRC nix :tangle no :padline no
+#+BEGIN_SRC nix
 # -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
