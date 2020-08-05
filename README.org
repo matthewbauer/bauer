@@ -1117,7 +1117,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (advice-add 'completion-at-point
                 :around (lambda (old-function &rest args)
                           (if (and company-mode
-                                   (not (memq major-mode '(shell-mode eshell-mode org-mode))))
+                                   (not (memq major-mode '(eshell-mode org-mode))))
                               (apply 'company-complete-common-or-cycle args)
                             (apply old-function args))))
     (global-company-mode))
