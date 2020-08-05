@@ -3246,36 +3246,6 @@ https://github.com/cbowdon/daemons.el
            (pandoc-mode . pandoc-load-default-settings)))
 #+END_SRC
 
-**** pcomplette
-#+BEGIN_SRC emacs-lisp
-  (use-package pcomplete
-    :demand
-    :commands pcomplete-here
-    :preface
-    (autoload 'pcomplete-comint-setup "pcomplete")
-    :hook ((shell-mode . (lambda () (pcomplete-comint-setup 'shell-dynamic-complete-functions)))
-           ;; (term-mode . (lambda () (pcomplete-comint-setup 'term-dynamic-complete-functions)))
-           (comint-mode . (lambda () (pcomplete-comint-setup 'comint-dynamic-complete-functions)))
-           ;; (eshell-mode . (lambda () (add-hook 'completion-at-point-functions
-           ;;                                'pcomplete-completions-at-point
-           ;;                                nil t)))
-           ))
-  (use-package pcmpl-args
-    :init
-    (declare-function pcmpl-args-process-file "pcmpl-args.el")
-    ;; see https://github.com/JonWaltman/pcmpl-args.el/pull/4
-    (setq pcmpl-args-man-function
-          (lambda (name)
-            (let ((process-environment process-environment))
-              ;; Setting MANWIDTH to a high number makes most paragraphs fit on a single
-              ;; line, reducing the number of false positives that result from lines
-              ;; starting with `-' that aren't really options.
-              (push "MANWIDTH=10000" process-environment)
-              (pcmpl-args-process-file
-               shell-file-name shell-command-switch (format "man %s | col -b" name))))))
-
-    ;; (use-package pcmpl-git)
-#+END_SRC
 **** rainbow-delimiters
 
 #+BEGIN_SRC emacs-lisp
