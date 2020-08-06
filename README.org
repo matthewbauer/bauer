@@ -3442,16 +3442,16 @@ just in case.
              globstar \
     2>/dev/null || true
 
-    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ]; then
+    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp; then
       source @bash_completion@/share/bash-completion/bash_completion
     fi
-  fi
 
-  if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
-    PROMPT_DIRTRIM=0
-    PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
-  else
-    PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+    if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
+      PROMPT_DIRTRIM=0
+      PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
+    else
+      PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+    fi
   fi
 #+END_SRC
 
