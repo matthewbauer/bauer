@@ -26,6 +26,16 @@
 
     defaultPackage = forAllSystems (system: self.packages.${system}.bauer);
 
+    devShell = forAllSystems (system:
+      with nixpkgsFor.${system};
+      stdenv.mkDerivation {
+        name = "bauer";
+        nativeBuildInputs = [ emacs git ];
+        shellHook = ''
+          echo Run ./update.sh to generate files.
+        '';
+      });
+
     nixosModules.bauer = {
       imports = [ ./module.nix ];
     };
