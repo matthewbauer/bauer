@@ -350,7 +350,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | term-input-ignoredups                         | t                 |
 | text-quoting-style                            | 'quote            |
 | tls-checktrust                                | t                 |
-| undo-limit                                    | 800000            |
+| undo-limit                                    | 80000000          |
 | undo-strong-limit                             | 12000000          |
 | undo-outer-limit                              | 120000000         |
 | undo-tree-auto-save-history                   | t                 |
@@ -361,6 +361,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | vc-make-backup-files                          | t                 |
 | version-control                               | t                 |
 | view-read-only                                | t                 |
+| window-combination-resize                     | t                 |
 | whitespace-line-column                        | 120               |
 | which-key-idle-delay                          | 0.4               |
 | which-key-idle-secondary-delay                | 0.4               |
@@ -2434,14 +2435,6 @@ Make scripts executable automatically.
     :hook ((text-mode . turn-on-auto-fill)))
 #+END_SRC
 
-**** time
-
-#+BEGIN_SRC emacs-lisp
-  (use-package time
-    :demand
-    :config (display-time-mode))
-#+END_SRC
-
 **** url-handlers
 
 #+BEGIN_SRC emacs-lisp
@@ -3138,6 +3131,7 @@ https://github.com/cbowdon/daemons.el
 **** emacs-gif-screencast
 #+BEGIN_SRC emacs-lisp
 (use-package gif-screencast
+  :bind ("<f9>". gif-screencast-start-or-stop)
   :commands gif-screencast)
 #+END_SRC
 **** fic-mode
@@ -3173,6 +3167,12 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
 (use-package iedit
   :bind (("C-;" . iedit-mode)))
+#+END_SRC
+**** keycast
+
+#+BEGIN_SRC emacs-lisp
+(use-package keycast
+  :commands (keycast-mode))
 #+END_SRC
 **** ledger-mode
 
@@ -3267,6 +3267,14 @@ https://github.com/cbowdon/daemons.el
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
+**** systemd
+#+BEGIN_SRC emacs-lisp
+(use-package systemd
+  :mode
+  ("\\.service\\'" "\\.timer\\'" "\\.target\\'" "\\.mount\\'"
+   "\\.automount\\'" "\\.slice\\'" "\\.socket\\'" "\\.path\\'"
+   "\\.netdev\\'" "\\.network\\'" "\\.link\\'"))
+#+END_SRC
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
@@ -3415,16 +3423,16 @@ just in case.
              globstar \
     2>/dev/null || true
 
-    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ]; then
+    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp; then
       source @bash_completion@/share/bash-completion/bash_completion
     fi
-  fi
 
-  if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
-    PROMPT_DIRTRIM=0
-    PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
-  else
-    PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+    if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
+      PROMPT_DIRTRIM=0
+      PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
+    else
+      PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+    fi
   fi
 #+END_SRC
 
@@ -4255,7 +4263,7 @@ if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
      xcode-select -p >/dev/null 2>&1; }; then
-    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git
+    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix profile install nixpkgs#git
 fi
 #+END_SRC
 
@@ -4287,7 +4295,7 @@ fi
 Install our new derivation.
 
 #+BEGIN_SRC shell
-nix-env -if .
+nix-env -if . || nix profile install
 #+END_SRC
 
 Source the profile.
@@ -5608,5 +5616,4 @@ done
 # fill-column: 80
 # sentence-end-double-space: nil
 # indent-tabs-mode: nil
-# tab-width: 8
 # End:

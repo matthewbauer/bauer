@@ -16,7 +16,7 @@ if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
      xcode-select -p >/dev/null 2>&1; }; then
-    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git
+    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix profile install nixpkgs#git
 fi
 
 if [ -d .git ]; then
@@ -35,7 +35,7 @@ if ! [ -f default.nix ]; then
     cd $repo_dir
 fi
 
-nix-env -if .
+nix-env -if . || nix profile install
 
 if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
