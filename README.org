@@ -5282,8 +5282,7 @@ You can use this as part of [[~/.emacs.d/init.el][your Emacs init file]]:
 (load
   (expand-file-name "settings.el" user-emacs-directory) t)
 (package-initialize)
-(defvar bauer-dir
-        (expand-file-name ".emacs.d" (getenv "HOME")))
+(defvar bauer-dir user-emacs-directory)
 (defvar bauer-org
         (expand-file-name "README.org" bauer-dir))
 (add-to-list 'load-path
@@ -5565,7 +5564,7 @@ for f in *; do
     fi
     DEST=
     case "$f" in
-        settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
+        settings.el) DEST="$HOME/.config/emacs/settings.el" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
         .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
