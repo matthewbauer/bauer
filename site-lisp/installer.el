@@ -16,7 +16,6 @@
 (require 'comint)
 (require 'subr-x)
 (require 'timer)
-(eval-when-compile (require 'cl))
 
 (unless (locate-library "restart-emacs")
   (add-to-list 'load-path default-directory))
@@ -74,13 +73,13 @@
 
 (defun restart-info (buffer)
   "Display info in BUFFER to restart Emacs."
-  (lexical-let* ((installer-out-path (file-truename installer-out-path))
-                 (emacs-binary
-                  (file-truename
-                   (expand-file-name (nix-emacs-path) installer-out-path)))
-                 (old-emacs-binary (file-chase-links
-                                    (expand-file-name (nix-emacs-path)
-                                                      nix-profile))))
+  (let* ((installer-out-path (file-truename installer-out-path))
+         (emacs-binary
+          (file-truename
+           (expand-file-name (nix-emacs-path) installer-out-path)))
+         (old-emacs-binary (file-chase-links
+                            (expand-file-name (nix-emacs-path)
+                                              nix-profile))))
     (switch-to-buffer-other-window buffer)
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
@@ -139,9 +138,9 @@
   "Run each process in BUFFER generator, FNS, sequentially.
 BUFFER is the buffer to show output in."
   (when fns
-    (lexical-let ((proc (funcall (car fns) buffer))
-                  (fns (cdr fns))
-                  (buffer buffer))
+    (let ((proc (funcall (car fns) buffer))
+          (fns (cdr fns))
+          (buffer buffer))
       (when (processp proc)
         (setq installer-running-process proc)
         (with-current-buffer buffer
@@ -211,7 +210,7 @@ BUFFER to show output in."
       (erase-buffer)
       (comint-mode)
       (local-set-key (kbd "q") 'quit-window)
-      (lexical-let ((installer-auto-restart nil))
+      (let ((installer-auto-restart nil))
         (run-sequentially buffer '(repo-update
                                    repo-build
                                    restart-info))))))
