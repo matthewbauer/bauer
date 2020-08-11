@@ -2095,6 +2095,7 @@ You may want to enable this to persist info across Emacs sessions.
 
 #+BEGIN_SRC emacs-lisp
   (use-package display-line-numbers
+    :if (>= emacs-major-version 26)
     :commands (display-line-numbers-mode)
     :hook ((prog-mode . display-line-numbers-mode)
            (conf-mode . display-line-numbers-mode)))
