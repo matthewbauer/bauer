@@ -4496,11 +4496,11 @@ currently).
   emacs-overlays = pkgs.fetchFromGitHub {
     owner = "nix-community";
     repo = "emacs-overlay";
-    rev = "bfb416da4b3419a1a7d2766187b5fd52cae905c8";
-    sha256 = "sha256-3OLrp7cWcrfe1+qDBuzSdcHOTsB+z2KD0WE1ldlD79s=";
+    rev = "8c65ae9551ef799ca0a6cc1774939133ade32aee";
+    sha256 = "b7d6b1b93c166dea88977d9cd73177d50a2f15192ffc2db9043672567ade84db";
   };
 
-  customEmacsPackages = pkgs.emacsPackagesNgGen
+  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor
     (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
