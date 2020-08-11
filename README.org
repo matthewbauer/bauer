@@ -1165,19 +1165,6 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
                                                   company-auctex-symbols
                                                   company-capf))))))
 #+END_SRC
-***** company-web
-#+BEGIN_SRC emacs-lisp
-  (use-package company-web
-    :preface
-    (autoload 'company-web-html "company-web-html")
-    (autoload 'company-web-jade "company-web-jade")
-    (autoload 'company-web-slim "company-web-slim")
-    :hook ((web-mode . (lambda ()
-                         (setq-local company-backends '(company-web-html
-                                                        company-web-jade
-                                                        company-web-slim
-                                                        company-capf))))))
-#+END_SRC
 ***** company-math
 #+BEGIN_SRC emacs-lisp
   (use-package company-math
@@ -1244,8 +1231,7 @@ info.
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
     :commands (ivy-read)
-    :bind (([remap list-buffers] . ivy-switch-buffer)
-           ([remap switch-to-buffer] . ivy-switch-buffer)
+    :bind (([remap switch-to-buffer] . ivy-switch-buffer)
            ([remap switch-to-buffer-other-window] .
             ivy-switch-buffer-other-window)
            :package ivy
@@ -1405,14 +1391,17 @@ supports many languages and give us a lot of features right out of the box.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
+    :disabled
     :hook ((prog-mode . flycheck-mode)
            (haskell-mode . (lambda () (flycheck-mode -1)))
            (c++-mode . (lambda () (flycheck-mode -1)))))
   ;; (use-package flycheck-haskell
   ;;   :hook (haskell-mode . flycheck-haskell-setup))
   (use-package flycheck-cask
+    :disabled
     :hook (emacs-lisp-mode . flycheck-cask-setup))
   (use-package flycheck-rust
+    :disabled
     :hook (rust-mode . flycheck-rust-setup))
 #+END_SRC
 
@@ -1492,27 +1481,6 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
-
-    ;; (defun magit-remote-github (username &optional args)
-    ;;   (interactive (list (magit-read-string-ns "User name")
-    ;;                      (magit-remote-arguments)))
-    ;;   (let* ((url (magit-get "remote.origin.url"))
-    ;;          (match (string-match
-    ;;                  "^\\(?:https?://github\.com/\\|git@github.com:\\|ssh://git@github\.com/\\)[^/]*/\\(.*\\)"
-    ;;                  url)))
-    ;;     (unless match
-    ;;       (error "Not a github remote"))
-    ;;     (let ((repo (match-string 1 url)))
-    ;;       (apply 'magit-remote-add username
-    ;;              (format "ssh://git@github.com/%s/%s"
-    ;;                      username repo) args))))
-    ;; :hook (magit-mode . (lambda ()
-    ;;                       (magit-define-popup-action
-    ;;                         'magit-remote-popup
-    ;;                         ?g
-    ;;                         "Add remote from github user name"
-    ;;                         'magit-remote-github)))
-
     :commands (magit-clone magit-blame-addition magit-log-buffer-file)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
@@ -1527,13 +1495,6 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit)
-#+END_SRC
-
-Magit todos
-
-#+BEGIN_SRC emacs-lisp
-(use-package magit-todos
-  :commands (magit-todos-list))
 #+END_SRC
 
 ***** git-commit
@@ -2134,6 +2095,7 @@ You may want to enable this to persist info across Emacs sessions.
 
 #+BEGIN_SRC emacs-lisp
   (use-package display-line-numbers
+    :if (>= emacs-major-version 26)
     :commands (display-line-numbers-mode)
     :hook ((prog-mode . display-line-numbers-mode)
            (conf-mode . display-line-numbers-mode)))
@@ -2434,6 +2396,15 @@ Make scripts executable automatically.
     :hook ((java-mode . subword-mode)))
 #+END_SRC
 
+**** so-long
+
+#+BEGIN_SRC emacs-lisp
+  (use-package so-long
+    :demand
+    :commands global-so-long-mode
+    :config (global-so-long-mode 1))
+#+END_SRC
+
 **** term
 
 #+BEGIN_SRC emacs-lisp
@@ -2533,6 +2504,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck-irony
+    :disabled
     :hook (flycheck-mode . flycheck-irony-setup))
 #+END_SRC
 
@@ -2765,6 +2737,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package indium
+    :disabled
     :if (>= emacs-major-version 25)
     :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
@@ -3121,6 +3094,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package crux
+    :disabled
     :bind (("C-c D" . crux-delete-file-and-buffer)
            ("C-c C-e" . crux-eval-and-replace)
            ("C-c d" . crux-duplicate-current-line-or-region)
@@ -4517,8 +4491,23 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
-  customEmacsPackages = pkgs.emacsPackagesNgGen
-    (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
+  emacs-overlays = pkgs.fetchFromGitHub {
+    owner = "nix-community";
+    repo = "emacs-overlay";
+    rev = "bfb416da4b3419a1a7d2766187b5fd52cae905c8";
+    sha256 = "sha256-3OLrp7cWcrfe1+qDBuzSdcHOTsB+z2KD0WE1ldlD79s=";
+  };
+
+  emacs = (pkgs.emacs.override { srcRepo = true; }).overrideAttrs (o: {
+     src = builtins.fetchGit {
+       url = "https://git.savannah.gnu.org/git/emacs.git";
+       rev = "86d8d76aa36037184db0b2897c434cdaab1a9ae8";
+       ref = "emacs-27";
+     };
+     patches = [];
+   });
+
+  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor emacs;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -5271,8 +5260,8 @@ gist-unpack.sh linguist-generated=true
 init.el        linguist-generated=true
 install        linguist-generated=true
 module.nix     linguist-generated=true
-nixos.nix      linguist-generated=true
 update.sh      linguist-generated=true
+flake.nix      linguist-generated=true
 #+END_SRC
 ** =init.el=
 
@@ -5302,6 +5291,9 @@ installation process. The above script should be used in places where Nix is
 unavailable.
 
 ** NixOS module
+:PROPERTIES:
+:header-args: :tangle module.nix :padline no
+:END:
 
 I’ve provided a module suitable for use with a NixOS configuration. To use it,
 just add something like the following to your configuration.nix file.
@@ -5320,7 +5312,7 @@ just add something like the following to your configuration.nix file.
 The actual module implementation follow here. It will pull in some files needed
 for all of this to work. It should provide ‘bauer’ as a runnable command.
 
-#+BEGIN_SRC nix :tangle no :padline no
+#+BEGIN_SRC nix
 # -*- mode: nix; coding: utf-8; -*-
 { config, lib, pkgs, ... }: with lib;
 
