@@ -4498,16 +4498,8 @@ currently).
     sha256 = "sha256-3OLrp7cWcrfe1+qDBuzSdcHOTsB+z2KD0WE1ldlD79s=";
   };
 
-  emacs = (pkgs.emacs.override { srcRepo = true; }).overrideAttrs (o: {
-     src = builtins.fetchGit {
-       url = "https://git.savannah.gnu.org/git/emacs.git";
-       rev = "86d8d76aa36037184db0b2897c434cdaab1a9ae8";
-       ref = "emacs-27";
-     };
-     patches = [];
-   });
-
-  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor emacs;
+  customEmacsPackages = pkgs.emacsPackagesNgGen
+    (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
