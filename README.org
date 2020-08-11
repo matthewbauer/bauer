@@ -2400,6 +2400,8 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package so-long
+    :ensure nil
+    :if (>= emacs-major-version 27)
     :demand
     :commands global-so-long-mode
     :config (global-so-long-mode 1))
