@@ -2206,35 +2206,36 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package files
     :ensure nil
-    :demand
-    :preface
-    (defun find-file--line-number (orig-fun filename
-                                   &optional wildcards)
-      "Turn files like file.js:14:10 into file.js and going to line 14, col 10."
-      (save-match-data
-        (let* ((matched (string-match
-                          "^\\(.*?\\):\\([0-9]+\\):?\\([0-9]*\\)$"
-                          filename))
-               (line-number (and matched
-                              (match-string 2 filename)
-                              (string-to-number
-                                (match-string 2 filename))))
-               (col-number (and matched
-                              (match-string 3 filename)
-                              (string-to-number (match-string 3 filename))))
-               (filename (if matched
-                             (match-string 1 filename)
-                             filename)))
-          (apply orig-fun (list filename wildcards))
-          (when line-number
-            ;; goto-line is for interactive use
-            (goto-char (point-min))
-            (forward-line (1- line-number))
-            (when (> col-number 0)
-              (forward-char (1- col-number)))))))
-    :config
-    (advice-add 'find-file
-                :around #'find-file--line-number))
+    ;; :demand
+    ;; :preface
+    ;; (defun find-file--line-number (orig-fun filename
+    ;;                                &optional wildcards)
+    ;;   "Turn files like file.js:14:10 into file.js and going to line 14, col 10."
+    ;;   (save-match-data
+    ;;     (let* ((matched (string-match
+    ;;                       "^\\(.*?\\):\\([0-9]+\\):?\\([0-9]*\\)$"
+    ;;                       filename))
+    ;;            (line-number (and matched
+    ;;                           (match-string 2 filename)
+    ;;                           (string-to-number
+    ;;                             (match-string 2 filename))))
+    ;;            (col-number (and matched
+    ;;                           (match-string 3 filename)
+    ;;                           (string-to-number (match-string 3 filename))))
+    ;;            (filename (if matched
+    ;;                          (match-string 1 filename)
+    ;;                          filename)))
+    ;;       (apply orig-fun (list filename wildcards))
+    ;;       (when line-number
+    ;;         ;; goto-line is for interactive use
+    ;;         (goto-char (point-min))
+    ;;         (forward-line (1- line-number))
+    ;;         (when (> col-number 0)
+    ;;           (forward-char (1- col-number)))))))
+    ;; :config
+    ;; (advice-add 'find-file
+    ;;             :around #'find-file--line-number)
+    )
 #+END_SRC
 
 **** flyspell
