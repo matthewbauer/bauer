@@ -2268,6 +2268,13 @@ Make scripts executable automatically.
            (org-mode . hl-line-mode)
            (dired-mode . hl-line-mode)))
 #+END_SRC
+**** ibuffer
+
+#+BEGIN_SRC emacs-lisp
+(use-package ibuffer
+  :bind ([remap list-buffers] . ibuffer))
+#+END_SRC
+
 **** make-mode
 #+BEGIN_SRC emacs-lisp
   (use-package make-mode
@@ -3165,6 +3172,16 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
 (use-package idle-highlight-mode
   :hook (prog-mode . idle-highlight-mode))
+#+END_SRC
+**** ibuffer-vc
+ 
+#+BEGIN_SRC emacs-lisp
+  (use-package ibuffer-vc
+    :commands (ibuffer-vc-set-filter-groups-by-vc-root)
+    :hook ((ibuffer . (lambda ()
+                        (ibuffer-vc-set-filter-groups-by-vc-root)
+                        (unless (eq ibuffer-sorting-mode 'alphabetic)
+                          (ibuffer-do-sort-by-alphabetic))))))
 #+END_SRC
 **** iedit
 
