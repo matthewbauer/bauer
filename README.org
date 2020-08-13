@@ -4476,6 +4476,12 @@ we have some options that can be provided...
   , pkgs ? import <nixpkgs> { inherit crossSystem system config overlays; }
   , ensure ? f: n: f
   , small ? pkgs.config.bauer.small or true
+  , emacs-overlay ? { overlay = import (pkgs.fetchFromGitHub {
+      owner = "nix-community";
+      repo = "emacs-overlay";
+      rev = "b9e017b0d91c18f404f3e62cce1329b34d75778c";
+      sha256 = "1kih2x5ji4985yqkz1vnl34y5aq5q93061z80b9wjj9ha3hsdc0f";
+    }); }
   , ... }: let
   inherit (pkgs) stdenv lib runCommand buildEnv config writeText;
   inherit (stdenv) hostPlatform;
@@ -4512,14 +4518,7 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
-  emacs-overlays = pkgs.fetchFromGitHub {
-    owner = "nix-community";
-    repo = "emacs-overlay";
-    rev = "b9e017b0d91c18f404f3e62cce1329b34d75778c";
-    sha256 = "1kih2x5ji4985yqkz1vnl34y5aq5q93061z80b9wjj9ha3hsdc0f";
-  };
-
-  customEmacsPackages = (import emacs-overlays pkgs pkgs).emacsPackagesFor
+  customEmacsPackages = (emacs-overlay.overlay pkgs pkgs).emacsPackagesFor
     (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
 #+END_SRC
 
@@ -5400,8 +5399,9 @@ in {
     description = "an Emacs+Nix IDE";
 
     inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
+    inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
-    outputs = { self, nixpkgs }: let
+    outputs = { self, nixpkgs, emacs-overlay }: let
       systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
@@ -5419,7 +5419,7 @@ in {
                 -l ob-tangle \
                 --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
           cp bauer.nix default.nix
-        '')) { inherit pkgs; };
+        '')) { inherit pkgs emacs-overlay; };
       });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.bauer);

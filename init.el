@@ -1,9 +1,8 @@
-;; [[file:~/.local/share/bauer/README.org::*=init.el=][=init.el=:1]]
+;; [[file:README.org::*=init.el=][=init.el=:1]]
 (load
   (expand-file-name "settings.el" user-emacs-directory) t)
 (package-initialize)
-(defvar bauer-dir
-        (expand-file-name ".emacs.d" (getenv "HOME")))
+(defvar bauer-dir user-emacs-directory)
 (defvar bauer-org
         (expand-file-name "README.org" bauer-dir))
 (add-to-list 'load-path

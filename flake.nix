@@ -2,8 +2,9 @@
   description = "an Emacs+Nix IDE";
 
   inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
+  inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
-  outputs = { self, nixpkgs }: let
+  outputs = { self, nixpkgs, emacs-overlay }: let
     systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" ];
     forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
     nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
@@ -21,7 +22,7 @@
               -l ob-tangle \
               --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
         cp bauer.nix default.nix
-      '')) { inherit pkgs; };
+      '')) { inherit pkgs emacs-overlay; };
     });
 
     defaultPackage = forAllSystems (system: self.packages.${system}.bauer);

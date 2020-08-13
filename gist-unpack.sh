@@ -57,7 +57,7 @@ for f in *; do
     fi
     DEST=
     case "$f" in
-        settings.el) DEST="$HOME/.emacs.d/settings.el" ;;
+        settings.el) DEST="$HOME/.config/emacs/settings.el" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
         .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
