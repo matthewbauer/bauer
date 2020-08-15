@@ -3646,43 +3646,43 @@ fi
 Bind to emacs...
 
 #+BEGIN_SRC shell
-bindkey -e
+  bindkey -e
 
-autoload -U tetris
-zle -N tetris
+  autoload -U tetris
+  zle -N tetris
 
-autoload -U tetriscurses
-zle -N tetriscurses
+  autoload -U tetriscurses
+  zle -N tetriscurses
 
-autoload -U bracketed-paste-magic
-zle -N bracketed-paste bracketed-paste-magic
+  autoload -U bracketed-paste-magic
+  zle -N bracketed-paste bracketed-paste-magic
 
-bindkey ' ' magic-space
-bindkey ';5D' emacs-backward-word
-bindkey ';5C' emacs-forward-word
+  bindkey ' ' magic-space
+  bindkey ';5D' emacs-backward-word
+  bindkey ';5C' emacs-forward-word
 
-autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
+  autoload -U zmv
 
-autoload -U zmv
+  autoload -U url-quote-magic
+  zle -N self-insert url-quote-magic
 
-autoload -U url-quote-magic
-zle -N self-insert url-quote-magic
+  autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+  zle -N up-line-or-beginning-search
+  zle -N down-line-or-beginning-search
 
-bindkey '^[[A'  up-line-or-beginning-search
-bindkey '^[OA'  up-line-or-beginning-search
-bindkey '^[[B'  down-line-or-beginning-search
-bindkey '^[OB'  down-line-or-beginning-search
+  bindkey '^[[A'  up-line-or-beginning-search
+  bindkey '^[OA'  up-line-or-beginning-search
+  bindkey '^[[B'  down-line-or-beginning-search
+  bindkey '^[OB'  down-line-or-beginning-search
 
-autoload -U edit-command-line
-zle -N edit-command-line
-bindkey "^X^E" edit-command-line
+  autoload -U edit-command-line
+  zle -N edit-command-line
+  bindkey "^X^E" edit-command-line
 
-bindkey "^[m" copy-prev-shell-word
-bindkey '^[w' kill-region
-bindkey '^[[Z' reverse-menu-complete
-bindkey "^[^R" history-incremental-search-forward
+  bindkey "^[m" copy-prev-shell-word
+  bindkey '^[w' kill-region
+  bindkey '^[[Z' reverse-menu-complete
+  # bindkey "^[^R" history-incremental-search-forward
 #+END_SRC
 
 Zstyle completions.
