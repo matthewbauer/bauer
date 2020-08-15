@@ -1759,8 +1759,10 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
-                   (locate-library "apropospriate-theme")))
-    (load-theme 'apropospriate-dark t))
+                  (locate-library "apropospriate-theme")))
+    (if (eq (frame-parameter nil 'background-mode) 'light)
+        (load-theme 'apropospriate-light t)
+      (load-theme 'apropospriate-dark t)))
 #+END_SRC
 
 While apropospriate is the default, other themes can be used as well! For
