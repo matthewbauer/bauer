@@ -177,7 +177,9 @@ Hack to avoid tty-run-terminal-initialization on non-graphical Emacs.
     (add-hook 'window-setup-hook
       (lambda ()
         (advice-remove #'tty-run-terminal-initialization #'ignore)
-        (tty-run-terminal-initialization (selected-frame) nil t))))
+        (tty-run-terminal-initialization (selected-frame) nil t)
+        (set-background-color "black")
+        (set-foreground-color "white"))))
 #+END_SRC
 
 ** Custom config
@@ -1762,12 +1764,6 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
                  (file-name-directory
                    (locate-library "apropospriate-theme")))
     (load-theme 'apropospriate-dark t))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-  (unless (display-graphic-p)
-    (set-background-color "black")
-    (set-foreground-color "white"))
 #+END_SRC
 
 While apropospriate is the default, other themes can be used as well! For
