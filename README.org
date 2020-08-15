@@ -5419,6 +5419,15 @@ in {
 
       defaultPackage = forAllSystems (system: self.packages.${system}.bauer);
 
+      apps = forAllSystems (system: {
+        bauer = {
+          type = "app";
+          program = "${self.packages.${system}.bauer}/bin/run";
+        };
+      });
+
+      defaultApp = forAllSystems (system: self.apps.${system}.bauer);
+
       devShell = forAllSystems (system:
         with nixpkgsFor.${system};
         stdenv.mkDerivation {
