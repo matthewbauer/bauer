@@ -73,9 +73,7 @@
 	   (split-window (selected-window) width direction)))))
     (window--display-buffer buffer
                             window
-                            'window
-                            nil
-                            display-buffer-mark-dedicated)
+                            'window)
     window))
 
 ;;;###autoload
