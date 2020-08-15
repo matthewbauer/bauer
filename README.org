@@ -164,22 +164,19 @@ compiling phases used later.
 When we are within a terminal we want to be able to use the mouse, so
 =xterm-mouse-mode= is enabled here.
 
-#+BEGIN_SRC emacs-lisp
-  (unless (display-graphic-p)
-    (xterm-mouse-mode 1))
-#+END_SRC
-
-Hack to avoid tty-run-terminal-initialization on non-graphical Emacs.
+iTerm doesn’t seem to support xterm color reporting correctly, so we use the
+COLORFGBG method.
 
 #+BEGIN_SRC emacs-lisp
   (unless (display-graphic-p)
-    (advice-add #'tty-run-terminal-initialization :override #'ignore)
-    (add-hook 'window-setup-hook
-      (lambda ()
-        (advice-remove #'tty-run-terminal-initialization #'ignore)
-        (tty-run-terminal-initialization (selected-frame) nil t)
-        (set-background-color "black")
-        (set-foreground-color "white"))))
+    (xterm-mouse-mode 1)
+
+    (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
+      ;; xterm--report-background-handler init fails, but we can still
+      ;; use COLORFGBG
+      (require 'term/rxvt)
+      (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
+      (add-hook 'window-setup-hook 'rxvt-set-background-mode)))
 #+END_SRC
 
 ** Custom config
