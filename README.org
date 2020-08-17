@@ -2257,8 +2257,7 @@ Make scripts executable automatically.
 **** make-mode
 #+BEGIN_SRC emacs-lisp
   (use-package make-mode
-    :ensure nil
-    :mode (("\\(/\\|\\`\\)[Mm]akefile" . makefile-mode)))
+    :ensure nil)
 #+END_SRC
 
 **** paren
@@ -2451,13 +2450,7 @@ packages (for completion, syntax checking, etc.)
 **** C/C++
 
 #+BEGIN_SRC emacs-lisp
-  (use-package cc-mode
-    :mode (("\\.h\\(h?\\|xx\\|pp\\)\\'" . c++-mode)
-           ("\\.m\\'" . c-mode)
-           ("\\.c\\'" . c-mode)
-           ("\\.cpp\\'" . c++-mode)
-           ("\\.c++\\'" . c++-mode)
-           ("\\.mm\\'" . c++-mode)))
+  (use-package cc-mode)
 #+END_SRC
 
 ***** Irony
@@ -2500,31 +2493,26 @@ packages (for completion, syntax checking, etc.)
 **** CMake
 
 #+BEGIN_SRC emacs-lisp
-  (use-package cmake-mode
-    :mode (("\\.cmake\\'" . cmake-mode)
-           ("\\CMakeLists.txt$" . cmake-mode)))
+  (use-package cmake-mode)
 #+END_SRC
 
 
 **** CoffeeScript
 
 #+BEGIN_SRC emacs-lisp
-  (use-package coffee-mode
-    :mode (("\\.coffee\\'" . coffee-mode)))
+  (use-package coffee-mode)
 #+END_SRC
 
 **** CSS
 
 #+BEGIN_SRC emacs-lisp
-  (use-package css-mode
-    :mode "\\.css\\'")
+  (use-package css-mode)
 #+END_SRC
 
 **** CSV
 
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
-    :mode "\\.csv\\'"
     :hook ((csv-mode . (lambda () (visual-line-mode -1)))
            (csv-mode . (lambda () (auto-fill-mode -1)))
            (csv-mode . (lambda () (toggle-truncate-lines 1)))))
@@ -2581,43 +2569,29 @@ packages (for completion, syntax checking, etc.)
 
 ***** gitattributes
 #+BEGIN_SRC emacs-lisp
-  (use-package gitattributes-mode
-    :mode (("/\\.gitattributes\\'"  . gitattributes-mode)
-           ("/info/attributes\\'"   . gitattributes-mode)
-           ("/git/attributes\\'"    . gitattributes-mode)))
+  (use-package gitattributes-mode)
 #+END_SRC
 
 ***** gitconfig
 #+BEGIN_SRC emacs-lisp
-  (use-package gitconfig-mode
-    :mode (("/\\.gitconfig\\'"      . gitconfig-mode)
-           ("/\\.git/config\\'"     . gitconfig-mode)
-           ("/modules/.*/config\\'" . gitconfig-mode)
-           ("/git/config\\'"        . gitconfig-mode)
-           ("/\\.gitmodules\\'"     . gitconfig-mode)
-           ("/etc/gitconfig\\'"     . gitconfig-mode)))
+  (use-package gitconfig-mode)
 #+END_SRC
 
 ***** gitignore
 #+BEGIN_SRC emacs-lisp
-  (use-package gitignore-mode
-    :mode (("/\\.gitignore\\'"      . gitignore-mode)
-           ("/info/exclude\\'"      . gitignore-mode)
-           ("/git/ignore\\'"        . gitignore-mode)))
+  (use-package gitignore-mode)
 #+END_SRC
 
 **** Go
 
 #+BEGIN_SRC emacs-lisp
-  (use-package go-mode
-    :mode "\\.go\\'")
+  (use-package go-mode)
 #+END_SRC
 
 **** HAML
 
 #+BEGIN_SRC emacs-lisp
-  (use-package haml-mode
-    :mode "\\.haml\\'")
+  (use-package haml-mode)
 #+END_SRC
 
 **** Haskell
@@ -2626,9 +2600,7 @@ packages (for completion, syntax checking, etc.)
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
     :preface
-    :mode (("\\.hs\\(c\\|-boot\\)?\\'" . haskell-mode)
-           ("\\.lhs\\'" . haskell-literate-mode)
-           ("\\.cabal\\'" . haskell-cabal-mode))
+    :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
            (haskell-mode . flyspell-prog-mode)
            ;; (haskell-mode . haskell-indentation-mode)
@@ -2734,10 +2706,8 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package json-mode
-    :mode (("\\.bowerrc$"     . json-mode)
-           ("\\.jshintrc$"    . json-mode)
-           ("\\.json_schema$" . json-mode)
-           ("\\.json\\'" . json-mode))
+    :mode (("\\.jshintrc$"    . json-mode)
+           ("\\.json_schema$" . json-mode))
     :bind (:package json-mode-map
            :map json-mode-map
            ("C-c <tab>" . json-mode-beautify))
@@ -2796,17 +2766,14 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
-    :mode (("README\\.md\\'" . gfm-mode)
-           ("\\.md\\'"       . markdown-mode)
-           ("\\.markdown\\'" . gfm-mode)))
+    :mode (("README\\.md\\'" . gfm-mode)))
 #+END_SRC
 
 **** Nix
 
 ***** nix-mode
 #+BEGIN_SRC emacs-lisp
-  (use-package nix-mode
-    :mode "\\.nix\\'")
+  (use-package nix-mode)
 #+END_SRC
 
 ***** nix-shell
@@ -2842,7 +2809,6 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tuareg
-    :mode (("\\.mli?\\'" . tuareg-mode))
     :config
     ;; Use Merlin if available
     (when (require 'merlin nil t)
@@ -2866,8 +2832,7 @@ macho-mode to toggle then M-x hexl-mode.
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
-  (use-package php-mode
-    :mode "\\.php\\'")
+  (use-package php-mode)
 #+END_SRC
 
 **** Proof General
@@ -2895,9 +2860,7 @@ macho-mode to toggle then M-x hexl-mode.
 ***** python-mode
 
 #+BEGIN_SRC emacs-lisp
-  (use-package python
-    :mode ("\\.py\\'" . python-mode)
-    :interpreter ("python" . python-mode))
+  (use-package python)
 #+END_SRC
 
 
@@ -2912,38 +2875,32 @@ macho-mode to toggle then M-x hexl-mode.
 **** Ruby
 
 #+BEGIN_SRC emacs-lisp
-  (use-package ruby-mode
-    :mode ("\\.rb\\'" . ruby-mode)
-    :interpreter ("ruby" . ruby-mode))
+  (use-package ruby-mode)
 #+END_SRC
 
 **** Rust
 
 #+BEGIN_SRC emacs-lisp
-  (use-package rust-mode
-    :mode "\\.rs\\'")
+  (use-package rust-mode)
 #+END_SRC
 
 **** SASS
 
 #+BEGIN_SRC emacs-lisp
-  (use-package sass-mode
-    :mode "\\.sass\\'")
+  (use-package sass-mode)
 #+END_SRC
 
 **** Scala
 
 #+BEGIN_SRC emacs-lisp
   (use-package scala-mode
-    :mode "\\.scala\\'"
     :interpreter ("scala" . scala-mode))
 #+END_SRC
 
 **** SCSS
 
 #+BEGIN_SRC emacs-lisp
-  (use-package scss-mode
-    :mode "\\.scss\\'")
+  (use-package scss-mode)
 #+END_SRC
 
 **** Shell
@@ -2958,15 +2915,13 @@ macho-mode to toggle then M-x hexl-mode.
 **** texinfo
 
 #+BEGIN_SRC emacs-lisp
-  (use-package texinfo
-    :mode ("\\.texi\\'" . texinfo-mode))
+  (use-package texinfo)
 #+END_SRC
 
 **** TypeScript
 
 #+BEGIN_SRC emacs-lisp
-  (use-package typescript-mode
-    :mode "\\.ts\\'")
+  (use-package typescript-mode)
 #+END_SRC
 
 **** Web
@@ -2991,8 +2946,7 @@ macho-mode to toggle then M-x hexl-mode.
 **** YAML
 
 #+BEGIN_SRC emacs-lisp
-  (use-package yaml-mode
-    :mode "\\.ya?ml\\'")
+  (use-package yaml-mode)
 #+END_SRC
 
 *** Custom
@@ -3235,11 +3189,7 @@ https://github.com/cbowdon/daemons.el
 
 **** systemd
 #+BEGIN_SRC emacs-lisp
-(use-package systemd
-  :mode
-  ("\\.service\\'" "\\.timer\\'" "\\.target\\'" "\\.mount\\'"
-   "\\.automount\\'" "\\.slice\\'" "\\.socket\\'" "\\.path\\'"
-   "\\.netdev\\'" "\\.network\\'" "\\.link\\'"))
+(use-package systemd)
 #+END_SRC
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
