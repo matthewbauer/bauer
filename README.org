@@ -1548,24 +1548,12 @@ outliner but also much much more.
     :bind* (("C-c c" . org-capture)
             ("C-c a" . org-agenda)
             ("C-c l" . org-store-link)
-            ("C-c b" . org-iswitchb))
-    :config
-    (use-package ob-dot
-      :ensure nil
-      :demand)
-    (use-package ox-latex
-      :ensure nil
-      :demand)
-    (use-package ox-beamer
-      :ensure nil
-      :demand)
-    (use-package ox-md
-      :ensure nil
-      :demand))
+            ("C-c b" . org-iswitchb)))
   (use-package org-download
     :hook (dired-mode . org-download-enable))
   (use-package org-present)
-  (use-package org-journal)
+  (use-package org-journal
+    :disabled)
 #+END_SRC
 **** Projectile
 
@@ -2405,6 +2393,7 @@ Make scripts executable automatically.
     (autoload 'tramp-dissect-file-name "tramp"))
 
   (use-package tramp-term
+    :disabled
     :functions term-send-raw-string
     :hook (tramp-term-after-initialized . (lambda (host)
       (term-send-raw-string (concat "cd " default-directory (kbd "RET"))))))
@@ -2448,10 +2437,6 @@ Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
 **** C/C++
-
-#+BEGIN_SRC emacs-lisp
-  (use-package cc-mode)
-#+END_SRC
 
 ***** Irony
 
@@ -2501,12 +2486,6 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package coffee-mode)
-#+END_SRC
-
-**** CSS
-
-#+BEGIN_SRC emacs-lisp
-  (use-package css-mode)
 #+END_SRC
 
 **** CSV
@@ -2591,7 +2570,8 @@ packages (for completion, syntax checking, etc.)
 **** HAML
 
 #+BEGIN_SRC emacs-lisp
-  (use-package haml-mode)
+  (use-package haml-mode
+    :disabled)
 #+END_SRC
 
 **** Haskell
@@ -2857,13 +2837,6 @@ macho-mode to toggle then M-x hexl-mode.
            (python-mode . anaconda-eldoc-mode)))
 #+END_SRC
 
-***** python-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package python)
-#+END_SRC
-
-
 **** restclient
 
 #+BEGIN_SRC emacs-lisp
@@ -2887,7 +2860,8 @@ macho-mode to toggle then M-x hexl-mode.
 **** SASS
 
 #+BEGIN_SRC emacs-lisp
-  (use-package sass-mode)
+  (use-package sass-mode
+    :disabled)
 #+END_SRC
 
 **** Scala
@@ -3097,7 +3071,8 @@ https://github.com/cbowdon/daemons.el
 **** ledger-mode
 
 #+BEGIN_SRC emacs-lisp
-  (use-package ledger-mode)
+  (use-package ledger-mode
+    :disabled)
 #+END_SRC
 **** mwim
 
@@ -3113,7 +3088,8 @@ https://github.com/cbowdon/daemons.el
 
 **** org-static-blog
 #+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog)
+  (use-package org-static-blog
+    :disabled)
 #+END_SRC
 **** page-break-lines
 
