@@ -436,8 +436,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(custom-file (expand-file-name
                   "settings.el"
                   user-emacs-directory))
-   '(dired-listing-switches "-alhv")
+   '(dired-listing-switches "-alhv --group-directories-first")
    '(dired-omit-files "^\\.\\|^#.*#$")
+   '(dired-dwim-target t)
    '(dirtrack-list '("^[^:]*:\\(?:\e\\[[0-9]+m\\)?\\([^$#\e]+\\)" 1))
    '(eshell-banner-message "")
    '(eshell-ls-dired-initial-args '("-h"))
@@ -487,6 +488,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
        (mark " " (name 16 -1) " " filename)))
    '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
    '(ispell-extra-args '("--sug-mode=ultra"))
+   '(isearch-lazy-count t)
+   '(isearch-yank-on-move 'shift)
+   '(isearch-allow-scroll 'unlimited)
    '(magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
    '(magit-process-find-password-functions
      '(magit-process-password-auth-source))
@@ -3619,7 +3623,7 @@ Turn on prompt with colors.
       # private network
       elif { [[ "$server_ip" =~ 192.168.* ]] && [[ "$client_ip" =~ 192.168.* ]] } || { [[ "$server_ip" =~ 10.* ]] && [[ "$client_ip" =~ 10.* ]] } || { [[ "$server_ip" =~ fe80::* ]] && [[ "$client_ip" =~ fe80::* ]] }; then
           if command -v avahi-resolve-address > /dev/null; then
-              hostname="$(avahi-resolve-address "$server_ip" | awk '{ print $2 }')"
+              hostname="$(avahi-resolve-address "$server_ip" 2>/dev/null | awk '{ print $2 }')"
           fi
 
           if [ -z "$hostname" ] && command -v dig > /dev/null; then
@@ -3674,7 +3678,7 @@ Update eterm cwds.
   update_eterm_cwd () {
       printf '\eAnSiTc %s\n' "$PWD"
       printf '\eAnSiTh %s\n' "$HOST"
-      printf '\eAnSiTu %s\n' "$USER"
+      printf '\eAnSiTu %s\n' "${USER-$LOGNAME}"
   }
 
   if [ "$TERM" = "eterm-color" ]; then
