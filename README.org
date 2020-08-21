@@ -2351,7 +2351,10 @@ Make scripts executable automatically.
     (require 'tramp)
     (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
       (when (file-remote-p default-directory)
-        (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))
+        (if (file-exists-p (concat (file-remote-p default-directory) shell-file-name))
+            (set (make-local-variable 'explicit-shell-file-name) shell-file-name)
+          (if (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell))
+              (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
       (apply orig-fun args))
     (advice-add 'shell :around 'shell-set-remote-shell-path-maybe))
 #+END_SRC
