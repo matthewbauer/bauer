@@ -2337,16 +2337,23 @@ Make scripts executable automatically.
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-    (use-package shell
-      :bind (("C-c C-s" . shell)
-             ("H-s" . shell)
-             ("M-@" . shell))
-      :hook ((shell-mode . ansi-color-for-comint-mode-on)
-             (shell-mode . dirtrack-mode)
-             ;; (shell-mode . (lambda ()
-             ;;            (turn-on-comint-history (expand-file-name "sh-history"
-             ;;            user-emacs-directory))))
-             ))
+  (use-package shell
+    :bind (("C-c C-s" . shell)
+           ("H-s" . shell)
+           ("M-@" . shell))
+    :hook ((shell-mode . ansi-color-for-comint-mode-on)
+           (shell-mode . dirtrack-mode)
+           ;; (shell-mode . (lambda ()
+           ;;            (turn-on-comint-history (expand-file-name "sh-history"
+           ;;            user-emacs-directory))))
+           )
+    :config
+    (require 'tramp)
+    (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
+      (when (file-remote-p default-directory)
+        (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))
+      (apply orig-fun args))
+    (advice-add 'shell :around 'shell-set-remote-shell-path-maybe))
 #+END_SRC
 
 **** simple
