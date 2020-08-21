@@ -3335,7 +3335,7 @@ just in case.
 
     if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
       PROMPT_DIRTRIM=0
-      PS1='\[\e[34m\]:/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
+      PS1='\[\e[34m\]/ssh:\u@\H:$PWD\[\e[33m\] $\[\e[0m\] '
     else
       PS1='\[\e[34m\]\u@\H:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
     fi
@@ -3608,7 +3608,7 @@ Turn on prompt with colors.
   PROMPT='%F{blue}'
   if [ -n "${SSH_CONNECTION-}" ]; then
       if [ "$TERM" = dumb-emacs-ansi ]; then
-        PROMPT+=':/ssh:'
+        PROMPT+='/ssh:'
       else
         PROMPT+='ssh://'
       fi
