@@ -836,6 +836,7 @@ better navigations.
 | <C-return>      | other-window                    |
 | <C-M-return>    | other-window                    |
 | s-o             | other-window                    |
+| ESC o           | other-window                    |
 | C-z             | delete-other-windows            |
 | s-1             | other-frame                     |
 | M-+             | text-scale-increase             |
@@ -3548,8 +3549,13 @@ Bind to emacs...
   zle -N bracketed-paste bracketed-paste-magic
 
   bindkey ' ' magic-space
-  bindkey ';5D' emacs-backward-word
-  bindkey ';5C' emacs-forward-word
+
+  autoload -U select-word-style
+  select-word-style bash
+  bindkey ';5D' backward-word
+  bindkey ';5C' forward-word
+  bindkey '^[[1;9D' backward-word
+  bindkey '^[[1;9C' forward-word
 
   autoload -U zmv
 
@@ -3646,7 +3652,7 @@ Turn on prompt with colors.
       fi
 
       if [ "$TERM" = dumb-emacs-ansi ]; then
-          PROMPT+="$HOST"
+          PROMPT+="${HOST-}"
       elif [ -n "$hostname" ]; then
           PROMPT+="$hostname"
       else
@@ -3687,7 +3693,7 @@ Update eterm cwds.
 #+BEGIN_SRC shell
   update_eterm_cwd () {
       printf '\eAnSiTc %s\n' "$PWD"
-      printf '\eAnSiTh %s\n' "$HOST"
+      printf '\eAnSiTh %s\n' "${HOST-}"
       printf '\eAnSiTu %s\n' "${USER-$LOGNAME}"
   }
 
