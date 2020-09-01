@@ -3185,9 +3185,9 @@ https://github.com/cbowdon/daemons.el
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
-    :demand
-    :commands (global-undo-tree-mode)
-    :config (global-undo-tree-mode 1)
+    :hook ((prog-mode . undo-tree-mode)
+           (org-mode . undo-tree-mode)
+           (text-mode . undo-tree-mode))
     ;; (global-set-key (kbd "C-z") 'undo)
     ;; (defalias 'redo 'undo-tree-redo)
     ;; (global-set-key (kbd "C-S-z") 'redo)
