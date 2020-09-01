@@ -837,7 +837,6 @@ better navigations.
 | <C-M-return>    | other-window                    |
 | s-o             | other-window                    |
 | ESC o           | other-window                    |
-| C-z             | delete-other-windows            |
 | s-1             | other-frame                     |
 | M-+             | text-scale-increase             |
 | M-_             | text-scale-decrease             |
@@ -884,6 +883,9 @@ better navigations.
 | M-s m           | multi-occur                     |
 | M-s M           | multi-occur-in-matching-buffers |
 | C-c i i         | imenu                           |
+| s-v             | scroll-down-command             |
+| s-M-e           | end-of-defun                    |
+| s-M-a           | beginning-of-defun              |
 
 #+BEGIN_SRC emacs-lisp :var keybinds=keybinds
   (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
@@ -1549,11 +1551,7 @@ outliner but also much much more.
            (org-mode . (lambda ()
              (autoload 'org-eldoc-documentation-function "org-eldoc")
              (setq-local eldoc-documentation-function
-                         'org-eldoc-documentation-function))))
-    :bind* (("C-c c" . org-capture)
-            ("C-c a" . org-agenda)
-            ("C-c l" . org-store-link)
-            ("C-c b" . org-iswitchb)))
+                         'org-eldoc-documentation-function)))))
   (use-package org-download
     :hook (dired-mode . org-download-enable))
   (use-package org-present)
@@ -1570,16 +1568,18 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :commands (projectile-mode)
-    :bind-keymap* (("C-c p" . projectile-command-map)
-                   ("s-p" . projectile-command-map))
-    :bind (("C-c C-f" . projectile-find-file))
+    ;; :bind-keymap* (("C-c p" . projectile-command-map)
+    ;;                ("s-p" . projectile-command-map))
+    ;; :bind (("C-c C-f" . projectile-find-file))
     :preface
     (autoload 'projectile-project-vcs "projectile")
     (autoload 'projectile-project-root "projectile")
     (autoload 'easy-menu-define "easymenu" "" nil 'macro)
     :demand
     :config
-    (projectile-mode))
+    (projectile-mode)
+    (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+    (define-key mode-specific-map (kbd "p") 'projectile-command-map))
 #+END_SRC
 
 **** Recentf
@@ -3226,7 +3226,7 @@ https://github.com/cbowdon/daemons.el
 
 #+BEGIN_SRC emacs-lisp
 (use-package winner
-  :demand
+  :disabled
   :config (winner-mode))
 #+END_SRC
 
