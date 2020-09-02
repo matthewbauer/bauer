@@ -1298,8 +1298,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
         (define-key map [delete]       'eshell-isearch-delete-char)
         map)
       "Keymap used in isearch in Eshell.")
-    (defalias 'eshell/q 'eshell/exit)
-    (defalias 'eshell/\? 'help)
     (defun eshell-spawn-external-command (beg end)
       "Parse and expand any history references in current input."
       (save-excursion
@@ -3187,11 +3185,7 @@ https://github.com/cbowdon/daemons.el
   (use-package undo-tree
     :hook ((prog-mode . undo-tree-mode)
            (org-mode . undo-tree-mode)
-           (text-mode . undo-tree-mode))
-    ;; (global-set-key (kbd "C-z") 'undo)
-    ;; (defalias 'redo 'undo-tree-redo)
-    ;; (global-set-key (kbd "C-S-z") 'redo)
-    )
+           (text-mode . undo-tree-mode)))
 #+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
@@ -3371,8 +3365,7 @@ alias rm='rm -I --preserve-root' \
       df='df -hT' \
       du='du -h' \
       free='free -m' \
-      gdb='gdb --quiet --args' \
-      q=exit
+      gdb='gdb --quiet --args'
 
 open() {
   if command -v open > /dev/null; then
