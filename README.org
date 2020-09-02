@@ -3418,8 +3418,10 @@ Configure INSIDE_EMACS.
 
 #+BEGIN_SRC shell
 if [ "${TERM-}" = dumb ] && [ -n "${INSIDE_EMACS-}" ]; then
-    export TERM=dumb-emacs-ansi \
-           COLORTERM=1
+    export TERM=dumb-emacs-ansi
+    if [ -z "${COLORTERM-}" ]; then
+      export COLORTERM=1
+    fi
 fi
 #+END_SRC
 
@@ -3492,6 +3494,7 @@ setopt always_to_end \
        interactive_comments \
        long_list_jobs \
        multios \
+       no_flow_control \
        prompt_subst \
        pushd_minus \
        transient_rprompt
@@ -3549,6 +3552,7 @@ Bind to emacs...
   bindkey '^[[1;9C' forward-word
 
   autoload -U zmv
+  autoload -U zargs
 
   autoload -U url-quote-magic
   zle -N self-insert url-quote-magic
@@ -3570,6 +3574,7 @@ Bind to emacs...
   bindkey '^[w' kill-region
   bindkey '^[[Z' reverse-menu-complete
   # bindkey "^[^R" history-incremental-search-forward
+  bindkey "^S" history-incremental-search-forward
 #+END_SRC
 
 Zstyle completions.
@@ -3594,7 +3599,6 @@ zstyle ':completion:*:history-words' stop yes
 zstyle ':completion:*:rm:*' file-patterns '*:all-files'
 zstyle ':completion::complete:*' cache-path "$HOME/.zcompcache"
 zstyle ':completion::complete:*' use-cache yes
-zstyle ':vcs_info:*' enable git
 zstyle '*' single-ignored show
 zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 #+END_SRC
@@ -4859,7 +4863,7 @@ Full listing of packages that will be made available.
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
     unzip man openssh less calc ag ripgrep
-    tree gnutls
+    tree gnutls git
   ] ++ lib.optionals big ([
     # Useful tools
     isync notmuch graphviz indent
