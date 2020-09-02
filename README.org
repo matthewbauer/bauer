@@ -3352,12 +3352,14 @@ Dircolors
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias rm='rm -I --preserve-root' \
-      mv='mv -i' \
-      cp='cp -i' \
-      ln='ln -i' \
-      chown='chown --preserve-root' \
-      chmod='chmod --preserve-root' \
+alias rm='rm -iv -I --preserve-root' \
+      mv='mv -iv' \
+      cp='cp -iv' \
+      ln='ln -iv' \
+      rmdir='rmdir -v' \
+      mkdir='mkdir -v' \
+      chown='chown --preserve-root -c' \
+      chmod='chmod --preserve-root -c' \
       chgrp='chgrp --preserve-root' \
       curl='curl -L --proto-default https' \
       upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
@@ -3405,7 +3407,7 @@ if [ "$TERM" != "dumb" ]; then
     alias grep='grep --color=auto' \
           egrep='grep -E --color=auto' \
           diff='diff --color=auto' \
-          rsync='rsync --progress --human-readable' \
+          rsync='rsync -v --progress --human-readable' \
           dd='dd status=progress'
 else
     alias l='ls -lh' \
