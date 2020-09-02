@@ -3403,10 +3403,10 @@ set -o noclobber -o notify
 if [ "$TERM" != "dumb" ]; then
     if [ "$TERM" != eterm-color ] && [ "${TERM_PROGRAM-}" != iTerm.app ]; then
         alias l='ls -lh --hyperlink=auto --color=auto' \
-              ls='ls -h --hyperlink=auto --color=auto'
+              ls='ls -Fh --hyperlink=auto --color=auto'
     else
         alias l='ls -lh --color=auto' \
-              ls='ls -h --color=auto'
+              ls='ls -Fh --color=auto'
     fi
     export CLICOLOR=1
     alias grep='grep --color=auto' \
@@ -3415,8 +3415,8 @@ if [ "$TERM" != "dumb" ]; then
           rsync='rsync --progress --human-readable' \
           dd='dd status=progress'
 else
-    alias l='ls -lFh' \
-          ls='ls -F' \
+    alias l='ls -lh' \
+          ls='ls -Fh' \
           egrep='grep -E'
 fi
 #+END_SRC
