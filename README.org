@@ -3732,7 +3732,7 @@ if [ "${TERM_PROGRAM-}" = iTerm.app ]; then
     printf "\e]133;D;%s\a" "$?"
     iterm2_print_state_data
   }
-  PROMPT=$'\e]133;A\a'"$PROMPT"$'\e]133;B\a'
+  PROMPT=$'%{\e]133;A\a%}'"$PROMPT"$'%{\e]133;B\a%}'
   precmd_functions+=(iterm2_after_cmd_executes)
   preexec_functions+=(iterm2_before_cmd_executes)
   iterm2_print_state_data
