@@ -3354,7 +3354,7 @@ Dircolors
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias rm='rm -iv -I --preserve-root' \
+alias rm='rm -Iv' \
       mv='mv -iv' \
       cp='cp -iv' \
       ln='ln -iv' \
@@ -3362,13 +3362,12 @@ alias rm='rm -iv -I --preserve-root' \
       mkdir='mkdir -v' \
       chown='chown --preserve-root -c' \
       chmod='chmod --preserve-root -c' \
-      chgrp='chgrp --preserve-root' \
+      chgrp='chgrp --preserve-root -c' \
       curl='curl -L --proto-default https' \
       upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
       upgrade=upgrade_bauer \
-      df='df -hT' \
-      du='du -h' \
-      free='free -m' \
+      df='df -HT' \
+      du='du -ch' \
       gdb='gdb --quiet --args'
 
 open() {
@@ -3498,6 +3497,7 @@ setopt always_to_end \
        interactive_comments \
        long_list_jobs \
        multios \
+       no_list_beep \
        no_flow_control \
        prompt_subst \
        pushd_minus \
@@ -3610,8 +3610,9 @@ zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
-  PROMPT='%F{blue}'
+  PROMPT=
   if [ -n "${SSH_CONNECTION-}" ]; then
+      PROMPT+='%F{blue}’
       if [ "$TERM" = dumb-emacs-ansi ]; then
         PROMPT+='/ssh:'
       else
@@ -3655,7 +3656,7 @@ Turn on prompt with colors.
       elif [ -n "$hostname" ]; then
           PROMPT+="$hostname"
       else
-          PROMPT+=%M
+          PROMPT+=%m
       fi
 
       if [ "$server_port" -ne 22 ]; then
@@ -3672,13 +3673,13 @@ Turn on prompt with colors.
       if [ "$TERM" = dumb-emacs-ansi ]; then
         PROMPT+=':%/'
       else
-        PROMPT+='%F{cyan}%/'
+        PROMPT+='%F{cyan}%/%f'
       fi
   else
-      PROMPT+='%n@%M:%F{cyan}%4~'
+      PROMPT+='%(!.%F{red}%B.%F{blue})%n%b%F{blue}@%m%f:%F{cyan}%4~%f'
   fi
 
-  PROMPT+=' %(?..%F{red}[%?] )%F{yellow}$ %F{reset}'
+  PROMPT+=' %(?..%F{red}[%?]%f )%(1j.%F{green}[%j]%f .)%F{yellow}%(!.#.$)%f '
   export PROMPT
 
   unset RPS1
