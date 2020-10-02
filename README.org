@@ -217,6 +217,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | auto-revert-interval                          | 2                 |
 | auto-revert-verbose                           | nil               |
 | backward-delete-char-untabify-method          | 'hungry           |
+| bidi-inhibit-bpa                              | t                 |
+| bidi-paragraph-direction                      | 'left-to-right    |
 | bookmark-save-flag                            | 1                 |
 | checkdoc-spellcheck-documentation-flag        | t                 |
 | comint-input-ignoredups                       | t                 |
@@ -653,7 +655,8 @@ This file allows users to override the above defaults. This will mean you
 can use custom as you normally would in vanilla Emacs.
 
 #+BEGIN_SRC emacs-lisp
-  (load custom-file t)
+  (when custom-file
+    (load custom-file t))
 #+END_SRC
 
 ** Setup use-package
@@ -1086,7 +1089,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 #+BEGIN_SRC emacs-lisp
   (use-package company
     :delight
-    :demand
+    :defer 1
     :preface
     (defun company-complete-common-or-cycle-backward ()
       "Complete common prefix or cycle backward."
@@ -1173,6 +1176,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** company-math
 #+BEGIN_SRC emacs-lisp
   (use-package company-math
+    :disabled
     :preface
     (autoload 'company-math-symbols-latex "company-math")
     (autoload 'company-latex-commands "company-math")
@@ -1574,7 +1578,7 @@ easymenu to make the "Projectile" modeline clickable.
     (autoload 'projectile-project-vcs "projectile")
     (autoload 'projectile-project-root "projectile")
     (autoload 'easy-menu-define "easymenu" "" nil 'macro)
-    :demand
+    :defer 2
     :config
     (projectile-mode)
     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
@@ -2244,12 +2248,6 @@ Make scripts executable automatically.
 (use-package ibuffer
   :commands (ibuffer-do-sort-by-alphabetic)
   :bind ([remap list-buffers] . ibuffer))
-#+END_SRC
-
-**** make-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package make-mode
-    :ensure nil)
 #+END_SRC
 
 **** paren

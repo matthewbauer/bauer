@@ -54,7 +54,9 @@
 
     (load script nil nil t)
 
-    (princ (json-encode use-package-list--packages))
+    (princ (if use-package-list--packages
+               (json-encode use-package-list--packages)
+             "[]"))
 
     use-package-list--packages))
 
