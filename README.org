@@ -1316,6 +1316,7 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 ***** em-rebind
 #+BEGIN_SRC emacs-lisp
   (use-package em-rebind
+    :disabled
     :ensure nil
     :config
     ;; TODO: move this back to customize
@@ -1670,6 +1671,7 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
     :config
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
     (use-package smartparens-config
+      :disabled
       :ensure nil
       :demand)
 
@@ -1740,6 +1742,7 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
   (use-package apropospriate-theme
+    :disabled
     :if window-system
     :init
     (add-to-list 'custom-theme-load-path
@@ -1768,7 +1771,8 @@ instance spacemacs-theme can be enabled:
 [[https://github.com/larstvei/Try][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-  (use-package try)
+  (use-package try
+    :disabled)
 #+END_SRC
 
 **** which-key
@@ -2029,7 +2033,8 @@ You may want to enable this to persist info across Emacs sessions.
            ("M-*" . eshell)
            ("W" . browse-url-of-dired-file)
            ("@" . dired-run-command)))
-  (use-package dired-du)
+  (use-package dired-du
+    :disabled)
 #+END_SRC
 
 ***** dired-column
@@ -2570,13 +2575,15 @@ packages (for completion, syntax checking, etc.)
 
 ***** gitignore
 #+BEGIN_SRC emacs-lisp
-  (use-package gitignore-mode)
+  (use-package gitignore-mode
+    :disabled)
 #+END_SRC
 
 **** Go
 
 #+BEGIN_SRC emacs-lisp
-  (use-package go-mode)
+  (use-package go-mode
+    :disabled)
 #+END_SRC
 
 **** HAML
@@ -2801,6 +2808,7 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tuareg
+    :disabled
     :config
     ;; Use Merlin if available
     (when (require 'merlin nil t)
@@ -2824,7 +2832,8 @@ macho-mode to toggle then M-x hexl-mode.
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
-  (use-package php-mode)
+  (use-package php-mode
+    :disabled)
 #+END_SRC
 
 **** Proof General
@@ -2886,7 +2895,8 @@ macho-mode to toggle then M-x hexl-mode.
 **** SCSS
 
 #+BEGIN_SRC emacs-lisp
-  (use-package scss-mode)
+  (use-package scss-mode
+    :disabled)
 #+END_SRC
 
 **** Shell
@@ -2907,7 +2917,8 @@ macho-mode to toggle then M-x hexl-mode.
 **** TypeScript
 
 #+BEGIN_SRC emacs-lisp
-  (use-package typescript-mode)
+  (use-package typescript-mode
+    :disabled)
 #+END_SRC
 
 **** Web
@@ -3046,7 +3057,8 @@ https://github.com/cbowdon/daemons.el
 #+END_SRC
 **** git-timemachine
 #+BEGIN_SRC emacs-lisp
-(use-package git-timemachine)
+(use-package git-timemachine
+  :disabled)
 #+END_SRC
 **** htmlize
 
