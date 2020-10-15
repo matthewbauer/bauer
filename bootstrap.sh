@@ -16,7 +16,11 @@ if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
      xcode-select -p >/dev/null 2>&1; }; then
-    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix profile install nixpkgs#git
+    nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix profile install nixpkgs#git || nix-env -iA git -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+fi
+
+if ! command -v ssh >/dev/null 2>&1; then
+    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
 fi
 
 if [ -d .git ]; then
@@ -33,6 +37,11 @@ if ! [ -f default.nix ]; then
       git -C $repo_dir pull
     fi
     cd $repo_dir
+fi
+
+if [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+    echo Found Gist commit $1, cloning now.
+    ./gist-unpack.sh "$@"
 fi
 
 nix-env -if . || nix profile install
@@ -63,10 +72,3 @@ fi
 
 echo From you command line
 echo You can also run either emacs or zsh to launch the environment
-
-if [ -n "$1" ] && \
-   command -v git >/dev/null 2>&1 \
-   && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
-    echo Found Gist commit $1, cloning now.
-    ./gist-unpack.sh "$1"
-fi

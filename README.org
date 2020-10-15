@@ -4201,7 +4201,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
 fi
 #+END_SRC
 
-Check for Git. Install if it’s not there.
+Check for Git & SSH. Install if it’s not there.
 
 #+BEGIN_SRC shell
 if ! command -v git >/dev/null 2>&1 || \
@@ -4209,6 +4209,10 @@ if ! command -v git >/dev/null 2>&1 || \
      [ "$(command -v git)" = /usr/bin/git ] &&
      xcode-select -p >/dev/null 2>&1; }; then
     nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix profile install nixpkgs#git || nix-env -iA git -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+fi
+
+if ! command -v ssh >/dev/null 2>&1; then
+    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
 fi
 #+END_SRC
 
@@ -4242,7 +4246,7 @@ Pull private data, which may contain some binary caches we can use.
 #+BEGIN_SRC shell
 if [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
     echo Found Gist commit $1, cloning now.
-    ./gist-unpack.sh "$1"
+    ./gist-unpack.sh "$@"
 fi
 #+END_SRC
 
