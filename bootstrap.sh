@@ -58,15 +58,12 @@ if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profi
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
 fi
 
-source "$HOME/.nix-profile/etc/profile"
-
 echo To use bauer correctly, you must first source the profile.
 echo
 echo To do this, just run:
 echo $ source $HOME/.nix-profile/etc/profile
 
 if [ -n "${ZSH_NAME-}" ]; then
-    source "$HOME/.nix-profile/etc/zshrc"
     echo $ source $HOME/.nix-profile/etc/zshrc
 fi
 
