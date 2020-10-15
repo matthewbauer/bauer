@@ -64,7 +64,8 @@ if ! [ -f "$HOME/.ssh/id_rsa" ]; then
     ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
 fi
 
-if ! ssh -T git@github.com 2> /dev/null; then
+ssh -T git@github.com 2> /dev/null
+if [ $? -eq 255 ]; then
     if [ -z "$USER" ]; then
         echo -n "GitHub Username: "; read USER
     fi
