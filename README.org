@@ -3731,7 +3731,7 @@ fi
 iTerm2
 
 #+BEGIN_SRC shell
-if [ "${TERM_PROGRAM-}" = iTerm.app ] && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ]; then
+if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ] } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [[ -o interactive ]]; then
   iterm2_before_cmd_executes() {
     printf "\e]133;C;\a"
   }
