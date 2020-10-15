@@ -5506,15 +5506,22 @@ allow overriding your current =$HOME= files.
       exit 1
   fi
 
-  if ! [ -f "$HOME/.ssh/id_rsa" ]; then
-      echo No ssh key is available. Generating it and adding it to GitHub to continue.
-      ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
-  fi
+  mkdir -p $HOME/.ssh
+  echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==" >> $HOME/.ssh/known_hosts
 
   ssh -T git@github.com 2> /dev/null
   if [ $? -eq 255 ]; then
-      if [ -z "$USER" ]; then
+      if ! [ -f "$HOME/.ssh/id_rsa" ]; then
+          echo No ssh key is available. Generating it and adding it to GitHub to continue.
+          ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
+      fi
+
+      if [ -z "$USER" ] && [ -t 1 ]; then
           echo -n "GitHub Username: "; read USER
+      fi
+      if [ -z "$USER" ]; then
+          echo Username cannot be empty. Pass -u with your username to continue.
+          exit 1
       fi
       auth="$USER"
       if [ -n "$TOKEN" ]; then
