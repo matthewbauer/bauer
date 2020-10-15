@@ -16,7 +16,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -u|--user)
-            if [ -n "${USER-}" ]; then
+            if [ -n "$USER" ]; then
                 echo Multiple users passed! >&2
                 exit 1
             fi
@@ -25,7 +25,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -t|--token)
-            if [ -n "${TOKEN-}" ]; then
+            if [ -n "$TOKEN" ]; then
                 echo Multiple tokens passed! >&2
                 exit 1
             fi
@@ -34,7 +34,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -g|--gist-id)
-            if [ -n "${GIST_ID-}" ]; then
+            if [ -n "$GIST_ID" ]; then
                 echo Multiple Gist ids passed! >&2
                 exit 1
             fi
@@ -43,12 +43,12 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         *)
-            if [ -n "${GIST_ID-}" ]; then
+            if [ -n "$GIST_ID" ]; then
                 echo Multiple Gist ids passed! >&2
                 exit 1
             fi
             GIST_ID="$1"
-            echo Using gist "$GIST_ID"x >&2
+            echo Using gist "$GIST_ID" >&2
             shift
             ;;
     esac

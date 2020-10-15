@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+{
+
 set -e
 
 echo This script will install Nix and Git
@@ -69,3 +71,5 @@ fi
 
 echo From you command line
 echo You can also run either emacs or zsh to launch the environment
+
+}

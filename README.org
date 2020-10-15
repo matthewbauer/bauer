@@ -3996,8 +3996,6 @@ Set paths provided by Nix,
    '(locate-executable "@findutils@/bin/locate")
    '(ag-executable "@ag@/bin/ag")
    '(notmuch-command "@notmuch@/bin/notmuch")
-   '(dumb-jump-rg-cmd "@ripgrep@/bin/rg")
-   '(dumb-jump-ag-cmd "@ag@/bin/ag")
    '(gud-gdb-command-name "@gdb@/bin/gdb")
    '(coq-prog-name "@coq@/bin/coqtop")
    '(coq-dependency-analyzer "@coq@/bin/coqdep")
@@ -4187,18 +4185,20 @@ they are not already installed! Use it at your own risk.
 Install Nix if it isn’t already.
 
 #+BEGIN_SRC shell
-set -e
+  {
 
-echo This script will install Nix and Git
-echo if they are not already installed.
+  set -e
 
-if ! command -v nix-env >/dev/null 2>&1; then
-    nix_installer=$(mktemp)
-    curl -L -s https://nixos.org/nix/install \
-      > $nix_installer
-    sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
-fi
+  echo This script will install Nix and Git
+  echo if they are not already installed.
+
+  if ! command -v nix-env >/dev/null 2>&1; then
+      nix_installer=$(mktemp)
+      curl -L -s https://nixos.org/nix/install \
+        > $nix_installer
+      sh $nix_installer
+      [ -f $HOME/.profile ] && source $HOME/.profile
+  fi
 #+END_SRC
 
 Check for Git & SSH. Install if it’s not there.
@@ -4259,29 +4259,31 @@ nix-env -if . || nix profile install
 Source the profile.
 
 #+BEGIN_SRC shell
-if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
-    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
-fi
+  if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
+      echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
+  fi
 
-if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
-    echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
-fi
+  if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+      echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
+  fi
 
-if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
-    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
-fi
+  if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
+      echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
+  fi
 
-echo To use bauer correctly, you must first source the profile.
-echo
-echo To do this, just run:
-echo $ source $HOME/.nix-profile/etc/profile
+  echo To use bauer correctly, you must first source the profile.
+  echo
+  echo To do this, just run:
+  echo $ source $HOME/.nix-profile/etc/profile
 
-if [ -n "${ZSH_NAME-}" ]; then
-    echo $ source $HOME/.nix-profile/etc/zshrc
-fi
+  if [ -n "${ZSH_NAME-}" ]; then
+      echo $ source $HOME/.nix-profile/etc/zshrc
+  fi
 
-echo From you command line
-echo You can also run either emacs or zsh to launch the environment
+  echo From you command line
+  echo You can also run either emacs or zsh to launch the environment
+
+  }
 #+END_SRC
 
 ** =runemacs.sh=
@@ -5463,7 +5465,7 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           -u|--user)
-              if [ -n "${USER-}" ]; then
+              if [ -n "$USER" ]; then
                   echo Multiple users passed! >&2
                   exit 1
               fi
@@ -5472,7 +5474,7 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           -t|--token)
-              if [ -n "${TOKEN-}" ]; then
+              if [ -n "$TOKEN" ]; then
                   echo Multiple tokens passed! >&2
                   exit 1
               fi
@@ -5481,7 +5483,7 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           -g|--gist-id)
-              if [ -n "${GIST_ID-}" ]; then
+              if [ -n "$GIST_ID" ]; then
                   echo Multiple Gist ids passed! >&2
                   exit 1
               fi
@@ -5490,12 +5492,12 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           ,*)
-              if [ -n "${GIST_ID-}" ]; then
+              if [ -n "$GIST_ID" ]; then
                   echo Multiple Gist ids passed! >&2
                   exit 1
               fi
               GIST_ID="$1"
-              echo Using gist "$GIST_ID"x >&2
+              echo Using gist "$GIST_ID" >&2
               shift
               ;;
       esac
