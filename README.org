@@ -3379,7 +3379,7 @@ just in case.
       source @bash_completion@/share/bash-completion/bash_completion
     fi
 
-    if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
+    if { [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; } && [ -n "${SSH_CONNECTION-}" ]; then
       PROMPT_DIRTRIM=0
       PS1='\[\e[34m\]/ssh:\u@\h:$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
     elif [ -n "${SSH_CONNECTION-}" ]; then
