@@ -172,12 +172,51 @@ COLORFGBG method.
     (xterm-mouse-mode 1)
 
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
-      ;; xterm--report-background-handler init fails, but we can still
-      ;; use COLORFGBG
-      (defvar xterm-extra-capabilities)
-      (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
+      (add-hook 'after-make-frame-functions
+                '(lambda
+                   ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
+                   (xterm--init-modify-other-keys)
+
+                   ;; Courtesy https://emacs.stackexchange.com/a/13957, modified per
+                   ;; https://gitlab.com/gnachman/iterm2/-/issues/8382#note_365264207
+                   (defun character-apply-modifiers (c &rest modifiers)
+                     "Apply modifiers to the character C.
+  MODIFIERS must be a list of symbols amongst (meta control shift).
+  Return an event vector."
+                     (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
+                                                               (logand c ?\x1f)
+                                                             (logior (lsh 1 26) c))))
+                     (if (memq 'meta modifiers) (setq c (logior (lsh 1 27) c)))
+                     (if (memq 'shift modifiers) (setq c (logior (lsh 1 25) c)))
+                     (vector c))
+                   (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
+                     (let ((c 32))
+                       (while (<= c 126)
+                         (mapc (lambda (x)
+                                 (define-key xterm-function-map (format (car x) c)
+                                   (apply 'character-apply-modifiers c (cdr x))))
+                               '(;; with ?.VT100.formatOtherKeys: 0
+                                 ("\e\[27;3;%d~" meta)
+                                 ("\e\[27;5;%d~" control)
+                                 ("\e\[27;6;%d~" control shift)
+                                 ("\e\[27;7;%d~" control meta)
+                                 ("\e\[27;8;%d~" control meta shift)
+                                 ;; with ?.VT100.formatOtherKeys: 1
+                                 ("\e\[%d;3u" meta)
+                                 ("\e\[%d;5u" control)
+                                 ("\e\[%d;6u" control shift)
+                                 ("\e\[%d;7u" control meta)
+                                 ("\e\[%d;8u" control meta shift)))
+                         (setq c (1+ c)))))
+                   ))
+
+      ;; ;; xterm--report-background-handler init fails, but we can still
+      ;; ;; use COLORFGBG
+      ;; (defvar xterm-extra-capabilities)
+      ;; (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
       (autoload 'rxvt-set-background-mode "term/rxvt")
-      (add-hook 'window-setup-hook 'rxvt-set-background-mode)))
+      (add-hook 'window-setup-hook 'rxvt-set-background-mode)
+      ))
 #+END_SRC
 
 ** Custom config
@@ -3342,9 +3381,12 @@ just in case.
 
     if [ "${TERM-}" = dumb-emacs-ansi ] && [ -n "${SSH_CONNECTION-}" ]; then
       PROMPT_DIRTRIM=0
-      PS1='\[\e[34m\]/ssh:\u@\h:$PWD\[\e[33m\] $\[\e[0m\] '
+      PS1='\[\e[34m\]/ssh:\u@\h:$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
+    elif [ -n "${SSH_CONNECTION-}" ]; then
+      PROMPT_DIRTRIM=0
+      PS1='\[\e[34m\]ssh://\u@\h\[\e[36m\]$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
     else
-      PS1='\[\e[34m\]\u@\h:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+      PS1='\[\e[34m\]\u@\h\[\e[0m\]:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
     fi
 
     if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ]; then
@@ -3686,7 +3728,7 @@ Turn on prompt with colors.
       unset client_ip client_port server_ip server_port hostname
 
       if [ "$TERM" = dumb-emacs-ansi ]; then
-        PROMPT+=':%/'
+        PROMPT+=':%/%f'
       else
         PROMPT+='%F{cyan}%/%f'
       fi
