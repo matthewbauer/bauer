@@ -4592,17 +4592,17 @@ that we have just found in package-list. The solution is that complex eval
 below where we add all of the paths (plus their requisites) to the load
 path. This works but is hacky & I am interested in fixing it.
 
-#+BEGIN_SRC nix
-cd $out/share/emacs/site-lisp
-export HOME=$PWD
-emacs --batch --quick \
-      --eval \
-"(let ((default-directory \"${emacsWrapper
-  ((requiredPackages customEmacsPackages myEmacsPackages')
-   ++ (with customEmacsPackages; [use-package delight]))
-}/share/emacs/site-lisp\"))
-  (normal-top-level-add-subdirs-to-load-path))" \
-      -L . -f batch-byte-compile *.el
+#+BEGIN_SRC nix :tangle no
+  cd $out/share/emacs/site-lisp
+  export HOME=$PWD
+  emacs --batch --quick \
+        --eval \
+  "(let ((default-directory \"${emacsWrapper
+    ((requiredPackages customEmacsPackages myEmacsPackages')
+     ++ (with customEmacsPackages; [use-package delight]))
+  }/share/emacs/site-lisp\"))
+    (normal-top-level-add-subdirs-to-load-path))" \
+        -L . -f batch-byte-compile *.el
 #+END_SRC
 
 #+BEGIN_SRC nix
@@ -4667,8 +4667,7 @@ listed in =use-package= above is pulled into the closure.
   for pkg in "''${requires[@]}"; do
     linkEmacsPackage $pkg
   done
-  emacs --batch -f batch-byte-compile \
-                "$siteStart"
+  # emacs --batch -f batch-byte-compile "$siteStart"
   '';
 #+END_SRC
 
