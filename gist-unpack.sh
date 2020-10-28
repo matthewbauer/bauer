@@ -122,6 +122,7 @@ for f in *; do
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
         .gitignore) DEST="$HOME/.config/git/ignore" ;;
         .gitconfig) DEST="$HOME/.config/git/config" ;;
+        .gitattributes) DEST="$HOME/.config/git/attributes" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
