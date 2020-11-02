@@ -3362,7 +3362,9 @@ just in case.
   PROMPT_DIRTRIM=4
 
   if [ -n "${BASH_VERSION-}" ]; then
-    stty -ixon
+    if [[ $- == *i* ]]; then
+      stty -ixon
+    fi
 
     shopt -s cdable_vars \
              cdspell \
