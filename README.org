@@ -4925,19 +4925,25 @@ the most direct access to. Global directories should only contain system paths.
   INPUTRC = builtins.toFile "inputrc" ''
     $include /etc/inputrc
 
-    "\C-p":history-search-backward
-    "\C-n":history-search-forward
+    $if mode=emacs
+      "\C-p": history-search-backward
+      "\C-n": history-search-forward
+      set show-mode-in-prompt on
+    $endif
 
     set colored-stats on
+    set colored-completion-prefix on
     set completion-ignore-case on
     set completion-prefix-display-length 3
+    set enable-bracketed-paste on
+    set expand-tilde on
+    set menu-complete-display-prefix on
     set mark-symlinked-directories on
     set show-all-if-ambiguous on
     set show-all-if-unmodified on
     set visible-stats on
-    set editing-mode emacs
 
-    Space:magic-space
+    Space: magic-space
   '';
 #+END_SRC
 
