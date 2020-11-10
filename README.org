@@ -3581,7 +3581,7 @@ Load up site-functions in ZSH. Use XDG_DATA_DIRS variable. Then we use this to
 initialize completions.
 
 #+BEGIN_SRC shell
-if [ "$TERM" != dumb-emacs-ansi ]; then
+if [ "$TERM" != dumb-emacs-ansi ] && [[ -o interactive ]]; then
   # shellcheck disable=SC2154
   for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS-}; do
     if [ -d "$dir/zsh/site-functions" ]; then
