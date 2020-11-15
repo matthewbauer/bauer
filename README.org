@@ -3308,7 +3308,7 @@ To use this, you must create a short ~/.profile file. Here is an example,
 
 #+BEGIN_SRC shell :tangle no :padline no
 bootstrap="$HOME/.nix-profile/etc/profile"
-[ -f $bootstrap ] && source $bootstrap
+[ -f $bootstrap ] && . $bootstrap
 #+END_SRC
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
@@ -3382,8 +3382,8 @@ just in case.
              globstar \
     2>/dev/null || true
 
-    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp; then
-      source @bash_completion@/share/bash-completion/bash_completion
+    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp 2>/dev/null; then
+      . @bash_completion@/share/bash-completion/bash_completion
     fi
 
     if { [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; } && [ -n "${SSH_CONNECTION-}" ]; then
@@ -3502,7 +3502,7 @@ Last, we source the HOME profile to make sure it is used by zsh.
 if [ -f "$HOME/.profile" ] && [ -z "${__BAUER_SOURCED_PROFILE-}" ]; then
   __BAUER_SOURCED_PROFILE=1
   # shellcheck source=/dev/null
-  source "$HOME/.profile"
+  . "$HOME/.profile"
 fi
 #+END_SRC
 
@@ -3518,7 +3518,7 @@ Setup ZSH profile. First, we just source the global profile.
 
 #+BEGIN_SRC shell
 # shellcheck source=/dev/null
-source @out@/etc/profile
+. @out@/etc/profile
 #+END_SRC
 
 Handle dumb options.
@@ -3812,7 +3812,7 @@ fi
 for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
   if [ -r "$i" ] && [ "$(@coreutils@/bin/basename "$i")" != nix-daemon.sh ]; then
     # shellcheck source=/dev/null
-    source "$i"
+    . "$i"
   fi
 done
 #+END_SRC
@@ -4193,7 +4193,7 @@ Install Nix if it isn’t already.
       curl -L -s https://nixos.org/nix/install \
         > $nix_installer
       sh $nix_installer
-      [ -f $HOME/.profile ] && source $HOME/.profile
+      [ -f $HOME/.profile ] && . $HOME/.profile
   fi
 #+END_SRC
 
@@ -4255,25 +4255,25 @@ nix-env -if . || nix profile install
 Source the profile.
 
 #+BEGIN_SRC shell
-  if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
-      echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
+  if ! [ -f "$HOME/.profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
+      echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
   fi
 
-  if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+  if ! [ -f "$HOME/.zshrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
       echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
   fi
 
-  if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
+  if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
       echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
   fi
 
   echo To use bauer correctly, you must first source the profile.
   echo
   echo To do this, just run:
-  echo $ source $HOME/.nix-profile/etc/profile
+  echo $ . $HOME/.nix-profile/etc/profile
 
   if [ -n "${ZSH_NAME-}" ]; then
-      echo $ source $HOME/.nix-profile/etc/zshrc
+      echo $ . $HOME/.nix-profile/etc/zshrc
   fi
 
   echo From you command line
