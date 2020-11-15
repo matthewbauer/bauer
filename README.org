@@ -4468,34 +4468,21 @@ substitution of all the attributes set.
 
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" (with pkgs; ({
-      inherit (customEmacsPackages) emacs;
-      bash = bashInteractive;
-      inherit ripgrep ag
-              coreutils findutils openssh
-              zsh diffutils man gawk
-              gnugrep gnused cacert git;
-
+      inherit ripgrep ag coreutils;
       inherit manpages sysheaders sysframeworks
-              schemas bins infopages;
-
+              schemas bins infopages
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
     } // (lib.optionalAttrs big {
       gpg = gnupg1compat;
-      inherit ant perl perlcritic
-        asciidoc lessc lua gcc
-        pandoc clang cmake ghostscript
+      inherit
+        pandoc ghostscript
         sqliteInteractive freetds
         parallel unixODBC ncompress
-        texinfoInteractive notmuch gnuplot
-        gdb coq rtags gnutls
-        ;
-      inherit (pythonPackages) flake8;
-      inherit (nodePackages) jshint eslint;
+        texinfoInteractive gnuplot
+        gdb coq rtags gnutls;
       inherit (haskellPackages) hoogle hlint;
       texlive = myTex;
       markdown2 = pythonPackages.markdown2;
-      tidy = html-tidy;
-      libxml2 = libxml2.bin;
     }))) ''
       substituteAll ${./site-paths.el.in} $out
       substituteInPlace $out \
@@ -4869,33 +4856,34 @@ why this is necessary, but nXML complains otherwise.
 Full listing of packages that will be made available.
 
 #+BEGIN_SRC nix
-  userPackages = (with pkgs; [
-    # From common-path.nix
-    coreutils-full findutils diffutils gnused gnugrep gawk gnutar
-    gzip bzip2 gnumake bashInteractive patch xz
+    userPackages = (with pkgs; [
+      # From common-path.nix
+      coreutils-full findutils diffutils gnused gnugrep gawk gnutar
+      gzip bzip2 gnumake bashInteractive patch xz
 
-    # Helpful core tools
-    curl zsh cacert file lsof pstree which rsync
-    unzip man openssh less calc ag ripgrep
-    tree gnutls git
-  ] ++ lib.optionals big ([
-    # Useful tools
-    isync notmuch graphviz indent
-    graphviz imagemagick
+      # Helpful core tools
+      curl zsh cacert file lsof pstree which rsync
+      unzip man less calc ag ripgrep
+      tree gnutls git
+    ] ++ lib.optionals big ([
+      # Useful tools
+      isync notmuch graphviz indent
+      graphviz imagemagick
 
-    bazaar mercurial
+      bazaar mercurial
 
-    # Programming interpreters/compilers
-    myTex rEnv perl python lua coq ocaml
-    openjdk nodejs gcc gdb
+      # Programming interpreters/compilers
+      myTex rEnv perl python lua coq ocaml
+      openjdk nodejs gcc gdb
 
-    travis v8
-  ] ++ (with netbsd; [ getent getconf ])
-    ++ (with nodePackages; [ tern heroku node2nix ])
-    ++ (with gitAndTools; [ hub ])
-    ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
-    ++ (with unixtools; [ utillinux nettools procps ])
-  ));
+      travis v8
+    ] ++ (lib.optional stdenv.hostPlatform.isDarwin openssh) # use /usr/bin/ ssh
+      ++ (with netbsd; [ getent getconf ])
+      ++ (with nodePackages; [ tern heroku node2nix ])
+      ++ (with gitAndTools; [ hub ])
+      ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
+      ++ (with unixtools; [ utillinux nettools procps ])
+    ));
 #+END_SRC
 
 Setup global environment variables & directories. Most of the global directories
@@ -4998,8 +4986,6 @@ in buildEnv {
   paths = [
     myEmacs
     (runCommand "my-profile" {
-      emacs = myEmacs;
-      inherit (pkgs) cacert;
       inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
       bash_completion = pkgs.bash-completion;
     } ''
