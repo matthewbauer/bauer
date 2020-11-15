@@ -11,7 +11,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
     curl -L -s https://nixos.org/nix/install \
       > $nix_installer
     sh $nix_installer
-    [ -f $HOME/.profile ] && source $HOME/.profile
+    [ -f $HOME/.profile ] && . $HOME/.profile
 fi
 
 if ! command -v git >/dev/null 2>&1 || \
@@ -48,25 +48,25 @@ fi
 
 nix-env -if . || nix profile install
 
-if ! [ -f "$HOME/.profile" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
-    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
+if ! [ -f "$HOME/.profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
 fi
 
-if ! [ -f "$HOME/.zshrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+if ! [ -f "$HOME/.zshrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
     echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
 fi
 
-if ! [ -f "$HOME/.bashrc" ] || ! grep -q 'source "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
+if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
 fi
 
 echo To use bauer correctly, you must first source the profile.
 echo
 echo To do this, just run:
-echo $ source $HOME/.nix-profile/etc/profile
+echo $ . $HOME/.nix-profile/etc/profile
 
 if [ -n "${ZSH_NAME-}" ]; then
-    echo $ source $HOME/.nix-profile/etc/zshrc
+    echo $ . $HOME/.nix-profile/etc/zshrc
 fi
 
 echo From you command line

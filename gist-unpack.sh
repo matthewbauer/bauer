@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 if [ $# -eq 0 ]; then
     echo Usage: "$0" GIST_ID [ -u USER ] [ -t TOKEN ] >&2
     exit 1
