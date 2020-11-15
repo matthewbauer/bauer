@@ -3397,7 +3397,7 @@ just in case.
     fi
 
     if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ]; then
-      PS1="\[\e]133;D;\$?\a\e]133;A\a\]$PS1\[\e]133;B\a\]"
+      PS1='\[\e]133;D;\$?\a\e]133;A\a\]'"$PS1"'\[\e]133;B\a\]'
     fi
 
     alias ...='../..' \
@@ -3583,12 +3583,12 @@ initialize completions.
 #+BEGIN_SRC shell
 if [ "$TERM" != dumb-emacs-ansi ] && [[ -o interactive ]]; then
   # shellcheck disable=SC2154
-  for dir in @completions@/share ${(s.:.)XDG_DATA_DIRS-}; do
+  for dir in "@completions@/share" ${(s.:.)XDG_DATA_DIRS-}; do
     if [ -d "$dir/zsh/site-functions" ]; then
-      fpath+=$dir/zsh/site-functions
+      fpath+="$dir/zsh/site-functions"
     fi
     if [ -d "$dir/zsh/vendor-completions" ]; then
-      fpath+=$dir/zsh/vendor-completions
+      fpath+="$dir/zsh/vendor-completions"
     fi
   done
 
@@ -3645,7 +3645,6 @@ Bind to emacs...
   bindkey "^[m" copy-prev-shell-word
   bindkey '^[w' kill-region
   bindkey '^[[Z' reverse-menu-complete
-  # bindkey "^[^R" history-incremental-search-forward
   bindkey "^S" history-incremental-search-forward
 #+END_SRC
 
@@ -3770,21 +3769,21 @@ iTerm2
 #+BEGIN_SRC shell
 if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ] && [[ -o interactive ]]; then
   iterm2_before_cmd_executes() {
-    printf "\e]133;C;\a"
+    printf '\e]133;C;\a'
   }
   iterm2_print_state_data() {
-    printf "\e]1337;RemoteHost=%s@%s\a" "${USER-$LOGNAME}" "${HOST-}"
-    printf "\e]1337;CurrentDir=%s\a" "$PWD"
+    printf '\e]1337;RemoteHost=%s@%s\a' "${USER-$LOGNAME}" "${HOST-}"
+    printf '\e]1337;CurrentDir=%s\a' "$PWD"
   }
   iterm2_after_cmd_executes() {
-    printf "\e]133;D;%s\a" "$?"
+    printf '\e]133;D;%s\a' "$?"
     iterm2_print_state_data
   }
   PROMPT=$'%{\e]133;A\a%}'"$PROMPT"$'%{\e]133;B\a%}'
   precmd_functions+=(iterm2_after_cmd_executes)
   preexec_functions+=(iterm2_before_cmd_executes)
   iterm2_print_state_data
-  printf "\e]1337;ShellIntegrationVersion=11;shell=zsh\a"
+  printf '\e]1337;ShellIntegrationVersion=11;shell=zsh\a'
 fi
 #+END_SRC
 
