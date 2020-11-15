@@ -4207,7 +4207,7 @@ if ! command -v git >/dev/null 2>&1 || \
 fi
 
 if ! command -v ssh >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix --experimental-features nix-command profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
 fi
 #+END_SRC
 
@@ -4248,7 +4248,7 @@ fi
 Install our new derivation.
 
 #+BEGIN_SRC shell
-nix-env -if . || nix profile install
+nix-env -if . || nix --experimental-features nix-command profile install
 #+END_SRC
 
 Source the profile.
