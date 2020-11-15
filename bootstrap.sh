@@ -22,7 +22,7 @@ if ! command -v git >/dev/null 2>&1 || \
 fi
 
 if ! command -v ssh >/dev/null 2>&1; then
-    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
+    nix-env -iA nixpkgs.openssh 2>/dev/null || nix-env -iA nixos.openssh || nix --experimental-features nix-command profile install nixpkgs#openssh || nix-env -iA openssh -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
 fi
 
 if [ -d .git ]; then
@@ -46,7 +46,7 @@ if [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
     ./gist-unpack.sh "$@"
 fi
 
-nix-env -if . || nix profile install
+nix-env -if . || nix --experimental-features nix-command profile install
 
 if ! [ -f "$HOME/.profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.profile"; then
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
