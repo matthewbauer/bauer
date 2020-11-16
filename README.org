@@ -4469,7 +4469,7 @@ substitution of all the attributes set.
     site-paths = runCommand "site-paths.el" (with pkgs; ({
       inherit ripgrep ag coreutils;
       inherit manpages sysheaders sysframeworks
-              schemas bins infopages
+              schemas bins infopages;
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
     } // (lib.optionalAttrs big {
       gpg = gnupg1compat;
