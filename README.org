@@ -4227,8 +4227,7 @@ if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
     mkdir -p $(dirname $repo_dir)
     if ! [ -d $repo_dir/.git ]; then
-      git clone https://github.com/matthewbauer/bauer \
-                $repo_dir
+      git clone https://github.com/matthewbauer/bauer $repo_dir
     else
       git -C $repo_dir pull
     fi
