@@ -3333,6 +3333,10 @@ just in case.
            TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
   fi
 
+  if [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
+    eval $(ssh-agent)
+  fi
+
   HISTSIZE=50000
   SAVEHIST=10000
 
