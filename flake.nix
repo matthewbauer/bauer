@@ -12,8 +12,9 @@
     packages = forAllSystems (system: {
       bauer = let
         pkgs = nixpkgsFor.${system};
-      in import (pkgs.runCommand "README" {
-        buildInputs = with pkgs; [ emacs git ];
+        evalPkgs = nixpkgsFor.x86_64-linux;
+      in import (evalPkgs.runCommand "README" {
+        buildInputs = with evalPkgs; [ emacs git ];
       } (''
         install -D ${./README.org} $out/README.org
         cd $out
@@ -22,7 +23,7 @@
               -l ob-tangle \
               --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
         cp bauer.nix default.nix
-      '')) { inherit pkgs emacs-overlay; };
+      '')) { inherit pkgs emacs-overlay evalPkgs; };
     });
 
     defaultPackage = forAllSystems (system: self.packages.${system}.bauer);

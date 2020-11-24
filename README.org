@@ -4398,9 +4398,10 @@ we have some options that can be provided...
   , config ? {}
   , overlays ? []
   , pkgs ? import <nixpkgs> { inherit crossSystem system config overlays; }
+  , evalPkgs ? pkgs
   , ensure ? f: n: f
   , small ? pkgs.config.bauer.small or true
-  , emacs-overlay ? { overlay = import (pkgs.fetchFromGitHub {
+  , emacs-overlay ? { overlay = import (evalPkgs.fetchFromGitHub {
       owner = "nix-community";
       repo = "emacs-overlay";
       rev = "28c31e0ae90b6fcf51f2d02c5d43fe1715dc6393";
@@ -4506,18 +4507,18 @@ Emacs configuration. use-package-list generates this list automatically.
 
 #+BEGIN_SRC nix
 package-list =
-  runCommand "package-list" {
-    buildInputs = [ customEmacsPackages.emacs ];
+  evalPkgs.runCommand "package-list" {
+    buildInputs = [ evalPkgs.emacs ];
   } ''
 #+END_SRC
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-        -L ${customEmacsPackages.use-package
+        -L ${evalPkgs.emacsPackages.use-package
             }/share/emacs/site-lisp/elpa/use-package-* \
-        -L ${customEmacsPackages.delight
+        -L ${evalPkgs.emacsPackages.delight
             }/share/emacs/site-lisp/elpa/delight-* \
-        -L ${customEmacsPackages.bind-key
+        -L ${evalPkgs.emacsPackages.bind-key
             }/share/emacs/site-lisp/elpa/bind-key-* \
         -l ${ensure ./site-lisp/set-defaults.el
                      "site-lisp/set-defaults.el"} \
@@ -5327,8 +5328,9 @@ in {
       packages = forAllSystems (system: {
         bauer = let
           pkgs = nixpkgsFor.${system};
-        in import (pkgs.runCommand "README" {
-          buildInputs = with pkgs; [ emacs git ];
+          evalPkgs = nixpkgsFor.x86_64-linux;
+        in import (evalPkgs.runCommand "README" {
+          buildInputs = with evalPkgs; [ emacs git ];
         } (''
           install -D ${./README.org} $out/README.org
           cd $out
@@ -5337,7 +5339,7 @@ in {
                 -l ob-tangle \
                 --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
           cp bauer.nix default.nix
-        '')) { inherit pkgs emacs-overlay; };
+        '')) { inherit pkgs emacs-overlay evalPkgs; };
       });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.bauer);
