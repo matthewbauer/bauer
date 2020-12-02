@@ -1,7 +1,7 @@
 # -*- mode: nix; coding: utf-8; -*-
 { version ? "20.09"
 , channel ? {
-    "x86_64-darwin" = "nixpkgs-${version}-darwin";
+    "x86_64-darwin" = "nixpkgs-unstable";
   }.${builtins.currentSystem} or "nixos-${version}"
 , nixpkgs-url ?
   "https://nixos.org/channels/${channel}/nixexprs.tar.xz"
