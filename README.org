@@ -1172,6 +1172,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** company-irony
 #+BEGIN_SRC emacs-lisp
   (use-package company-irony
+    :disabled
     :commands company-irony
     :hook (irony-mode . (lambda ()
       (setq-local company-backends '(company-irony company-capf)))))
@@ -2495,6 +2496,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
+    :disabled
     :preface
     (autoload 'file-remote-p "files")
     (defun irony-mode-disable-remote ()
@@ -2509,6 +2511,7 @@ packages (for completion, syntax checking, etc.)
 
  #+BEGIN_SRC emacs-lisp
 (use-package irony-cdb
+    :disabled
     :ensure nil
     :hook (irony-mode . irony-cdb-autosetup-compile-options))
  #+END_SRC
@@ -2525,6 +2528,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony-eldoc
+    :disabled
     :hook (irony-mode . irony-eldoc))
 #+END_SRC
 
