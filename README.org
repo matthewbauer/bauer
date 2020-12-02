@@ -4242,9 +4242,18 @@ fi
 Pull private data, which may contain some binary caches we can use.
 
 #+BEGIN_SRC shell
-if [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
-    echo Found Gist commit $1, cloning now.
-    ./gist-unpack.sh "$@"
+GIST_ID=
+if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+  GIST_ID="$1"
+fi
+
+case "$USER" in
+  mbauer) GIST_ID=862843ce9216abda0b10e1d753ce9d0f ;;
+esac
+
+if [ -n "${GIST_ID-}" ]; then
+  echo Found Gist commit $1, cloning now.
+  ./gist-unpack.sh "${GIST_ID-}"
 fi
 #+END_SRC
 
