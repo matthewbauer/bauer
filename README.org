@@ -4201,6 +4201,7 @@ Install Nix if it isn’t already.
         > $nix_installer
       sh $nix_installer
       [ -f $HOME/.profile ] && . $HOME/.profile
+      PATH="$HOME/.nix-profile/bin${PATH-+:$PATH}" # in case above didn't work
   fi
 #+END_SRC
 
