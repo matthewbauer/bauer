@@ -3386,7 +3386,7 @@ just in case.
              globstar \
     2>/dev/null || true
 
-    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp 2>/dev/null; then
+    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp 2>/dev/null && [ "${BASH_VERSINFO-0}" -gt 3 ]; then
       . @bash_completion@/share/bash-completion/bash_completion
     fi
 
