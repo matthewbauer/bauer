@@ -7,17 +7,19 @@ echo This script will install Nix and Git
 echo if they are not already installed.
 
 if ! command -v nix-env >/dev/null 2>&1; then
-    nix_installer=$(mktemp)
-    curl -L -s https://nixos.org/nix/install \
-      > $nix_installer
-    sh $nix_installer
+    case "$(uname)" in
+      Darwin) curl -L -s https://nixos.org/nix/install | sh -s - --darwin-use-unencrypted-nix-store-volume --daemon ;;
+      Linux) curl -L -s https://nixos.org/nix/install | sh -s - --daemon ;;
+      *) curl -L -s https://nixos.org/nix/install | sh -s ;;
+    esac
     [ -f $HOME/.profile ] && . $HOME/.profile
+    PATH="$HOME/.nix-profile/bin${PATH-+:$PATH}" # in case above didn't work
 fi
 
 if ! command -v git >/dev/null 2>&1 || \
    { [ "$(uname)" = Darwin ] && \
      [ "$(command -v git)" = /usr/bin/git ] &&
-     xcode-select -p >/dev/null 2>&1; }; then
+     ! xcode-select -p >/dev/null 2>&1; }; then
     nix-env -iA nixpkgs.git 2>/dev/null || nix-env -iA nixos.git || nix --experimental-features 'nix-command flakes' profile install nixpkgs#git || nix-env -iA git -f https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz
 fi
 
@@ -40,9 +42,19 @@ if ! [ -f default.nix ]; then
     cd $repo_dir
 fi
 
-if [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
-    echo Found Gist commit $1, cloning now.
-    ./gist-unpack.sh "$@"
+if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+  GIST_ID="$1"
+fi
+
+if [ -z "${GIST_ID-}" ]; then
+  case "${USER-}" in
+    mbauer) GIST_ID=862843ce9216abda0b10e1d753ce9d0f ;;
+  esac
+fi
+
+if [ -n "${GIST_ID-}" ]; then
+  echo Found Gist commit $1, cloning now.
+  ./gist-unpack.sh "${GIST_ID-}"
 fi
 
 nix-env -if . || nix --experimental-features 'nix-command flakes' profile install
