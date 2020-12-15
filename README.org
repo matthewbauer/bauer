@@ -3109,7 +3109,7 @@ https://github.com/cbowdon/daemons.el
   :hook (prog-mode . idle-highlight-mode))
 #+END_SRC
 **** ibuffer-vc
- 
+
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer-vc
     :commands (ibuffer-vc-set-filter-groups-by-vc-root)
@@ -3427,67 +3427,54 @@ Dircolors
 Then setup aliases.
 
 #+BEGIN_SRC shell
-alias rm='rm -Iv' \
-      mv='mv -iv' \
-      cp='cp -iv' \
-      ln='ln -iv' \
-      rmdir='rmdir -v' \
-      mkdir='mkdir -v' \
-      chown='chown --preserve-root -c' \
-      chmod='chmod --preserve-root -c' \
-      chgrp='chgrp --preserve-root -c' \
-      curl='curl -L --proto-default https' \
-      upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
-      upgrade=upgrade_bauer \
-      df='df -HT' \
-      du='du -ch' \
-      gdb='gdb --quiet --args'
+  alias rm='rm -Iv' \
+        mv='mv -iv' \
+        cp='cp -iv' \
+        ln='ln -iv' \
+        rmdir='rmdir -v' \
+        mkdir='mkdir -v' \
+        chown='chown --preserve-root -c' \
+        chmod='chmod --preserve-root -c' \
+        chgrp='chgrp --preserve-root -c' \
+        curl='curl -L --proto-default https' \
+        upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
+        upgrade=upgrade_bauer \
+        df='df -HT' \
+        du='du -ch' \
+        gdb='gdb --quiet --args'
 
-open() {
-  if command -v open > /dev/null; then
-    command open "$@"
-  elif command -v xdg-open > /dev/null; then
-    xdg-open "$@"
-  else
-    echo Can’t find open.
-    exit 1
-  fi
-}
-
-help() {
-  if command -v xdg-open > /dev/null; then
-    xdg-open https://matthewbauer.us/bauer/
-  elif command -v open > /dev/null; then
-    open https://matthewbauer.us/bauer/
-  elif [ -n "${EDITOR-}" ]; then
-    $EDITOR "$HOME/.local/share/bauer/README.org"
-  else
-    echo Can’t find help.
-    exit 1
-  fi
-}
-
-set -o noclobber -o notify
-
-if [ "$TERM" != "dumb" ]; then
-    if [ "$TERM" != eterm-color ] && [ "${TERM_PROGRAM-}" != iTerm.app ]; then
-        alias l='ls -lh --hyperlink=auto --color=auto' \
-              ls='ls -Fh --hyperlink=auto --color=auto'
+  open() {
+    if command -v open > /dev/null; then
+      command open "$@"
+    elif command -v xdg-open > /dev/null; then
+      xdg-open "$@"
     else
-        alias l='ls -lh --color=auto' \
-              ls='ls -Fh --color=auto'
+      echo Can’t find open.
+      exit 1
     fi
-    export CLICOLOR=1
-    alias grep='grep --color=auto' \
-          egrep='grep -E --color=auto' \
-          diff='diff --color=auto' \
-          rsync='rsync -v --progress --human-readable' \
-          dd='dd status=progress'
-else
-    alias l='ls -lh' \
-          ls='ls -Fh' \
-          egrep='grep -E'
-fi
+  }
+
+  set -o noclobber -o notify
+
+  if [ "$TERM" != "dumb" ]; then
+      if [ "$TERM" != eterm-color ] && [ "${TERM_PROGRAM-}" != iTerm.app ]; then
+          alias l='ls -lh --hyperlink=auto --color=auto' \
+                ls='ls -Fh --hyperlink=auto --color=auto'
+      else
+          alias l='ls -lh --color=auto' \
+                ls='ls -Fh --color=auto'
+      fi
+      export CLICOLOR=1
+      alias grep='grep --color=auto' \
+            egrep='grep -E --color=auto' \
+            diff='diff --color=auto' \
+            rsync='rsync -v --progress --human-readable' \
+            dd='dd status=progress'
+  else
+      alias l='ls -lh' \
+            ls='ls -Fh' \
+            egrep='grep -E'
+  fi
 #+END_SRC
 
 Configure INSIDE_EMACS.
@@ -3651,6 +3638,11 @@ Bind to emacs...
   bindkey '^[w' kill-region
   bindkey '^[[Z' reverse-menu-complete
   bindkey "^S" history-incremental-search-forward
+
+  unalias run-help
+  autoload -U run-help
+  alias help=run-help
+  bindkey "^[h" run-help
 #+END_SRC
 
 Zstyle completions.
