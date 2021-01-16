@@ -673,6 +673,7 @@ set in the Emacs process.
 
 #+BEGIN_SRC emacs-lisp
   (set-envs
+   '("VISUAL" "emacsclient -a emacs")
    '("EDITOR" "emacsclient -a emacs")
    '("NODE_NO_READLINE" "1")
    '("PAGER" "cat")
@@ -3322,7 +3323,7 @@ Lots of common variables need to know about the =.nix-profile= directory. We
 leave the first MANPATH separator empty so it uses the default PATH lookup as
 well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
 store the bash or zsh history. We set the history size to 10000 for good
-measure. EDITOR should point to this editor.
+measure. VISUAL should point to this editor.
 
 Here we setup =.profile=. First, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
@@ -3344,15 +3345,16 @@ just in case.
 
   if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
     if [ -n "${DISPLAY-}" ]; then
-      export EDITOR='emacsclient -a emacs -c'
+      export VISUAL='emacsclient -a emacs -c'
     else
-      export EDITOR='emacsclient -a emacs'
+      export VISUAL='emacsclient -a emacs'
     fi
   elif [ -n "${PS1-}" ]; then
-    export EDITOR='emacsclient -a "emacs -nw" -t'
+    export VISUAL='emacsclient -a "emacs -nw" -t'
   else
-    export EDITOR='emacsclient -a emacs'
+    export VISUAL='emacsclient -a emacs'
   fi
+  export EDITOR="$VISUAL"
 
   if [ -n "${SSH_CONNECTION-}" ]; then
     export PINENTRY_USER_DATA=USE_CURSES=1
