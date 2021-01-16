@@ -4267,8 +4267,8 @@ Source the profile.
       echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
   fi
 
-  if ! [ -f "$HOME/.zshrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
-      echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
+  if ! [ -f "$HOME/.zshenv" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshenv"; then
+      echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshenv"
   fi
 
   if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
