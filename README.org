@@ -4796,7 +4796,7 @@ Next, ZSH completions are built. These all reside in the
 #+BEGIN_SRC nix
   zsh-completions = buildEnv {
     name = "zsh-completions";
-    paths = [ pkgs.zsh-completions pkgs.nix-zsh-completions ] ++ userPackages;
+    paths = [ pkgs.zsh-completions ] ++ userPackages; # pkgs.nix-zsh-completions
     pathsToLink = [ "/share/zsh" ];
   };
 #+END_SRC
