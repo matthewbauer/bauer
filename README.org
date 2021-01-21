@@ -5573,6 +5573,7 @@ allow overriding your current =$HOME= files.
           .sshconfig) DEST="$HOME/.ssh/config" ;;
           .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
           nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
+          machines) DEST="$HOME/.config/nix/machines" ;;
           .gitignore) DEST="$HOME/.config/git/ignore" ;;
           .gitconfig) DEST="$HOME/.config/git/config" ;;
           .gitattributes) DEST="$HOME/.config/git/attributes" ;;
@@ -5585,6 +5586,7 @@ allow overriding your current =$HOME= files.
           .ssh_authorized_keys) CONCAT=1 ;;
           .gitignore) CONCAT=1 ;;
           nix.conf) CONCAT=1 ;;
+          machines) CONCAT=1 ;;
       esac
       if [ -z "$DEST" ]; then
           echo Skipping "$f", no destination found >&2
