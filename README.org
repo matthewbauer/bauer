@@ -5044,84 +5044,9 @@ nix-build
 :CUSTOM_ID: ci
 :END:
 
-#+BEGIN_EXPORT html
-<a href="https://travis-ci.org/matthewbauer/bauer">
-  <img src="https://travis-ci.org/matthewbauer/bauer.svg?branch=master" alt="travis status"></img>
-</a>
-#+END_EXPORT
+Continuous integration is now through GitHub Actions. See
+.github/workflows/main.yml for more info.
 
-We'll set up Travis support here. We start by configuring =.travis.yml=.
-
-** =.travis.yml=
-:PROPERTIES:
-:header-args: :tangle .travis.yml
-:CUSTOM_ID: travis
-:END:
-
-#+BEGIN_SRC yaml :padline no
-language: nix
-#+END_SRC
-
-Next we'll set up nix-build & pass the URL of Nixpkgs with the =NIXPKGS=.
-
-#+BEGIN_SRC yaml
-script:
-  - nix-build -Q --argstr channel $CHANNEL
-#+END_SRC
-
-Setup the OSs. Sadly no Windows support yet.
-
-#+BEGIN_SRC yaml
-git:
-  depth: 1
-#+END_SRC
-
-Setup some values for =NIXPKGS= variables.
-
-#+BEGIN_SRC yaml
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      env: CHANNEL=nixos-19.03
-    - os: linux
-      dist: trusty
-      env: CHANNEL=nixos-19.09
-    - os: linux
-      dist: trusty
-      env: CHANNEL=nixos-20.03
-    - os: linux
-      dist: trusty
-      env: CHANNEL=nixos-20.09
-    - os: linux
-      dist: trusty
-      env: CHANNEL=nixos-unstable
-    - os: osx
-      env: CHANNEL=nixpkgs-19.03-darwin
-    - os: osx
-      env: CHANNEL=nixpkgs-19.09-darwin
-    - os: osx
-      env: CHANNEL=nixpkgs-20.03-darwin
-    - os: osx
-      env: CHANNEL=nixpkgs-20.09-darwin
-    - os: osx
-      env: CHANNEL=nixpkgs-unstable
-#+END_SRC
-
-Setup the cache.
-
-#+BEGIN_SRC yaml
-cache:
-  directories:
-    - /nix/store
-#+END_SRC
-
-Turn off those annoying Travis notifications.
-
-#+BEGIN_SRC yaml
-notifications:
-  email: false
-#+END_SRC
 * Extra
 :PROPERTIES:
 :CUSTOM_ID: extra
