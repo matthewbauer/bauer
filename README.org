@@ -2494,6 +2494,13 @@ Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :commands (lsp-install-server lsp))
+
+  (use-package lsp-ui)
+#+END_SRC
+
 **** C/C++
 
 ***** Irony
@@ -2677,6 +2684,13 @@ packages (for completion, syntax checking, etc.)
            ("C-c c" . haskell-process-cabal))
     :init
     (add-to-list 'completion-ignored-extensions ".hi"))
+#+END_SRC
+
+***** lsp-haskell
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-haskell
+    :hook ((haskell-mode . lsp)
+           (haskell-literate-mode . lsp)))
 #+END_SRC
 
 ***** haskell-interactive-mode
