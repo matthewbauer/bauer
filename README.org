@@ -4258,12 +4258,6 @@ if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\
   GIST_ID="$1"
 fi
 
-if [ -z "${GIST_ID-}" ]; then
-  case "${USER-}" in
-    mbauer|matthewbauer) GIST_ID=862843ce9216abda0b10e1d753ce9d0f ;;
-  esac
-fi
-
 if [ -n "${GIST_ID-}" ]; then
   echo Found Gist commit $1, cloning now.
   ./gist-unpack.sh "${GIST_ID-}"
@@ -5370,7 +5364,7 @@ Then, add =$HOME/.ssh/id_rsa=.pub through GitHub’s Web UI. Invoke the script
 with:
 
 #+BEGIN_SRC shell :tangle no
-$ ./gist-unpack.sh 862843ce9216abda0b10e1d753ce9d0f
+$ ./gist-unpack.sh 4a7372cf458f2b322c0b7a6e7837592f
 #+END_SRC
 
 Files that can be included in the gist are:
