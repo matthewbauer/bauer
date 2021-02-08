@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 if [ $# -eq 0 ]; then
-    echo Usage: "$0" GIST_ID [ -u USER ] [ -t TOKEN ] >&2
+    echo Usage: "$0" [ GIST_ID | URL ] [ -u USER ] [ -t TOKEN ] >&2
     exit 1
 fi
 
@@ -8,6 +8,7 @@ FORCE=
 GIST_ID=
 USER=
 TOKEN=
+URL=
 while [ $# -gt 0 ]; do
     case "$1" in
         -f|--force)
@@ -34,17 +35,34 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -g|--gist-id)
-            if [ -n "$GIST_ID" ]; then
-                echo Multiple Gist ids passed! >&2
+            if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                echo Multiple URLs or Gist ids passed! >&2
                 exit 1
             fi
             shift
             GIST_ID="$1"
             shift
             ;;
+        -u|--url)
+            if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                echo Multiple URLs or Gist ids passed! >&2
+                exit 1
+            fi
+            shift
+            URL="$1"
+            shift
+            ;;
+        https://*|ssh://*|git://*)
+             if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                echo Multiple URLs or Gist ids passed! >&2
+                exit 1
+            fi
+            URL="$1"
+            shift
+            ;;
         *)
-            if [ -n "$GIST_ID" ]; then
-                echo Multiple Gist ids passed! >&2
+            if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                echo Multiple URLs or Gist ids passed! >&2
                 exit 1
             fi
             GIST_ID="$1"
@@ -54,8 +72,12 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if [ -z "$GIST_ID" ]; then
-    echo No gist id provided. >&2
+if [ -n "$GIST_ID" ]; then
+  URL=ssh://git@github.com/"$GIST_ID".git
+fi
+
+if [ -z "$URL" ]; then
+    echo No gist id or url provided. >&2
     exit 1
 fi
 
@@ -85,8 +107,8 @@ fi
 
 gistdir="$(mktemp -d)"
 setup() {
-    if ! git clone git@github.com:"$GIST_ID".git "$gistdir"; then
-        echo Failed to clone Gist. Verify "https://gist.github.com/$GIST_ID" exists >&2
+    if ! git clone "$URL" "$gistdir"; then
+        echo Failed to clone Gist. Verify "$URL" exists >&2
         echo and you have permission to access it. >&2
         exit 1
     fi
@@ -120,6 +142,7 @@ for f in *; do
         .sshconfig) DEST="$HOME/.ssh/config" ;;
         .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
+        machines) DEST="$HOME/.config/nix/machines" ;;
         .gitignore) DEST="$HOME/.config/git/ignore" ;;
         .gitconfig) DEST="$HOME/.config/git/config" ;;
         .gitattributes) DEST="$HOME/.config/git/attributes" ;;
@@ -132,6 +155,7 @@ for f in *; do
         .ssh_authorized_keys) CONCAT=1 ;;
         .gitignore) CONCAT=1 ;;
         nix.conf) CONCAT=1 ;;
+        machines) CONCAT=1 ;;
     esac
     if [ -z "$DEST" ]; then
         echo Skipping "$f", no destination found >&2

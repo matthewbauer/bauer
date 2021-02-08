@@ -46,15 +46,19 @@ if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\
   GIST_ID="$1"
 fi
 
-if [ -z "${GIST_ID-}" ]; then
+if [ -n "${GIST_ID-}" ]; then
+  URL=ssh://git@github.com/"$GIST_ID".git
+fi
+
+if [ -z "${URL-}" ]; then
   case "${USER-}" in
-    mbauer) GIST_ID=862843ce9216abda0b10e1d753ce9d0f ;;
+    mbauer|matthewbauer) URL=ssh://git@github.com/matthewbauer/dotfiles.git ;;
   esac
 fi
 
-if [ -n "${GIST_ID-}" ]; then
-  echo Found Gist commit $1, cloning now.
-  ./gist-unpack.sh "${GIST_ID-}"
+if [ -n "${URL-}" ]; then
+  echo Found Gist commit "$1", cloning now.
+  ./gist-unpack.sh "$URL"
 fi
 
 nix-env -if . || nix --experimental-features 'nix-command flakes' profile install
@@ -63,8 +67,8 @@ if ! [ -f "$HOME/.profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
 fi
 
-if ! [ -f "$HOME/.zshrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
-    echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
+if ! [ -f "$HOME/.zshenv" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshenv"; then
+    echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshenv"
 fi
 
 if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then

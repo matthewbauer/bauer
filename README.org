@@ -4254,14 +4254,24 @@ fi
 Pull private data, which may contain some binary caches we can use.
 
 #+BEGIN_SRC shell
-if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
-  GIST_ID="$1"
-fi
+  if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
+    GIST_ID="$1"
+  fi
 
-if [ -n "${GIST_ID-}" ]; then
-  echo Found Gist commit $1, cloning now.
-  ./gist-unpack.sh "${GIST_ID-}"
-fi
+  if [ -n "${GIST_ID-}" ]; then
+    URL=ssh://git@github.com/"$GIST_ID".git
+  fi
+
+  if [ -z "${URL-}" ]; then
+    case "${USER-}" in
+      mbauer|matthewbauer) URL=ssh://git@github.com/matthewbauer/dotfiles.git ;;
+    esac
+  fi
+
+  if [ -n "${URL-}" ]; then
+    echo Found Gist commit "$1", cloning now.
+    ./gist-unpack.sh "$URL"
+  fi
 #+END_SRC
 
 Install our new derivation.
@@ -5388,7 +5398,7 @@ allow overriding your current =$HOME= files.
 
 #+BEGIN_SRC shell
   if [ $# -eq 0 ]; then
-      echo Usage: "$0" GIST_ID [ -u USER ] [ -t TOKEN ] >&2
+      echo Usage: "$0" [ GIST_ID | URL ] [ -u USER ] [ -t TOKEN ] >&2
       exit 1
   fi
 
@@ -5396,6 +5406,7 @@ allow overriding your current =$HOME= files.
   GIST_ID=
   USER=
   TOKEN=
+  URL=
   while [ $# -gt 0 ]; do
       case "$1" in
           -f|--force)
@@ -5422,17 +5433,34 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           -g|--gist-id)
-              if [ -n "$GIST_ID" ]; then
-                  echo Multiple Gist ids passed! >&2
+              if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                  echo Multiple URLs or Gist ids passed! >&2
                   exit 1
               fi
               shift
               GIST_ID="$1"
               shift
               ;;
+          -u|--url)
+              if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                  echo Multiple URLs or Gist ids passed! >&2
+                  exit 1
+              fi
+              shift
+              URL="$1"
+              shift
+              ;;
+          https://*|ssh://*|git://*)
+               if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                  echo Multiple URLs or Gist ids passed! >&2
+                  exit 1
+              fi
+              URL="$1"
+              shift
+              ;;
           ,*)
-              if [ -n "$GIST_ID" ]; then
-                  echo Multiple Gist ids passed! >&2
+              if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
+                  echo Multiple URLs or Gist ids passed! >&2
                   exit 1
               fi
               GIST_ID="$1"
@@ -5442,8 +5470,12 @@ allow overriding your current =$HOME= files.
       esac
   done
 
-  if [ -z "$GIST_ID" ]; then
-      echo No gist id provided. >&2
+  if [ -n "$GIST_ID" ]; then
+    URL=ssh://git@github.com/"$GIST_ID".git
+  fi
+
+  if [ -z "$URL" ]; then
+      echo No gist id or url provided. >&2
       exit 1
   fi
 
@@ -5473,8 +5505,8 @@ allow overriding your current =$HOME= files.
 
   gistdir="$(mktemp -d)"
   setup() {
-      if ! git clone git@github.com:"$GIST_ID".git "$gistdir"; then
-          echo Failed to clone Gist. Verify "https://gist.github.com/$GIST_ID" exists >&2
+      if ! git clone "$URL" "$gistdir"; then
+          echo Failed to clone Gist. Verify "$URL" exists >&2
           echo and you have permission to access it. >&2
           exit 1
       fi
