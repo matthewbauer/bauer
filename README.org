@@ -3348,88 +3348,92 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-  export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:@PATH@${PATH:+:$PATH} \
-         INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
-         MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
-         XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
-         TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:@PATH@${PATH:+:$PATH} \
+           INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
+           MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
+           XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
+           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
 
-  if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
-    eval $(ssh-agent) > /dev/null
-  fi
+    if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
+      eval $(ssh-agent) > /dev/null
+    fi
 
-  HISTSIZE=50000
-  SAVEHIST=10000
+    HISTSIZE=50000
+    SAVEHIST=10000
 
-  if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
-    if [ -n "${DISPLAY-}" ]; then
-      export VISUAL='emacsclient -a emacs -c'
+    if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
+      if [ -n "${DISPLAY-}" ]; then
+        export VISUAL='emacsclient -a emacs -c'
+      else
+        export VISUAL='emacsclient -a emacs'
+      fi
+    elif [ -n "${PS1-}" ]; then
+      export VISUAL='emacsclient -a "emacs -nw" -t'
     else
       export VISUAL='emacsclient -a emacs'
     fi
-  elif [ -n "${PS1-}" ]; then
-    export VISUAL='emacsclient -a "emacs -nw" -t'
-  else
-    export VISUAL='emacsclient -a emacs'
-  fi
-  export EDITOR="$VISUAL"
+    export EDITOR="$VISUAL"
 
-  if [ -n "${SSH_CONNECTION-}" ]; then
-    export PINENTRY_USER_DATA=USE_CURSES=1
-  fi
-
-  export LESS='-FRSMi' \
-         SYSTEMD_LESS=FRSMi \
-         INPUTRC=@INPUTRC@ \
-         GPG_TTY=$TTY \
-         CVS_RSH=ssh
-
-  HISTCONTROL=ignoredups:erasedups:ignorespace
-  PROMPT_DIRTRIM=4
-
-  if [ -n "${BASH_VERSION-}" ]; then
-    if [[ $- == *i* ]]; then
-      stty -ixon
+    if [ -n "${SSH_CONNECTION-}" ]; then
+      export PINENTRY_USER_DATA=USE_CURSES=1
     fi
 
-    shopt -s cdable_vars \
-             cdspell \
-             checkwinsize \
-             histappend \
-             lithist
+    export LESS='-FRSMi' \
+           SYSTEMD_LESS=FRSMi \
+           INPUTRC=@INPUTRC@ \
+           GPG_TTY=$TTY \
+           CVS_RSH=ssh
 
-    shopt -s autocd \
-             checkjobs \
-             direxpand \
-             dirspell \
-             histverify \
-             histreedit \
-             no_empty_cmd_completion \
-             globstar \
-    2>/dev/null || true
+    HISTCONTROL=ignoredups:erasedups:ignorespace
+    PROMPT_DIRTRIM=4
 
-    if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp 2>/dev/null && [ "${BASH_VERSINFO-0}" -gt 3 ]; then
-      . @bash_completion@/share/bash-completion/bash_completion
-    fi
+    if [ -n "${BASH_VERSION-}" ]; then
+      if [[ $- == *i* ]]; then
+        stty -ixon
+      fi
 
-    if { [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; } && [ -n "${SSH_CONNECTION-}" ]; then
-      PROMPT_DIRTRIM=0
-      PS1='\[\e[34m\]/ssh:\u@\H:$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
-    elif [ -n "${SSH_CONNECTION-}" ]; then
-      PROMPT_DIRTRIM=0
-      PS1='\[\e[34m\]ssh://\u@\H\[\e[36m\]$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
-    else
-      PS1='\[\e[34m\]\u@\h\[\e[0m\]:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
-    fi
+      shopt -s cdable_vars \
+               cdspell \
+               checkwinsize \
+               histappend \
+               lithist
 
-    if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ]; then
-      PS1='\[\e]133;D;\$?\a\e]133;A\a\]'"$PS1"'\[\e]133;B\a\]'
-    fi
+      shopt -s autocd \
+               checkjobs \
+               direxpand \
+               dirspell \
+               histverify \
+               histreedit \
+               no_empty_cmd_completion \
+               globstar \
+      2>/dev/null || true
 
-    alias ...='../..' \
-          ....='../../..' \
-          .....='../../../..' \
-          ......='../../../../..'
+      if [ -n "${PS1-}" ] && [ "${TERM-}" != dumb ] && shopt -q progcomp 2>/dev/null && [ "${BASH_VERSINFO-0}" -gt 3 ]; then
+        . @bash_completion@/share/bash-completion/bash_completion
+      fi
+
+      if { [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; } && [ -n "${SSH_CONNECTION-}" ]; then
+        PROMPT_DIRTRIM=0
+        PS1='\[\e[34m\]/ssh:\u@\H:$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
+      elif [ -n "${SSH_CONNECTION-}" ]; then
+        PROMPT_DIRTRIM=0
+        PS1='\[\e[34m\]ssh://\u@\H\[\e[36m\]$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
+      else
+        PS1='\[\e[34m\]\u@\h\[\e[0m\]:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+      fi
+
+      if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ]; then
+        PS1='\[\e]133;D;\$?\a\e]133;A\a\]'"$PS1"'\[\e]133;B\a\]'
+      fi
+
+      alias ...='../..' \
+            ....='../../..' \
+            .....='../../../..' \
+            ......='../../../../..'
+
+      if command -v direnv > /dev/null; then
+        eval "$(direnv hook bash)"
+      fi
   fi
 #+END_SRC
 
@@ -3805,6 +3809,14 @@ if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "
   iterm2_print_state_data
   printf '\e]1337;ShellIntegrationVersion=11;shell=zsh\a'
 fi
+#+END_SRC
+
+direnv
+
+#+BEGIN_SRC shell
+  if command -v direnv > /dev/null; then
+    eval "$(direnv hook zsh)"
+  fi
 #+END_SRC
 
 ** =etc-profile.sh=
@@ -4891,36 +4903,38 @@ why this is necessary, but nXML complains otherwise.
 Full listing of packages that will be made available.
 
 #+BEGIN_SRC nix
-    userPackages = (with pkgs; [
-      # From common-path.nix
-      coreutils-full findutils diffutils gnused gnugrep gawk gnutar
-      gzip bzip2 gnumake bashInteractive patch xz
+  userPackages = (with pkgs; [
+    # From common-path.nix
+    coreutils-full findutils diffutils gnused gnugrep gawk gnutar
+    gzip bzip2 gnumake bashInteractive patch xz
 
-      # Helpful core tools
-      curl zsh cacert file lsof pstree which rsync
-      unzip man less calc ag ripgrep
-      tree gnutls
-    ] ++ lib.optionals big ([
-      git
+    # Helpful core tools
+    curl zsh cacert file lsof pstree which rsync
+    unzip man less calc ag ripgrep
+    tree gnutls
 
-      # Useful tools
-      isync notmuch graphviz indent
-      graphviz imagemagick
+    direnv
+  ] ++ lib.optionals big ([
+    git
 
-      bazaar mercurial
+    # Useful tools
+    isync notmuch graphviz indent
+    graphviz imagemagick
 
-      # Programming interpreters/compilers
-      myTex rEnv perl python lua coq ocaml
-      openjdk nodejs gcc gdb
+    bazaar mercurial
 
-      travis v8
-    ] ++ (lib.optional stdenv.hostPlatform.isDarwin openssh) # use /usr/bin/ ssh
-      ++ (with netbsd; [ getent getconf ])
-      ++ (with nodePackages; [ tern heroku node2nix ])
-      ++ (with gitAndTools; [ hub ])
-      ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
-      ++ (with unixtools; [ utillinux nettools procps ])
-    ));
+    # Programming interpreters/compilers
+    myTex rEnv perl python lua coq ocaml
+    openjdk nodejs gcc gdb
+
+    travis v8
+  ] ++ (lib.optional stdenv.hostPlatform.isDarwin openssh) # use /usr/bin/ ssh
+    ++ (with netbsd; [ getent getconf ])
+    ++ (with nodePackages; [ tern heroku node2nix ])
+    ++ (with gitAndTools; [ hub ])
+    ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
+    ++ (with unixtools; [ utillinux nettools procps ])
+  ));
 #+END_SRC
 
 Setup global environment variables & directories. Most of the global directories
