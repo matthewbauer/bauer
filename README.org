@@ -3475,6 +3475,8 @@ Then setup aliases.
     fi
   }
 
+  take() { mkdir -p $@ && cd ${@:$#} }
+
   set -o noclobber -o notify
 
   if [ "$TERM" != "dumb" ]; then
