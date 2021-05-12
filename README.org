@@ -1307,6 +1307,15 @@ indications show where a file has been edited from the last Git commit.
            (org-mode . diff-hl-mode)))
 #+END_SRC
 
+**** envrc
+#+BEGIN_SRC emacs-lisp
+  ;; envrc must come late in the init.el file so add-hook adds it first
+  ;; in `find-file-hook'.
+  (use-package envrc
+    :demand t
+    :config
+    (envrc-global-mode))
+#+END_SRC
 **** dtrt-indent
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
