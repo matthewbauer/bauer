@@ -402,6 +402,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | vc-make-backup-files                          | t                 |
 | version-control                               | t                 |
 | view-read-only                                | t                 |
+| view-inhibit-help-message                     | t                 |
 | window-combination-resize                     | t                 |
 | whitespace-line-column                        | 120               |
 | which-key-idle-delay                          | 0.4               |
@@ -2150,18 +2151,16 @@ Setup these modes:
      - electric-layout
 
 #+BEGIN_SRC emacs-lisp
-      (use-package electric
-        :if (>= emacs-major-version 25)
-        :hook ((prog-mode . electric-quote-local-mode)
-               (text-mode . electric-quote-local-mode)
-               (org-mode . electric-quote-local-mode)
-               (message-mode . electric-quote-local-mode)
-               (prog-mode . electric-indent-local-mode)
-               (prog-mode . electric-layout-mode)
-               (haskell-mode . (lambda () (electric-indent-local-mode -1)))
-               (nix-mode . (lambda () (electric-indent-local-mode -1)))
-               (lisp-mode . (lambda () (electric-quote-local-mode -1)))
-               ))
+  (use-package electric
+    :if (>= emacs-major-version 25)
+    :hook ((prog-mode . electric-quote-local-mode)
+           (text-mode . electric-quote-local-mode)
+           (org-mode . electric-quote-local-mode)
+           (message-mode . electric-quote-local-mode)
+           (prog-mode . electric-indent-local-mode)
+           (prog-mode . electric-layout-mode)
+           (haskell-mode . (lambda () (electric-indent-local-mode -1)))
+           (nix-mode . (lambda () (electric-indent-local-mode -1)))))
 #+END_SRC
 
 ***** elec-pair
@@ -2506,15 +2505,16 @@ Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
-    (use-package lsp-mode
-      :commands (lsp-install-server lsp)
-      :hook (lsp-mode . lsp-enable-which-key-integration))
+      (use-package lsp-mode
+        :commands (lsp-install-server lsp)
+        :hook (lsp-mode . lsp-enable-which-key-integration))
 
-    (use-package lsp-ui
-      :commands (lsp-ui-mode)
-      :bind (:map lsp-ui-mode-map
-             ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-             ([remap xref-find-references] . lsp-ui-peek-find-references)))
+      (use-package lsp-ui
+        :commands (lsp-ui-mode)
+        :bind (:map lsp-ui-mode-map
+               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+               ([remap xref-find-references] . lsp-ui-peek-find-references)
+               ([remap imenu] . lsp-ui-imenu)))
 #+END_SRC
 
 **** C/C++

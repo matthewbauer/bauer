@@ -8,11 +8,11 @@
 (add-to-list 'load-path
              (expand-file-name "site-lisp" bauer-dir))
 (unless (file-exists-p
-          (expand-file-name "README.el" bauer-dir))
+         (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
     (autoload 'org-babel-tangle-file "ob-tangle")
     (org-babel-tangle-file bauer-org
-                          "README.el"
-                          "emacs-lisp")))
+                           "README.el"
+                           "emacs-lisp")))
 (load (expand-file-name "README.el" bauer-dir) t)
 ;; =init.el=:1 ends here
