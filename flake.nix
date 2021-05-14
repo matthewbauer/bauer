@@ -12,7 +12,7 @@
     packages = forAllSystems (system: {
       bauer = let
         pkgs = nixpkgsFor.${system};
-        evalPkgs = nixpkgsFor.x86_64-linux;
+        evalPkgs = nixpkgsFor.${system};
       in import (evalPkgs.runCommand "README" {
         buildInputs = with evalPkgs; [ emacs git ];
       } (''

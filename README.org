@@ -2150,16 +2150,18 @@ Setup these modes:
      - electric-layout
 
 #+BEGIN_SRC emacs-lisp
-  (use-package electric
-    :if (>= emacs-major-version 25)
-    :hook ((prog-mode . electric-quote-local-mode)
-           (text-mode . electric-quote-local-mode)
-           (org-mode . electric-quote-local-mode)
-           (message-mode . electric-quote-local-mode)
-           (prog-mode . electric-indent-local-mode)
-           (prog-mode . electric-layout-mode)
-           (haskell-mode . (lambda () (electric-indent-local-mode -1)))
-           (nix-mode . (lambda () (electric-indent-local-mode -1)))))
+      (use-package electric
+        :if (>= emacs-major-version 25)
+        :hook ((prog-mode . electric-quote-local-mode)
+               (text-mode . electric-quote-local-mode)
+               (org-mode . electric-quote-local-mode)
+               (message-mode . electric-quote-local-mode)
+               (prog-mode . electric-indent-local-mode)
+               (prog-mode . electric-layout-mode)
+               (haskell-mode . (lambda () (electric-indent-local-mode -1)))
+               (nix-mode . (lambda () (electric-indent-local-mode -1)))
+               (lisp-mode . (lambda () (electric-quote-local-mode -1)))
+               ))
 #+END_SRC
 
 ***** elec-pair
@@ -2504,10 +2506,15 @@ Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
-  (use-package lsp-mode
-    :commands (lsp-install-server lsp))
+    (use-package lsp-mode
+      :commands (lsp-install-server lsp)
+      :hook (lsp-mode . lsp-enable-which-key-integration))
 
-  (use-package lsp-ui)
+    (use-package lsp-ui
+      :commands (lsp-ui-mode)
+      :bind (:map lsp-ui-mode-map
+             ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+             ([remap xref-find-references] . lsp-ui-peek-find-references)))
 #+END_SRC
 
 **** C/C++
@@ -2655,51 +2662,54 @@ packages (for completion, syntax checking, etc.)
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
-  (use-package haskell-mode
-    :preface
-    :mode (("\\.cabal\\'" . haskell-cabal-mode))
-    :hook ((haskell-mode . subword-mode)
-           (haskell-mode . flyspell-prog-mode)
-           ;; (haskell-mode . haskell-indentation-mode)
-           ;; (haskell-mode . haskell-auto-insert-module-template)
-           ;; (haskell-mode . haskell-decl-scan-mode)
-           (haskell-mode . haskell-indent-mode)
-           ;; (haskell-mode . imenu-add-menubar-index)
-           ;; (haskell-mode .
-           ;;          (lambda ()
-           ;;            (autoload 'haskell-doc-current-info
-           ;;              "haskell-doc")
-           ;;            (setq-local eldoc-documentation-function
-           ;;                        'haskell-doc-current-info)))
-           )
-    :functions xref-push-marker-stack
-    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
-                haskell-mode-handle-generic-loc)
-    :bind (:map haskell-mode-map
-           ("C-c h" . haskell-hoogle)
-           ("C-c C-." . haskell-navigate-imports)
-           ("C-`" . haskell-interactive-bring)
-           ("C-c `" . haskell-interactive-bring)
-           ("C-c C-t" . haskell-process-do-type)
-           ("C-c C-i" . haskell-process-do-info)
-           ("C-c C-c" . haskell-process-cabal-build)
-           ("C-c C-k" . haskell-interactive-mode-clear)
-           ("C-c c" . haskell-process-cabal)
-           ;; ("M-." . haskell-mode-jump-to-def)
-           :map haskell-cabal-mode-map
-           ("C-`" . haskell-interactive-bring)
-           ("C-c C-k" . haskell-interactive-mode-clear)
-           ("C-c C-c" . haskell-process-cabal-build)
-           ("C-c c" . haskell-process-cabal))
-    :init
-    (add-to-list 'completion-ignored-extensions ".hi"))
+        (use-package haskell-mode
+          :preface
+          :mode (("\\.cabal\\'" . haskell-cabal-mode))
+          :hook ((haskell-mode . subword-mode)
+                 (haskell-mode . flyspell-prog-mode)
+                 ;; (haskell-mode . haskell-indentation-mode)
+                 ;; (haskell-mode . haskell-auto-insert-module-template)
+                 ;; (haskell-mode . haskell-decl-scan-mode)
+                 (haskell-mode . haskell-indent-mode)
+                 ;; (haskell-mode . imenu-add-menubar-index)
+                 ;; (haskell-mode .
+                 ;;          (lambda ()
+                 ;;            (autoload 'haskell-doc-current-info
+                 ;;              "haskell-doc")
+                 ;;            (setq-local eldoc-documentation-function
+                 ;;                        'haskell-doc-current-info)))
+                 )
+          :functions xref-push-marker-stack
+          :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
+                      haskell-mode-handle-generic-loc)
+          :bind (:map haskell-mode-map
+                 ("C-c h" . haskell-hoogle)
+                 ("C-c C-." . haskell-navigate-imports)
+                 ("C-`" . haskell-interactive-bring)
+                 ("C-c `" . haskell-interactive-bring)
+                 ("C-c C-t" . haskell-process-do-type)
+                 ("C-c C-i" . haskell-process-do-info)
+                 ("C-c C-c" . haskell-process-cabal-build)
+                 ("C-c C-k" . haskell-interactive-mode-clear)
+                 ("C-c c" . haskell-process-cabal)
+                 ;; ("M-." . haskell-mode-jump-to-def)
+                 :map haskell-cabal-mode-map
+                 ("C-`" . haskell-interactive-bring)
+                 ("C-c C-k" . haskell-interactive-mode-clear)
+                 ("C-c C-c" . haskell-process-cabal-build)
+                 ("C-c c" . haskell-process-cabal))
+          :init
+          (add-to-list 'completion-ignored-extensions ".hi")
+          :config
+          (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
+          )
 #+END_SRC
 
 ***** lsp-haskell
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-haskell
-    :hook ((haskell-mode . lsp)
-           (haskell-literate-mode . lsp)))
+    :hook ((haskell-mode . lsp-deferred)
+           (haskell-literate-mode . lsp-deferred)))
 #+END_SRC
 
 ***** haskell-interactive-mode

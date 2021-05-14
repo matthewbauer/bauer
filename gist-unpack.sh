@@ -146,6 +146,7 @@ for f in *; do
         .gitignore) DEST="$HOME/.config/git/ignore" ;;
         .gitconfig) DEST="$HOME/.config/git/config" ;;
         .gitattributes) DEST="$HOME/.config/git/attributes" ;;
+        credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
