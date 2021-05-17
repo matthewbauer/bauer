@@ -409,6 +409,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | which-key-idle-secondary-delay                | 0.4               |
 | woman-imenu                                   | t                 |
 | x-stretch-cursor                              | t                 |
+| envrc-none-lighter                            | nil               |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -645,8 +646,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
              "(\\`/[^/|:][^/|]*:\\)"))
    '(which-key-lighter "")
    '(whitespace-action '(cleanup))
-   '(whitespace-style '(face trailing lines space-before-tab
-                             empty lines-style))
+   '(whitespace-style '(face trailing lines space-before-tab empty))
    '(whitespace-global-modes '(not erc-mode ses-mode)))
 #+END_SRC
 
@@ -2662,47 +2662,49 @@ packages (for completion, syntax checking, etc.)
 ***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
-        (use-package haskell-mode
-          :preface
-          :mode (("\\.cabal\\'" . haskell-cabal-mode))
-          :hook ((haskell-mode . subword-mode)
-                 (haskell-mode . flyspell-prog-mode)
-                 ;; (haskell-mode . haskell-indentation-mode)
-                 ;; (haskell-mode . haskell-auto-insert-module-template)
-                 ;; (haskell-mode . haskell-decl-scan-mode)
-                 (haskell-mode . haskell-indent-mode)
-                 ;; (haskell-mode . imenu-add-menubar-index)
-                 ;; (haskell-mode .
-                 ;;          (lambda ()
-                 ;;            (autoload 'haskell-doc-current-info
-                 ;;              "haskell-doc")
-                 ;;            (setq-local eldoc-documentation-function
-                 ;;                        'haskell-doc-current-info)))
-                 )
-          :functions xref-push-marker-stack
-          :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
-                      haskell-mode-handle-generic-loc)
-          :bind (:map haskell-mode-map
-                 ("C-c h" . haskell-hoogle)
-                 ("C-c C-." . haskell-navigate-imports)
-                 ("C-`" . haskell-interactive-bring)
-                 ("C-c `" . haskell-interactive-bring)
-                 ("C-c C-t" . haskell-process-do-type)
-                 ("C-c C-i" . haskell-process-do-info)
-                 ("C-c C-c" . haskell-process-cabal-build)
-                 ("C-c C-k" . haskell-interactive-mode-clear)
-                 ("C-c c" . haskell-process-cabal)
-                 ;; ("M-." . haskell-mode-jump-to-def)
-                 :map haskell-cabal-mode-map
-                 ("C-`" . haskell-interactive-bring)
-                 ("C-c C-k" . haskell-interactive-mode-clear)
-                 ("C-c C-c" . haskell-process-cabal-build)
-                 ("C-c c" . haskell-process-cabal))
-          :init
-          (add-to-list 'completion-ignored-extensions ".hi")
-          :config
-          (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
-          )
+  (use-package haskell-mode
+    :preface
+    :mode (("\\.cabal\\'" . haskell-cabal-mode))
+    :hook ((haskell-mode . subword-mode)
+           (haskell-mode . flyspell-prog-mode)
+           ;; (haskell-mode . haskell-indentation-mode)
+           ;; (haskell-mode . haskell-auto-insert-module-template)
+           ;; (haskell-mode . haskell-decl-scan-mode)
+           (haskell-mode . haskell-indent-mode)
+           ;; (haskell-mode . imenu-add-menubar-index)
+           ;; (haskell-mode .
+           ;;          (lambda ()
+           ;;            (autoload 'haskell-doc-current-info
+           ;;              "haskell-doc")
+           ;;            (setq-local eldoc-documentation-function
+           ;;                        'haskell-doc-current-info)))
+           (haskell-mode . (lambda () (whitespace-mode -1)))
+           )
+
+    :functions xref-push-marker-stack
+    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
+                                     haskell-mode-handle-generic-loc)
+    :bind (:map haskell-mode-map
+                ("C-c h" . haskell-hoogle)
+                ("C-c C-." . haskell-navigate-imports)
+                ("C-`" . haskell-interactive-bring)
+                ("C-c `" . haskell-interactive-bring)
+                ("C-c C-t" . haskell-process-do-type)
+                ("C-c C-i" . haskell-process-do-info)
+                ("C-c C-c" . haskell-process-cabal-build)
+                ("C-c C-k" . haskell-interactive-mode-clear)
+                ("C-c c" . haskell-process-cabal)
+                ;; ("M-." . haskell-mode-jump-to-def)
+                :map haskell-cabal-mode-map
+                ("C-`" . haskell-interactive-bring)
+                ("C-c C-k" . haskell-interactive-mode-clear)
+                ("C-c C-c" . haskell-process-cabal-build)
+                ("C-c c" . haskell-process-cabal))
+    :init
+    (add-to-list 'completion-ignored-extensions ".hi")
+    :config
+    (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
+    )
 #+END_SRC
 
 ***** lsp-haskell
