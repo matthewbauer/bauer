@@ -1175,6 +1175,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** company-irony
 #+BEGIN_SRC emacs-lisp
   (use-package company-irony
+    :disabled
     :commands company-irony
     :hook (irony-mode . (lambda ()
       (setq-local company-backends '(company-irony company-capf)))))
@@ -2523,6 +2524,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package irony
+    :disabled
     :preface
     (autoload 'file-remote-p "files")
     (defun irony-mode-disable-remote ()
@@ -2536,9 +2538,10 @@ packages (for completion, syntax checking, etc.)
  #+END_SRC
 
  #+BEGIN_SRC emacs-lisp
-(use-package irony-cdb
-    :ensure nil
-    :hook (irony-mode . irony-cdb-autosetup-compile-options))
+   (use-package irony-cdb
+       :disabled
+       :ensure nil
+       :hook (irony-mode . irony-cdb-autosetup-compile-options))
  #+END_SRC
 
 ****** flycheck-irony
@@ -4508,8 +4511,7 @@ default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 
 currently).
 
 #+BEGIN_SRC nix
-  customEmacsPackages = (emacs-overlay.overlay pkgs pkgs).emacsPackagesFor
-    (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs);
+  customEmacsPackages = (emacs-overlay.overlay pkgs pkgs).emacsPackagesFor pkgs.emacs;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -4931,7 +4933,7 @@ Full listing of packages that will be made available.
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
-    unzip man less calc ag ripgrep
+    unzip man less ag ripgrep
     tree gnutls
 
     direnv
@@ -5319,7 +5321,7 @@ in {
     inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
     outputs = { self, nixpkgs, emacs-overlay }: let
-      systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" ];
+      systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
     in {
@@ -5328,7 +5330,7 @@ in {
           pkgs = nixpkgsFor.${system};
           evalPkgs = nixpkgsFor.${system};
         in import (evalPkgs.runCommand "README" {
-          buildInputs = with evalPkgs; [ emacs git ];
+          buildInputs = with evalPkgs; [ pkgs.emacs git ];
         } (''
           install -D ${./README.org} $out/README.org
           cd $out
@@ -5355,7 +5357,7 @@ in {
         with nixpkgsFor.${system};
         stdenv.mkDerivation {
           name = "bauer";
-          nativeBuildInputs = [ emacs git ];
+          nativeBuildInputs = [ pkgs.emacs git ];
           shellHook = ''
             echo Run ./update.sh to generate files.
           '';

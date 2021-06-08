@@ -5,7 +5,7 @@
   inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
   outputs = { self, nixpkgs, emacs-overlay }: let
-    systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" ];
+    systems = [ "x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
     forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
     nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
   in {
@@ -14,7 +14,7 @@
         pkgs = nixpkgsFor.${system};
         evalPkgs = nixpkgsFor.${system};
       in import (evalPkgs.runCommand "README" {
-        buildInputs = with evalPkgs; [ emacs git ];
+        buildInputs = with evalPkgs; [ ((if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs)) git ];
       } (''
         install -D ${./README.org} $out/README.org
         cd $out
@@ -41,7 +41,7 @@
       with nixpkgsFor.${system};
       stdenv.mkDerivation {
         name = "bauer";
-        nativeBuildInputs = [ emacs git ];
+        nativeBuildInputs = [ (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs) git ];
         shellHook = ''
           echo Run ./update.sh to generate files.
         '';
