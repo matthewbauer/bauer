@@ -14,7 +14,7 @@
         pkgs = nixpkgsFor.${system};
         evalPkgs = nixpkgsFor.${system};
       in import (evalPkgs.runCommand "README" {
-        buildInputs = with evalPkgs; [ ((if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs)) git ];
+        buildInputs = with evalPkgs; [ pkgs.emacs git ];
       } (''
         install -D ${./README.org} $out/README.org
         cd $out
@@ -23,7 +23,7 @@
               -l ob-tangle \
               --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
         cp bauer.nix default.nix
-      '')) { inherit pkgs emacs-overlay evalPkgs; };
+      '')) { inherit pkgs emacs-overlay evalPkgs system; };
     });
 
     defaultPackage = forAllSystems (system: self.packages.${system}.bauer);
@@ -41,7 +41,7 @@
       with nixpkgsFor.${system};
       stdenv.mkDerivation {
         name = "bauer";
-        nativeBuildInputs = [ (if hostPlatform.isDarwin then pkgs.emacsMacport else pkgs.emacs) git ];
+        nativeBuildInputs = [ pkgs.emacs git ];
         shellHook = ''
           echo Run ./update.sh to generate files.
         '';

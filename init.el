@@ -7,6 +7,8 @@
         (expand-file-name "README.org" bauer-dir))
 (add-to-list 'load-path
              (expand-file-name "site-lisp" bauer-dir))
+(add-to-list 'native-comp-eln-load-path
+             (expand-file-name "native-lisp" bauer-dir))
 (unless (file-exists-p
           (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
