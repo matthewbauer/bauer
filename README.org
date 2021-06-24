@@ -173,7 +173,7 @@ COLORFGBG method.
 
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
-                '(lambda
+                #'(lambda
                    ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
                    (xterm--init-modify-other-keys)
 
@@ -3287,9 +3287,12 @@ https://github.com/cbowdon/daemons.el
 **** undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
-    :hook ((prog-mode . undo-tree-mode)
-           (org-mode . undo-tree-mode)
-           (text-mode . undo-tree-mode)))
+    :demand
+    :config (global-undo-tree-mode)
+    ;; :hook ((prog-mode . undo-tree-mode)
+    ;;        (org-mode . undo-tree-mode)
+    ;;        (text-mode . undo-tree-mode))
+    )
 #+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
@@ -4520,8 +4523,8 @@ currently).
     };
   in pkgs'.emacsPackagesFor (pkgs'.emacsGcc.overrideAttrs (o: {
     patches = (o.patches or []) ++ [ (pkgs.fetchpatch {
-      url = "https://github.com/matthewbauer/emacs/commit/32022ee8d977196c72ad42d89d23142a6e59ff8e.patch";
-      sha256 = "1vhrw6rm85wk4a28fbacjgf5xdxphbfflnnj23i4vwy6by190xbs";
+      url = "https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-06/txtdk6pgQDhhc.txt";
+      sha256 = "1633k6a6y7pw7hhhjk3brnw0wba10hn092m23f6mdxl769nb5ggh";
     }) ];
   }));
 #+END_SRC
