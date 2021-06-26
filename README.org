@@ -4522,6 +4522,7 @@ currently).
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
   in pkgs'.emacsPackagesFor (pkgs'.emacsGcc.overrideAttrs (o: {
+    CFLAGS = "-DMAC_OS_X_VERSION_MAX_ALLOWED=110200";
     patches = (o.patches or []) ++ [ (pkgs.fetchpatch {
       url = "https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-06/txtdk6pgQDhhc.txt";
       sha256 = "1633k6a6y7pw7hhhjk3brnw0wba10hn092m23f6mdxl769nb5ggh";
