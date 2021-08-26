@@ -1,7 +1,7 @@
 {
   description = "an Emacs+Nix IDE";
 
-  inputs.nixpkgs.url = "github:matthewbauer/nixpkgs?ref=aarch64-darwin-emacs";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs";
   inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
   outputs = { self, nixpkgs, emacs-overlay }: let
