@@ -2675,7 +2675,7 @@ packages (for completion, syntax checking, etc.)
            ;; (haskell-mode . haskell-indentation-mode)
            ;; (haskell-mode . haskell-auto-insert-module-template)
            ;; (haskell-mode . haskell-decl-scan-mode)
-           (haskell-mode . haskell-indent-mode)
+           (haskell-mode . turn-on-haskell-indent)
            ;; (haskell-mode . imenu-add-menubar-index)
            ;; (haskell-mode .
            ;;          (lambda ()
@@ -3115,6 +3115,11 @@ https://github.com/cbowdon/daemons.el
     :bind (:map projectile-command-map
            ("s g" . deadgrep)))
 #+END_SRC
+
+**** ripgrep
+#+BEGIN_SRC emacs-lisp
+  (use-package rg)
+#+END_SRC
 **** delight
 
 
@@ -3186,7 +3191,7 @@ https://github.com/cbowdon/daemons.el
 
 #+BEGIN_SRC emacs-lisp
   (use-package ledger-mode
-    :disabled)
+    :mode "/\\.journal\\'")
 #+END_SRC
 **** mwim
 
