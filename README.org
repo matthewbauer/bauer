@@ -2761,11 +2761,21 @@ packages (for completion, syntax checking, etc.)
     :mode ("\\.js\\'" . indium-mode))
 #+END_SRC
 
+***** js-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package js-mode
+    :ensure nil
+    :mode (("\\.es6\\'" . js-mode)
+           ("\\.ejs\\'" . js-mode)
+           ("\\.ts\\'" . js-mode)
+           ("\\.tsx\\'" . js-mode))
+    :interpreter "node")
+#+END_SRC
+
 ***** js2-mode
 #+BEGIN_SRC emacs-lisp
   (use-package js2-mode
-    :hook (js-mode . js2-minor-mode)
-    :interpreter "node")
+    :hook (js-mode . js2-minor-mode))
 #+END_SRC
 ****** js2-imenu-extras
 #+BEGIN_SRC emacs-lisp
