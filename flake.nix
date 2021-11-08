@@ -51,4 +51,6 @@
       imports = [ ./module.nix ];
     };
   };
+
+  nixConfig.allow-import-from-derivation = true;
 }

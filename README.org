@@ -2565,7 +2565,7 @@ packages (for completion, syntax checking, etc.)
 **** CMake
 
 #+BEGIN_SRC emacs-lisp
-  (use-package cmake-mode)
+  ;; (use-package cmake-mode)
 #+END_SRC
 
 
@@ -2633,20 +2633,8 @@ packages (for completion, syntax checking, etc.)
 
 **** git-modes
 
-***** gitattributes
 #+BEGIN_SRC emacs-lisp
-  (use-package gitattributes-mode)
-#+END_SRC
-
-***** gitconfig
-#+BEGIN_SRC emacs-lisp
-  (use-package gitconfig-mode)
-#+END_SRC
-
-***** gitignore
-#+BEGIN_SRC emacs-lisp
-  (use-package gitignore-mode
-    :disabled)
+  (use-package git-modes)
 #+END_SRC
 
 **** Go
@@ -4491,12 +4479,7 @@ we have some options that can be provided...
   , evalPkgs ? pkgs
   , ensure ? f: n: f
   , small ? pkgs.config.bauer.small or true
-  , emacs-overlay ? { overlay = import (evalPkgs.fetchFromGitHub {
-      owner = "nix-community";
-      repo = "emacs-overlay";
-      rev = "6c0362ccf22565d687a0cbc37ec409ca8e5eb2e4";
-      hash = "sha256-wYyYCNF+eA+nXXRrKIZm69WiP4ZsiybFccwa4y/fMKc=";
-    }); }
+  , emacs-overlay ? { overlay = import (builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz"); }
   , ... }: let
   inherit (pkgs) stdenv lib runCommand buildEnv config writeText;
   inherit (stdenv) hostPlatform;
@@ -5319,6 +5302,8 @@ in {
         imports = [ ./module.nix ];
       };
     };
+
+    nixConfig.allow-import-from-derivation = true;
   }
 #+END_SRC
 ** Deploy script
