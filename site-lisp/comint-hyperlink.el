@@ -123,14 +123,14 @@ This is a good function to put in
 `comint-output-filter-functions'."
   (interactive)
   (when comint-hyperlink-for-comint-mode
-    (let ((start-marker (or (cadr ansi-color-context-region)
-			    comint-hyperlink-escape-start
-                            (if (and (markerp comint-last-output-start)
-                                     (eq (marker-buffer comint-last-output-start)
-                                         (current-buffer))
-                                     (marker-position comint-last-output-start))
-                                comint-last-output-start
-                              (point-min-marker))))
+    (let ((start-marker (or ;; (cadr ansi-color-context-region)
+			 comint-hyperlink-escape-start
+                         (if (and (markerp comint-last-output-start)
+                                  (eq (marker-buffer comint-last-output-start)
+                                      (current-buffer))
+                                  (marker-position comint-last-output-start))
+                             comint-last-output-start
+                           (point-min-marker))))
           (end-marker (process-mark (get-buffer-process (current-buffer)))))
 
       (save-excursion
