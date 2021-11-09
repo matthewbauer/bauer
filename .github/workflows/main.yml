@@ -3,7 +3,7 @@ on:
   pull_request:
   push:
 jobs:
-  tests:
+  flake:
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -12,3 +12,12 @@ jobs:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v14.1
     - run: nix --extra-experimental-features 'nix-command flakes' build
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v14.1
+    - run: nix-build
