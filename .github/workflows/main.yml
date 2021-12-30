@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v14.1
-    - run: nix --extra-experimental-features 'nix-command flakes' build
+    - run: nix --extra-experimental-features 'nix-command flakes' flake check
   build:
     strategy:
       matrix:

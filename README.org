@@ -282,6 +282,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | dired-recursive-deletes                       | 'top              |
 | dtrt-indent-verbosity                         | 0                 |
 | eldoc-idle-delay                              | 0.4               |
+| envrc-none-lighter                            | nil               |
 | eshell-bad-command-tolerance                  | 1                 |
 | eshell-cmpl-autolist                          | t                 |
 | eshell-cmpl-cycle-completions                 | nil               |
@@ -298,7 +299,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | eshell-stringify                              | nil               |
 | eshell-visual-options                         | nil               |
 | eval-expression-print-level                   | nil               |
-| frame-inhibit-implied-resize                  | t                 |
 | flycheck-emacs-lisp-load-path                 | 'inherit          |
 | flycheck-standard-error-navigation            | nil               |
 | flymake-no-changes-timeout                    | nil               |
@@ -306,6 +306,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | flyspell-highlight-properties                 | nil               |
 | flyspell-issue-welcome-flag                   | nil               |
 | fortune-always-compile                        | nil               |
+| frame-inhibit-implied-resize                  | t                 |
 | haskell-process-check-cabal-config-on-load    | nil               |
 | haskell-process-suggest-add-package           | nil               |
 | haskell-process-suggest-haskell-docs-imports  | nil               |
@@ -322,8 +323,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | ibuffer-shrink-to-minimum-size                | t                 |
 | ibuffer-use-other-window                      | t                 |
 | imenu-auto-rescan                             | t                 |
-| indicate-empty-lines                          | t                 |
 | indent-tabs-mode                              | nil               |
+| indicate-buffer-boundaries                    | 'left             |
+| indicate-empty-lines                          | t                 |
 | ispell-quietly                                | t                 |
 | ispell-silently-savep                         | t                 |
 | js2-mode-show-parse-errors                    | nil               |
@@ -382,6 +384,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | sh-learn-basic-offset                         | t                 |
 | shell-completion-execonly                     | nil               |
 | shell-input-autoexpand                        | nil               |
+| show-trailing-whitespace                      | t                 |
 | sp-autoskip-closing-pair                      | 'always           |
 | sp-highlight-pair-overlay                     | nil               |
 | tab-always-indent                             | 'complete         |
@@ -392,8 +395,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | text-quoting-style                            | 'quote            |
 | tls-checktrust                                | t                 |
 | undo-limit                                    | 80000000          |
-| undo-strong-limit                             | 12000000          |
 | undo-outer-limit                              | 120000000         |
+| undo-strong-limit                             | 12000000          |
 | undo-tree-auto-save-history                   | t                 |
 | uniquify-buffer-name-style                    | 'forward          |
 | use-package-always-defer                      | t                 |
@@ -401,15 +404,14 @@ The format of arguments to =set-defaults= is identical to the one used by
 | vc-command-messages                           | t                 |
 | vc-make-backup-files                          | t                 |
 | version-control                               | t                 |
-| view-read-only                                | t                 |
 | view-inhibit-help-message                     | t                 |
-| window-combination-resize                     | t                 |
-| whitespace-line-column                        | 120               |
+| view-read-only                                | t                 |
 | which-key-idle-delay                          | 0.4               |
 | which-key-idle-secondary-delay                | 0.4               |
+| whitespace-line-column                        | 120               |
+| window-combination-resize                     | t                 |
 | woman-imenu                                   | t                 |
 | x-stretch-cursor                              | t                 |
-| envrc-none-lighter                            | nil               |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -1596,11 +1598,11 @@ outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    :ensure org-plus-contrib
+    :ensure org-contrib
     :hook ((org-mode . (lambda ()
              (add-hook 'completion-at-point-functions
                        'pcomplete-completions-at-point nil t)))
-           (org-mode . auto-fill-mode)
+           ;; (org-mode . auto-fill-mode)
            (org-mode . (lambda () (setq-local scroll-margin 3)))
            (message-mode . turn-on-orgtbl)
            (org-mode . (lambda ()
@@ -1684,9 +1686,8 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
              lisp-mode
              inferior-lisp-mode
              lisp-interaction-mode
-             slime-repl-mode
-             eval-expression-minibuffer-setup) .
-            smartparens-strict-mode)
+             slime-repl-mode) .
+             smartparens-strict-mode)
            ((emacs-lisp-mode
              inferior-emacs-lisp-mode
              ielm-mode
@@ -1720,11 +1721,9 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
            ("M-S" . sp-split-sexp) ;; misc
            ("M-j" . sp-join-sexp))
     :config
+    (require 'smartparens-config)
+
     (autoload 'sp-with-modes "smartparens" "" nil 'macro)
-    (use-package smartparens-config
-      :disabled
-      :ensure nil
-      :demand)
 
     (sp-with-modes 'org-mode
       (sp-local-pair "*" "*"
@@ -2175,6 +2174,7 @@ setup.
     :if (>= emacs-major-version 25)
     :hook
      ((prog-mode . electric-pair-local-mode)
+      (eval-expression-minibuffer-setup . electric-pair-local-mode)
       (smartparens-mode . (lambda ()
         (electric-pair-local-mode -1)))))
 #+END_SRC
@@ -2512,7 +2512,6 @@ packages (for completion, syntax checking, etc.)
         :hook (lsp-mode . lsp-enable-which-key-integration))
 
       (use-package lsp-ui
-        :disabled
         :commands (lsp-ui-mode)
         :bind (:map lsp-ui-mode-map
                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
@@ -3294,10 +3293,10 @@ https://github.com/cbowdon/daemons.el
   (use-package undo-tree
     :demand
     :config (global-undo-tree-mode)
-    ;; :hook ((prog-mode . undo-tree-mode)
-    ;;        (org-mode . undo-tree-mode)
-    ;;        (text-mode . undo-tree-mode))
-    )
+    :hook ((org-mode . undo-tree-mode)
+           ;; (prog-mode . undo-tree-mode)
+           ;; (text-mode . undo-tree-mode)
+           ))
 #+END_SRC
 **** unfill
 #+BEGIN_SRC emacs-lisp
@@ -3412,11 +3411,12 @@ just in case.
       export PINENTRY_USER_DATA=USE_CURSES=1
     fi
 
-    export LESS='-FRSMi' \
-           SYSTEMD_LESS=FRSMi \
+    export LESS=FRSMi \
            INPUTRC=@INPUTRC@ \
            GPG_TTY=$TTY \
            CVS_RSH=ssh
+
+    export SYSTEMD_LESS=$LESS
 
     HISTCONTROL=ignoredups:erasedups:ignorespace
     PROMPT_DIRTRIM=4
@@ -5303,7 +5303,7 @@ in {
       };
     };
 
-    nixConfig.allow-import-from-derivation = true;
+    # nixConfig.allow-import-from-derivation = true;
   }
 #+END_SRC
 ** Deploy script
