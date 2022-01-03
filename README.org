@@ -439,6 +439,15 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(backup-directory-alist `((".*" .
                                ,(expand-file-name "backup/"
                                                   user-emacs-directory))))
+   '(context-menu-functions
+     '(context-menu-ffap
+       context-menu-undo
+       context-menu-region
+       context-menu-local
+       context-menu-minor
+       occur-context-menu
+       context-menu-dictionary
+       context-menu-buffers))
    '(company-auto-complete (lambda ()
                              (and (company-tooltip-visible-p)
                                   (company-explicit-action-p))))
@@ -1552,7 +1561,7 @@ Magit forge.
 #+END_SRC
 
 ***** git-commit
-#+BEGIN_SRC
+#+BEGIN_SRC emacs-lisp
   (use-package git-commit
     :hook ((git-commit-mode . flyspell-mode)
            (git-commit-mode . git-commit-save-message)
@@ -1602,7 +1611,7 @@ outliner but also much much more.
     :hook ((org-mode . (lambda ()
              (add-hook 'completion-at-point-functions
                        'pcomplete-completions-at-point nil t)))
-           ;; (org-mode . auto-fill-mode)
+           (org-mode . (lambda () (visual-line-mode -1)))
            (org-mode . (lambda () (setq-local scroll-margin 3)))
            (message-mode . turn-on-orgtbl)
            (org-mode . (lambda ()
@@ -2303,6 +2312,15 @@ Make scripts executable automatically.
 (use-package ibuffer
   :commands (ibuffer-do-sort-by-alphabetic)
   :bind ([remap list-buffers] . ibuffer))
+#+END_SRC
+
+***** mouse
+
+#+BEGIN_SRC emacs-lisp
+      (use-package mouse
+        :ensure nil
+        :hook ((text-mode . context-menu-mode)
+               (prog-mode . context-menu-mode)))
 #+END_SRC
 
 **** paren
