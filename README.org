@@ -2534,20 +2534,27 @@ Make scripts executable automatically.
     (interactive)
     (unless (derived-mode-p 'timeclock-report-mode)
       (user-error "Not in a timeclock-report-mode buffer"))
+    (timeclock-reread-log)
     (let ((cur-buf (current-buffer)))
       (when (get-buffer timeclock-report-buffer-name)
-        (timeclock-report)
+        (with-silent-modifications
+          (erase-buffer)
+          (timeclock-report-mode)
+          (timeclock-generate-report)
+          (newline))
         (pop-to-buffer cur-buf))))
 
   (defun timeclock-report ()
     "Timeclock report."
     (interactive)
+    (timeclock-reread-log)
     (with-current-buffer
-        (pop-to-buffer (get-buffer-create timeclock-report-buffer-name))
+        (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) 'display-buffer-pop-up-window)
       (with-silent-modifications
         (erase-buffer)
         (timeclock-report-mode)
-        (timeclock-generate-report))))
+        (timeclock-generate-report)
+        (newline))))
 
   (defvar timeclock-mode-map
     (let ((map (make-sparse-keymap)))
@@ -2557,6 +2564,7 @@ Make scripts executable automatically.
       (define-key map (kbd "C-c C-r") 'timeclock-reread-log)
       (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
       (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
+      (define-key map (kbd "C-c C-t") 'timeclock-report)
 
       ;; Reset the `text-mode' override of this standard binding
       (define-key map (kbd "C-M-i") 'completion-at-point)
