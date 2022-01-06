@@ -2496,6 +2496,153 @@ Make scripts executable automatically.
     :hook ((text-mode . turn-on-auto-fill)))
 #+END_SRC
 
+**** timeclock
+#+BEGIN_SRC emacs-lisp
+  (use-package timeclock
+    :ensure nil)
+
+  (require 'timeclock)
+
+  (defvar timeclock-report-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [?g] #'timeclock-report-redo)
+      (define-key map [?q] #'timeclock-report-quit)
+      map)
+    "Keymap for `timeclock-report-mode'.")
+
+  (easy-menu-define timeclock-report-mode-menu timeclock-report-mode-map
+    "Ledger report menu"
+    '("Timeclock Report"
+      ["Reload" timeclock-report-redo]
+      ["Quit" timeclock-report-quit]
+      ))
+
+  (define-derived-mode timeclock-report-mode special-mode "Timeclock-Report"
+    "A mode for viewing timeclock reports."
+    (hack-dir-local-variables-non-file-buffer)
+    (setq-local revert-buffer-function 'timeclock-report-redo))
+
+  (defvar timeclock-report-buffer-name "*Timeclock Report*")
+
+  (defun timeclock-report-quit ()
+    (interactive)
+    (unless (buffer-live-p (get-buffer timeclock-report-buffer-name))
+      (user-error "No timeclock report buffer"))
+    (quit-windows-on timeclock-report-buffer-name 'kill))
+
+  (defun timeclock-report-redo (&optional _ignore-auto _noconfirm)
+    (interactive)
+    (unless (derived-mode-p 'timeclock-report-mode)
+      (user-error "Not in a timeclock-report-mode buffer"))
+    (let ((cur-buf (current-buffer)))
+      (when (get-buffer timeclock-report-buffer-name)
+        (timeclock-report)
+        (pop-to-buffer cur-buf))))
+
+  (defun timeclock-report ()
+    "Timeclock report."
+    (interactive)
+    (with-current-buffer
+        (pop-to-buffer (get-buffer-create timeclock-report-buffer-name))
+      (with-silent-modifications
+        (erase-buffer)
+        (timeclock-report-mode)
+        (timeclock-generate-report))))
+
+  (defvar timeclock-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "C-c C-i") 'timeclock-in)
+      (define-key map (kbd "C-c C-o") 'timeclock-out)
+      (define-key map (kbd "C-c C-c") 'timeclock-change)
+      (define-key map (kbd "C-c C-r") 'timeclock-reread-log)
+      (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
+      (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
+
+      ;; Reset the `text-mode' override of this standard binding
+      (define-key map (kbd "C-M-i") 'completion-at-point)
+      map)
+    "Keymap for `timeclock-mode'.")
+
+  (easy-menu-define timeclock-mode-menu timeclock-mode-map
+    "Menu for `timeclock-mode'."
+    '("Timeclock"
+      ["Clock in" timeclock-in]
+      ["Clock out" timeclock-out]
+      ["Change project" timeclock-change]
+      ["Reread log" timeclock-reread-log]
+      ["Update modeline" timeclock-update-mode-line]
+      ["When to leave" timeclock-when-to-leave-string]
+      "---"
+      ["Customize Timeclock Mode" (lambda () (interactive) (customize-group 'timeclock))]
+      "---"
+      ["Report" timeclock-report]
+      ))
+
+  (defgroup timeclock-faces nil "Timeclock mode highlighting" :group 'timeclock)
+
+  (defface timeclock-font-directive-face
+    `((t :inherit font-lock-preprocessor-face))
+    "Default face for timeclock"
+    :group 'timeclock-faces)
+
+  (defface timeclock-font-uncleared-face
+    `((t :inherit warning))
+    "Uncleared face fortimeclock"
+    :group 'timeclock-faces)
+
+  (defface timeclock-font-cleared-face
+    `((t :inherit shadow))
+    "Cleared face for timeclock"
+    :group 'timeclock-faces)
+
+  (defface timeclock-font-comment-face
+    `((t :inherit font-lock-comment-face))
+    "Face for Timeclock comments"
+    :group 'timeclock-faces)
+
+  (defface timeclock-font-date-face
+    `((t :inherit font-lock-keyword-face))
+    "Face for Timeclock dates"
+    :group 'timeclock-faces)
+
+  (defun timeclock-font-face-by-state (num faces)
+    "Choose one of two faces depending on a timeclock directive character.
+  NUM specifies a match group containing the character.
+  FACES has the form (CLEARED UNCLEARED).
+  Return CLEARED if the character specifies a cleared transaction,
+  UNCLEARED otherwise."
+    (if (member (match-string num) '("I" "O"))
+        (nth 0 faces)
+      (nth 1 faces)))
+
+  (defvar timeclock-font-lock-keywords
+    `((,(concat "^\\([IiOo]\\)"
+                "\\(?:[[:blank:]]+\\([^[:blank:]\n]+"
+                "\\(?:[[:blank:]]+[^[:blank:]\n]+\\)?\\)"
+                "\\(?:[[:blank:]]+\\(.*?\\)"
+                "\\(?:\t\\|[ \t]\\{2,\\}\\(.*?\\)"
+                "\\(?:\t\\|[ \t]\\{2,\\}\\(;.*\\)\\)?\\)?\\)?\\)?$")
+       (1 'timeclock-font-directive-face)
+       (2 'timeclock-font-date-face nil :lax)
+       (3 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
+                                            timeclock-font-directive-face)) nil :lax)
+       (4 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
+                                            timeclock-font-uncleared-face)) nil :lax)
+       (5 'timeclock-font-comment-face nil :lax)))
+    "Expressions to highlight in Timeclock mode.")
+
+  ;;;###autoload
+  (define-derived-mode timeclock-mode text-mode "Timeclock"
+    "A major mode to timelog files."
+    (setq font-lock-defaults
+          '(timeclock-font-lock-keywords t nil nil nil))
+
+    (when (and (boundp 'display-time-mode) display-time-mode)
+      (timeclock-mode-line-display t)))
+
+  ;;;###autoload
+  (add-to-list 'auto-mode-alist '("timelog\\'" . timeclock-mode))
+#+END_SRC
 **** url-handlers
 
 #+BEGIN_SRC emacs-lisp
