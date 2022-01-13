@@ -1,5 +1,5 @@
 # -*- mode: nix; coding: utf-8; -*-
-{ version ? "21.09"
+{ version ? "21.11"
 , channel ? {
     "x86_64-darwin" = "nixpkgs-unstable";
   }.${builtins.currentSystem} or "nixos-${version}"
