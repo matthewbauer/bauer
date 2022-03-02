@@ -138,6 +138,8 @@ this.
           (append
             file-name-handler-alist-backup
             file-name-handler-alist))))
+
+  (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
 ** Autoloads & Misc.
@@ -2390,6 +2392,13 @@ Make scripts executable automatically.
       (push '("=>" . ?⇒) prettify-symbols-alist)))
 #+END_SRC
 
+**** persistent-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package persistent-mode
+    :ensure nil)
+#+END_SRC
+
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -4229,7 +4238,7 @@ Set paths provided by Nix,
    '(dvips-command "@texlive@/bin/dvips")
    '(dvipng-command "@texlive@/bin/dvipng")
    '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
-   '(ag-executable "@ag@/bin/ag")
+   '(ag-executable "@silver-searcher@/bin/ag")
    '(gud-gdb-command-name "@gdb@/bin/gdb")
    '(coq-prog-name "@coq@/bin/coqtop")
    '(coq-dependency-analyzer "@coq@/bin/coqdep")
@@ -4723,7 +4732,7 @@ substitution of all the attributes set.
 
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" (with pkgs; ({
-      inherit ripgrep ag coreutils;
+      inherit ripgrep silver-searcher coreutils;
       inherit manpages sysheaders sysframeworks
               schemas bins infopages;
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
@@ -4837,6 +4846,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/comint-hyperlink.el
                       "site-lisp/comint-hyperlink.el"} \
           $out/share/emacs/site-lisp/comint-hyperlink.el
+  install -D ${ensure ./site-lisp/persistent-mode.el
+                       "site-lisp/persistent-mode.el"} \
+          $out/share/emacs/site-lisp/persistent-mode.el
   '';
 #+END_SRC
 
@@ -5039,7 +5051,7 @@ Full listing of packages that will be made available.
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
-    unzip man less ag ripgrep
+    unzip man less silver-searcher ripgrep
     tree gnutls
 
     direnv
@@ -5429,7 +5441,7 @@ in {
     inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
 
     outputs = { self, nixpkgs, emacs-overlay }: let
-      systems = [ "x86_64-linux" ];
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
     in {
