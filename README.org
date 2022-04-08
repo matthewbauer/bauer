@@ -273,6 +273,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | compilation-skip-threshold                    | 2                 |
 | completions-cycle-threshold                   | t                 |
 | completions-format                            | 'vertical         |
+| completions-detailed                          | t                 |
 | cursor-in-non-selected-windows                | nil               |
 | custom-safe-themes                            | t                 |
 | custom-search-field                           | nil               |
@@ -2565,6 +2566,23 @@ Make scripts executable automatically.
         (timeclock-generate-report)
         (newline))))
 
+  (defun timeclock-ledger-report ()
+    "Timeclock ledger report."
+    (interactive)
+    (let* ((timeclock-file buffer-file-name)
+           (buffer-name (format "*Ledger Report [%s]*" timeclock-file))
+           (ledger-report-name "timelog")
+           (report-cmd (format "%s --color --force-color -f %s reg -D \"expr(commodity == 's')\""
+                                  (shell-quote-argument ledger-binary-path)
+                                  (shell-quote-argument timeclock-file))))
+      (with-current-buffer
+          (pop-to-buffer (get-buffer-create buffer-name))
+        (with-silent-modifications
+          (erase-buffer)
+          (ledger-report-mode)
+          (set (make-local-variable 'ledger-report-cmd) report-cmd)
+          (ledger-do-report report-cmd)))))
+
   (defvar timeclock-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "C-c C-i") 'timeclock-in)
@@ -2574,6 +2592,7 @@ Make scripts executable automatically.
       (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
       (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
       (define-key map (kbd "C-c C-t") 'timeclock-report)
+      (define-key map (kbd "C-c C-e") 'timeclock-ledger-report)
 
       ;; Reset the `text-mode' override of this standard binding
       (define-key map (kbd "C-M-i") 'completion-at-point)
@@ -2593,6 +2612,7 @@ Make scripts executable automatically.
       ["Customize Timeclock Mode" (lambda () (interactive) (customize-group 'timeclock))]
       "---"
       ["Report" timeclock-report]
+      ["Ledger Report" timeclock-ledger-report]
       ))
 
   (defgroup timeclock-faces nil "Timeclock mode highlighting" :group 'timeclock)
@@ -2689,16 +2709,31 @@ Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
-      (use-package lsp-mode
-        :commands (lsp-install-server lsp)
-        :hook (lsp-mode . lsp-enable-which-key-integration))
+  (use-package lsp-mode
+    :commands (lsp-install-server lsp)
+    :hook (lsp-mode . lsp-enable-which-key-integration)
+    :config
+    (setq lsp-enable-file-watchers nil)
+    (setq lsp-eldoc-enable-hover nil)
+    (setq lsp-headerline-breadcrumb-enable nil)
+    (setq lsp-modeline-diagnostics-enable nil)
+    (setq lsp-modeline-code-actions-enable nil)
+    (setq lsp-enable-symbol-highlighting nil)
+    (setq lsp-progress-via-spinner nil)
+    )
 
-      (use-package lsp-ui
-        :commands (lsp-ui-mode)
-        :bind (:map lsp-ui-mode-map
-               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-               ([remap xref-find-references] . lsp-ui-peek-find-references)
-               ([remap imenu] . lsp-ui-imenu)))
+  (use-package lsp-ui
+    :commands (lsp-ui-mode)
+    :bind (:map lsp-ui-mode-map
+                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+                ([remap xref-find-references] . lsp-ui-peek-find-references)
+                ([remap imenu] . lsp-ui-imenu))
+    :config
+    (setq lsp-ui-doc-enable nil)
+    (setq lsp-ui-peek-enable nil)
+    (setq lsp-ui-sideline-enable nil)
+    (setq lsp-ui-imenu-enable t)
+    )
 #+END_SRC
 
 **** C/C++
