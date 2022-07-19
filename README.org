@@ -2979,6 +2979,7 @@ packages (for completion, syntax checking, etc.)
 ***** js2-mode
 #+BEGIN_SRC emacs-lisp
   (use-package js2-mode
+    :disabled
     :hook (js-mode . js2-minor-mode))
 #+END_SRC
 ****** js2-imenu-extras
@@ -4738,7 +4739,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (pkgs'.emacsGcc.overrideAttrs (o: {
+  in pkgs'.emacsPackagesFor (pkgs'.emacsNativeComp.overrideAttrs (o: {
     CFLAGS = "-DMAC_OS_X_VERSION_MAX_ALLOWED=110200";
   }));
 #+END_SRC
@@ -5473,7 +5474,10 @@ in {
     description = "an Emacs+Nix IDE";
 
     inputs.nixpkgs.url = "github:nixos/nixpkgs";
-    inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
+    inputs.emacs-overlay = {
+      url = "github:nix-community/emacs-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     outputs = { self, nixpkgs, emacs-overlay }: let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
@@ -5495,35 +5499,34 @@ in {
                 --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
           cp bauer.nix default.nix
         '')) { inherit pkgs emacs-overlay evalPkgs system; };
+        default = self.packages.${system}.bauer;
       });
-
-      defaultPackage = forAllSystems (system: self.packages.${system}.bauer);
 
       apps = forAllSystems (system: {
         bauer = {
           type = "app";
           program = "${self.packages.${system}.bauer}/bin/run";
         };
+        default = self.apps.${system}.bauer;
       });
 
-      defaultApp = forAllSystems (system: self.apps.${system}.bauer);
-
-      devShell = forAllSystems (system:
-        with nixpkgsFor.${system};
-        stdenv.mkDerivation {
+      devShells = forAllSystems (system: {
+        bauer = with nixpkgsFor.${system}; stdenv.mkDerivation {
           name = "bauer";
           nativeBuildInputs = [ pkgs.emacs git ];
           shellHook = ''
             echo Run ./update.sh to generate files.
           '';
-        });
+        };
+        default = self.devShells.${system}.bauer;
+      });
 
       nixosModules.bauer = {
         imports = [ ./module.nix ];
       };
     };
 
-    # nixConfig.allow-import-from-derivation = true;
+    nixConfig.allow-import-from-derivation = true;
   }
 #+END_SRC
 ** Deploy script
