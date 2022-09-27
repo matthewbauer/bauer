@@ -4739,7 +4739,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (pkgs'.emacsNativeComp.overrideAttrs (o: {
+  in pkgs'.emacsPackagesFor (pkgs'.emacsGitNativeComp.overrideAttrs (o: {
     CFLAGS = "-DMAC_OS_X_VERSION_MAX_ALLOWED=110200";
   }));
 #+END_SRC
