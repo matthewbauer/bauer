@@ -1637,14 +1637,12 @@ easymenu to make the "Projectile" modeline clickable.
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :commands (projectile-mode)
-    ;; :bind-keymap* (("C-c p" . projectile-command-map)
-    ;;                ("s-p" . projectile-command-map))
-    ;; :bind (("C-c C-f" . projectile-find-file))
+    :bind-keymap* (("C-c p" . projectile-command-map)
+                   ("s-p" . projectile-command-map))
     :preface
     (autoload 'projectile-project-vcs "projectile")
     (autoload 'projectile-project-root "projectile")
     (autoload 'easy-menu-define "easymenu" "" nil 'macro)
-    :demand
     :config
     (projectile-mode)
     (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
@@ -3607,6 +3605,18 @@ just in case.
 
     if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
       eval $(ssh-agent) > /dev/null
+    fi
+
+    # taken from https://github.com/unixorn/zsh-quickstart-kit/blob/main/zsh/.zshrc
+    if [ "$(uname -s)" = Darwin ] && [ $(/usr/bin/ssh-add -l | grep -c "The agent has no identities.") -eq 1 ]; then
+      # check if Monterey or higher
+      # https://scriptingosx.com/2020/09/macos-version-big-sur-update/
+      if [ $(sw_vers -buildVersion) -gt 21 ]; then
+        # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
+        /usr/bin/ssh-add --apple-load-keychain
+      else
+        /usr/bin/ssh-add -qA
+      fi
     fi
 
     HISTSIZE=50000
