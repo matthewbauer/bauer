@@ -1114,23 +1114,24 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 
 #+BEGIN_SRC emacs-lisp
   (use-package align
+    :disabled
     :config
     (add-to-list 'align-rules-list
-		 '(haskell-types
-		   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+                 '(haskell-types
+                   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
+                   (modes quote (haskell-mode literate-haskell-mode))))
     (add-to-list 'align-rules-list
-		 '(haskell-assignment
-		   (regexp . "\\(\\s-+\\)=\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+                 '(haskell-assignment
+                   (regexp . "\\(\\s-+\\)=\\s-+")
+                   (modes quote (haskell-mode literate-haskell-mode))))
     (add-to-list 'align-rules-list
-		 '(haskell-arrows
-		   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+                 '(haskell-arrows
+                   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
+                   (modes quote (haskell-mode literate-haskell-mode))))
     (add-to-list 'align-rules-list
-		 '(haskell-left-arrows
-		   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
-		   (modes quote (haskell-mode literate-haskell-mode))))
+                 '(haskell-left-arrows
+                   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
+                   (modes quote (haskell-mode literate-haskell-mode))))
     )
 #+END_SRC
 
@@ -2708,6 +2709,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
+    :disabled
     :commands (lsp-install-server lsp)
     :hook (lsp-mode . lsp-enable-which-key-integration)
     :config
@@ -2721,6 +2723,7 @@ packages (for completion, syntax checking, etc.)
     )
 
   (use-package lsp-ui
+    :disabled
     :commands (lsp-ui-mode)
     :bind (:map lsp-ui-mode-map
                 ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
@@ -2910,20 +2913,23 @@ packages (for completion, syntax checking, etc.)
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
     :config
-    (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
+    ;; (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
     )
 #+END_SRC
 
 ***** lsp-haskell
 #+BEGIN_SRC emacs-lisp
-  (use-package lsp-haskell
-    :hook ((haskell-mode . lsp-deferred)
-           (haskell-literate-mode . lsp-deferred)))
+    (use-package lsp-haskell
+      :disabled
+      :hook ((haskell-mode . lsp-deferred)
+             (haskell-literate-mode . lsp-deferred))
+      :config (setq lsp-haskell-diagnostics-on-change nil))
 #+END_SRC
 
 ***** haskell-interactive-mode
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-interactive-mode
+    :disabled
     :ensure nil
     :commands (interactive-haskell-mode)
     ;; :hook (haskell-mode . interactive-haskell-mode)
@@ -3077,8 +3083,7 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-drv-mode
 #+BEGIN_SRC emacs-lisp
   (use-package nix-drv-mode
-    :ensure nil
-    :mode "\\.drv\\'")
+    :ensure nil)
 #+END_SRC
 ***** nix-buffer
 
@@ -3692,10 +3697,6 @@ just in case.
             ....='../../..' \
             .....='../../../..' \
             ......='../../../../..'
-
-      if command -v direnv > /dev/null; then
-        eval "$(direnv hook bash)"
-      fi
   fi
 #+END_SRC
 
@@ -4071,14 +4072,6 @@ if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "
   iterm2_print_state_data
   printf '\e]1337;ShellIntegrationVersion=11;shell=zsh\a'
 fi
-#+END_SRC
-
-direnv
-
-#+BEGIN_SRC shell
-  if command -v direnv > /dev/null; then
-    eval "$(direnv hook zsh)"
-  fi
 #+END_SRC
 
 ** =etc-profile.sh=
@@ -4749,7 +4742,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (pkgs'.emacsGitNativeComp.overrideAttrs (o: {
+  in pkgs'.emacsPackagesFor (pkgs'.emacsGit.overrideAttrs (o: {
     CFLAGS = "-DMAC_OS_X_VERSION_MAX_ALLOWED=110200";
   }));
 #+END_SRC
@@ -4757,18 +4750,19 @@ currently).
 Tex live provides some LaTeX commads for us.
 
 #+BEGIN_SRC nix
-  myTex = pkgs.texlive.combine {
-    inherit (pkgs.texlive) xetex setspace
-      fontspec chktex enumitem xifthen
-      ifmtarg filehook wrapfig inconsolata
-      upquote minted lastpage collection-basic
-      collection-binextra collection-context
-      collection-fontsrecommended collection-fontutils
-      collection-langenglish collection-latex
-      collection-latexrecommended collection-luatex
-      collection-metapost collection-texworks
-      collection-xetex capt-of ulem hyperref titlesec;
-  };
+    myTex = pkgs.texlive.combine {
+      inherit (pkgs.texlive) xetex setspace
+        fontspec chktex enumitem xifthen
+        ifmtarg filehook wrapfig inconsolata
+        upquote minted lastpage collection-basic
+        collection-binextra collection-context
+        collection-fontsrecommended collection-fontutils
+        collection-langenglish collection-latex
+        collection-latexrecommended collection-luatex
+        collection-metapost collection-texworks
+        collection-xetex capt-of ulem hyperref titlesec
+        beamer;
+    };
 #+END_SRC
 
 *** Emacs configuration
@@ -4969,7 +4963,7 @@ Apple SDK.
   manpages = buildEnv {
     name = "man-pages";
     ignoreCollisions = (!(config.bauer.small or false));
-    paths = userPackages ++ [pkgs.posix_man_pages
+    paths = userPackages ++ [pkgs.man-pages-posix
                              pkgs.stdman
                              # pkgs.llvmPackages.clang-manpages
                              # pkgs.llvmPackages.llvm-manpages
@@ -5158,6 +5152,7 @@ the most direct access to. Global directories should only contain system paths.
       "\C-n": history-search-forward
     $endif
 
+    set keyseq-timeout 1200
     set colored-stats on
     set colored-completion-prefix on
     set completion-ignore-case on
@@ -5180,67 +5175,68 @@ Finally, build the final environment. This only contains Emacs and ZSH, which
 have been configured to use the paths above.
 
 #+BEGIN_SRC nix
-in buildEnv {
-  name = "bauer-1.5.3";
-  buildInputs = [ pkgs.makeWrapper pkgs.bash ];
-  postBuild = ''
-    mkdir -p $out/etc
-    substituteAll ${./zshrc.sh} $out/etc/.zshrc
-    substituteInPlace $out/etc/.zshrc \
-      --subst-var-by completions ${zsh-completions} \
-      --subst-var-by coreutils ${pkgs.coreutils}
-    ln -s $out/etc/.zshrc $out/etc/zshrc
-    makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
-    substituteAll ${./etc-profile.sh} $out/etc/profile
-    substituteInPlace $out/etc/profile \
-      --subst-var-by coreutils ${pkgs.coreutils}
-    substitute ${./runemacs.sh} $out/bin/run \
-      --subst-var-by emacs ${myEmacs}
-    chmod +x $out/bin/run
-    patchShebangs $out/bin/run
-    ln -s $out/bin/run $out/bin/bauer
-  '';
-  pathsToLink = [
-    "/bin"
-    "/etc/profile.d"
-    "/share/applications"
-  ] ++ lib.optional hostPlatform.isDarwin "/Applications";
-  meta = with lib; {
-    description = "Bauer's automated unified Emacs realm";
-    maintainers = with maintainers; [ matthewbauer ];
-    platforms = platforms.all;
-    priority = 4;
-  };
-  passthru = with lib; {
-    shellPath = "/bin/zsh";
-    run = "/bin/run";
-    sourceFile = "/etc/profile.d/profile";
-    PATH = makeSearchPath "bin" [bins];
-    MANPATH = makeSearchPath "share/man" [manpages];
-    INFOPATH = makeSearchPath "share/info" [infopages];
-    XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
-    TERMINFO_DIRS = makeSearchPath "share/terminfo" [terminfo];
-    emacs = myEmacs;
-    emacsConfig = default;
-  };
-  paths = [
-    myEmacs
-    (runCommand "my-profile" {
-      inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
-      bash_completion = pkgs.bash-completion;
-    } ''
-      mkdir -p $out/etc/profile.d
-      substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
-      substituteInPlace $out/etc/profile.d/my-profile.sh \
-        --subst-var-by PATH ${PATH} \
-        --subst-var-by INFOPATH ${INFOPATH} \
-        --subst-var-by MANPATH ${MANPATH} \
-        --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS} \
-        --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS} \
-        --subst-var-by INPUTRC ${INPUTRC}
-    '')
-  ];
-}
+  in buildEnv {
+    name = "bauer-1.5.3";
+    buildInputs = [ pkgs.makeWrapper pkgs.bash ];
+    postBuild = ''
+      mkdir -p $out/etc
+      substituteAll ${./zshrc.sh} $out/etc/.zshrc
+      substituteInPlace $out/etc/.zshrc \
+        --subst-var-by completions ${zsh-completions} \
+        --subst-var-by coreutils ${pkgs.coreutils}
+      ln -s $out/etc/.zshrc $out/etc/zshrc
+      makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
+      substituteAll ${./etc-profile.sh} $out/etc/profile
+      substituteInPlace $out/etc/profile \
+        --subst-var-by coreutils ${pkgs.coreutils}
+      substitute ${./runemacs.sh} $out/bin/run \
+        --subst-var-by emacs ${myEmacs}
+      chmod +x $out/bin/run
+      patchShebangs $out/bin/run
+      ln -s $out/bin/run $out/bin/bauer
+    '';
+    pathsToLink = [
+      "/bin"
+      "/etc/profile.d"
+      "/share/applications"
+    ] ++ lib.optional hostPlatform.isDarwin "/Applications";
+    meta = with lib; {
+      description = "Bauer's automated unified Emacs realm";
+      maintainers = with maintainers; [ matthewbauer ];
+      platforms = platforms.all;
+      priority = 4;
+    };
+    passthru = with lib; {
+      shellPath = "/bin/zsh";
+      run = "/bin/run";
+      sourceFile = "/etc/profile.d/profile";
+      PATH = makeSearchPath "bin" [bins];
+      MANPATH = makeSearchPath "share/man" [manpages];
+      INFOPATH = makeSearchPath "share/info" [infopages];
+      XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
+      TERMINFO_DIRS = makeSearchPath "share/terminfo" [terminfo];
+      emacs = myEmacs;
+      emacsConfig = default;
+      inherit myTex rEnv;
+    };
+    paths = [
+      myEmacs
+      (runCommand "my-profile" {
+        inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
+        bash_completion = pkgs.bash-completion;
+      } ''
+        mkdir -p $out/etc/profile.d
+        substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
+        substituteInPlace $out/etc/profile.d/my-profile.sh \
+          --subst-var-by PATH ${PATH} \
+          --subst-var-by INFOPATH ${INFOPATH} \
+          --subst-var-by MANPATH ${MANPATH} \
+          --subst-var-by XDG_DATA_DIRS ${XDG_DATA_DIRS} \
+          --subst-var-by TERMINFO_DIRS ${TERMINFO_DIRS} \
+          --subst-var-by INPUTRC ${INPUTRC}
+      '')
+    ];
+  }
 #+END_SRC
 
 ** Invoking it
@@ -5509,6 +5505,7 @@ in {
                 --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
           cp bauer.nix default.nix
         '')) { inherit pkgs emacs-overlay evalPkgs system; };
+        inherit (self.packages.${system}.bauer) myTex emacs rEnv;
         default = self.packages.${system}.bauer;
       });
 
