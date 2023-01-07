@@ -2708,6 +2708,15 @@ Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
+  (use-package eglot
+    :ensure nil
+    :config
+    (setq eglot-ignored-server-capabilities '(:codeLensProvider :documentFormattingProvider :documentRangeFormattingProvider :documentLinkProvider :colorProvider))
+    (setq eglot-report-progress nil)
+    )
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
     :disabled
     :commands (lsp-install-server lsp)
@@ -2876,7 +2885,7 @@ packages (for completion, syntax checking, etc.)
     :preface
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
-           (haskell-mode . flyspell-prog-mode)
+           ;; (haskell-mode . flyspell-prog-mode)
            ;; (haskell-mode . haskell-indentation-mode)
            ;; (haskell-mode . haskell-auto-insert-module-template)
            ;; (haskell-mode . haskell-decl-scan-mode)
@@ -3004,6 +3013,7 @@ packages (for completion, syntax checking, etc.)
 
 #+BEGIN_SRC emacs-lisp
   (use-package json-mode
+    :disabled
     :mode (("\\.jshintrc$"    . json-mode)
            ("\\.json_schema$" . json-mode))
     :bind (:package json-mode-map
@@ -3697,6 +3707,10 @@ just in case.
             ....='../../..' \
             .....='../../../..' \
             ......='../../../../..'
+
+      # if command -v direnv > /dev/null; then
+      #   eval "$(direnv hook bash)"
+      # fi
   fi
 #+END_SRC
 
@@ -4072,6 +4086,14 @@ if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "
   iterm2_print_state_data
   printf '\e]1337;ShellIntegrationVersion=11;shell=zsh\a'
 fi
+#+END_SRC
+
+direnv
+
+#+BEGIN_SRC shell
+  # if command -v direnv > /dev/null; then
+  #   eval "$(direnv hook zsh)"
+  # fi
 #+END_SRC
 
 ** =etc-profile.sh=
