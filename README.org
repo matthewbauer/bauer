@@ -1110,186 +1110,6 @@ Automatically indent code as you type. Only enabled for Lisp currently.
             slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
-**** align
-
-#+BEGIN_SRC emacs-lisp
-  (use-package align
-    :disabled
-    :config
-    (add-to-list 'align-rules-list
-                 '(haskell-types
-                   (regexp . "\\(\\s-+\\)\\(::\\|∷\\)\\s-+")
-                   (modes quote (haskell-mode literate-haskell-mode))))
-    (add-to-list 'align-rules-list
-                 '(haskell-assignment
-                   (regexp . "\\(\\s-+\\)=\\s-+")
-                   (modes quote (haskell-mode literate-haskell-mode))))
-    (add-to-list 'align-rules-list
-                 '(haskell-arrows
-                   (regexp . "\\(\\s-+\\)\\(->\\|→\\)\\s-+")
-                   (modes quote (haskell-mode literate-haskell-mode))))
-    (add-to-list 'align-rules-list
-                 '(haskell-left-arrows
-                   (regexp . "\\(\\s-+\\)\\(<-\\|←\\)\\s-+")
-                   (modes quote (haskell-mode literate-haskell-mode))))
-    )
-#+END_SRC
-
-**** Company
-
-[[http://company-mode.github.io][Website]]
-
-Company provides completions in Emacs. Activate them by pressing =C-M-i=.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package company
-    :delight
-    :defer 1
-    :preface
-    (defun company-complete-common-or-cycle-backward ()
-      "Complete common prefix or cycle backward."
-      (interactive)
-      (company-complete-common-or-cycle -1))
-    :bind (:map company-mode-map
-                ("C-M-i" . company-complete-common-or-cycle)
-                :map company-active-map
-                ("RET" . company-complete-selection)
-                ([return] . company-complete-selection)
-                ("C-j" . company-complete-selection)
-
-                ("TAB" . company-complete-common-or-cycle)
-                ("<tab>" . company-complete-common-or-cycle)
-                ("S-TAB" . company-complete-common-or-cycle-backward)
-                ("<backtab>" . company-complete-common-or-cycle-backward)
-                ("C-n" . company-select-next)
-                ("C-p" . company-select-previous)
-
-                ("C-/" . company-search-candidates)
-                ("C-M-/" . company-filter-candidates)
-                ("C-d" . company-show-doc-buffer)
-                )
-    :hook (;; (minibuffer-setup . company-mode)
-           ;; (minibuffer-setup . (lambda ()
-           ;;                       (setq-local company-frontends '(company-preview-if-just-one-frontend))
-           ;;                       (setq-local company-auto-complete nil)))
-           (after-init . global-company-mode)
-           (shell-mode .
-                       (lambda ()
-                         (setq-local company-backends '(company-capf))))
-           (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
-    :config
-    (advice-add 'completion-at-point
-                :around (lambda (old-function &rest args)
-                          (if (and company-mode
-                                   (not (memq major-mode '(eshell-mode org-mode))))
-                              (apply 'company-complete-common-or-cycle args)
-                            (apply old-function args))))
-    (global-company-mode))
-#+END_SRC
-
-***** company-irony
-#+BEGIN_SRC emacs-lisp
-  (use-package company-irony
-    :disabled
-    :commands company-irony
-    :hook (irony-mode . (lambda ()
-      (setq-local company-backends '(company-irony company-capf)))))
-#+END_SRC
-
-***** company-restclient
-#+BEGIN_SRC emacs-lisp
-  (use-package company-restclient
-    :commands company-restclient
-    :hook (restclient-mode . (lambda ()
-      (setq-local company-backends '(company-restclient company-capf)))))
-#+END_SRC
-***** company-anaconda
-#+BEGIN_SRC emacs-lisp
-  (use-package company-anaconda
-    :commands company-anaconda
-    :hook (anaconda-mode . (lambda ()
-                             (setq-local company-backends '((company-anaconda
-                                                             company-capf))))))
-#+END_SRC
-***** company-auctex
-#+BEGIN_SRC emacs-lisp
-  (use-package company-auctex
-    :disabled
-    :commands (company-auctex
-               company-auctext-labels
-               company-auctest-bibs
-               company-auctex-macros
-               company-auctext-symbols
-               company-auctext-environments)
-    :hook
-    (tex-mode . (lambda ()
-                  (setq-local company-backends '((company-auctex-labels
-                                                  company-auctex-bibs
-                                                  company-auctex-macros
-                                                  company-auctex-environments
-                                                  company-auctex-symbols
-                                                  company-capf))))))
-#+END_SRC
-***** company-math
-#+BEGIN_SRC emacs-lisp
-  (use-package company-math
-    :disabled
-    :preface
-    (autoload 'company-math-symbols-latex "company-math")
-    (autoload 'company-latex-commands "company-math")
-    :hook
-    (TeX-mode . (lambda ()
-                  (setq-local company-backends '((company-math-symbols-latex
-                                                  company-latex-commands
-                                                  company-capf))))))
-#+END_SRC
-**** Counsel
-
-[[https://github.com/abo-abo/swiper][GitHub]]
-
-Counsel provides a better selection experience to the default Emacs.
-
-Counsel is only enabled on non-Windows systems. This is due to an issue in
-counsel-find-file, see https://github.com/abo-abo/swiper/issues/773 for more
-info.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package counsel
-    :disabled
-
-    ;; counsel doesn’t work well with windows drives
-    ;; see https://github.com/abo-abo/swiper/issues/773
-    ;; :if (not (string= system-type "windows-nt"))
-
-    :bind* (([remap execute-extended-command] . counsel-M-x)
-            ([remap find-library] . counsel-find-library)
-            ([remap describe-bindings]  .
-             counsel-descbinds)
-            ([remap describe-face]  .
-             counsel-describe-faces)
-            ([remap list-faces-display] . counsel-faces)
-            ([remap imenu] . counsel-imenu)
-            ([remap load-library] . counsel-load-library)
-            ([remap load-theme] . counsel-load-theme)
-            ([remap yank-pop] . counsel-yank-pop)
-            ([remap info-lookup-symbol] .
-             counsel-info-lookup-symbol)
-            ([remap pop-to-mark-command] .
-             counsel-mark-ring)
-            ([remap bookmark-jump] . counsel-bookmark)
-            ("C-c j" . counsel-git-grep)
-            ("C-x l" . counsel-locate)
-            ("M-y" . counsel-yank-pop)
-            ("C-c i 8" . counsel-unicode-char)
-            ("C-x M-f" . counsel-find-file)
-
-            :map help-map
-            ("C-v" . counsel-find-symbol)
-            ("C-k" . counsel-find-function-on-key)
-            ("C-l" . counsel-find-library)
-            ))
-#+END_SRC
-
 ***** ivy
 
 #+BEGIN_SRC emacs-lisp
@@ -1306,23 +1126,6 @@ info.
     (defvar projector-completion-system)
     (setq projectile-completion-system 'ivy
           magit-completing-read-function 'ivy-completing-read))
-#+END_SRC
-**** diff-hl
-
-This mode provides indicators at the right fringe of the Emacs buffer. These
-indications show where a file has been edited from the last Git commit.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package diff-hl
-    :disabled
-    :bind (:package diff-hl
-           :map diff-hl-mode-map
-           ("<left-fringe> <mouse-1>" . diff-hl-diff-goto-hunk))
-    :hook ((prog-mode . diff-hl-mode)
-           (vc-dir-mode . diff-hl-mode)
-           (dired-mode . diff-hl-dir-mode)
-           (magit-post-refresh . diff-hl-magit-post-refresh)
-           (org-mode . diff-hl-mode)))
 #+END_SRC
 
 **** envrc
@@ -1379,46 +1182,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
           (insert "spawn ")))))
 #+END_SRC
 
-***** em-rebind
-#+BEGIN_SRC emacs-lisp
-  (use-package em-rebind
-    :disabled
-    :ensure nil
-    :config
-    ;; TODO: move this back to customize
-    (setq eshell-rebind-keys-alist
-          '(([(control 97)] . eshell-bol)
-            ([home] . eshell-bol)
-            ([(control 100)] . eshell-delchar-or-maybe-eof)
-            ([backspace] . eshell-delete-backward-char)
-            ([delete] . eshell-delete-backward-char)
-            ([(control 119)] . backward-kill-word)
-            ([(control 117)] . eshell-kill-input)
-            ([tab] . completion-at-point)
-            ([(control 101)] . (lambda ()
-                                 (interactive) (end-of-line)))))
-
-    ;; TODO: move this back to customize
-    (setq eshell-modules-list
-          '(eshell-alias
-            eshell-basic
-            eshell-cmpl
-            eshell-dirs
-            eshell-glob
-            eshell-hist
-            eshell-ls
-            eshell-pred
-            eshell-prompt
-            eshell-rebind
-            eshell-script
-            eshell-term
-            eshell-tramp
-            eshell-unix
-            eshell-xtra
-            )))
-
-#+END_SRC
-
 ***** esh-help
 
 #+BEGIN_SRC emacs-lisp
@@ -1448,29 +1211,6 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
   :hook (eshell-mode . em-dired-mode)
   :init
   (advice-add 'eshell :before 'em-dired-new))
-#+END_SRC
-
-**** Flycheck
-
-[[http://www.flycheck.org/][Website]]
-
-Flycheck will annotate code with errors from the compiler or interpreter. It
-supports many languages and give us a lot of features right out of the box.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package flycheck
-    :disabled
-    :hook ((prog-mode . flycheck-mode)
-           (haskell-mode . (lambda () (flycheck-mode -1)))
-           (c++-mode . (lambda () (flycheck-mode -1)))))
-  ;; (use-package flycheck-haskell
-  ;;   :hook (haskell-mode . flycheck-haskell-setup))
-  (use-package flycheck-cask
-    :disabled
-    :hook (emacs-lisp-mode . flycheck-cask-setup))
-  (use-package flycheck-rust
-    :disabled
-    :hook (rust-mode . flycheck-rust-setup))
 #+END_SRC
 
 **** Gnus
@@ -1625,8 +1365,6 @@ outliner but also much much more.
   (use-package org-download
     :hook (dired-mode . org-download-enable))
   (use-package org-present)
-  (use-package org-journal
-    :disabled)
 #+END_SRC
 **** Projectile
 
@@ -1650,12 +1388,6 @@ easymenu to make the "Projectile" modeline clickable.
     (define-key mode-specific-map (kbd "p") 'projectile-command-map))
 #+END_SRC
 
-**** Recentf
-#+BEGIN_SRC emacs-lisp
-  (use-package recentf
-    :disabled
-    :config (recentf-mode 1))
-#+END_SRC
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
@@ -1831,8 +1563,7 @@ instance spacemacs-theme can be enabled:
 [[https://github.com/larstvei/Try][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-  (use-package try
-    :disabled)
+  (use-package try)
 #+END_SRC
 
 **** which-key
@@ -2042,19 +1773,6 @@ Base mode used for shell and terminal modes.
     :config (delete-selection-mode t))
 #+END_SRC
 
-**** desktop
-
-You may want to enable this to persist info across Emacs sessions.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package desktop
-    :disabled
-    :demand
-    :config
-      (setq desktop-dirname user-emacs-directory)
-      (desktop-save-mode t))
-#+END_SRC
-
 **** dired
 
 #+BEGIN_SRC emacs-lisp
@@ -2093,8 +1811,6 @@ You may want to enable this to persist info across Emacs sessions.
            ("M-*" . eshell)
            ("W" . browse-url-of-dired-file)
            ("@" . dired-run-command)))
-  (use-package dired-du
-    :disabled)
 #+END_SRC
 
 ***** dired-column
@@ -2488,12 +2204,6 @@ Make scripts executable automatically.
     :preface
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp"))
-
-  (use-package tramp-term
-    :disabled
-    :functions term-send-raw-string
-    :hook (tramp-term-after-initialized . (lambda (host)
-      (term-send-raw-string (concat "cd " default-directory (kbd "RET"))))))
 #+END_SRC
 
 **** text-mode
@@ -2707,6 +2417,8 @@ Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
 Each language will at least one of these major modes as well as associated
 packages (for completion, syntax checking, etc.)
 
+Eglot is builtin to Emacs and can work with any language with an LSP backend.
+
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
     :ensure nil
@@ -2714,91 +2426,6 @@ packages (for completion, syntax checking, etc.)
     (setq eglot-ignored-server-capabilities '(:codeLensProvider :documentFormattingProvider :documentRangeFormattingProvider :documentLinkProvider :colorProvider))
     (setq eglot-report-progress nil)
     )
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-  (use-package lsp-mode
-    :disabled
-    :commands (lsp-install-server lsp)
-    :hook (lsp-mode . lsp-enable-which-key-integration)
-    :config
-    (setq lsp-enable-file-watchers nil)
-    (setq lsp-eldoc-enable-hover nil)
-    (setq lsp-headerline-breadcrumb-enable nil)
-    (setq lsp-modeline-diagnostics-enable nil)
-    (setq lsp-modeline-code-actions-enable nil)
-    (setq lsp-enable-symbol-highlighting nil)
-    (setq lsp-progress-via-spinner nil)
-    )
-
-  (use-package lsp-ui
-    :disabled
-    :commands (lsp-ui-mode)
-    :bind (:map lsp-ui-mode-map
-                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-                ([remap xref-find-references] . lsp-ui-peek-find-references)
-                ([remap imenu] . lsp-ui-imenu))
-    :config
-    (setq lsp-ui-doc-enable nil)
-    (setq lsp-ui-peek-enable nil)
-    (setq lsp-ui-sideline-enable nil)
-    (setq lsp-ui-imenu-enable t)
-    )
-#+END_SRC
-
-**** C/C++
-
-***** Irony
-
-#+BEGIN_SRC emacs-lisp
-  (use-package irony
-    :disabled
-    :preface
-    (autoload 'file-remote-p "files")
-    (defun irony-mode-disable-remote ()
-      "Disabled irony in remote buffers."
-      (when (and buffer-file-name
-                 (file-remote-p buffer-file-name))
-        (irony-mode -1)))
-    :hook (((c++-mode c-mode objc-mode) .
-            irony-mode-disable-remote)
-           ((c++-mode c-mode objc-mode) . irony-mode)))
- #+END_SRC
-
- #+BEGIN_SRC emacs-lisp
-   (use-package irony-cdb
-       :disabled
-       :ensure nil
-       :hook (irony-mode . irony-cdb-autosetup-compile-options))
- #+END_SRC
-
-****** flycheck-irony
-
-#+BEGIN_SRC emacs-lisp
-  (use-package flycheck-irony
-    :disabled
-    :hook (flycheck-mode . flycheck-irony-setup))
-#+END_SRC
-
-****** irony-eldoc
-
-#+BEGIN_SRC emacs-lisp
-  (use-package irony-eldoc
-    :disabled
-    :hook (irony-mode . irony-eldoc))
-#+END_SRC
-
-**** CMake
-
-#+BEGIN_SRC emacs-lisp
-  ;; (use-package cmake-mode)
-#+END_SRC
-
-
-**** CoffeeScript
-
-#+BEGIN_SRC emacs-lisp
-  (use-package coffee-mode)
 #+END_SRC
 
 **** CSV
@@ -2863,22 +2490,7 @@ packages (for completion, syntax checking, etc.)
   (use-package git-modes)
 #+END_SRC
 
-**** Go
-
-#+BEGIN_SRC emacs-lisp
-  (use-package go-mode
-    :disabled)
-#+END_SRC
-
-**** HAML
-
-#+BEGIN_SRC emacs-lisp
-  (use-package haml-mode
-    :disabled)
-#+END_SRC
-
 **** Haskell
-***** haskell-mode
 
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
@@ -2926,101 +2538,18 @@ packages (for completion, syntax checking, etc.)
     )
 #+END_SRC
 
-***** lsp-haskell
-#+BEGIN_SRC emacs-lisp
-    (use-package lsp-haskell
-      :disabled
-      :hook ((haskell-mode . lsp-deferred)
-             (haskell-literate-mode . lsp-deferred))
-      :config (setq lsp-haskell-diagnostics-on-change nil))
-#+END_SRC
-
-***** haskell-interactive-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package haskell-interactive-mode
-    :disabled
-    :ensure nil
-    :commands (interactive-haskell-mode)
-    ;; :hook (haskell-mode . interactive-haskell-mode)
-    )
-#+END_SRC
-
-***** nix-haskell
-
-#+BEGIN_SRC emacs-lisp
-  (use-package nix-haskell-mode
-    :ensure nil
-    :disabled
-    ;; :hook (haskell-mode . nix-haskell-mode)
-    )
-#+END_SRC
-
-
-**** Java
-***** jdee
-
-#+BEGIN_SRC emacs-lisp
-  (use-package jdee
-    :disabled
-    :mode ("\\.java\\'" . jdee-mode)
-    :bind (:package jdee
-           :map jdee-mode-map
-           ("<s-mouse-1>" . jdee-open-class-at-event)))
-#+END_SRC
-
 **** JavaScript
-***** indium
 
-#+BEGIN_SRC emacs-lisp
-  (use-package indium
-    :disabled
-    :if (>= emacs-major-version 25)
-    :mode ("\\.js\\'" . indium-mode))
-#+END_SRC
-
-***** js-mode
 #+BEGIN_SRC emacs-lisp
   (use-package js-mode
     :ensure nil
     :mode (("\\.es6\\'" . js-mode)
            ("\\.ejs\\'" . js-mode)
            ("\\.ts\\'" . js-mode)
-           ("\\.tsx\\'" . js-mode))
+           ("\\.tsx\\'" . js-mode)
+           ("\\.jshintrc$"    . js-json-mode)
+           ("\\.json_schema$" . js-json-mode))f
     :interpreter "node")
-#+END_SRC
-
-***** js2-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package js2-mode
-    :disabled
-    :hook (js-mode . js2-minor-mode))
-#+END_SRC
-****** js2-imenu-extras
-#+BEGIN_SRC emacs-lisp
-  (use-package js2-imenu-extras
-    :ensure nil
-    :hook (js2-mode . js2-imenu-extras-mode))
-#+END_SRC
-***** tern
-
-#+BEGIN_SRC emacs-lisp
-  (use-package tern
-    :if (locate-file "tern" exec-path)
-    :hook (js2-mode . tern-mode))
-#+END_SRC
-
-**** JSON
-
-#+BEGIN_SRC emacs-lisp
-  (use-package json-mode
-    :disabled
-    :mode (("\\.jshintrc$"    . json-mode)
-           ("\\.json_schema$" . json-mode))
-    :bind (:package json-mode-map
-           :map json-mode-map
-           ("C-c <tab>" . json-mode-beautify))
-    :config
-    (make-local-variable 'js-indent-level))
 #+END_SRC
 
 **** LaTeX
@@ -3071,7 +2600,6 @@ macho-mode to toggle then M-x hexl-mode.
 #+END_SRC
 
 **** Markdown
-***** markdown-mode
 
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
@@ -3094,19 +2622,6 @@ macho-mode to toggle then M-x hexl-mode.
 #+BEGIN_SRC emacs-lisp
   (use-package nix-drv-mode
     :ensure nil)
-#+END_SRC
-***** nix-buffer
-
-#+BEGIN_SRC emacs-lisp
-  (use-package nix-buffer
-    ;; :preface
-    ;; (defun turn-on-nix-buffer ()
-    ;;   (when (and (not noninteractive)
-    ;;         (not (eq (aref (buffer-name) 0) ?\s))
-    ;;         (not (file-remote-p default-directory)))
-    ;;     (nix-buffer)))
-    ;; :hook (after-change-major-mode . turn-on-nix-buffer)
-    )
 #+END_SRC
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
@@ -3137,14 +2652,6 @@ macho-mode to toggle then M-x hexl-mode.
                         (merlin-mode)))))))
 #+END_SRC
 
-
-**** PHP
-
-#+BEGIN_SRC emacs-lisp
-  (use-package php-mode
-    :disabled)
-#+END_SRC
-
 **** Proof General
 
 [[https://proofgeneral.github.io][Website]]
@@ -3157,16 +2664,6 @@ macho-mode to toggle then M-x hexl-mode.
     :if (not needs-package-init))
 #+END_SRC
 
-**** Python
-
-***** Anaconda
-
-#+BEGIN_SRC emacs-lisp
-  (use-package anaconda-mode
-    :hook ((python-mode . anaconda-mode)
-           (python-mode . anaconda-eldoc-mode)))
-#+END_SRC
-
 **** restclient
 
 #+BEGIN_SRC emacs-lisp
@@ -3175,37 +2672,11 @@ macho-mode to toggle then M-x hexl-mode.
            ("\\.restclient\\'" . restclient-mode)))
 #+END_SRC
 
-**** Ruby
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ruby-mode)
-#+END_SRC
-
-**** Rust
-
-#+BEGIN_SRC emacs-lisp
-  (use-package rust-mode)
-#+END_SRC
-
-**** SASS
-
-#+BEGIN_SRC emacs-lisp
-  (use-package sass-mode
-    :disabled)
-#+END_SRC
-
 **** Scala
 
 #+BEGIN_SRC emacs-lisp
   (use-package scala-mode
     :interpreter ("scala" . scala-mode))
-#+END_SRC
-
-**** SCSS
-
-#+BEGIN_SRC emacs-lisp
-  (use-package scss-mode
-    :disabled)
 #+END_SRC
 
 **** Shell
@@ -3223,13 +2694,6 @@ macho-mode to toggle then M-x hexl-mode.
   (use-package texinfo)
 #+END_SRC
 
-**** TypeScript
-
-#+BEGIN_SRC emacs-lisp
-  (use-package typescript-mode
-    :disabled)
-#+END_SRC
-
 **** Terraform
 #+BEGIN_SRC emacs-lisp
   (use-package terraform-mode)
@@ -3240,7 +2704,7 @@ macho-mode to toggle then M-x hexl-mode.
   (use-package web-mode
     :mode (("\\.erb\\'" . web-mode)
            ("\\.mustache\\'" . web-mode)
-           ("\\.html?\\'" . web-mode)
+           ;; ("\\.html?\\'" . web-mode)
            ("\\.php\\'" . web-mode)
            ("\\.jsp\\'" . web-mode)
            ;; ("\\.jsx?$" . web-mode)
@@ -3317,17 +2781,6 @@ Most of these are available in MELPA.
            ("C-c w g" . copy-as-format-github)))
 #+END_SRC
 
-**** crux
-
-#+BEGIN_SRC emacs-lisp
-  (use-package crux
-    :disabled
-    :bind (("C-c D" . crux-delete-file-and-buffer)
-           ("C-c C-e" . crux-eval-and-replace)
-           ("C-c d" . crux-duplicate-current-line-or-region)
-           ([shift return] . crux-smart-open-line)))
-#+END_SRC
-
 **** daemons
 
 https://github.com/cbowdon/daemons.el
@@ -3335,22 +2788,8 @@ https://github.com/cbowdon/daemons.el
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
 #+END_SRC
-**** deadgrep
-#+BEGIN_SRC emacs-lisp
-  (use-package deadgrep
-    :disabled
-    :bind (:map projectile-command-map
-           ("s g" . deadgrep)))
-#+END_SRC
 
-**** ripgrep
-#+BEGIN_SRC emacs-lisp
-  (use-package rg)
-#+END_SRC
 **** delight
-
-
-
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
@@ -3364,22 +2803,11 @@ https://github.com/cbowdon/daemons.el
 (use-package gif-screencast
   :bind ("<f9>". gif-screencast-start-or-stop))
 #+END_SRC
-**** fic-mode
-#+BEGIN_SRC emacs-lisp
-(use-package fic-mode
-  :disabled
-  :hook (prog-mode . fic-mode))
-#+END_SRC
 **** git-attr
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
   :ensure git-attr
   :hook (find-file . git-attr-linguist))
-#+END_SRC
-**** git-timemachine
-#+BEGIN_SRC emacs-lisp
-(use-package git-timemachine
-  :disabled)
 #+END_SRC
 **** htmlize
 
@@ -3401,13 +2829,6 @@ https://github.com/cbowdon/daemons.el
                         (ibuffer-vc-set-filter-groups-by-vc-root)
                         (unless (eq ibuffer-sorting-mode 'alphabetic)
                           (ibuffer-do-sort-by-alphabetic))))))
-#+END_SRC
-**** iedit
-
-#+BEGIN_SRC emacs-lisp
-(use-package iedit
-  :disabled
-  :bind (("C-;" . iedit-mode)))
 #+END_SRC
 **** keycast
 
@@ -3434,8 +2855,7 @@ https://github.com/cbowdon/daemons.el
 
 **** org-static-blog
 #+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog
-    :disabled)
+  (use-package org-static-blog)
 #+END_SRC
 **** page-break-lines
 
@@ -3557,21 +2977,6 @@ https://github.com/cbowdon/daemons.el
       (interactive "r")
       (func-region start end 'url-unhex-string))
     (defalias 'url-unescape 'url-decode))
-#+END_SRC
-**** winner-mode
-
-#+BEGIN_SRC emacs-lisp
-(use-package winner
-  :disabled
-  :config (winner-mode))
-#+END_SRC
-
-**** with-editor
-#+BEGIN_SRC emacs-lisp
-  (use-package with-editor
-    :disabled
-    :hook
-    ((shell-mode eshell-mode) . with-editor-export-editor))
 #+END_SRC
 
 ** END
