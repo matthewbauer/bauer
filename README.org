@@ -1110,6 +1110,58 @@ Automatically indent code as you type. Only enabled for Lisp currently.
             slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
+**** Company
+
+[[http://company-mode.github.io][Website]]
+
+Company provides completions in Emacs. Activate them by pressing =C-M-i=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :delight
+    :defer 1
+    :preface
+    (defun company-complete-common-or-cycle-backward ()
+      "Complete common prefix or cycle backward."
+      (interactive)
+      (company-complete-common-or-cycle -1))
+    :bind (:map company-mode-map
+                ("C-M-i" . company-complete-common-or-cycle)
+                :map company-active-map
+                ("RET" . company-complete-selection)
+                ([return] . company-complete-selection)
+                ("C-j" . company-complete-selection)
+
+                ("TAB" . company-complete-common-or-cycle)
+                ("<tab>" . company-complete-common-or-cycle)
+                ("S-TAB" . company-complete-common-or-cycle-backward)
+                ("<backtab>" . company-complete-common-or-cycle-backward)
+                ("C-n" . company-select-next)
+                ("C-p" . company-select-previous)
+
+                ("C-/" . company-search-candidates)
+                ("C-M-/" . company-filter-candidates)
+                ("C-d" . company-show-doc-buffer)
+                )
+    :hook (;; (minibuffer-setup . company-mode)
+           ;; (minibuffer-setup . (lambda ()
+           ;;                       (setq-local company-frontends '(company-preview-if-just-one-frontend))
+           ;;                       (setq-local company-auto-complete nil)))
+           (after-init . global-company-mode)
+           (shell-mode .
+                       (lambda ()
+                         (setq-local company-backends '(company-capf))))
+           (eshell-mode . (lambda () (setq-local company-backends '(company-files)))))
+    :config
+    (advice-add 'completion-at-point
+                :around (lambda (old-function &rest args)
+                          (if (and company-mode
+                                   (not (memq major-mode '(eshell-mode org-mode))))
+                              (apply 'company-complete-common-or-cycle args)
+                            (apply old-function args))))
+    (global-company-mode))
+#+END_SRC
+
 ***** ivy
 
 #+BEGIN_SRC emacs-lisp
@@ -2425,6 +2477,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :config
     (setq eglot-ignored-server-capabilities '(:codeLensProvider :documentFormattingProvider :documentRangeFormattingProvider :documentLinkProvider :colorProvider))
     (setq eglot-report-progress nil)
+    (setq eglot-sync-connect nil)
     )
 #+END_SRC
 
