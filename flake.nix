@@ -27,8 +27,7 @@
               --eval "(org-babel-tangle-file \"README.org\")" > /dev/null
         cp bauer.nix default.nix
       '')) { inherit pkgs emacs-overlay evalPkgs system; };
-      myTex = self.packages.${system}.bauer.myTex;
-      emacs = self.packages.${system}.bauer.emacs;
+      inherit (self.packages.${system}.bauer) myTex emacs rEnv;
       default = self.packages.${system}.bauer;
     });
 

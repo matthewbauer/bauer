@@ -263,26 +263,30 @@ The format of arguments to =set-defaults= is identical to the one used by
 | bookmark-save-flag                            | 1                          |
 | checkdoc-spellcheck-documentation-flag        | t                          |
 | comint-input-ignoredups                       | t                          |
+| comint-move-point-for-matching-input          | 'end-of-line               |
+| comint-move-point-for-output                  | 'all                       |
 | comint-process-echoes                         | t                          |
 | comint-prompt-read-only                       | t                          |
 | comint-scroll-to-bottom-on-input              | 'this                      |
 | compilation-always-kill                       | t                          |
 | compilation-ask-about-save                    | nil                        |
+| compilation-scroll-output                     | 'first-error               |
 | compilation-skip-threshold                    | 2                          |
 | completions-cycle-threshold                   | t                          |
-| completions-format                            | 'vertical                  |
 | completions-detailed                          | t                          |
+| completions-format                            | 'vertical                  |
 | cursor-in-non-selected-windows                | nil                        |
 | custom-safe-themes                            | t                          |
 | custom-search-field                           | nil                        |
 | delete-by-moving-to-trash                     | t                          |
 | delete-old-versions                           | t                          |
+| dired-dwim-target                             | t                          |
 | dired-hide-details-hide-symlink-targets       | nil                        |
 | dired-omit-verbose                            | nil                        |
 | dired-recursive-copies                        | 'top                       |
 | dired-recursive-deletes                       | 'top                       |
-| dired-dwim-target                             | t                          |
 | dtrt-indent-verbosity                         | 0                          |
+| ediff-window-setup-function                   | 'ediff-setup-windows-plain |
 | eldoc-idle-delay                              | 0.4                        |
 | eshell-bad-command-tolerance                  | 1                          |
 | eshell-cmpl-autolist                          | t                          |
@@ -335,6 +339,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | nsm-save-host-names                           | t                          |
 | nxml-sexp-element-flag                        | t                          |
 | nxml-slash-auto-complete-flag                 | t                          |
+| pixel-scroll-precision-mode                   | t                          |
+| require-final-newline                         | t                          |
 | resize-mini-windows                           | t                          |
 | revert-without-query                          | '(".")                     |
 | ruby-insert-encoding-magic-comment            | nil                        |
@@ -350,6 +356,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | show-trailing-whitespace                      | t                          |
 | sp-autoskip-closing-pair                      | 'always                    |
 | sp-highlight-pair-overlay                     | nil                        |
+| switch-to-buffer-in-dedicated-window          | 'pop                       |
+| switch-to-buffer-obey-display-actions         | t                          |
 | tab-always-indent                             | 'complete                  |
 | term-input-autoexpand                         | t                          |
 | term-input-ignoredups                         | t                          |
@@ -370,9 +378,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | window-combination-resize                     | t                          |
 | woman-imenu                                   | t                          |
 | x-stretch-cursor                              | t                          |
-| ediff-window-setup-function                   | 'ediff-setup-windows-plain |
-| switch-to-buffer-in-dedicated-window          | 'pop                       |
-| switch-to-buffer-obey-display-actions         | t                          |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -516,36 +521,28 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(whitespace-style '(face trailing lines space-before-tab empty))
    '(whitespace-global-modes '(not erc-mode ses-mode))
    '(display-buffer-alist
-     '(("^\\*Ilist\\*$" imenu-list-display-buffer)
-       ("\\\\*Help\\\\*\\\\|\\\\*helpful [^\\\\*]*\\\\*"
-        (display-buffer-reuse-window display-buffer-pop-up-window))
-       ("\\\\*vterm\\\\*"
-        (display-buffer-reuse-mode-window display-buffer-at-bottom)
-        (inhibit-same-window)
-        (mode vterm-mode vterm-copy-mode)
-        (dedicated . t))
-       ("\\\\*Occur\\\\*\\\\|\\\\*grep\\\\*\\\\|\\\\*xref\\\\*\\\\|\\\\*ripgrep-search\\\\*" display-buffer-reuse-window
+     '(("\\\\*Occur\\\\*\\\\|\\\\*grep\\\\*\\\\|\\\\*xref\\\\*\\\\|\\\\*ripgrep-search\\\\*\\\\|\\\\*rg\\\\*\\\\|\\\\*compilation\\\\*" display-buffer-reuse-window
         (inhibit-same-window))
-       ("\\\\*compilation\\\\*" display-buffer-no-window
-        (allow-no-window . t))
        ("\\\\*e?shell\\\\*" display-buffer-in-direction
         (direction . bottom)
         (window . root)
         (window-height . 0.3))
-       ("\\\\*grep\\\\*\\\\|\\\\*compilation\\\\*\\\\|\\\\*ripgrep-search\\\\*" display-buffer-in-side-window
+       ("\\\\*grep\\\\*\\\\|\\\\*compilation\\\\*\\\\|\\\\*ripgrep-search\\\\*\\\\|\\\\*rg\\\\*" display-buffer-in-side-window
         (side . right)
         (slot . 0)
         (window-parameters
          (no-delete-other-windows . t))
         (window-width . 80))
+       ("\\\\*Help\\\\*\\\\|\\\\*helpful [^\\\\*]*\\\\*"
+        (display-buffer-reuse-window display-buffer-pop-up-window))
        ("\\\\*Ilist\\\\*" display-buffer-in-atom-window
         (side . right))
-       ("\\\\`magit:.*\\\\'"
-        (display-buffer-reuse-window display-buffer-same-window))
-       ("^magit-diff: .*" display-buffer-below-selected)
-       ("^magit-revision.*" display-buffer-below-selected)
-       ("^magit-log.*" display-buffer-same-window)
-       ("^magit-process.*" display-buffer-same-window))))
+       ("\\\\*vterm\\\\*"
+        (display-buffer-reuse-mode-window display-buffer-at-bottom)
+        (inhibit-same-window)
+        (mode vterm-mode vterm-copy-mode)
+        (dedicated . t)
+        (window-height . 0.3)))))
 #+END_SRC
 
 *** Site paths
@@ -806,7 +803,6 @@ better navigations.
 | C-c w w         | whitespace-mode                 |
 | M-g l           | goto-line                       |
 | <C-M-backspace> | backward-kill-sexp              |
-| C-x t           | toggle-truncate-lines           |
 | C-x v H         | vc-region-history               |
 | C-c SPC         | just-one-space                  |
 | C-c f           | flush-lines                     |
@@ -1068,22 +1064,237 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (global-company-mode))
 #+END_SRC
 
+***** consult
+
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package orderless
+  ;;   :custom
+  ;;   (completion-styles '(orderless basic))
+  ;;   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+  ;; (use-package icomplete-vertical
+  ;;   :demand
+  ;;   :custom
+  ;;   (completion-styles '(partial-completion substring))
+  ;;   (completion-category-overrides '((file (styles basic substring))))
+  ;;   (read-file-name-completion-ignore-case t)
+  ;;   (read-buffer-completion-ignore-case t)
+  ;;   (completion-ignore-case t)
+  ;;   :config
+  ;;   (icomplete-mode)
+  ;;   (icomplete-vertical-mode)
+  ;;   :bind (:map icomplete-minibuffer-map
+  ;;               ("<down>" . icomplete-forward-completions)
+  ;;               ("C-n" . icomplete-forward-completions)
+  ;;               ("<up>" . icomplete-backward-completions)
+  ;;               ("C-p" . icomplete-backward-completions)
+  ;;               ("C-v" . icomplete-vertical-toggle)))
+
+  (use-package vertico
+    :init
+    (vertico-mode)
+
+    ;; Different scroll margin
+    ;; (setq vertico-scroll-margin 0)
+
+    ;; Show more candidates
+    ;; (setq vertico-count 20)
+
+    ;; Grow and shrink the Vertico minibuffer
+    ;; (setq vertico-resize t)
+
+    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+    ;; (setq vertico-cycle t)
+
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+                    (replace-regexp-in-string
+                     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                     crm-separator)
+                    (car args))
+            (cdr args)))
+
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+    ;; Do not allow the cursor in the minibuffer prompt
+    (setq minibuffer-prompt-properties
+          '(read-only t cursor-intangible t face minibuffer-prompt))
+    (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+    ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+    ;; Vertico commands are hidden in normal buffers.
+    ;; (setq read-extended-command-predicate
+    ;;       #'command-completion-default-include-p)
+
+    ;; Enable recursive minibuffers
+    (setq enable-recursive-minibuffers t)
+    )
+
+  ;; (use-package embark
+  ;;   :ensure t
+
+  ;;   :bind
+  ;;   (("C-." . embark-act)         ;; pick some comfortable binding
+  ;;    ("C-;" . embark-dwim)        ;; good alternative: M-.
+  ;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  ;;   :init
+
+  ;;   ;; Optionally replace the key help with a completing-read interface
+  ;;   (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;;   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;;   ;; strategy, if you want to see the documentation from multiple providers.
+  ;;   ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;;   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  ;;   :config
+
+  ;;   ;; Hide the mode line of the Embark live/completions buffers
+  ;;   (add-to-list 'display-buffer-alist
+  ;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+  ;;                  nil
+  ;;                  (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  ;; (use-package embark-consult
+  ;;   :ensure t ; only need to install it, embark loads it after consult if found
+  ;;   :hook
+  ;;   (embark-collect-mode . consult-preview-at-point-mode))
+
+  (use-package consult
+    ;; Replace bindings. Lazily loaded due by `use-package'.
+    :bind (;; C-c bindings (mode-specific-map)
+           ("C-c M-x" . consult-mode-command)
+           ("C-c h" . consult-history)
+           ("C-c k" . consult-kmacro)
+           ("C-c m" . consult-man)
+           ("C-c i" . consult-info)
+           ([remap Info-search] . consult-info)
+           ;; C-x bindings (ctl-x-map)
+           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+           ;; Custom M-# bindings for fast register access
+           ("M-#" . consult-register-load)
+           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+           ("C-M-#" . consult-register)
+           ;; Other custom bindings
+           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+           ;; M-g bindings (goto-map)
+           ("M-g e" . consult-compile-error)
+           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ;; M-s bindings (search-map)
+           ("M-s d" . consult-find)
+           ("M-s D" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+           ;; Minibuffer history
+           :map minibuffer-local-map
+           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+           ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+
+    ;; Enable automatic preview at point in the *Completions* buffer. This is
+    ;; relevant when you use the default completion UI.
+    :hook (completion-list-mode . consult-preview-at-point-mode)
+
+    ;; The :init configuration is always executed (Not lazy)
+    :init
+
+    ;; Optionally configure the register formatting. This improves the register
+    ;; preview for `consult-register', `consult-register-load',
+    ;; `consult-register-store' and the Emacs built-ins.
+    (setq register-preview-delay 0.5
+          register-preview-function #'consult-register-format)
+
+    ;; Optionally tweak the register preview window.
+    ;; This adds thin lines, sorting and hides the mode line of the window.
+    (advice-add #'register-preview :override #'consult-register-window)
+
+    ;; Use Consult to select xref locations with preview
+    ;; (setq xref-show-xrefs-function #'consult-xref
+    ;;       xref-show-definitions-function #'consult-xref)
+
+    ;; Configure other variables and modes in the :config section,
+    ;; after lazily loading the package.
+    :config
+
+    ;; Optionally configure preview. The default value
+    ;; is 'any, such that any key triggers the preview.
+    ;; (setq consult-preview-key 'any)
+    ;; (setq consult-preview-key "M-.")
+    ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+    ;; For some commands and buffer sources it is useful to configure the
+    ;; :preview-key on a per-command basis using the `consult-customize' macro.
+    (consult-customize
+     consult-theme :preview-key '(:debounce 0.2 any)
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref
+     consult--source-bookmark consult--source-file-register
+     consult--source-recent-file consult--source-project-recent-file
+     ;; :preview-key "M-."
+     :preview-key '(:debounce 0.4 any))
+
+    ;; Optionally configure the narrowing key.
+    ;; Both < and C-+ work reasonably well.
+    (setq consult-narrow-key "<") ;; "C-+"
+
+    ;; Optionally make narrowing help available in the minibuffer.
+    ;; You may want to use `embark-prefix-help-command' or which-key instead.
+    ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+    )
+
+  (use-package marginalia
+    ;; Either bind `marginalia-cycle' globally or only in the minibuffer
+    :bind (("M-A" . marginalia-cycle)
+           :map minibuffer-local-map
+           ("M-A" . marginalia-cycle))
+
+    ;; The :init configuration is always executed (Not lazy!)
+    :init
+
+    ;; Must be in the :init section of use-package such that the mode gets
+    ;; enabled right away. Note that this forces loading the package.
+    (marginalia-mode))
+#+END_SRC
+
 ***** ivy
 
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
+    :demand
+    :disabled
     :bind (([remap switch-to-buffer] . ivy-switch-buffer)
            ([remap switch-to-buffer-other-window] .
             ivy-switch-buffer-other-window)
            :package ivy
            :map ivy-minibuffer-map
            ("<escape>" . abort-recursive-edit))
-    :init
-    (defvar projectile-completion-system)
-    (defvar magit-completing-read-function)
-    (defvar projector-completion-system)
-    (setq projectile-completion-system 'ivy
-          magit-completing-read-function 'ivy-completing-read))
+    :config
+    (ivy-mode)
+    )
 #+END_SRC
 
 **** envrc
@@ -1091,6 +1302,10 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   ;; envrc must come late in the init.el file so add-hook adds it first
   ;; in `find-file-hook'.
   (use-package envrc
+    :bind (
+           :package project
+           :map project-prefix-map
+           ("," . envrc-reload))
     :custom (envrc-none-lighter nil)
     :demand t
     :config
@@ -1196,9 +1411,10 @@ certain Emacs keybinds.
 
 #+BEGIN_SRC emacs-lisp
   (use-package god-mode
-    :bind (("<escape>" . god-local-mode)
-;;           ("ESC" . god-local-mode)
-))
+    :disabled
+    ;; :bind (("<escape>" . god-local-mode)
+    ;;        ("ESC" . god-local-mode))
+    )
 #+END_SRC
 
 **** helpful
@@ -1266,6 +1482,8 @@ line are available in an intuitive Emacs buffer.
     :commands (magit-clone)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
+           ("C-x p v" . magit-status)
+           ("C-x p m" . magit-status)
            ("C-x G" . magit-dispatch)
            :package magit
            :map magit-mode-map
@@ -1329,55 +1547,55 @@ outliner but also much much more.
   (use-package org
     :ensure org-contrib
     :custom (org-latex-listings-langs
-     '((emacs-lisp "Lisp")
-       (lisp "Lisp")
-       (clojure "Lisp")
-       (c "C")
-       (cc "C++")
-       (fortran "fortran")
-       (perl "Perl")
-       (cperl "Perl")
-       (python "Python")
-       (ruby "Ruby")
-       (html "HTML")
-       (xml "XML")
-       (tex "TeX")
-       (latex "[LaTeX]TeX")
-       (shell-script "bash")
-       (gnuplot "Gnuplot")
-       (ocaml "Caml")
-       (caml "Caml")
-       (sql "SQL")
-       (sqlite "sql")
-       (makefile "make")
-       (R "r")
-       (nix "{}")
-       (nil "{}")
-       (yaml "{}")
-       (gitattributes "{}")
-       (gitignore "{}")
-       (shell "{}")
-       (gitconfig "{}")))
+             '((emacs-lisp "Lisp")
+               (lisp "Lisp")
+               (clojure "Lisp")
+               (c "C")
+               (cc "C++")
+               (fortran "fortran")
+               (perl "Perl")
+               (cperl "Perl")
+               (python "Python")
+               (ruby "Ruby")
+               (html "HTML")
+               (xml "XML")
+               (tex "TeX")
+               (latex "[LaTeX]TeX")
+               (shell-script "bash")
+               (gnuplot "Gnuplot")
+               (ocaml "Caml")
+               (caml "Caml")
+               (sql "SQL")
+               (sqlite "sql")
+               (makefile "make")
+               (R "r")
+               (nix "{}")
+               (nil "{}")
+               (yaml "{}")
+               (gitattributes "{}")
+               (gitignore "{}")
+               (shell "{}")
+               (gitconfig "{}")))
     :custom (org-latex-default-packages-alist
-     '(("utf8" "inputenc" t
-        ("pdflatex"))
-       ("T1" "fontenc" t
-        ("pdflatex"))
-       ("" "graphicx" t nil)
-       ("" "grffile" t nil)
-       ("" "longtable" nil nil)
-       ("" "wrapfig" nil nil)
-       ("" "rotating" nil nil)
-       ("normalem" "ulem" t nil)
-       ("" "amsmath" t nil)
-       ("" "textcomp" t nil)
-       ("" "amssymb" t nil)
-       ("" "capt-of" nil nil)
-       ("" "hyperref" nil nil)
-       ("" "parskip" nil nil)
-       ("" "alltt" nil nil)
-       ("" "upquote" nil nil)
-       ("" "listings" nil nil)))
+             '(("utf8" "inputenc" t
+                ("pdflatex"))
+               ("T1" "fontenc" t
+                ("pdflatex"))
+               ("" "graphicx" t nil)
+               ("" "grffile" t nil)
+               ("" "longtable" nil nil)
+               ("" "wrapfig" nil nil)
+               ("" "rotating" nil nil)
+               ("normalem" "ulem" t nil)
+               ("" "amsmath" t nil)
+               ("" "textcomp" t nil)
+               ("" "amssymb" t nil)
+               ("" "capt-of" nil nil)
+               ("" "hyperref" nil nil)
+               ("" "parskip" nil nil)
+               ("" "alltt" nil nil)
+               ("" "upquote" nil nil)
+               ("" "listings" nil nil)))
     :custom (org-catch-invisible-edits 'smart)
     :custom (org-confirm-babel-evaluate nil)
     :custom (org-export-with-toc nil)
@@ -1386,19 +1604,24 @@ outliner but also much much more.
     :custom (org-special-ctrl-a/e t)
     :custom (org-support-shift-select t)
     :hook ((org-mode . (lambda ()
-             (add-hook 'completion-at-point-functions
-                       'pcomplete-completions-at-point nil t)))
+                         (add-hook 'completion-at-point-functions
+                                   'pcomplete-completions-at-point nil t)))
            (org-mode . (lambda () (visual-line-mode -1)))
            (org-mode . (lambda () (setq-local scroll-margin 3)))
            (message-mode . turn-on-orgtbl)
            (org-mode . (lambda ()
-             (autoload 'org-eldoc-documentation-function "org-eldoc")
-             (setq-local eldoc-documentation-function
-                         'org-eldoc-documentation-function)))))
+                         (autoload 'org-eldoc-documentation-function "org-eldoc")
+                         (setq-local eldoc-documentation-function
+                                     'org-eldoc-documentation-function))))
+    :config
+    (org-babel-do-load-languages 'org-babel-load-languages
+                                 '((sql . t)
+                                   (shell . t))))
   (use-package org-download
     :hook (dired-mode . org-download-enable))
   (use-package org-present)
 #+END_SRC
+
 **** Projectile
 
 [[https://github.com/bbatsov/projectile][GitHub]]
@@ -1408,6 +1631,7 @@ easymenu to make the "Projectile" modeline clickable.
 
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
+    :disabled
     :commands (projectile-mode)
     :bind-keymap* (("C-c p" . projectile-command-map)
                    ("s-p" . projectile-command-map))
@@ -1690,92 +1914,93 @@ Provides links to bugs listed in source code.
 Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
-  (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
-    "Possible prefix that may come before history elements. In
-    Zshell with extended_history, this is useful.")
+    (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
+      "Possible prefix that may come before history elements. In
+        Zshell with extended_history, this is useful.")
 
-  (defvar ffap-url-at-point)
-  (use-package comint
-    :ensure nil
-    :hook (comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
-    :preface
-    (autoload 'comint-write-input-ring "comint")
-    (autoload 'comint-read-input-ring "comint")
-    (autoload 'comint-send-invisible "comint")
-    (defun turn-on-comint-history (history-file)
-      (setq comint-input-ring-file-name history-file)
-      (comint-read-input-ring 'silent))
-    (defun save-history ()
-      (dolist (buffer (buffer-list))
-        (with-current-buffer buffer
-          (comint-write-input-ring))))
-    :config
-    (advice-add 'comint-read-input-ring
-                :override (lambda (&optional silent)
-                            (cond ((or (null comint-input-ring-file-name)
-                                       (equal comint-input-ring-file-name ""))
-                                   nil)
-                                  ((not (file-readable-p comint-input-ring-file-name))
-                                   (or silent
-                                       (message "Cannot read history file %s"
-                                                comint-input-ring-file-name)))
-                                  (t
-                                   (let* ((file comint-input-ring-file-name)
-                                          (count 0)
-                                          ;; Some users set HISTSIZE or `comint-input-ring-size'
-                                          ;; to huge numbers.  Don't allocate a huge ring right
-                                          ;; away; there might not be that much history.
-                                          (ring-size (min 1500 comint-input-ring-size))
-                                          (ring (make-ring ring-size)))
-                                     (with-temp-buffer
-                                       (insert-file-contents file)
-                                       ;; Save restriction in case file is already visited...
-                                       ;; Watch for those date stamps in history files!
-                                       (goto-char (point-max))
-                                       (let (start end history)
-                                         (while (and (< count comint-input-ring-size)
-                                                     (re-search-backward comint-input-ring-separator
-                                                                         nil t)
-                                                     (setq end (match-beginning 0)))
-                                           (setq start
-                                                 (if (re-search-backward comint-input-ring-separator
-                                                                         nil t)
-                                                     (progn
-                                                       (when (looking-at (concat comint-input-ring-separator
-                                                                                 comint-input-ring-prefix))
-                                                         ;; Skip zsh extended_history stamps
-                                                         (re-search-forward comint-input-ring-prefix
-                                                                            nil t))
-                                                       (match-end 0))
-                                                   (progn
-                                                     (goto-char (point-min))
-                                                     (if (looking-at comint-input-ring-prefix)
-                                                         (progn
+    (defvar ffap-url-at-point)
+    (use-package comint
+      :ensure nil
+      :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
+             (comint-mode . (lambda () (toggle-truncate-lines 1))))
+      :preface
+      (autoload 'comint-write-input-ring "comint")
+      (autoload 'comint-read-input-ring "comint")
+      (autoload 'comint-send-invisible "comint")
+      (defun turn-on-comint-history (history-file)
+        (setq comint-input-ring-file-name history-file)
+        (comint-read-input-ring 'silent))
+      (defun save-history ()
+        (dolist (buffer (buffer-list))
+          (with-current-buffer buffer
+            (comint-write-input-ring))))
+      :config
+      (advice-add 'comint-read-input-ring
+                  :override (lambda (&optional silent)
+                              (cond ((or (null comint-input-ring-file-name)
+                                         (equal comint-input-ring-file-name ""))
+                                     nil)
+                                    ((not (file-readable-p comint-input-ring-file-name))
+                                     (or silent
+                                         (message "Cannot read history file %s"
+                                                  comint-input-ring-file-name)))
+                                    (t
+                                     (let* ((file comint-input-ring-file-name)
+                                            (count 0)
+                                            ;; Some users set HISTSIZE or `comint-input-ring-size'
+                                            ;; to huge numbers.  Don't allocate a huge ring right
+                                            ;; away; there might not be that much history.
+                                            (ring-size (min 1500 comint-input-ring-size))
+                                            (ring (make-ring ring-size)))
+                                       (with-temp-buffer
+                                         (insert-file-contents file)
+                                         ;; Save restriction in case file is already visited...
+                                         ;; Watch for those date stamps in history files!
+                                         (goto-char (point-max))
+                                         (let (start end history)
+                                           (while (and (< count comint-input-ring-size)
+                                                       (re-search-backward comint-input-ring-separator
+                                                                           nil t)
+                                                       (setq end (match-beginning 0)))
+                                             (setq start
+                                                   (if (re-search-backward comint-input-ring-separator
+                                                                           nil t)
+                                                       (progn
+                                                         (when (looking-at (concat comint-input-ring-separator
+                                                                                   comint-input-ring-prefix))
+                                                           ;; Skip zsh extended_history stamps
                                                            (re-search-forward comint-input-ring-prefix
-                                                                              nil t)
-                                                           (match-end 0))
-                                                       (point-min)))))
-                                           (setq history (buffer-substring start end))
-                                           (goto-char start)
-                                           (when (and (not (string-match comint-input-history-ignore
-                                                                         history))
-                                                      (or (null comint-input-ignoredups)
-                                                          (ring-empty-p ring)
-                                                          (not (string-equal (ring-ref ring 0)
-                                                                             history))))
-                                             (when (= count ring-size)
-                                               (ring-extend ring (min (- comint-input-ring-size ring-size)
-                                                                      ring-size))
-                                               (setq ring-size (ring-size ring)))
-                                             (ring-insert-at-beginning ring history)
-                                             (setq count (1+ count))))))
-                                     (setq comint-input-ring ring
-                                           comint-input-ring-index nil)))))))
+                                                                              nil t))
+                                                         (match-end 0))
+                                                     (progn
+                                                       (goto-char (point-min))
+                                                       (if (looking-at comint-input-ring-prefix)
+                                                           (progn
+                                                             (re-search-forward comint-input-ring-prefix
+                                                                                nil t)
+                                                             (match-end 0))
+                                                         (point-min)))))
+                                             (setq history (buffer-substring start end))
+                                             (goto-char start)
+                                             (when (and (not (string-match comint-input-history-ignore
+                                                                           history))
+                                                        (or (null comint-input-ignoredups)
+                                                            (ring-empty-p ring)
+                                                            (not (string-equal (ring-ref ring 0)
+                                                                               history))))
+                                               (when (= count ring-size)
+                                                 (ring-extend ring (min (- comint-input-ring-size ring-size)
+                                                                        ring-size))
+                                                 (setq ring-size (ring-size ring)))
+                                               (ring-insert-at-beginning ring history)
+                                               (setq count (1+ count))))))
+                                       (setq comint-input-ring ring
+                                             comint-input-ring-index nil)))))))
 
-(use-package comint-hyperlink
-  :ensure nil
-  :commands (comint-hyperlink-process-output)
-  :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
+    (use-package comint-hyperlink
+      :ensure nil
+      :commands (comint-hyperlink-process-output)
+      :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -2459,6 +2684,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
+    :disabled
     :bind ("C-c t" . vterm)
     :config
     (define-key vterm-mode-map (kbd "C-q") #'vterm-send-next-key)
@@ -2527,10 +2753,10 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-    (use-package lsp-haskell
-      :hook ((haskell-mode . lsp-deferred)
-             (haskell-literate-mode . lsp-deferred))
-      :custom (lsp-haskell-diagnostics-on-change nil))
+  (use-package lsp-haskell
+    ;; :hook ((haskell-mode . lsp-deferred)
+    ;;        (haskell-literate-mode . lsp-deferred))
+    :custom (lsp-haskell-diagnostics-on-change nil))
 #+END_SRC
 
 **** CSV
@@ -2628,14 +2854,12 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
                 ("C-c `" . haskell-interactive-bring)
                 ("C-c C-t" . haskell-process-do-type)
                 ("C-c C-i" . haskell-process-do-info)
-                ("C-c C-c" . haskell-process-cabal-build)
                 ("C-c C-k" . haskell-interactive-mode-clear)
                 ("C-c c" . haskell-process-cabal)
                 ;; ("M-." . haskell-mode-jump-to-def)
                 :map haskell-cabal-mode-map
                 ("C-`" . haskell-interactive-bring)
                 ("C-c C-k" . haskell-interactive-mode-clear)
-                ("C-c C-c" . haskell-process-cabal-build)
                 ("C-c c" . haskell-process-cabal))
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
@@ -2647,15 +2871,18 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 **** JavaScript
 
 #+BEGIN_SRC emacs-lisp
-  (use-package js-mode
-    :ensure nil
-    :mode (("\\.es6\\'" . js-mode)
-           ("\\.ejs\\'" . js-mode)
-           ("\\.ts\\'" . js-mode)
-           ("\\.tsx\\'" . js-mode)
-           ("\\.jshintrc$"    . js-json-mode)
-           ("\\.json_schema$" . js-json-mode))
-    :interpreter "node")
+    (use-package typescript-ts-mode
+      :ensure nil
+      :mode (("\\.ts\\'" . typescript-ts-mode)
+             ("\\.tsx\\'" . typescript-ts-mode)))
+
+    (use-package js-mode
+      :ensure nil
+      :mode (("\\.es6\\'" . js-mode)
+             ("\\.ejs\\'" . js-mode)
+             ("\\.jshintrc$"    . js-json-mode)
+             ("\\.json_schema$" . js-json-mode))
+      :interpreter "node")
 #+END_SRC
 
 **** LaTeX
@@ -2732,6 +2959,7 @@ macho-mode to toggle then M-x hexl-mode.
 ***** nix-update
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
+  :disabled
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** OCaml
@@ -3097,9 +3325,29 @@ https://github.com/cbowdon/daemons.el
 **** ripgrep
 
 #+BEGIN_SRC emacs-lisp
-(use-package ripgrep
-  :config
-  (setq ripgrep-highlight-search nil))
+  (use-package ripgrep
+    :disabled
+    :config
+    (setq ripgrep-highlight-search nil))
+#+END_SRC
+
+**** rg
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rg
+    :disabled
+    :commands (rg))
+#+END_SRC
+
+**** xterm-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package xterm-color
+    :init
+    (defun advice-compilation-filter (f proc string)
+      (funcall f proc (xterm-color-filter string)))
+    (advice-add 'compilation-filter :around #'advice-compilation-filter)
+    )
 #+END_SRC
 
 ** END
@@ -4141,6 +4389,10 @@ Source the profile.
       echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
   fi
 
+  if ! [ -f "$HOME/.bash_profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bash_profile"; then
+      echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bash_profile"
+  fi
+
   echo To use bauer correctly, you must first source the profile.
   echo
   echo To do this, just run:
@@ -4315,9 +4567,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (pkgs'.emacsGit.overrideAttrs (o: {
-    CFLAGS = "-DMAC_OS_X_VERSION_MAX_ALLOWED=110200";
-  }));
+  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -5379,7 +5629,7 @@ allow overriding your current =$HOME= files.
 # mode: org
 # bug-reference-url-format: "https://github.com/matthewbauer/bauer/issues/%s"
 # coding: utf-8
-# compile-command: "nix-build"
+# compile-command: "nix build"
 # fill-column: 80
 # sentence-end-double-space: nil
 # indent-tabs-mode: nil

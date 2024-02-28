@@ -75,6 +75,10 @@ if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/e
     echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bashrc"
 fi
 
+if ! [ -f "$HOME/.bash_profile" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bash_profile"; then
+    echo '[ -f "$HOME/.nix-profile/etc/profile" ] && source "$HOME/.nix-profile/etc/profile"' >> "$HOME/.bash_profile"
+fi
+
 echo To use bauer correctly, you must first source the profile.
 echo
 echo To do this, just run:
