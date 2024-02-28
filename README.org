@@ -103,6 +103,30 @@ git clone https://github.com/matthewbauer/bauer \
           ~/.emacs.d
 #+END_SRC
 
+** Note on macOS
+
+*** Disabling AppNap
+
+Recent versions of macOS have a "feature" called AppNap that causes unfocused
+apps to sleep in the background. This often results in things like compilation
+taking forever because it only does any work while focused. We almost never want
+Emacs to suspend on its own, so it’s important to disable this.
+
+Luckily, it’s not very hard to do this. From the terminal, run:
+
+#+BEGIN_SRC shell
+  defaults write org.gnu.Emacs NSAppSleepDisabled -bool YES
+  defaults write emacs NSAppSleepDisabled -bool YES
+#+END_SRC
+
+I’ve seen some of the org.gnu.Emacs form posted online. However, if you start
+Emacs from the command line, the second one is necessary since this is how Apple
+will identify the binary.
+
+This is totally optional. If this doesn’t both you, feel free to leave it, and
+it will probably slightly improve your energy usage, since it can suspend Emacs
+when unfocused.
+
 * Emacs init file
 :PROPERTIES:
 :header-args: :tangle yes :comments link
