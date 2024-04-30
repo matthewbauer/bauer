@@ -296,6 +296,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | compilation-ask-about-save                    | nil                        |
 | compilation-scroll-output                     | 'first-error               |
 | compilation-skip-threshold                    | 2                          |
+| compilation-context-lines                     | t                          |
 | completions-cycle-threshold                   | t                          |
 | completions-detailed                          | t                          |
 | completions-format                            | 'vertical                  |
@@ -1022,6 +1023,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package company
+    :disabled
     :delight
     :defer 1
     :custom (company-require-match nil)
@@ -1037,8 +1039,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
             comint-previous-matching-input-from-input
             comint-next-matching-input-from-input
             completion-at-point))
-    :custom (company-backends '(company-elisp
-                         company-css
+    :custom (company-backends '(company-css
                          company-cmake
                          company-nxml
                          (company-capf
@@ -2848,48 +2849,53 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 **** Haskell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package haskell-mode
-    :custom (haskell-compile-cabal-build-command "cabal new-build")
-    :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
-    :mode (("\\.cabal\\'" . haskell-cabal-mode))
-    :hook ((haskell-mode . subword-mode)
-           ;; (haskell-mode . flyspell-prog-mode)
-           ;; (haskell-mode . haskell-indentation-mode)
-           ;; (haskell-mode . haskell-auto-insert-module-template)
-           ;; (haskell-mode . haskell-decl-scan-mode)
-           ;; (haskell-mode . turn-on-haskell-indent)
-           ;; (haskell-mode . imenu-add-menubar-index)
-           ;; (haskell-mode .
-           ;;          (lambda ()
-           ;;            (autoload 'haskell-doc-current-info
-           ;;              "haskell-doc")
-           ;;            (setq-local eldoc-documentation-function
-           ;;                        'haskell-doc-current-info)))
-           (haskell-mode . (lambda () (whitespace-mode -1)))
-           )
+    (use-package haskell-mode
+      :custom (haskell-compile-cabal-build-command "cabal new-build")
+      :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
+      :mode (("\\.cabal\\'" . haskell-cabal-mode))
+      :hook ((haskell-mode . subword-mode)
+             ;; (haskell-mode . flyspell-prog-mode)
+             ;; (haskell-mode . haskell-indentation-mode)
+             ;; (haskell-mode . haskell-auto-insert-module-template)
+             ;; (haskell-mode . haskell-decl-scan-mode)
+             ;; (haskell-mode . turn-on-haskell-indent)
+             ;; (haskell-mode . imenu-add-menubar-index)
+             ;; (haskell-mode .
+             ;;          (lambda ()
+             ;;            (autoload 'haskell-doc-current-info
+             ;;              "haskell-doc")
+             ;;            (setq-local eldoc-documentation-function
+             ;;                        'haskell-doc-current-info)))
+             (haskell-mode . (lambda () (whitespace-mode -1)))
+             (compilation-start . (lambda (proc)
+                                    (when (file-exists-p (expand-file-name "cabal.project" compilation-directory))
+                                      (setq-local compilation-error-regexp-alist haskell-compilation-error-regexp-alist)
+                                      (add-hook 'compilation-filter-hook 'haskell-compilation-filter-hook nil t))))
+             )
 
-    :functions xref-push-marker-stack
-    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
-                                     haskell-mode-handle-generic-loc)
-    :bind (:map haskell-mode-map
-                ("C-c h" . haskell-hoogle)
-                ("C-c C-." . haskell-navigate-imports)
-                ("C-`" . haskell-interactive-bring)
-                ("C-c `" . haskell-interactive-bring)
-                ("C-c C-t" . haskell-process-do-type)
-                ("C-c C-i" . haskell-process-do-info)
-                ("C-c C-k" . haskell-interactive-mode-clear)
-                ("C-c c" . haskell-process-cabal)
-                ;; ("M-." . haskell-mode-jump-to-def)
-                :map haskell-cabal-mode-map
-                ("C-`" . haskell-interactive-bring)
-                ("C-c C-k" . haskell-interactive-mode-clear)
-                ("C-c c" . haskell-process-cabal))
-    :init
-    (add-to-list 'completion-ignored-extensions ".hi")
-    :config
-    ;; (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
-    )
+      :functions xref-push-marker-stack
+      :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
+                                       haskell-mode-handle-generic-loc)
+      :bind (:map haskell-mode-map
+                  ("C-c h" . haskell-hoogle)
+                  ("C-c C-." . haskell-navigate-imports)
+                  ("C-`" . haskell-interactive-bring)
+                  ("C-c `" . haskell-interactive-bring)
+                  ("C-c C-t" . haskell-process-do-type)
+                  ("C-c C-i" . haskell-process-do-info)
+                  ("C-c C-k" . haskell-interactive-mode-clear)
+                  ("C-c c" . haskell-process-cabal)
+                  ;; ("M-." . haskell-mode-jump-to-def)
+                  :map haskell-cabal-mode-map
+                  ("C-`" . haskell-interactive-bring)
+                  ("C-c C-k" . haskell-interactive-mode-clear)
+                  ("C-c c" . haskell-process-cabal))
+      :init
+      (add-to-list 'completion-ignored-extensions ".hi")
+      (require 'haskell-compile)
+      :config
+      ;; (setq flymake-allowed-file-name-masks (delete '("\\.l?hs\\'" haskell-flymake-init) flymake-allowed-file-name-masks))
+      )
 #+END_SRC
 
 **** JavaScript
@@ -4442,14 +4448,14 @@ Cross-platform script to execute the app. Uses =open= on macOS to get the
 graphical version of Emacs.
 
 #+BEGIN_SRC shell :padline no
-case $(uname) in
-    Darwin)
-        open @emacs@/Applications/Emacs.app
-    ;;
-    *)
-        @emacs@/bin/emacs
-    ;;
-esac
+  case $(uname) in
+      # Darwin)
+      #     open @emacs@/Applications/Emacs.app
+      # ;;
+      ,*)
+          @emacs@/bin/emacs
+      ;;
+  esac
 #+END_SRC
 * Building
 :PROPERTIES:
