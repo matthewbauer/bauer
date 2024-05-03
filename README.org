@@ -268,141 +268,143 @@ The format of arguments to =set-defaults= is identical to the one used by
 =custom-set-variables=.
 
 #+NAME: defaults
-| Default Variable                              | Default Value              |
-|-----------------------------------------------+----------------------------|
-| TeX-auto-save                                 | t                          |
-| TeX-auto-untabify                             | t                          |
-| TeX-electric-escape                           | t                          |
-| TeX-parse-self                                | t                          |
-| ad-redefinition-action                        | 'accept                    |
-| apropos-do-all                                | t                          |
-| async-shell-command-buffer                    | 'new-buffer                |
-| auth-source-save-behavior                     | t                          |
-| auto-revert-check-vc-info                     | t                          |
-| auto-revert-interval                          | 2                          |
-| auto-revert-verbose                           | nil                        |
-| backward-delete-char-untabify-method          | 'hungry                    |
-| bidi-inhibit-bpa                              | t                          |
-| bidi-paragraph-direction                      | 'left-to-right             |
-| bookmark-save-flag                            | 1                          |
-| checkdoc-spellcheck-documentation-flag        | t                          |
-| comint-input-ignoredups                       | t                          |
-| comint-move-point-for-matching-input          | 'end-of-line               |
-| comint-move-point-for-output                  | 'all                       |
-| comint-process-echoes                         | t                          |
-| comint-prompt-read-only                       | t                          |
-| comint-scroll-to-bottom-on-input              | 'this                      |
-| compilation-always-kill                       | t                          |
-| compilation-ask-about-save                    | nil                        |
-| compilation-scroll-output                     | 'first-error               |
-| compilation-skip-threshold                    | 2                          |
-| compilation-context-lines                     | t                          |
-| completions-cycle-threshold                   | t                          |
-| completions-detailed                          | t                          |
-| completions-format                            | 'vertical                  |
-| cursor-in-non-selected-windows                | nil                        |
-| custom-safe-themes                            | t                          |
-| custom-search-field                           | nil                        |
-| delete-by-moving-to-trash                     | t                          |
-| delete-old-versions                           | t                          |
-| dired-dwim-target                             | t                          |
-| dired-hide-details-hide-symlink-targets       | nil                        |
-| dired-omit-verbose                            | nil                        |
-| dired-recursive-copies                        | 'top                       |
-| dired-recursive-deletes                       | 'top                       |
-| dtrt-indent-verbosity                         | 0                          |
-| ediff-window-setup-function                   | 'ediff-setup-windows-plain |
-| eldoc-idle-delay                              | 0.4                        |
-| eshell-bad-command-tolerance                  | 1                          |
-| eshell-cmpl-autolist                          | t                          |
-| eshell-cmpl-cycle-completions                 | nil                        |
-| eshell-cmpl-cycle-cutoff-length               | 2                          |
-| eshell-cmpl-ignore-case                       | t                          |
-| eshell-cp-overwrite-files                     | nil                        |
-| eshell-default-target-is-dot                  | t                          |
-| eshell-destroy-buffer-when-process-dies       | t                          |
-| eshell-hist-ignoredups                        | t                          |
-| eshell-list-files-after-cd                    | t                          |
-| eshell-review-quick-commands                  | t                          |
-| eshell-save-history-on-exit                   | t                          |
-| eshell-scroll-show-maximum-output             | nil                        |
-| eshell-stringify                              | nil                        |
-| eshell-visual-options                         | nil                        |
-| eval-expression-print-level                   | nil                        |
-| flymake-no-changes-timeout                    | nil                        |
-| flymake-start-syntax-check-on-newline         | nil                        |
-| flyspell-highlight-properties                 | nil                        |
-| flyspell-issue-welcome-flag                   | nil                        |
-| frame-inhibit-implied-resize                  | t                          |
-| help-window-select                            | t                          |
-| history-delete-duplicates                     | t                          |
-| ibuffer-default-display-maybe-show-predicates | t                          |
-| ibuffer-expert                                | t                          |
-| ibuffer-show-empty-filter-groups              | nil                        |
-| ibuffer-shrink-to-minimum-size                | t                          |
-| ibuffer-use-other-window                      | t                          |
-| imenu-auto-rescan                             | t                          |
-| indent-tabs-mode                              | nil                        |
-| indicate-buffer-boundaries                    | 'left                      |
-| indicate-empty-lines                          | t                          |
-| ispell-quietly                                | t                          |
-| ispell-silently-savep                         | t                          |
-| kill-do-not-save-duplicates                   | t                          |
-| kill-whole-line                               | t                          |
-| line-spacing                                  | 0.1                        |
-| load-prefer-newer                             | t                          |
-| mac-allow-anti-aliasing                       | t                          |
-| mac-command-key-is-meta                       | t                          |
-| mac-command-modifier                          | 'meta                      |
-| mac-option-key-is-meta                        | nil                        |
-| mac-option-modifier                           | 'super                     |
-| mac-right-option-modifier                     | nil                        |
-| mode-line-default-help-echo                   | nil                        |
-| next-error-recenter                           | t                          |
-| ns-function-modifier                          | 'hyper                     |
-| ns-pop-up-frames                              | nil                        |
-| nsm-save-host-names                           | t                          |
-| nxml-sexp-element-flag                        | t                          |
-| nxml-slash-auto-complete-flag                 | t                          |
-| pixel-scroll-precision-mode                   | t                          |
-| require-final-newline                         | t                          |
-| resize-mini-windows                           | t                          |
-| revert-without-query                          | '(".")                     |
-| ruby-insert-encoding-magic-comment            | nil                        |
-| save-abbrevs                                  | 'silently                  |
-| save-interprogram-paste-before-kill           | t                          |
-| scroll-conservatively                         | 101                        |
-| scroll-preserve-screen-position               | 'always                    |
-| sentence-end-double-space                     | nil                        |
-| set-mark-command-repeat-pop                   | t                          |
-| sh-learn-basic-offset                         | t                          |
-| shell-completion-execonly                     | nil                        |
-| shell-input-autoexpand                        | nil                        |
-| show-trailing-whitespace                      | t                          |
-| sp-autoskip-closing-pair                      | 'always                    |
-| sp-highlight-pair-overlay                     | nil                        |
-| switch-to-buffer-in-dedicated-window          | 'pop                       |
-| switch-to-buffer-obey-display-actions         | t                          |
-| tab-always-indent                             | 'complete                  |
-| term-input-autoexpand                         | t                          |
-| term-input-ignoredups                         | t                          |
-| text-quoting-style                            | 'quote                     |
-| tls-checktrust                                | t                          |
-| undo-limit                                    | 80000000                   |
-| undo-outer-limit                              | 120000000                  |
-| undo-strong-limit                             | 12000000                   |
-| uniquify-buffer-name-style                    | 'forward                   |
-| use-package-always-defer                      | t                          |
-| vc-allow-async-revert                         | t                          |
-| vc-command-messages                           | t                          |
-| vc-make-backup-files                          | t                          |
-| version-control                               | t                          |
-| view-inhibit-help-message                     | t                          |
-| view-read-only                                | t                          |
-| whitespace-line-column                        | 120                        |
-| window-combination-resize                     | t                          |
-| woman-imenu                                   | t                          |
-| x-stretch-cursor                              | t                          |
+| Default Variable                              | Default Value                         |
+|-----------------------------------------------+---------------------------------------|
+| TeX-auto-save                                 | t                                     |
+| TeX-auto-untabify                             | t                                     |
+| TeX-electric-escape                           | t                                     |
+| TeX-parse-self                                | t                                     |
+| ad-redefinition-action                        | 'accept                               |
+| apropos-do-all                                | t                                     |
+| async-shell-command-buffer                    | 'new-buffer                           |
+| auth-source-save-behavior                     | t                                     |
+| auto-revert-check-vc-info                     | t                                     |
+| auto-revert-interval                          | 2                                     |
+| auto-revert-verbose                           | nil                                   |
+| backward-delete-char-untabify-method          | 'hungry                               |
+| bidi-inhibit-bpa                              | t                                     |
+| bidi-paragraph-direction                      | 'left-to-right                        |
+| bookmark-save-flag                            | 1                                     |
+| checkdoc-spellcheck-documentation-flag        | t                                     |
+| comint-input-ignoredups                       | t                                     |
+| comint-move-point-for-matching-input          | 'end-of-line                          |
+| comint-move-point-for-output                  | 'all                                  |
+| comint-process-echoes                         | t                                     |
+| comint-prompt-read-only                       | t                                     |
+| comint-scroll-to-bottom-on-input              | 'this                                 |
+| compilation-always-kill                       | t                                     |
+| compilation-ask-about-save                    | nil                                   |
+| compilation-scroll-output                     | 'first-error                          |
+| compilation-skip-threshold                    | 2                                     |
+| compilation-context-lines                     | t                                     |
+| completions-cycle-threshold                   | t                                     |
+| completions-detailed                          | t                                     |
+| completions-format                            | 'vertical                             |
+| cursor-in-non-selected-windows                | nil                                   |
+| custom-safe-themes                            | t                                     |
+| custom-search-field                           | nil                                   |
+| delete-by-moving-to-trash                     | t                                     |
+| delete-old-versions                           | t                                     |
+| dired-dwim-target                             | t                                     |
+| dired-hide-details-hide-symlink-targets       | nil                                   |
+| dired-omit-verbose                            | nil                                   |
+| dired-recursive-copies                        | 'top                                  |
+| dired-recursive-deletes                       | 'top                                  |
+| dtrt-indent-verbosity                         | 0                                     |
+| ediff-window-setup-function                   | 'ediff-setup-windows-plain            |
+| eldoc-idle-delay                              | 0.4                                   |
+| eshell-bad-command-tolerance                  | 1                                     |
+| eshell-cmpl-autolist                          | t                                     |
+| eshell-cmpl-cycle-completions                 | nil                                   |
+| eshell-cmpl-cycle-cutoff-length               | 2                                     |
+| eshell-cmpl-ignore-case                       | t                                     |
+| eshell-cp-overwrite-files                     | nil                                   |
+| eshell-default-target-is-dot                  | t                                     |
+| eshell-destroy-buffer-when-process-dies       | t                                     |
+| eshell-hist-ignoredups                        | t                                     |
+| eshell-list-files-after-cd                    | t                                     |
+| eshell-review-quick-commands                  | t                                     |
+| eshell-save-history-on-exit                   | t                                     |
+| eshell-scroll-show-maximum-output             | nil                                   |
+| eshell-stringify                              | nil                                   |
+| eshell-visual-options                         | nil                                   |
+| eval-expression-print-level                   | nil                                   |
+| flymake-no-changes-timeout                    | nil                                   |
+| flymake-start-syntax-check-on-newline         | nil                                   |
+| flyspell-highlight-properties                 | nil                                   |
+| flyspell-issue-welcome-flag                   | nil                                   |
+| frame-inhibit-implied-resize                  | t                                     |
+| help-window-select                            | t                                     |
+| history-delete-duplicates                     | t                                     |
+| ibuffer-default-display-maybe-show-predicates | t                                     |
+| ibuffer-expert                                | t                                     |
+| ibuffer-show-empty-filter-groups              | nil                                   |
+| ibuffer-shrink-to-minimum-size                | t                                     |
+| ibuffer-use-other-window                      | t                                     |
+| imenu-auto-rescan                             | t                                     |
+| indent-tabs-mode                              | nil                                   |
+| indicate-buffer-boundaries                    | 'left                                 |
+| indicate-empty-lines                          | t                                     |
+| ispell-quietly                                | t                                     |
+| ispell-silently-savep                         | t                                     |
+| kill-do-not-save-duplicates                   | t                                     |
+| kill-whole-line                               | t                                     |
+| line-spacing                                  | 0.1                                   |
+| load-prefer-newer                             | t                                     |
+| mac-allow-anti-aliasing                       | t                                     |
+| mac-command-key-is-meta                       | t                                     |
+| mac-command-modifier                          | 'meta                                 |
+| mac-option-key-is-meta                        | nil                                   |
+| mac-option-modifier                           | 'super                                |
+| mac-right-option-modifier                     | nil                                   |
+| mode-line-default-help-echo                   | nil                                   |
+| next-error-recenter                           | t                                     |
+| ns-function-modifier                          | 'hyper                                |
+| ns-pop-up-frames                              | nil                                   |
+| nsm-save-host-names                           | t                                     |
+| nxml-sexp-element-flag                        | t                                     |
+| nxml-slash-auto-complete-flag                 | t                                     |
+| require-final-newline                         | t                                     |
+| resize-mini-windows                           | t                                     |
+| revert-without-query                          | '(".")                                |
+| ruby-insert-encoding-magic-comment            | nil                                   |
+| save-abbrevs                                  | 'silently                             |
+| save-interprogram-paste-before-kill           | t                                     |
+| scroll-conservatively                         | 101                                   |
+| scroll-preserve-screen-position               | 'always                               |
+| sentence-end-double-space                     | nil                                   |
+| set-mark-command-repeat-pop                   | t                                     |
+| sh-learn-basic-offset                         | t                                     |
+| shell-completion-execonly                     | nil                                   |
+| shell-input-autoexpand                        | nil                                   |
+| show-trailing-whitespace                      | t                                     |
+| sp-autoskip-closing-pair                      | 'always                               |
+| sp-highlight-pair-overlay                     | nil                                   |
+| switch-to-buffer-in-dedicated-window          | 'pop                                  |
+| switch-to-buffer-obey-display-actions         | t                                     |
+| tab-always-indent                             | 'complete                             |
+| term-input-autoexpand                         | t                                     |
+| term-input-ignoredups                         | t                                     |
+| text-quoting-style                            | 'quote                                |
+| tls-checktrust                                | t                                     |
+| undo-limit                                    | 80000000                              |
+| undo-outer-limit                              | 120000000                             |
+| undo-strong-limit                             | 12000000                              |
+| uniquify-buffer-name-style                    | 'forward                              |
+| use-package-always-defer                      | t                                     |
+| vc-allow-async-revert                         | t                                     |
+| vc-command-messages                           | t                                     |
+| vc-make-backup-files                          | t                                     |
+| version-control                               | t                                     |
+| view-inhibit-help-message                     | t                                     |
+| view-read-only                                | t                                     |
+| whitespace-line-column                        | 120                                   |
+| window-combination-resize                     | t                                     |
+| woman-imenu                                   | t                                     |
+| x-stretch-cursor                              | t                                     |
+| read-extended-command-predicate               | 'command-completion-default-include-p |
+| enable-recursive-minibuffers                  | t                                     |
+| read-buffer-completion-ignore-case            | t                                     |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -1092,10 +1094,11 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 ***** consult
 
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package orderless
-  ;;   :custom
-  ;;   (completion-styles '(orderless basic))
-  ;;   (completion-category-overrides '((file (styles basic partial-completion)))))
+  (use-package orderless
+    :custom
+    (completion-styles '(substring orderless basic))
+    (completion-category-defaults nil)
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 
   ;; (use-package icomplete-vertical
   ;;   :demand
@@ -1119,18 +1122,6 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     :init
     (vertico-mode)
 
-    ;; Different scroll margin
-    ;; (setq vertico-scroll-margin 0)
-
-    ;; Show more candidates
-    ;; (setq vertico-count 20)
-
-    ;; Grow and shrink the Vertico minibuffer
-    ;; (setq vertico-resize t)
-
-    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-    ;; (setq vertico-cycle t)
-
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
                     (replace-regexp-in-string
@@ -1142,17 +1133,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
     ;; Do not allow the cursor in the minibuffer prompt
-    (setq minibuffer-prompt-properties
-          '(read-only t cursor-intangible t face minibuffer-prompt))
     (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-    ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-    ;; Vertico commands are hidden in normal buffers.
-    ;; (setq read-extended-command-predicate
-    ;;       #'command-completion-default-include-p)
-
-    ;; Enable recursive minibuffers
-    (setq enable-recursive-minibuffers t)
     )
 
   ;; (use-package embark
@@ -1883,20 +1864,6 @@ function.
 These are available automatically, so these =use-package= blocks just
 configure them.
 
-**** ansi-color
-
-Get color/ansi codes in compilation mode.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ansi-color
-    :hook (compilation-filter . colorize-compilation-buffer)
-    :preface
-    (autoload 'ansi-color-apply-on-region "ansi-color")
-    (defun colorize-compilation-buffer ()
-      (let ((inhibit-read-only t))
-        (ansi-color-apply-on-region (point-min) (point-max)))))
-#+END_SRC
-
 **** autorevert
 
 Autorevert mode makes files update when they have changed on disk. Unfortunately
@@ -2048,13 +2015,7 @@ Base mode used for shell and terminal modes.
         (if compile-buf
             (switch-to-buffer-other-window compile-buf)
           (call-interactively 'compile))))
-
-    (defun compilation-ansi-color-process-output ()
-      (ansi-color-process-output nil)
-      (set (make-local-variable 'comint-last-output-start)
-           (point-marker)))
-    :hook (compilation-filter .
-           compilation-ansi-color-process-output))
+    :hook ((compilation-mode . visual-line-mode)))
 #+END_SRC
 
 **** conf-mode
@@ -3237,7 +3198,6 @@ https://github.com/cbowdon/daemons.el
     :delight
     :hook ((doc-mode
             emacs-lisp-mode
-            compilation-mode
             outline-mode
             prog-mode
             haskell-mode
