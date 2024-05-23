@@ -1906,93 +1906,93 @@ Provides links to bugs listed in source code.
 Base mode used for shell and terminal modes.
 
 #+BEGIN_SRC emacs-lisp
-    (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
-      "Possible prefix that may come before history elements. In
-        Zshell with extended_history, this is useful.")
+  (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
+    "Possible prefix that may come before history elements. In
+      Zshell with extended_history, this is useful.")
 
-    (defvar ffap-url-at-point)
-    (use-package comint
-      :ensure nil
-      :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
-             (comint-mode . (lambda () (toggle-truncate-lines 1))))
-      :preface
-      (autoload 'comint-write-input-ring "comint")
-      (autoload 'comint-read-input-ring "comint")
-      (autoload 'comint-send-invisible "comint")
-      (defun turn-on-comint-history (history-file)
-        (setq comint-input-ring-file-name history-file)
-        (comint-read-input-ring 'silent))
-      (defun save-history ()
-        (dolist (buffer (buffer-list))
-          (with-current-buffer buffer
-            (comint-write-input-ring))))
-      :config
-      (advice-add 'comint-read-input-ring
-                  :override (lambda (&optional silent)
-                              (cond ((or (null comint-input-ring-file-name)
-                                         (equal comint-input-ring-file-name ""))
-                                     nil)
-                                    ((not (file-readable-p comint-input-ring-file-name))
-                                     (or silent
-                                         (message "Cannot read history file %s"
-                                                  comint-input-ring-file-name)))
-                                    (t
-                                     (let* ((file comint-input-ring-file-name)
-                                            (count 0)
-                                            ;; Some users set HISTSIZE or `comint-input-ring-size'
-                                            ;; to huge numbers.  Don't allocate a huge ring right
-                                            ;; away; there might not be that much history.
-                                            (ring-size (min 1500 comint-input-ring-size))
-                                            (ring (make-ring ring-size)))
-                                       (with-temp-buffer
-                                         (insert-file-contents file)
-                                         ;; Save restriction in case file is already visited...
-                                         ;; Watch for those date stamps in history files!
-                                         (goto-char (point-max))
-                                         (let (start end history)
-                                           (while (and (< count comint-input-ring-size)
-                                                       (re-search-backward comint-input-ring-separator
-                                                                           nil t)
-                                                       (setq end (match-beginning 0)))
-                                             (setq start
-                                                   (if (re-search-backward comint-input-ring-separator
-                                                                           nil t)
-                                                       (progn
-                                                         (when (looking-at (concat comint-input-ring-separator
-                                                                                   comint-input-ring-prefix))
-                                                           ;; Skip zsh extended_history stamps
-                                                           (re-search-forward comint-input-ring-prefix
-                                                                              nil t))
-                                                         (match-end 0))
+  (defvar ffap-url-at-point)
+  (use-package comint
+    :ensure nil
+    :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
+           (comint-mode . (lambda () (toggle-truncate-lines 1))))
+    :preface
+    (autoload 'comint-write-input-ring "comint")
+    (autoload 'comint-read-input-ring "comint")
+    (autoload 'comint-send-invisible "comint")
+    (defun turn-on-comint-history (history-file)
+      (setq comint-input-ring-file-name history-file)
+      (comint-read-input-ring 'silent))
+    (defun save-history ()
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (comint-write-input-ring))))
+    :config
+    (advice-add 'comint-read-input-ring
+                :override (lambda (&optional silent)
+                            (cond ((or (null comint-input-ring-file-name)
+                                       (equal comint-input-ring-file-name ""))
+                                   nil)
+                                  ((not (file-readable-p comint-input-ring-file-name))
+                                   (or silent
+                                       (message "Cannot read history file %s"
+                                                comint-input-ring-file-name)))
+                                  (t
+                                   (let* ((file comint-input-ring-file-name)
+                                          (count 0)
+                                          ;; Some users set HISTSIZE or `comint-input-ring-size'
+                                          ;; to huge numbers.  Don't allocate a huge ring right
+                                          ;; away; there might not be that much history.
+                                          (ring-size (min 1500 comint-input-ring-size))
+                                          (ring (make-ring ring-size)))
+                                     (with-temp-buffer
+                                       (insert-file-contents file)
+                                       ;; Save restriction in case file is already visited...
+                                       ;; Watch for those date stamps in history files!
+                                       (goto-char (point-max))
+                                       (let (start end history)
+                                         (while (and (< count comint-input-ring-size)
+                                                     (re-search-backward comint-input-ring-separator
+                                                                         nil t)
+                                                     (setq end (match-beginning 0)))
+                                           (setq start
+                                                 (if (re-search-backward comint-input-ring-separator
+                                                                         nil t)
                                                      (progn
-                                                       (goto-char (point-min))
-                                                       (if (looking-at comint-input-ring-prefix)
-                                                           (progn
-                                                             (re-search-forward comint-input-ring-prefix
-                                                                                nil t)
-                                                             (match-end 0))
-                                                         (point-min)))))
-                                             (setq history (buffer-substring start end))
-                                             (goto-char start)
-                                             (when (and (not (string-match comint-input-history-ignore
-                                                                           history))
-                                                        (or (null comint-input-ignoredups)
-                                                            (ring-empty-p ring)
-                                                            (not (string-equal (ring-ref ring 0)
-                                                                               history))))
-                                               (when (= count ring-size)
-                                                 (ring-extend ring (min (- comint-input-ring-size ring-size)
-                                                                        ring-size))
-                                                 (setq ring-size (ring-size ring)))
-                                               (ring-insert-at-beginning ring history)
-                                               (setq count (1+ count))))))
-                                       (setq comint-input-ring ring
-                                             comint-input-ring-index nil)))))))
+                                                       (when (looking-at (concat comint-input-ring-separator
+                                                                                 comint-input-ring-prefix))
+                                                         ;; Skip zsh extended_history stamps
+                                                         (re-search-forward comint-input-ring-prefix
+                                                                            nil t))
+                                                       (match-end 0))
+                                                   (progn
+                                                     (goto-char (point-min))
+                                                     (if (looking-at comint-input-ring-prefix)
+                                                         (progn
+                                                           (re-search-forward comint-input-ring-prefix
+                                                                              nil t)
+                                                           (match-end 0))
+                                                       (point-min)))))
+                                           (setq history (buffer-substring start end))
+                                           (goto-char start)
+                                           (when (and (not (string-match comint-input-history-ignore
+                                                                         history))
+                                                      (or (null comint-input-ignoredups)
+                                                          (ring-empty-p ring)
+                                                          (not (string-equal (ring-ref ring 0)
+                                                                             history))))
+                                             (when (= count ring-size)
+                                               (ring-extend ring (min (- comint-input-ring-size ring-size)
+                                                                      ring-size))
+                                               (setq ring-size (ring-size ring)))
+                                             (ring-insert-at-beginning ring history)
+                                             (setq count (1+ count))))))
+                                     (setq comint-input-ring ring
+                                           comint-input-ring-index nil)))))))
 
-    (use-package comint-hyperlink
-      :ensure nil
-      :commands (comint-hyperlink-process-output)
-      :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
+  (use-package comint-hyperlink
+    :ensure nil
+    :commands (comint-hyperlink-process-output)
+    :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -2014,8 +2014,7 @@ Base mode used for shell and terminal modes.
                      (throw 'found buf))))))
         (if compile-buf
             (switch-to-buffer-other-window compile-buf)
-          (call-interactively 'compile))))
-    :hook ((compilation-mode . visual-line-mode)))
+          (call-interactively 'compile)))))
 #+END_SRC
 
 **** conf-mode
@@ -4557,7 +4556,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
+  in pkgs'.emacsPackagesFor pkgs'.emacs;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -5593,9 +5592,10 @@ allow overriding your current =$HOME= files.
       else
           cp "$f" "$DEST"
       fi
-      if [ "$f" = .authinfo ]; then
-          chmod 600 "$DEST"
-      fi
+      case "$f" of
+           .authinfo) chmod 600 "$DEST" ;;
+           "Library/LaunchAgents/"*) launchctl load -w "$HOME/$f" ;;
+      esac
   done
 #+END_SRC
 
