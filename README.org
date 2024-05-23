@@ -1008,6 +1008,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 
 #+BEGIN_SRC emacs-lisp
   (use-package aggressive-indent
+    :disabled
     :hook ((emacs-lisp-mode
             inferior-emacs-lisp-mode
             ielm-mode
@@ -1095,6 +1096,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
+    :disabled
     :custom
     (completion-styles '(substring orderless basic))
     (completion-category-defaults nil)
@@ -1119,6 +1121,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   ;;               ("C-v" . icomplete-vertical-toggle)))
 
   (use-package vertico
+    :disabled
     :init
     (vertico-mode)
 
@@ -1169,7 +1172,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
   ;;   (embark-collect-mode . consult-preview-at-point-mode))
 
   (use-package consult
-    ;; Replace bindings. Lazily loaded due by `use-package'.
+    :disabled    ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c M-x" . consult-mode-command)
            ("C-c h" . consult-history)
@@ -1273,6 +1276,7 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     )
 
   (use-package marginalia
+    :disabled
     ;; Either bind `marginalia-cycle' globally or only in the minibuffer
     :bind (("M-A" . marginalia-cycle)
            :map minibuffer-local-map
@@ -1697,6 +1701,7 @@ Smartparens is helpful in closing parenthesis when editing Lisp code.
 
 #+BEGIN_SRC emacs-lisp
   (use-package smartparens
+    :disabled
     :preface
     (autoload 'sp-local-pair "smartparens")
     (autoload 'sp-local-tag  "smartparens")
@@ -1851,6 +1856,7 @@ function.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
+    :disabled
     :demand
     :custom (which-key-lighter "")
     :custom (which-key-idle-delay 0.4)
@@ -2302,10 +2308,10 @@ Make scripts executable automatically.
 ***** mouse
 
 #+BEGIN_SRC emacs-lisp
-      (use-package mouse
-        :ensure nil
-        :hook ((text-mode . context-menu-mode)
-               (prog-mode . context-menu-mode)))
+(use-package mouse
+  :ensure nil
+  :hook ((text-mode . context-menu-mode)
+         (prog-mode . context-menu-mode)))
 #+END_SRC
 
 **** paren
@@ -2680,6 +2686,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-func
+    :disabled
     :demand
     :config (which-function-mode))
 #+END_SRC
@@ -3148,11 +3155,6 @@ https://github.com/cbowdon/daemons.el
   (use-package htmlize :no-require)
 #+END_SRC
 
-**** idle-highlight-mode
-#+BEGIN_SRC emacs-lisp
-(use-package idle-highlight-mode
-  :hook (prog-mode . idle-highlight-mode))
-#+END_SRC
 **** ibuffer-vc
 
 #+BEGIN_SRC emacs-lisp
