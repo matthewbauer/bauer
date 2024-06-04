@@ -281,6 +281,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | auto-revert-check-vc-info                     | t                                     |
 | auto-revert-interval                          | 2                                     |
 | auto-revert-verbose                           | nil                                   |
+| global-auto-revert-non-file-buffers           | t                                     |
+| auto-revert-avoid-polling                     | t                                     |
 | backward-delete-char-untabify-method          | 'hungry                               |
 | bidi-inhibit-bpa                              | t                                     |
 | bidi-paragraph-direction                      | 'left-to-right                        |
@@ -405,6 +407,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | read-extended-command-predicate               | 'command-completion-default-include-p |
 | enable-recursive-minibuffers                  | t                                     |
 | read-buffer-completion-ignore-case            | t                                     |
+| jit-lock-chunk-size                           | 4096                                  |
+| jit-lock-defer-time                           | 0.05                                  |
+| jit-lock-stealth-time                         | 1.25                                  |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -1096,33 +1101,15 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
-    :disabled
     :custom
     (completion-styles '(substring orderless basic))
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles basic partial-completion)))))
 
-  ;; (use-package icomplete-vertical
-  ;;   :demand
-  ;;   :custom
-  ;;   (completion-styles '(partial-completion substring))
-  ;;   (completion-category-overrides '((file (styles basic substring))))
-  ;;   (read-file-name-completion-ignore-case t)
-  ;;   (read-buffer-completion-ignore-case t)
-  ;;   (completion-ignore-case t)
-  ;;   :config
-  ;;   (icomplete-mode)
-  ;;   (icomplete-vertical-mode)
-  ;;   :bind (:map icomplete-minibuffer-map
-  ;;               ("<down>" . icomplete-forward-completions)
-  ;;               ("C-n" . icomplete-forward-completions)
-  ;;               ("<up>" . icomplete-backward-completions)
-  ;;               ("C-p" . icomplete-backward-completions)
-  ;;               ("C-v" . icomplete-vertical-toggle)))
-
   (use-package vertico
-    :disabled
-    :init
+    :hook (minibuffer-setup . cursor-intangible-mode)
+    :demand
+    :config
     (vertico-mode)
 
     (defun crm-indicator (args)
@@ -1134,69 +1121,34 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
             (cdr args)))
 
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-
-    ;; Do not allow the cursor in the minibuffer prompt
-    (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
     )
 
-  ;; (use-package embark
-  ;;   :ensure t
-
-  ;;   :bind
-  ;;   (("C-." . embark-act)         ;; pick some comfortable binding
-  ;;    ("C-;" . embark-dwim)        ;; good alternative: M-.
-  ;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-  ;;   :init
-
-  ;;   ;; Optionally replace the key help with a completing-read interface
-  ;;   (setq prefix-help-command #'embark-prefix-help-command)
-
-  ;;   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;;   ;; strategy, if you want to see the documentation from multiple providers.
-  ;;   ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;;   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-
-  ;;   :config
-
-  ;;   ;; Hide the mode line of the Embark live/completions buffers
-  ;;   (add-to-list 'display-buffer-alist
-  ;;                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-  ;;                  nil
-  ;;                  (window-parameters (mode-line-format . none)))))
-
-  ;; Consult users will also want the embark-consult package.
-  ;; (use-package embark-consult
-  ;;   :ensure t ; only need to install it, embark loads it after consult if found
-  ;;   :hook
-  ;;   (embark-collect-mode . consult-preview-at-point-mode))
-
   (use-package consult
-    :disabled    ;; Replace bindings. Lazily loaded due by `use-package'.
+    ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c M-x" . consult-mode-command)
            ("C-c h" . consult-history)
            ("C-c k" . consult-kmacro)
-           ("C-c m" . consult-man)
+           ;; ("C-c m" . consult-man)
            ("C-c i" . consult-info)
            ([remap Info-search] . consult-info)
            ;; C-x bindings (ctl-x-map)
-           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+           ([remap repeat-complex-command] . consult-complex-command)
+           ([remap switch-to-buffer] . consult-buffer)
+           ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+           ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+           ([remap bookmark-jump] . consult-bookmark)
+           ([remap project-switch-to-buffer] . consult-project-buffer)
            ;; Custom M-# bindings for fast register access
            ("M-#" . consult-register-load)
            ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
            ("C-M-#" . consult-register)
            ;; Other custom bindings
-           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+           ([remap yank-pop] . consult-yank-pop)
            ;; M-g bindings (goto-map)
            ("M-g e" . consult-compile-error)
            ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
            ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
            ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
            ("M-g m" . consult-mark)
@@ -1232,62 +1184,24 @@ Company provides completions in Emacs. Activate them by pressing =C-M-i=.
     ;; The :init configuration is always executed (Not lazy)
     :init
 
-    ;; Optionally configure the register formatting. This improves the register
-    ;; preview for `consult-register', `consult-register-load',
-    ;; `consult-register-store' and the Emacs built-ins.
     (setq register-preview-delay 0.5
           register-preview-function #'consult-register-format)
 
-    ;; Optionally tweak the register preview window.
-    ;; This adds thin lines, sorting and hides the mode line of the window.
     (advice-add #'register-preview :override #'consult-register-window)
 
-    ;; Use Consult to select xref locations with preview
     ;; (setq xref-show-xrefs-function #'consult-xref
     ;;       xref-show-definitions-function #'consult-xref)
 
-    ;; Configure other variables and modes in the :config section,
-    ;; after lazily loading the package.
     :config
 
-    ;; Optionally configure preview. The default value
-    ;; is 'any, such that any key triggers the preview.
-    ;; (setq consult-preview-key 'any)
-    ;; (setq consult-preview-key "M-.")
-    ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-    ;; For some commands and buffer sources it is useful to configure the
-    ;; :preview-key on a per-command basis using the `consult-customize' macro.
     (consult-customize
      consult-theme :preview-key '(:debounce 0.2 any)
      consult-ripgrep consult-git-grep consult-grep
      consult-bookmark consult-recent-file consult-xref
      consult--source-bookmark consult--source-file-register
      consult--source-recent-file consult--source-project-recent-file
-     ;; :preview-key "M-."
      :preview-key '(:debounce 0.4 any))
-
-    ;; Optionally configure the narrowing key.
-    ;; Both < and C-+ work reasonably well.
-    (setq consult-narrow-key "<") ;; "C-+"
-
-    ;; Optionally make narrowing help available in the minibuffer.
-    ;; You may want to use `embark-prefix-help-command' or which-key instead.
-    ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
     )
-
-  (use-package marginalia
-    :disabled
-    ;; Either bind `marginalia-cycle' globally or only in the minibuffer
-    :bind (("M-A" . marginalia-cycle)
-           :map minibuffer-local-map
-           ("M-A" . marginalia-cycle))
-
-    ;; The :init configuration is always executed (Not lazy!)
-    :init
-
-    ;; Must be in the :init section of use-package such that the mode gets
-    ;; enabled right away. Note that this forces loading the package.
-    (marginalia-mode))
 #+END_SRC
 
 ***** ivy
@@ -1406,6 +1320,20 @@ Gnus is an infamous email client & news reader.
 #+BEGIN_SRC emacs-lisp
   (use-package gnus
     :hook ((dired-mode . turn-on-gnus-dired-mode)))
+#+END_SRC
+
+**** GCMH
+
+#+BEGIN_SRC emacs-lisp
+  (use-package gcmh
+    :delight
+    :demand
+    :config
+    (gcmh-mode 1)
+    :custom
+    (gcmh-idle-delay 'auto)
+    (gcmh-auto-idle-delay-factor 10)
+    (gcmh-high-cons-threshold (* 16 1024 1024)))
 #+END_SRC
 
 **** God Mode
@@ -1624,9 +1552,10 @@ outliner but also much much more.
                          (setq-local eldoc-documentation-function
                                      'org-eldoc-documentation-function))))
     :config
-    (org-babel-do-load-languages 'org-babel-load-languages
-                                 '((sql . t)
-                                   (shell . t))))
+    ;; (org-babel-do-load-languages 'org-babel-load-languages
+    ;;                              '((sql . t)
+    ;;                                (shell . t)))
+    )
   (use-package org-download
     :hook (dired-mode . org-download-enable))
   (use-package org-present)
@@ -1856,7 +1785,6 @@ function.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
-    :disabled
     :demand
     :custom (which-key-lighter "")
     :custom (which-key-idle-delay 0.4)
@@ -1881,20 +1809,20 @@ investigate how to fix this.
     :demand
     :config (global-auto-revert-mode t))
 
-  (require 'vc-git)
-  (advice-add 'vc-git-find-file-hook :override
-    (lambda ()
-      "Activate `smerge-mode' if there is a conflict."
-      (when (and buffer-file-name
-                 (eq (vc-state buffer-file-name 'Git) 'conflict)
-                 (save-excursion
-                   (goto-char (point-min))
-                   (re-search-forward "^<<<<<<< " nil 'noerror)))
-        (unless (and (boundp 'smerge-mode) smerge-mode)
-          (smerge-start-session))
-        (when vc-git-resolve-conflicts
-          (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
-        (vc-message-unresolved-conflicts buffer-file-name))))
+  ;; (require 'vc-git)
+  ;; (advice-add 'vc-git-find-file-hook :override
+  ;;   (lambda ()
+  ;;     "Activate `smerge-mode' if there is a conflict."
+  ;;     (when (and buffer-file-name
+  ;;                (eq (vc-state buffer-file-name 'Git) 'conflict)
+  ;;                (save-excursion
+  ;;                  (goto-char (point-min))
+  ;;                  (re-search-forward "^<<<<<<< " nil 'noerror)))
+  ;;       (unless (and (boundp 'smerge-mode) smerge-mode)
+  ;;         (smerge-start-session))
+  ;;       (when vc-git-resolve-conflicts
+  ;;         (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
+  ;;       (vc-message-unresolved-conflicts buffer-file-name))))
 #+END_SRC
 
 **** bug-reference
@@ -2686,7 +2614,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-func
-    :disabled
     :demand
     :config (which-function-mode))
 #+END_SRC
@@ -4558,7 +4485,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor pkgs'.emacs;
+  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
