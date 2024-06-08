@@ -278,11 +278,10 @@ The format of arguments to =set-defaults= is identical to the one used by
 | apropos-do-all                                | t                                     |
 | async-shell-command-buffer                    | 'new-buffer                           |
 | auth-source-save-behavior                     | t                                     |
+| auto-revert-avoid-polling                     | t                                     |
 | auto-revert-check-vc-info                     | t                                     |
 | auto-revert-interval                          | 2                                     |
 | auto-revert-verbose                           | nil                                   |
-| global-auto-revert-non-file-buffers           | t                                     |
-| auto-revert-avoid-polling                     | t                                     |
 | backward-delete-char-untabify-method          | 'hungry                               |
 | bidi-inhibit-bpa                              | t                                     |
 | bidi-paragraph-direction                      | 'left-to-right                        |
@@ -296,9 +295,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | comint-scroll-to-bottom-on-input              | 'this                                 |
 | compilation-always-kill                       | t                                     |
 | compilation-ask-about-save                    | nil                                   |
+| compilation-context-lines                     | t                                     |
 | compilation-scroll-output                     | 'first-error                          |
 | compilation-skip-threshold                    | 2                                     |
-| compilation-context-lines                     | t                                     |
 | completions-cycle-threshold                   | t                                     |
 | completions-detailed                          | t                                     |
 | completions-format                            | 'vertical                             |
@@ -315,6 +314,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | dtrt-indent-verbosity                         | 0                                     |
 | ediff-window-setup-function                   | 'ediff-setup-windows-plain            |
 | eldoc-idle-delay                              | 0.4                                   |
+| enable-recursive-minibuffers                  | t                                     |
 | eshell-bad-command-tolerance                  | 1                                     |
 | eshell-cmpl-autolist                          | t                                     |
 | eshell-cmpl-cycle-completions                 | nil                                   |
@@ -349,6 +349,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | indicate-empty-lines                          | t                                     |
 | ispell-quietly                                | t                                     |
 | ispell-silently-savep                         | t                                     |
+| jit-lock-chunk-size                           | 4096                                  |
+| jit-lock-defer-time                           | 0.05                                  |
+| jit-lock-stealth-time                         | 1.25                                  |
 | kill-do-not-save-duplicates                   | t                                     |
 | kill-whole-line                               | t                                     |
 | line-spacing                                  | 0.1                                   |
@@ -366,6 +369,8 @@ The format of arguments to =set-defaults= is identical to the one used by
 | nsm-save-host-names                           | t                                     |
 | nxml-sexp-element-flag                        | t                                     |
 | nxml-slash-auto-complete-flag                 | t                                     |
+| read-buffer-completion-ignore-case            | t                                     |
+| read-extended-command-predicate               | 'command-completion-default-include-p |
 | require-final-newline                         | t                                     |
 | resize-mini-windows                           | t                                     |
 | revert-without-query                          | '(".")                                |
@@ -404,12 +409,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | window-combination-resize                     | t                                     |
 | woman-imenu                                   | t                                     |
 | x-stretch-cursor                              | t                                     |
-| read-extended-command-predicate               | 'command-completion-default-include-p |
-| enable-recursive-minibuffers                  | t                                     |
-| read-buffer-completion-ignore-case            | t                                     |
-| jit-lock-chunk-size                           | 4096                                  |
-| jit-lock-defer-time                           | 0.05                                  |
-| jit-lock-stealth-time                         | 1.25                                  |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -1008,6 +1007,8 @@ These are the best & most useful modes available to us in Emacs world.
 
 ***** consult
 
+[[https://github.com/minad/consult][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
     :custom
@@ -1111,6 +1112,9 @@ These are the best & most useful modes available to us in Emacs world.
 #+END_SRC
 
 **** envrc
+
+[[https://github.com/purcell/envrc][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   ;; envrc must come late in the init.el file so add-hook adds it first
   ;; in `find-file-hook'.
@@ -1124,6 +1128,7 @@ These are the best & most useful modes available to us in Emacs world.
     :config
     (envrc-global-mode))
 #+END_SRC
+
 **** dtrt-indent
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
@@ -1213,6 +1218,8 @@ Gnus is an infamous email client & news reader.
 
 **** GCMH
 
+[[https://github.com/emacsmirror/gcmh][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package gcmh
     :delight
@@ -1223,23 +1230,6 @@ Gnus is an infamous email client & news reader.
     (gcmh-idle-delay 'auto)
     (gcmh-auto-idle-delay-factor 10)
     (gcmh-high-cons-threshold (* 16 1024 1024)))
-#+END_SRC
-
-**** Hippie Expand
-
-Hippie provides dynamic expansions. Try it out by pressing =M-/=.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package hippie-exp
-    :bind* (("M-/" . hippie-expand)
-            ("s-?" . hippie-expand-line))
-    :hook ((emacs-lisp-mode ielm-mode) .
-           (lambda ()
-             (setq-local
-              hippie-expand-try-functions-list
-              (append '(try-complete-lisp-symbol-partially
-                        try-complete-lisp-symbol)
-               hippie-expand-try-functions-list)))))
 #+END_SRC
 
 **** Magit
@@ -1315,7 +1305,8 @@ MMM mode lets you edit multiple languages within one buffer.
 #+END_SRC
 
 **** multiple-cursors
-[[https://github.com/magnars/multiple-cursors.el][GitHub]]
+[[https://github.com/magnars/multiple-cursors.el][
+GitHub]]
 
 Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
 
@@ -1497,7 +1488,9 @@ instance spacemacs-theme can be enabled:
 
 **** which-key
 
-Which-key will tell you what key bindings are available give a prefix. Test it
+[[https://github.com/justbur/emacs-which-key][GitHub]]
+
+which-key will tell you what key bindings are available give a prefix. Test it
 out by pressing =C-x= & waiting a few seconds. Each key listed is bound to a
 function.
 
@@ -2335,6 +2328,8 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 **** CSV
 
+[[https://elpa.gnu.org/packages/csv-mode.html][ELPA]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
     :hook ((csv-mode . (lambda () (visual-line-mode -1)))
@@ -2343,6 +2338,8 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+END_SRC
 
 **** ELF
+
+[[https://oremacs.com/2016/08/28/elf-mode/][Website]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package elf-mode
@@ -2391,11 +2388,15 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 **** git-modes
 
+[[https://github.com/magit/git-modes][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package git-modes)
 #+END_SRC
 
 **** Haskell
+
+[[https://github.com/haskell/haskell-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
     (use-package haskell-mode
@@ -2503,6 +2504,8 @@ macho-mode to toggle then M-x hexl-mode.
 
 **** Markdown
 
+[[https://jblevins.org/projects/markdown-mode/][Website]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
     :mode (("README\\.md\\'" . gfm-mode)))
@@ -2511,6 +2514,9 @@ macho-mode to toggle then M-x hexl-mode.
 **** Nix
 
 ***** nix-mode
+
+[[https://github.com/NixOS/nix-mode][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package nix-mode)
 #+END_SRC
@@ -2532,6 +2538,8 @@ macho-mode to toggle then M-x hexl-mode.
   :bind (("C-. u" . nix-update-fetch)))
 #+END_SRC
 **** OCaml
+
+[[https://github.com/ocaml/tuareg][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package tuareg
@@ -2576,15 +2584,9 @@ macho-mode to toggle then M-x hexl-mode.
     :if (not needs-package-init))
 #+END_SRC
 
-**** restclient
-
-#+BEGIN_SRC emacs-lisp
-  (use-package restclient
-    :mode (("\\.rest\\'" . restclient-mode)
-           ("\\.restclient\\'" . restclient-mode)))
-#+END_SRC
-
 **** Scala
+
+[[https://github.com/hvesalai/emacs-scala-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package scala-mode
@@ -2607,11 +2609,16 @@ macho-mode to toggle then M-x hexl-mode.
 #+END_SRC
 
 **** Terraform
+
+[[https://github.com/hcl-emacs/terraform-mode][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package terraform-mode)
 #+END_SRC
 
 **** YAML
+
+[[https://github.com/yoshiki/yaml-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package yaml-mode)
@@ -2644,16 +2651,24 @@ more helpful than others but none are /essential/.
 Most of these are available in MELPA.
 
 **** browse-at-remote
+
+[[https://github.com/rmuslimov/browse-at-remote][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package browse-at-remote
     :bind ("C-c g g" . browse-at-remote))
 #+END_SRC
+
 **** browse-kill-ring
+
+[[https://github.com/T-J-Teru/browse-kill-ring][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package browse-kill-ring)
 #+END_SRC
 
 **** buffer-move
+
 [[https://github.com/lukhas/buffer-move][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
@@ -2667,6 +2682,8 @@ Most of these are available in MELPA.
 
 **** copy-as-format
 
+[[https://github.com/sshaw/copy-as-format][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package copy-as-format
     :bind (("C-c w s" . copy-as-format-slack)
@@ -2675,39 +2692,57 @@ Most of these are available in MELPA.
 
 **** daemons
 
-https://github.com/cbowdon/daemons.el
+[[https://github.com/cbowdon/daemons.el][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
 #+END_SRC
 
 **** delight
+
+[[https://elpa.gnu.org/packages/delight.html][ELPA]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package delight)
 #+END_SRC
+
 **** dired-rsync
+
+[[https://github.com/stsquad/dired-rsync][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
 (use-package dired-rsync
   :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
 #+END_SRC
+
 **** emacs-gif-screencast
+
+[[https://gitlab.com/ambrevar/emacs-gif-screencast][GitLab]]
+
 #+BEGIN_SRC emacs-lisp
 (use-package gif-screencast
   :bind ("<f9>". gif-screencast-start-or-stop))
 #+END_SRC
+
 **** git-attr
+
 #+BEGIN_SRC emacs-lisp
 (use-package git-attr-linguist
   :ensure git-attr
   :hook (find-file . git-attr-linguist))
 #+END_SRC
+
 **** htmlize
+
+[[https://github.com/hniksic/emacs-htmlize][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package htmlize :no-require)
 #+END_SRC
 
 **** ibuffer-vc
+
+[[https://github.com/purcell/ibuffer-vc][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer-vc
@@ -2717,12 +2752,18 @@ https://github.com/cbowdon/daemons.el
                         (unless (eq ibuffer-sorting-mode 'alphabetic)
                           (ibuffer-do-sort-by-alphabetic))))))
 #+END_SRC
+
 **** keycast
+
+[[https://github.com/tarsius/keycast][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
 (use-package keycast)
 #+END_SRC
+
 **** ledger-mode
+
+[[https://github.com/ledger/ledger-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package ledger-mode
@@ -2741,10 +2782,16 @@ https://github.com/cbowdon/daemons.el
 #+END_SRC
 
 **** org-static-blog
+
+[[https://github.com/bastibe/org-static-blog][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package org-static-blog)
 #+END_SRC
+
 **** page-break-lines
+
+[[https://github.com/purcell/page-break-lines][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package page-break-lines
@@ -2760,6 +2807,8 @@ https://github.com/cbowdon/daemons.el
 
 **** pandoc-mode
 
+[[https://github.com/joostkremers/pandoc-mode][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package pandoc-mode
     :hook ((markdown-mode . pandoc-mode)
@@ -2767,6 +2816,8 @@ https://github.com/cbowdon/daemons.el
 #+END_SRC
 
 **** rainbow-delimiters
+
+[[https://github.com/Fanael/rainbow-delimiters][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
@@ -2781,11 +2832,15 @@ https://github.com/cbowdon/daemons.el
 
 **** bats-mode
 
+[[https://github.com/dougm/bats-mode][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package bats-mode)
 #+END_SRC
 
 **** rainbow-mode
+
+[[https://elpa.gnu.org/packages/rainbow-mode.html][ELPA]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-mode
@@ -2803,12 +2858,16 @@ https://github.com/cbowdon/daemons.el
 
 **** shrink-whitespace
 
+[[https://github.com/jcpetkovich/shrink-whitespace.el][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package shrink-whitespace
     :bind ("H-SPC" . shrink-whitespace))
 #+END_SRC
 
 **** string-inflection
+
+[[https://github.com/akicho8/string-inflection][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package string-inflection
@@ -2821,20 +2880,32 @@ https://github.com/cbowdon/daemons.el
 #+END_SRC
 
 **** systemd
+
+[[https://github.com/holomorph/systemd-mode][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
 (use-package systemd)
 #+END_SRC
+
 **** undo-tree
+
+[[https://elpa.gnu.org/packages/undo-tree.html][ELPA]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :demand
     :config (global-undo-tree-mode))
 #+END_SRC
+
 **** unfill
+
+[[https://github.com/purcell/unfill][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
-(use-package unfill
-  :bind ([remap fill-paragraph] . unfill-toggle))
+  (use-package unfill
+    :bind ([remap fill-paragraph] . unfill-toggle))
 #+END_SRC
+
 **** url-util
 
 #+BEGIN_SRC emacs-lisp
@@ -2862,6 +2933,8 @@ https://github.com/cbowdon/daemons.el
 
 **** xterm-mode
 
+[[https://github.com/atomontage/xterm-color][GitHub]]
+
 #+BEGIN_SRC emacs-lisp
   (use-package xterm-color
     :init
@@ -2872,9 +2945,11 @@ https://github.com/cbowdon/daemons.el
 #+END_SRC
 
 ** END
+
 #+BEGIN_SRC emacs-lisp
   (provide 'default)
 #+END_SRC
+
 * Profiles
 :PROPERTIES:
 :CUSTOM_ID: profiles
