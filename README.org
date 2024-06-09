@@ -1009,6 +1009,8 @@ These are the best & most useful modes available to us in Emacs world.
 
 [[https://github.com/minad/consult][GitHub]]
 
+A better version of ‘completing-read’ that is isn’t as heavy duty as company.
+
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
     :custom
@@ -1112,8 +1114,12 @@ These are the best & most useful modes available to us in Emacs world.
 #+END_SRC
 
 **** envrc
+[[https://github.com/purcell/envrc][
+GitHub]]
 
-[[https://github.com/purcell/envrc][GitHub]]
+Envrc is able to execute a project’s .envrc file for you automatically.
+Unfortunately, it doesn’t support asynchronous updates yet, so this can
+occasionally block Emacs.
 
 #+BEGIN_SRC emacs-lisp
   ;; envrc must come late in the init.el file so add-hook adds it first
@@ -1133,7 +1139,7 @@ These are the best & most useful modes available to us in Emacs world.
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
 
-This mode will try to
+This mode will try to detect your indentation.
 
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
@@ -1143,7 +1149,7 @@ This mode will try to
 
 **** Emacs shell
 
-Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
+Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
@@ -1175,6 +1181,8 @@ Emacs shell provides . Run eshell by typing =C-c e= or =M-x eshell=.
 #+END_SRC
 
 ***** esh-help
+
+Setup eldoc integration.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
@@ -1219,6 +1227,8 @@ Gnus is an infamous email client & news reader.
 **** GCMH
 
 [[https://github.com/emacsmirror/gcmh][GitHub]]
+
+Intelligently adjust Emacs garbage collection size.
 
 #+BEGIN_SRC emacs-lisp
   (use-package gcmh
@@ -1284,12 +1294,14 @@ Magit forge.
 #+END_SRC
 
 ***** git-commit
+
 #+BEGIN_SRC emacs-lisp
   (use-package git-commit
     :hook ((git-commit-mode . flyspell-mode)
            (git-commit-mode . git-commit-save-message)
            (git-commit-mode . turn-on-auto-fill)))
 #+END_SRC
+
 **** MMM Mode
 
 [[https://github.com/purcell/mmm-mode][GitHub]]
@@ -1480,7 +1492,10 @@ instance spacemacs-theme can be enabled:
 #+END_SRC
 
 **** try
+
 [[https://github.com/larstvei/Try][GitHub]]
+
+Try out packages without installing them.
 
 #+BEGIN_SRC emacs-lisp
   (use-package try)
@@ -2305,10 +2320,13 @@ Make scripts executable automatically.
 #+END_SRC
 **** whitespace
 
+Show whitespace
+
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
+
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
