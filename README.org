@@ -808,8 +808,6 @@ better navigations.
 | s-o             | other-window                    |
 | ESC o           | other-window                    |
 | s-1             | other-frame                     |
-| M-+             | text-scale-increase             |
-| M-_             | text-scale-decrease             |
 | C-c m b         | eval-buffer                     |
 | C-c m e         | eval-last-sexp                  |
 | C-c m i         | eval-expression                 |
@@ -3483,7 +3481,7 @@ iTerm2
 #+BEGIN_SRC shell
 if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ] && [[ -o interactive ]]; then
   iterm2_before_cmd_executes() {
-    printf '\e]133;C;\a'
+    printf '\e]133;C;\r\a'
   }
   iterm2_print_state_data() {
     printf '\e]1337;RemoteHost=%s@%s\a' "${USER-$LOGNAME}" "${HOST-}"
@@ -3497,7 +3495,7 @@ if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "
   precmd_functions+=(iterm2_after_cmd_executes)
   preexec_functions+=(iterm2_before_cmd_executes)
   iterm2_print_state_data
-  printf '\e]1337;ShellIntegrationVersion=11;shell=zsh\a'
+  printf '\e]1337;ShellIntegrationVersion=14;shell=zsh\a'
 fi
 #+END_SRC
 
@@ -3840,20 +3838,6 @@ Set some defaults that depend on the path variables below,
              " -i --no-heading --line-number %s ."))
    '(counsel-ag-base-command
      (concat ag-executable " --nocolor --nogroup %s"))
-   '(org-preview-latex-process-alist
-     `((dvipng
-        :programs ("latex" "dvipng")
-            :description "dvi > png"
-            :message ""
-            :image-input-type "dvi"
-            :image-output-type "png"
-            :image-size-adjust (1.0 . 1.0)
-            :latex-compiler
-        (,(concat LaTeX-command
-           " -interaction nonstopmode -output-directory %o %f"))
-            :image-converter
-        (,(concat dvipng-command
-           " -fg %F -bg %B -D %D -T tight -o %O %f")))))
    '(Info-directory-list '("@infopages@/share/info"))
    '(tramp-remote-path
      `(tramp-own-remote-path
