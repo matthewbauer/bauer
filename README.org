@@ -1003,7 +1003,7 @@ resort, go to one of the package group headings & type =C-c ^ a=.
 
 These are the best & most useful modes available to us in Emacs world.
 
-***** consult
+**** consult
 
 [[https://github.com/minad/consult][GitHub]]
 
@@ -1120,9 +1120,12 @@ Unfortunately, it doesn’t support asynchronous updates yet, so this can
 occasionally block Emacs.
 
 #+BEGIN_SRC emacs-lisp
+  (use-package inheritenv)
+
   ;; envrc must come late in the init.el file so add-hook adds it first
   ;; in `find-file-hook'.
   (use-package envrc
+    :ensure nil
     :bind (
            :package project
            :map project-prefix-map
@@ -1342,7 +1345,7 @@ outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    :ensure org-contrib
+    ;; :ensure org-contrib
     :custom (org-latex-listings-langs
              '((emacs-lisp "Lisp")
                (lisp "Lisp")
@@ -2095,7 +2098,6 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package so-long
-    :ensure nil
     :if (>= emacs-major-version 27)
     :demand
     :config (global-so-long-mode 1))
@@ -2128,8 +2130,7 @@ Make scripts executable automatically.
 
 **** timeclock
 #+BEGIN_SRC emacs-lisp
-  (use-package timeclock
-    :ensure nil)
+  (use-package timeclock)
 
   (require 'timeclock)
 
@@ -2466,7 +2467,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
     (use-package typescript-ts-mode
-      :ensure nil
       :mode (("\\.ts\\'" . typescript-ts-mode)
              ("\\.tsx\\'" . typescript-ts-mode)))
 
@@ -4306,6 +4306,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/persistent-mode.el
                        "site-lisp/persistent-mode.el"} \
           $out/share/emacs/site-lisp/persistent-mode.el
+  install -D ${ensure ./site-lisp/envrc.el
+                       "site-lisp/envrc.el"} \
+          $out/share/emacs/site-lisp/envrc.el
   '';
 #+END_SRC
 
