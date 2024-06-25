@@ -1,10 +1,6 @@
 # -*- mode: nix; coding: utf-8; -*-
-{ version ? "21.11"
-, channel ? {
-    "x86_64-darwin" = "nixpkgs-unstable";
-  }.${builtins.currentSystem} or "nixos-${version}"
-, nixpkgs-url ?
-  "https://nixos.org/channels/${channel}/nixexprs.tar.xz"
+{ nixpkgs-url ?
+  "https://nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz"
 , system ? builtins.currentSystem
 , crossSystem ? null
 , config ? {}
