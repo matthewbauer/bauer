@@ -137,9 +137,7 @@ e.g. (define-key envrc-mode-map (kbd \"C-c e\") \\='envrc-command-map)"
       (progn
         (envrc--update)
         (when (and (derived-mode-p 'eshell-mode) envrc-update-on-eshell-directory-change)
-          (add-hook 'eshell-directory-change-hook #'envrc--update nil t))
-        (when (derived-mode-p 'compilation-mode)
-          (add-hook 'compilation-mode-hook #'envrc--update nil t)))
+          (add-hook 'eshell-directory-change-hook #'envrc--update nil t)))
     (envrc--clear (current-buffer))
     (remove-hook 'eshell-directory-change-hook #'envrc--update t)))
 
@@ -212,7 +210,8 @@ since its output can vary according to its initial environment."
   "Update the current buffer's environment if it is managed by direnv.
 All envrc.el-managed buffers with this env will have their
 environments updated."
-  (let ((env-dir (envrc--find-env-dir)))
+  (let ((env-dir (envrc--find-env-dir))
+        (buf (current-buffer)))
     (if env-dir
         (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment))))
           (pcase (gethash cache-key envrc--cache 'missing)
@@ -220,9 +219,9 @@ environments updated."
              (envrc--export env-dir
                             (lambda (result)
                               (puthash cache-key result envrc--cache)
-                              (envrc--apply (current-buffer) result))))
-            (cached (envrc--apply (current-buffer) cached))))
-      (envrc--apply (current-buffer) 'none))))
+                              (envrc--apply buf result))))
+            (cached (envrc--apply buf cached))))
+      (envrc--apply buf 'none))))
 
 
 (defmacro envrc--at-end-of-special-buffer (name &rest body)
