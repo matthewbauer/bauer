@@ -4022,9 +4022,9 @@ graphical version of Emacs.
 
 #+BEGIN_SRC shell :padline no
   case $(uname) in
-      # Darwin)
-      #     open @emacs@/Applications/Emacs.app
-      # ;;
+      Darwin)
+          open @emacs@/Applications/Emacs.app
+      ;;
       ,*)
           @emacs@/bin/emacs
       ;;
@@ -4166,7 +4166,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
+  in pkgs'.emacsPackagesFor (if pkgs'.stdenv.hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs-git);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
