@@ -2417,51 +2417,52 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 [[https://github.com/haskell/haskell-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-    (use-package haskell-mode
-      :custom (haskell-compile-cabal-build-command "cabal new-build")
-      :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
-      :mode (("\\.cabal\\'" . haskell-cabal-mode))
-      :hook ((haskell-mode . subword-mode)
-             ;; (haskell-mode . flyspell-prog-mode)
-             ;; (haskell-mode . haskell-indentation-mode)
-             ;; (haskell-mode . haskell-auto-insert-module-template)
-             ;; (haskell-mode . haskell-decl-scan-mode)
-             ;; (haskell-mode . turn-on-haskell-indent)
-             ;; (haskell-mode . imenu-add-menubar-index)
-             ;; (haskell-mode .
-             ;;          (lambda ()
-             ;;            (autoload 'haskell-doc-current-info
-             ;;              "haskell-doc")
-             ;;            (setq-local eldoc-documentation-function
-             ;;                        'haskell-doc-current-info)))
-             (haskell-mode . (lambda () (whitespace-mode -1)))
-             (compilation-start . (lambda (proc)
-                                    (when (file-exists-p (expand-file-name "cabal.project" compilation-directory))
-                                      (setq-local compilation-error-regexp-alist haskell-compilation-error-regexp-alist)
-                                      (add-hook 'compilation-filter-hook 'haskell-compilation-filter-hook nil t))))
-             )
+  (use-package haskell-mode
+    :custom (haskell-compile-cabal-build-command "cabal new-build")
+    :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
+    :mode (("\\.cabal\\'" . haskell-cabal-mode))
+    :hook ((haskell-mode . subword-mode)
+           ;; (haskell-mode . flyspell-prog-mode)
+           ;; (haskell-mode . haskell-indentation-mode)
+           ;; (haskell-mode . haskell-auto-insert-module-template)
+           ;; (haskell-mode . haskell-decl-scan-mode)
+           ;; (haskell-mode . turn-on-haskell-indent)
+           ;; (haskell-mode . imenu-add-menubar-index)
+           ;; (haskell-mode .
+           ;;          (lambda ()
+           ;;            (autoload 'haskell-doc-current-info
+           ;;              "haskell-doc")
+           ;;            (setq-local eldoc-documentation-function
+           ;;                        'haskell-doc-current-info)))
+           (haskell-mode . (lambda () (whitespace-mode -1)))
+           (compilation-start . (lambda (proc)
+                                  (when (or (file-exists-p (expand-file-name "cabal.project" compilation-directory))
+                                            (file-expand-wildcards (expand-file-name "*.cabal" compilation-directory)))
+                                    (setq-local compilation-error-regexp-alist haskell-compilation-error-regexp-alist)
+                                    (add-hook 'compilation-filter-hook 'haskell-compilation-filter-hook nil t))))
+           )
 
-      :functions xref-push-marker-stack
-      :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
-                                       haskell-mode-handle-generic-loc)
-      :bind (:map haskell-mode-map
-                  ("C-c h" . haskell-hoogle)
-                  ("C-c C-." . haskell-navigate-imports)
-                  ("C-`" . haskell-interactive-bring)
-                  ("C-c `" . haskell-interactive-bring)
-                  ("C-c C-t" . haskell-process-do-type)
-                  ("C-c C-i" . haskell-process-do-info)
-                  ("C-c C-k" . haskell-interactive-mode-clear)
-                  ("C-c c" . haskell-process-cabal)
-                  ;; ("M-." . haskell-mode-jump-to-def)
-                  :map haskell-cabal-mode-map
-                  ("C-`" . haskell-interactive-bring)
-                  ("C-c C-k" . haskell-interactive-mode-clear)
-                  ("C-c c" . haskell-process-cabal))
-      :init
-      (add-to-list 'completion-ignored-extensions ".hi")
-      (require 'haskell-compile)
-      )
+    :functions xref-push-marker-stack
+    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
+                                     haskell-mode-handle-generic-loc)
+    :bind (:map haskell-mode-map
+                ("C-c h" . haskell-hoogle)
+                ("C-c C-." . haskell-navigate-imports)
+                ("C-`" . haskell-interactive-bring)
+                ("C-c `" . haskell-interactive-bring)
+                ("C-c C-t" . haskell-process-do-type)
+                ("C-c C-i" . haskell-process-do-info)
+                ("C-c C-k" . haskell-interactive-mode-clear)
+                ("C-c c" . haskell-process-cabal)
+                ;; ("M-." . haskell-mode-jump-to-def)
+                :map haskell-cabal-mode-map
+                ("C-`" . haskell-interactive-bring)
+                ("C-c C-k" . haskell-interactive-mode-clear)
+                ("C-c c" . haskell-process-cabal))
+    :init
+    (add-to-list 'completion-ignored-extensions ".hi")
+    (require 'haskell-compile)
+    )
 #+END_SRC
 
 **** JavaScript
