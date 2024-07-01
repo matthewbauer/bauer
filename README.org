@@ -461,6 +461,8 @@ Misc. defaults that don’t fit above. TODO: move these above.
                                     ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
                                     "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
    '(compilation-environment '("TERM=xterm-256color"))
+   '(compilation-error-regexp-alist
+     '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2 epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom 4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))))
    '(completion-styles '(basic
                          partial-completion
                          emacs22
@@ -2434,13 +2436,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
            ;;              "haskell-doc")
            ;;            (setq-local eldoc-documentation-function
            ;;                        'haskell-doc-current-info)))
-           (haskell-mode . (lambda () (whitespace-mode -1)))
-           (compilation-start . (lambda (proc)
-                                  (when (or (file-exists-p (expand-file-name "cabal.project" compilation-directory))
-                                            (file-expand-wildcards (expand-file-name "*.cabal" compilation-directory)))
-                                    (setq-local compilation-error-regexp-alist haskell-compilation-error-regexp-alist)
-                                    (add-hook 'compilation-filter-hook 'haskell-compilation-filter-hook nil t))))
-           )
+           (haskell-mode . (lambda () (whitespace-mode -1))))
 
     :functions xref-push-marker-stack
     :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
