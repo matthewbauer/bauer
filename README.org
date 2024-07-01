@@ -303,7 +303,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | completions-detailed                          | t                                      |
 | completions-format                            | 'vertical                              |
 | cursor-in-non-selected-windows                | nil                                    |
-| custom-safe-themes                            | t                                      |
 | custom-search-field                           | nil                                    |
 | delete-by-moving-to-trash                     | t                                      |
 | delete-old-versions                           | t                                      |
@@ -410,6 +409,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | window-combination-resize                     | t                                      |
 | woman-imenu                                   | t                                      |
 | x-stretch-cursor                              | t                                      |
+| project-compilation-buffer-name-function      | 'project-prefixed-buffer-name          |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -576,7 +576,12 @@ Misc. defaults that don’t fit above. TODO: move these above.
         (inhibit-same-window)
         (mode vterm-mode vterm-copy-mode)
         (dedicated . t)
-        (window-height . 0.3)))))
+        (window-height . 0.3))))
+   '(compilation-save-buffers-predicate
+     (lambda ()
+       (let ((proj (project-current)))
+         (and proj
+              (memq (current-buffer) (project-buffers proj)))))))
 #+END_SRC
 
 *** Site paths
