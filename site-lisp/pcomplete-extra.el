@@ -6,34 +6,19 @@
 
 (require 'pcomplete)
 
-(defvar cabal-commands '("update" "install" "help"
-			 "info" "list" "fetch" "user-config"
-			 "get" "init" "configure" "build"
-			 "clean" "run" "repl" "test" "bench"
-			 "check" "sdist" "upload" "report"
-			 "freeze" "gen-bounds" "outdated"
-			 "doctest" "haddock" "hscolour"
-			 "copy" "register" "reconfigure" "sandbox"
-			 "exec" "new-build" "new-configure" "new-repl"
-			 "new-run" "new-test" "new-bench" "new-freeze"
-			 "new-haddock"))
-
-(defvar cabal-global-flags '("-h" "--help" "-V" "--version"
-			     "--numeric-version" "--require-sandbox"
-			     "--no-require-sandbox" "--ignore-sandbox"
-			     "--ignore-expiry" "--enable-nix" "--disable-nix"))
-
-(defun cabal--pcomplete-flags ()
-  "Complete flags to the Nix command."
-  (while (pcomplete-match "^-" 0)
-    (pcomplete-here cabal-global-flags)))
-
 ;;;###autoload
 (defun pcomplete/cabal ()
-  "Completions for cabal."
-  (cabal--pcomplete-flags)
-  (pcomplete-here cabal-commands)
-  (cabal--pcomplete-flags))
+  "Completion for `cabal'."
+  (pcomplete-here (pcomplete-from-help "cabal --help" :argument "[[:alnum:]-]+"))
+  (let ((subcmd (pcomplete-arg 1)))
+    (while (pcase subcmd
+             ((guard (string-prefix-p "-" (pcomplete-arg)))
+              (pcomplete-here (pcomplete-from-help (format "cabal %s --help" subcmd))))))))
+
+;;;###autoload
+(defun pcomplete/ghc ()
+  "Completion for `ghc'."
+  (pcomplete-here (process-lines "ghc" "--show-options")))
 
 (provide 'pcomplete-extra)
 ;;; pcomplete-extra.el ends here
