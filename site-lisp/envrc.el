@@ -105,6 +105,10 @@ You can set this to nil to disable the lighter."
   "Lighter spec used by the default `envrc-lighter' when envrc is on."
   :type 'sexp)
 
+(defcustom envrc-updating-lighter '(" envrc[" (:propertize "updating" face envrc-mode-line-updating-face) "]")
+  "Lighter spec used by the default `envrc-lighter' when envrc is updating."
+  :type 'sexp)
+
 (defcustom envrc-error-lighter '(" envrc[" (:propertize "error" face envrc-mode-line-error-face) "]")
   "Lighter spec used by the default `envrc-lighter' when envrc has errored."
   :type 'sexp)
@@ -153,7 +157,10 @@ e.g. (define-key envrc-mode-map (kbd \"C-c e\") \\='envrc-command-map)"
 (defface envrc-mode-line-error-face '((t :inherit error))
   "Face used in mode line to indicate that direnv failed.")
 
-(defface envrc-mode-line-none-face '((t :inherit warning))
+(defface envrc-mode-line-updating-face '((t :inherit warning))
+  "Face used in mode line to indicate that direnv is not active.")
+
+(defface envrc-mode-line-none-face '((t))
   "Face used in mode line to indicate that direnv is not active.")
 
 ;;; Global state
@@ -177,6 +184,7 @@ One of \\='(none on error).")
   "Return a colourised version of `envrc--status' for use in the mode line."
   (pcase envrc--status
     (`on envrc-on-lighter)
+    (`updating envrc-updating-lighter)
     (`error envrc-error-lighter)
     (`none envrc-none-lighter)))
 
@@ -212,6 +220,7 @@ All envrc.el-managed buffers with this env will have their
 environments updated."
   (let ((env-dir (envrc--find-env-dir))
         (buf (current-buffer)))
+    (setq-local envrc--status (if (listp result) 'updating result))
     (if env-dir
         (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment))))
           (pcase (gethash cache-key envrc--cache 'missing)
