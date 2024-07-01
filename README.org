@@ -1006,6 +1006,22 @@ resort, go to one of the package group headings & type =C-c ^ a=.
 
 These are the best & most useful modes available to us in Emacs world.
 
+**** aggressive-indent
+[[https://github.com/Malabarba/aggressive-indent-mode][GitHub]]
+
+Automatically indent code as you type. Only enabled for Lisp currently.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package aggressive-indent
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            isp-interaction-mode
+            slime-repl-mode) . aggressive-indent-mode))
+#+END_SRC
+
 **** consult
 
 [[https://github.com/minad/consult][GitHub]]
