@@ -1472,6 +1472,10 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 #+BEGIN_SRC emacs-lisp
   (use-package apropospriate-theme
     :if window-system
+    :hook ((mac-effective-appearance-change . (lambda ()
+                                                (pcase (plist-get (mac-application-state) :appearance)
+                                                    ("NSAppearanceNameAqua" (load-theme 'apropospriate-light t))
+                                                    ("NSAppearanceNameDarkAqua" (load-theme 'apropospriate-dark t))))))
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
