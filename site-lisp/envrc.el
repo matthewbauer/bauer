@@ -160,7 +160,7 @@ e.g. (define-key envrc-mode-map (kbd \"C-c e\") \\='envrc-command-map)"
 (defface envrc-mode-line-updating-face '((t :inherit warning))
   "Face used in mode line to indicate that direnv is not active.")
 
-(defface envrc-mode-line-none-face '((t))
+(defface envrc-mode-line-none-face '((t :inherit warning))
   "Face used in mode line to indicate that direnv is not active.")
 
 ;;; Global state
@@ -220,7 +220,7 @@ All envrc.el-managed buffers with this env will have their
 environments updated."
   (let ((env-dir (envrc--find-env-dir))
         (buf (current-buffer)))
-    (setq-local envrc--status (if (listp result) 'updating result))
+    (setq-local envrc--status 'updating)
     (if env-dir
         (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment))))
           (pcase (gethash cache-key envrc--cache 'missing)
@@ -285,7 +285,8 @@ Return value is either \\='error, \\='none, or an alist of environment
 variable names and values."
   (unless (envrc--env-dir-p env-dir)
     (error "%s is not a directory with a .envrc" env-dir))
-  (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment))))
+  (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment)))
+       result)
     (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
       (`missing
        (message "Running direnv in %s..." env-dir)
