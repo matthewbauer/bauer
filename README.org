@@ -270,10 +270,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 #+NAME: defaults
 | Default Variable                              | Default Value                          |
 |-----------------------------------------------+----------------------------------------|
-| TeX-auto-save                                 | t                                      |
-| TeX-auto-untabify                             | t                                      |
-| TeX-electric-escape                           | t                                      |
-| TeX-parse-self                                | t                                      |
 | ad-redefinition-action                        | 'accept                                |
 | apropos-do-all                                | t                                      |
 | async-shell-command-buffer                    | 'new-buffer                            |
@@ -282,7 +278,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | auto-revert-check-vc-info                     | t                                      |
 | auto-revert-interval                          | 2                                      |
 | auto-revert-verbose                           | nil                                    |
-| auto-revert-buffer-list-filter                | 'magit-auto-revert-repository-buffer-p |
 | backward-delete-char-untabify-method          | 'hungry                                |
 | bidi-inhibit-bpa                              | t                                      |
 | bidi-paragraph-direction                      | 'left-to-right                         |
@@ -311,25 +306,17 @@ The format of arguments to =set-defaults= is identical to the one used by
 | dired-omit-verbose                            | nil                                    |
 | dired-recursive-copies                        | 'top                                   |
 | dired-recursive-deletes                       | 'top                                   |
-| dtrt-indent-verbosity                         | 0                                      |
 | ediff-window-setup-function                   | 'ediff-setup-windows-plain             |
 | eldoc-idle-delay                              | 0.4                                    |
 | enable-recursive-minibuffers                  | t                                      |
-| eshell-bad-command-tolerance                  | 1                                      |
 | eshell-cmpl-autolist                          | t                                      |
 | eshell-cmpl-cycle-completions                 | nil                                    |
-| eshell-cmpl-cycle-cutoff-length               | 2                                      |
 | eshell-cmpl-ignore-case                       | t                                      |
-| eshell-cp-overwrite-files                     | nil                                    |
 | eshell-default-target-is-dot                  | t                                      |
 | eshell-destroy-buffer-when-process-dies       | t                                      |
-| eshell-hist-ignoredups                        | t                                      |
+| eshell-hist-ignoredups                        | 'erase                                 |
 | eshell-list-files-after-cd                    | t                                      |
 | eshell-review-quick-commands                  | t                                      |
-| eshell-save-history-on-exit                   | t                                      |
-| eshell-scroll-show-maximum-output             | nil                                    |
-| eshell-stringify                              | nil                                    |
-| eshell-visual-options                         | nil                                    |
 | eval-expression-print-level                   | nil                                    |
 | flymake-no-changes-timeout                    | nil                                    |
 | flymake-start-syntax-check-on-newline         | nil                                    |
@@ -347,6 +334,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | indent-tabs-mode                              | nil                                    |
 | indicate-buffer-boundaries                    | 'left                                  |
 | indicate-empty-lines                          | t                                      |
+| isearch-allow-scroll                          | 'unlimited                             |
+| isearch-lazy-count                            | t                                      |
+| isearch-yank-on-move                          | 'shift                                 |
 | ispell-quietly                                | t                                      |
 | ispell-silently-savep                         | t                                      |
 | jit-lock-chunk-size                           | 4096                                   |
@@ -370,6 +360,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | nsm-save-host-names                           | t                                      |
 | nxml-sexp-element-flag                        | t                                      |
 | nxml-slash-auto-complete-flag                 | t                                      |
+| project-compilation-buffer-name-function      | 'project-prefixed-buffer-name          |
 | read-buffer-completion-ignore-case            | t                                      |
 | read-extended-command-predicate               | 'command-completion-default-include-p  |
 | require-final-newline                         | t                                      |
@@ -385,8 +376,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | sh-learn-basic-offset                         | t                                      |
 | shell-completion-execonly                     | nil                                    |
 | shell-input-autoexpand                        | nil                                    |
-| sp-autoskip-closing-pair                      | 'always                                |
-| sp-highlight-pair-overlay                     | nil                                    |
 | switch-to-buffer-in-dedicated-window          | 'pop                                   |
 | switch-to-buffer-obey-display-actions         | t                                      |
 | tab-always-indent                             | 'complete                              |
@@ -397,7 +386,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | undo-limit                                    | 80000000                               |
 | undo-outer-limit                              | 120000000                              |
 | undo-strong-limit                             | 12000000                               |
-| uniquify-buffer-name-style                    | 'forward                               |
+| uniquify-buffer-name-style                    | 'post-forward-angle-brackets           |
 | use-package-always-defer                      | t                                      |
 | vc-allow-async-revert                         | t                                      |
 | vc-command-messages                           | t                                      |
@@ -409,7 +398,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | window-combination-resize                     | t                                      |
 | woman-imenu                                   | t                                      |
 | x-stretch-cursor                              | t                                      |
-| project-compilation-buffer-name-function      | 'project-prefixed-buffer-name          |
+| xref-show-definitions-function                | 'xref-show-definitions-completing-read |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -431,9 +420,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(auto-save-file-name-transforms `((".*"
                                        ,(expand-file-name "auto-save/"
                                                           user-emacs-directory) t)))
-   '(bug-reference-bug-regexp
-     (concat "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|"
-             "[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)"))
    '(backup-directory-alist `((".*" .
                                ,(expand-file-name "backup/"
                                                   user-emacs-directory))))
@@ -441,10 +427,12 @@ Misc. defaults that don’t fit above. TODO: move these above.
      '(context-menu-ffap
        context-menu-undo
        context-menu-region
+       context-menu-middle-separator
        context-menu-local
        context-menu-minor
        occur-context-menu
-       context-menu-dictionary
+       Man-context-menu
+       dictionary-context-menu
        context-menu-buffers))
    '(comint-password-prompt-regexp (concat
                                     "\\(^ *\\|"
@@ -460,23 +448,20 @@ Misc. defaults that don’t fit above. TODO: move these above.
                                     "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
                                     ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
                                     "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
-   '(compilation-environment '("TERM=xterm-256color"))
    '(compilation-error-regexp-alist
-     '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2 epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom 4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))))
-   '(completion-styles '(basic
-                         partial-completion
-                         emacs22
-                         substring
-                         flex))
-   '(custom-file (expand-file-name
-                  "settings.el"
-                  user-emacs-directory))
+     '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
+       epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
+       clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
+       php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
+       4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
+       perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
+       ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
+       ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
+   '(completion-styles '(basic partial-completion emacs22 substring flex))
+   '(custom-file (expand-file-name "settings.el" user-emacs-directory))
    '(dired-listing-switches "-alhv --group-directories-first")
    '(dired-omit-files "^\\.\\|^#.*#$")
    '(dirtrack-list '("^\\(?:\\[[0-9]+m\\)?\\(/[^$#]+\\)" 1))
-   '(eshell-banner-message "")
-   '(eshell-ls-dired-initial-args '("-h"))
-   '(eshell-ls-initial-args "-h")
    '(eshell-prompt-function
      (lambda ()
        (concat (when (tramp-tramp-file-p default-directory)
@@ -512,16 +497,12 @@ Misc. defaults that don’t fit above. TODO: move these above.
        (mark " " (name 16 -1) " " filename)))
    '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
    '(ispell-extra-args '("--sug-mode=ultra"))
-   '(isearch-lazy-count t)
-   '(isearch-yank-on-move 'shift)
-   '(isearch-allow-scroll 'unlimited)
-   '(mouse-wheel-scroll-amount '(1
-                                 ((shift) . 5)
-                                 ((control))))
+   '(mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
    '(minibuffer-prompt-properties
      '(read-only t
-                 cursor-intangible t
-                 face minibuffer-prompt))
+       cursor-intangible t
+       point-entered minibuffer-avoid-prompt
+       face minibuffer-prompt))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
        ("org" . "http://orgmode.org/elpa/")
@@ -534,23 +515,14 @@ Misc. defaults that don’t fit above. TODO: move these above.
                                      sr-history-registry
                                      file-name-history
                                      tablist-name-filter))
-   '(tab-stop-list (number-sequence 4 200 4))
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
        (".*" "\\`root\\'" "/ssh:%h:")))
    '(uniquify-ignore-buffers-re "^\\*")
-   '(uniquify-separator "/")
-   '(undo-tree-mode-lighter "")
-   '(undo-tree-history-directory-alist
-     `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
    '(vc-git-diff-switches '("-w" "-U3"))
    '(vc-ignore-dir-regexp
-     (concat "\\(\\(\\`"
-             "\\(?:[\\/][\\/][^\\/]+[\\/]\\|/"
-             "\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)"
-             "\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\"
-             "(\\`/[^/|:][^/|]*:\\)"))
+     "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
    '(whitespace-action '(cleanup))
    '(whitespace-style '(face trailing lines space-before-tab empty))
    '(whitespace-global-modes '(not erc-mode ses-mode))
@@ -861,6 +833,11 @@ better navigations.
 | s-v             | scroll-down-command             |
 | s-M-e           | end-of-defun                    |
 | s-M-a           | beginning-of-defun              |
+| s-?             | xref-find-references            |
+| s-.             | xref-find-definitions           |
+| s-,             | xref-go-back                    |
+| s->             | xref-go-forward                 |
+| s-%             | query-replace                   |
 
 #+BEGIN_SRC emacs-lisp :var keybinds=keybinds
   (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
@@ -984,6 +961,23 @@ More keys that have custom functions. TODO: move these above
                 (update-font-size 12 nil))))
 #+END_SRC
 
+Delete current buffer
+
+#+BEGIN_SRC
+;;;###autoload
+(defun delete-file-and-buffer ()
+  "Kill the current buffer and deletes the file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (when filename
+      (if (vc-backend filename)
+          (vc-delete-file filename)
+        (progn
+          (delete-file filename)
+          (message "Deleted file %s" filename)
+          (kill-buffer))))))
+#+END_SRC
+
 ** Setup installer
 
 Installer provides installation & upgrading functionality. You can upgrade the
@@ -1034,106 +1028,131 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 A better version of ‘completing-read’ that is isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package orderless
-    :custom
-    (completion-styles '(substring orderless basic))
-    (completion-category-defaults nil)
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+    (use-package orderless
+      :custom
+      (completion-styles '(substring orderless basic))
+      (completion-category-defaults nil)
+      (completion-category-overrides '((file (styles basic partial-completion)))))
 
-  (use-package vertico
-    :hook (minibuffer-setup . cursor-intangible-mode)
-    :demand
-    :config
-    (vertico-mode)
+    (use-package vertico
+      :hook (minibuffer-setup . cursor-intangible-mode)
+      :demand
+      :config
+      (vertico-mode)
 
-    (defun crm-indicator (args)
-      (cons (format "[CRM%s] %s"
-                    (replace-regexp-in-string
-                     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                     crm-separator)
-                    (car args))
-            (cdr args)))
+      (defun crm-indicator (args)
+        (cons (format "[CRM%s] %s"
+                      (replace-regexp-in-string
+                       "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                       crm-separator)
+                      (car args))
+              (cdr args)))
 
-    (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+      (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+      )
+
+  (use-package corfu
+    :init
+    (global-corfu-mode))
+
+  (use-package cape
+    :init
+    ;; Add to the global default value of `completion-at-point-functions' which is
+    ;; used by `completion-at-point'.  The order of the functions matters, the
+    ;; first function returning a result wins.  Note that the list of buffer-local
+    ;; completion functions takes precedence over the global list.
+    (add-hook 'completion-at-point-functions #'cape-dabbrev)
+    (add-hook 'completion-at-point-functions #'cape-file)
+    (add-hook 'completion-at-point-functions #'cape-elisp-block)
+    ;;(add-hook 'completion-at-point-functions #'cape-history)
+    ;;(add-hook 'completion-at-point-functions #'cape-keyword)
+    ;;(add-hook 'completion-at-point-functions #'cape-tex)
+    ;;(add-hook 'completion-at-point-functions #'cape-sgml)
+    ;;(add-hook 'completion-at-point-functions #'cape-rfc1345)
+    ;;(add-hook 'completion-at-point-functions #'cape-abbrev)
+    ;;(add-hook 'completion-at-point-functions #'cape-dict)
+    ;;(add-hook 'completion-at-point-functions #'cape-elisp-symbol)
+    ;;(add-hook 'completion-at-point-functions #'cape-line)
     )
 
   (use-package consult
-    ;; Replace bindings. Lazily loaded due by `use-package'.
-    :bind (;; C-c bindings (mode-specific-map)
-           ("C-c M-x" . consult-mode-command)
-           ("C-c h" . consult-history)
-           ("C-c k" . consult-kmacro)
-           ;; ("C-c m" . consult-man)
-           ("C-c i" . consult-info)
-           ([remap Info-search] . consult-info)
-           ;; C-x bindings (ctl-x-map)
-           ([remap repeat-complex-command] . consult-complex-command)
-           ([remap switch-to-buffer] . consult-buffer)
-           ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
-           ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-           ([remap bookmark-jump] . consult-bookmark)
-           ([remap project-switch-to-buffer] . consult-project-buffer)
-           ;; Custom M-# bindings for fast register access
-           ("M-#" . consult-register-load)
-           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-           ("C-M-#" . consult-register)
-           ;; Other custom bindings
-           ([remap yank-pop] . consult-yank-pop)
-           ;; M-g bindings (goto-map)
-           ("M-g e" . consult-compile-error)
-           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-           ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
-           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-           ("M-g m" . consult-mark)
-           ("M-g k" . consult-global-mark)
-           ("M-g i" . consult-imenu)
-           ("M-g I" . consult-imenu-multi)
-           ;; M-s bindings (search-map)
-           ("M-s d" . consult-find)
-           ("M-s D" . consult-locate)
-           ("M-s g" . consult-grep)
-           ("M-s G" . consult-git-grep)
-           ("M-s r" . consult-ripgrep)
-           ("M-s l" . consult-line)
-           ("M-s L" . consult-line-multi)
-           ("M-s k" . consult-keep-lines)
-           ("M-s u" . consult-focus-lines)
-           ;; Isearch integration
-           ("M-s e" . consult-isearch-history)
-           :map isearch-mode-map
-           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-           ;; Minibuffer history
-           :map minibuffer-local-map
-           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-           ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+      ;; Replace bindings. Lazily loaded due by `use-package'.
+      :bind (;; C-c bindings (mode-specific-map)
+             ("C-c M-x" . consult-mode-command)
+             ("C-c h" . consult-history)
+             ("C-c k" . consult-kmacro)
+             ;; ("C-c m" . consult-man)
+             ("C-c i" . consult-info)
+             ([remap Info-search] . consult-info)
+             ;; C-x bindings (ctl-x-map)
+             ([remap repeat-complex-command] . consult-complex-command)
+             ([remap switch-to-buffer] . consult-buffer)
+             ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+             ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+             ([remap bookmark-jump] . consult-bookmark)
+             ([remap project-switch-to-buffer] . consult-project-buffer)
+             ;; Custom M-# bindings for fast register access
+             ("M-#" . consult-register-load)
+             ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+             ("C-M-#" . consult-register)
+             ;; Other custom bindings
+             ([remap yank-pop] . consult-yank-pop)
+             ;; M-g bindings (goto-map)
+             ("M-g e" . consult-compile-error)
+             ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+             ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
+             ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+             ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+             ("M-g m" . consult-mark)
+             ("M-g k" . consult-global-mark)
+             ("M-g i" . consult-imenu)
+             ("M-g I" . consult-imenu-multi)
+             ;; M-s bindings (search-map)
+             ("M-s d" . consult-find)
+             ("M-s D" . consult-locate)
+             ("M-s g" . consult-grep)
+             ("M-s G" . consult-git-grep)
+             ("M-s r" . consult-ripgrep)
+             ("M-s l" . consult-line)
+             ("M-s L" . consult-line-multi)
+             ("M-s k" . consult-keep-lines)
+             ("M-s u" . consult-focus-lines)
+             ;; Isearch integration
+             ("M-s e" . consult-isearch-history)
+             :map isearch-mode-map
+             ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+             ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+             ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+             ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+             ;; Minibuffer history
+             :map minibuffer-local-map
+             ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+             ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-    ;; Enable automatic preview at point in the *Completions* buffer. This is
-    ;; relevant when you use the default completion UI.
-    :hook (completion-list-mode . consult-preview-at-point-mode)
+      ;; Enable automatic preview at point in the *Completions* buffer. This is
+      ;; relevant when you use the default completion UI.
+      :hook (completion-list-mode . consult-preview-at-point-mode)
+ 
+      ;; The :init configuration is always executed (Not lazy)
+      :init
 
-    ;; The :init configuration is always executed (Not lazy)
-    :init
+      (setq register-preview-delay 0.5
+            register-preview-function #'consult-register-format)
 
-    (setq register-preview-delay 0.5
-          register-preview-function #'consult-register-format)
+      (advice-add #'register-preview :override #'consult-register-window)
 
-    (advice-add #'register-preview :override #'consult-register-window)
+      :config
 
-    :config
-
-    (consult-customize
-     consult-theme :preview-key '(:debounce 0.2 any)
-     consult-ripgrep consult-git-grep consult-grep
-     consult-bookmark consult-recent-file consult-xref
-     consult--source-bookmark consult--source-file-register
-     consult--source-recent-file consult--source-project-recent-file
-     :preview-key '(:debounce 0.4 any))
-    )
+      (consult-customize
+       consult-theme :preview-key '(:debounce 0.2 any)
+       consult-ripgrep consult-git-grep consult-grep
+       consult-bookmark consult-recent-file consult-xref
+       consult--source-bookmark consult--source-file-register
+       consult--source-recent-file consult--source-project-recent-file
+       :preview-key '(:debounce 0.4 any))
+      )
 #+END_SRC
+
 
 **** envrc
 [[https://github.com/purcell/envrc][
@@ -1169,6 +1188,7 @@ This mode will try to detect your indentation.
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
     :delight
+    :custom (dtrt-indent-verbosity 0)
     :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
@@ -1275,40 +1295,41 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package magit
-    :preface
-    (autoload 'magit-toplevel "magit")
-    (autoload 'magit-read-string-ns "magit")
-    (autoload 'magit-get "magit")
-    ;; (autoload 'magit-define-popup-action "magit")
-    (autoload 'magit-remote-arguments "magit")
-    (defun magit-dired-other-window ()
-      (interactive)
-      (dired-other-window (magit-toplevel)))
-    :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-    :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
-    :custom (magit-process-password-prompt-regexps '(
-                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                             "Please enter the passphrase for the ssh key"
-                                             "Please enter the passphrase to unlock the OpenPGP secret key"
-                                             "^.*'s password: ?$"
-                                             "^Yubikey for .*: ?$"
-                                             "^Enter PIN for .*: ?$"
-                                             "^\\[sudo\\] password for .*: ?$"))
-    :custom (magit-clone-set-remote.pushDefault t)
-    :custom (magit-log-auto-more t)
-    :custom (magit-remote-add-set-remote.pushDefault t)
-    :custom (magit-save-repository-buffers 'dontask)
-    :commands (magit-clone)
-    :if (locate-file "git" exec-path)
-    :bind (("C-x g" . magit-status)
-           ("C-x p v" . magit-status)
-           ("C-x p m" . magit-status)
-           ("C-x G" . magit-dispatch)
-           :package magit
-           :map magit-mode-map
-           ("C-o" . magit-dired-other-window)))
+    (use-package magit
+      :preface
+      (autoload 'magit-toplevel "magit")
+      (autoload 'magit-read-string-ns "magit")
+      (autoload 'magit-get "magit")
+      ;; (autoload 'magit-define-popup-action "magit")
+      (autoload 'magit-remote-arguments "magit")
+      (defun magit-dired-other-window ()
+        (interactive)
+        (dired-other-window (magit-toplevel)))
+      :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+      :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
+      :custom (magit-process-password-prompt-regexps '(
+                                               "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                               "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                               "Please enter the passphrase for the ssh key"
+                                               "Please enter the passphrase to unlock the OpenPGP secret key"
+                                               "^.*'s password: ?$"
+                                               "^Yubikey for .*: ?$"
+                                               "^Enter PIN for .*: ?$"
+                                               "^\\[sudo\\] password for .*: ?$"))
+      :custom (magit-clone-set-remote.pushDefault t)
+      :custom (magit-log-auto-more t)
+      :custom (magit-remote-add-set-remote.pushDefault t)
+      :custom (magit-save-repository-buffers 'dontask)
+      :commands (magit-clone)
+      :if (locate-file "git" exec-path)
+      :bind (("C-x g" . magit-status)
+             ("C-x p v" . magit-status)
+             ("C-x p m" . magit-status)
+             ("C-x G" . magit-dispatch)
+             :package magit
+             :map magit-mode-map
+             ("C-o" . magit-dired-other-window))
+      :init (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p))
 #+END_SRC
 
 Magit forge.
@@ -1578,6 +1599,7 @@ Provides links to bugs listed in source code.
 
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
+    :custom (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
     :hook ((prog-mode . bug-reference-prog-mode)
            (text-mode . bug-reference-mode)))
 #+END_SRC
@@ -2518,7 +2540,11 @@ Auctex provides some helpful tools for working with LaTeX.
 ****** tex-mode
 #+BEGIN_SRC emacs-lisp
   (use-package tex-mode
-    :hook (TeX-mode . latex-electric-env-pair-mode))
+   :custom (TeX-auto-save t)
+   :custom (TeX-auto-untabify t)
+   :custom (TeX-electric-escape t)
+   :custom (TeX-parse-self t)
+   :hook (TeX-mode . latex-electric-env-pair-mode))
 #+END_SRC
 **** Lisp
 
@@ -2956,6 +2982,8 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :demand
+    :custom (undo-tree-mode-lighter "")
+    :custom (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
     :config (global-undo-tree-mode))
 #+END_SRC
 
@@ -3004,6 +3032,25 @@ Most of these are available in MELPA.
       (funcall f proc (xterm-color-filter string)))
     (advice-add 'compilation-filter :around #'advice-compilation-filter)
     )
+#+END_SRC
+
+**** games
+
+Miscellaneous games
+
+#+BEGIN_SRC emacs-lisp
+(use-package chess)
+(use-package mines)
+(use-package gnugo)
+(use-package 2048-game)
+#+END_SRC
+
+**** dumb-jump
+
+#+BEGIN_SRC emacs-lisp
+      (use-package dumb-jump
+        :init
+        (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 #+END_SRC
 
 ** END
