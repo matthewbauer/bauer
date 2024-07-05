@@ -286,7 +286,7 @@ variable names and values."
   (unless (envrc--env-dir-p env-dir)
     (error "%s is not a directory with a .envrc" env-dir))
   (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment)))
-       result)
+        result)
     (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
       (`missing
        (message "Running direnv in %s..." env-dir)
@@ -303,7 +303,7 @@ variable names and values."
                   (prog1
                       (setq result (let ((json-key-type 'string)) (json-read-from-string stdout)))
                     (when envrc-show-summary-in-minibuffer
-                          (envrc--show-summary result env-dir)))))
+                      (envrc--show-summary result env-dir)))))
             (message "Direnv failed in %s" env-dir)
             (setq result 'error))
           (envrc--at-end-of-special-buffer "*envrc*"
