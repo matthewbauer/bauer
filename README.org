@@ -746,6 +746,32 @@ as ARGS."
 (advice-add 'browse-url :override 'my-browse-url)
 #+END_SRC
 
+#+BEGIN_SRC emacs-lisp
+  (defun my-escape-quotes (begin end)
+    (interactive
+     (if (region-active-p)
+         (list (region-beginning) (region-end))
+       (list (line-beginning-position) (line-end-position))))
+    (save-excursion
+        (save-restriction
+          (narrow-to-region begin end)
+          (goto-char (point-min))
+          (while (search-forward "\"" nil t)
+            (replace-match "\\\"" t t)))))
+
+  (defun my-unescape-quotes (begin end)
+    (interactive
+     (if (region-active-p)
+         (list (region-beginning) (region-end))
+       (list (line-beginning-position) (line-end-position))))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region begin end)
+        (goto-char (point-min))
+        (while (search-forward "\\\"" nil t)
+          (replace-match "\"" t t)))))
+#+END_SRC
+
 Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]]. Some
@@ -828,6 +854,8 @@ better navigations.
 | s-,             | xref-go-back                    |
 | s->             | xref-go-forward                 |
 | s-%             | query-replace                   |
+| C-c \ u         | my-unescape-quotes              |
+| C-c \ e         | my-escape-quotes                |
 
 #+BEGIN_SRC emacs-lisp :var keybinds=keybinds
   (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
