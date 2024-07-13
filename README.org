@@ -772,6 +772,17 @@ as ARGS."
           (replace-match "\"" t t)))))
 #+END_SRC
 
+#+BEGIN_SRC
+  (with-eval-after-load 'project
+    (defun project-find-regexp-with-unique-buffer (orig-fun &rest args)
+      "An advice function that gives project-find-regexp a unique buffer name"
+      (require 'xref)
+      (let ((xref-buffer-name (format "%s %s" xref-buffer-name (car args))))
+        (apply orig-fun args)))
+
+    (advice-add 'project-find-regexp :around #'project-find-regexp-with-unique-buffer))
+#+END_SRC
+
 Now we will call =bind-keys=. We give it keys to bind & what function to run
 when those keys are pressed. Note on syntax of bind-keys: if you are unfamiliar
 with how Emacs key binding works, you should read through [[https://www.masteringemacs.org/article/mastering-key-bindings-emacs][this article]]. Some
