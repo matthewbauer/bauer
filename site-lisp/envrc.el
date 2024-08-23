@@ -91,13 +91,17 @@ Messages are written into the *envrc-debug* buffer."
 
 (define-obsolete-variable-alias 'envrc--lighter 'envrc-lighter "2021-05-17")
 
-(defcustom envrc-lighter '(:eval (envrc--lighter))
+(defcustom envrc-lighter '(:propertize (:eval (envrc--lighter))
+                                       mouse-face mode-line-highlight
+                                       local-map (keymap
+                                                  (mode-line keymap
+                                                             (down-mouse-1 . envrc-show-log))))
   "The mode line lighter for `envrc-mode'.
 You can set this to nil to disable the lighter."
   :type 'sexp)
 (put 'envrc-lighter 'risky-local-variable t)
 
-(defcustom envrc-none-lighter '(" envrc[" (:propertize "none" face envrc-mode-line-none-face) "]")
+(defcustom envrc-none-lighter nil
   "Lighter spec used by the default `envrc-lighter' when envrc is inactive."
   :type 'sexp)
 
@@ -232,14 +236,29 @@ environments updated."
             (cached (envrc--apply buf cached))))
       (envrc--apply buf 'none))))
 
+(defvar envrc-log-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "g" #'envrc-reload)
+    map))
+
+;;;###autoload
+(define-derived-mode envrc-log-mode special-mode "Envrc Log"
+  "Major mode for Envrc log buffer.")
+
+(defun envrc--log-buffer-name ()
+  "Buffer name to use for envrc log buffers."
+  (concat "*"
+          (file-name-nondirectory
+           (directory-file-name default-directory))
+          "-envrc*"))
 
 (defmacro envrc--at-end-of-special-buffer (name &rest body)
   "At the end of `special-mode' buffer NAME, execute BODY.
 To avoid confusion, `envrc-mode' is explicitly disabled in the buffer."
   (declare (indent 1))
   `(with-current-buffer (get-buffer-create ,name)
-     (unless (derived-mode-p 'special-mode)
-       (special-mode))
+     (unless (derived-mode-p 'envrc-log-mode)
+       (envrc-log-mode))
      (when envrc-mode (envrc-mode -1))
      (goto-char (point-max))
      (let ((inhibit-read-only t))
@@ -306,7 +325,7 @@ variable names and values."
                       (envrc--show-summary result env-dir)))))
             (message "Direnv failed in %s" env-dir)
             (setq result 'error))
-          (envrc--at-end-of-special-buffer "*envrc*"
+          (envrc--at-end-of-special-buffer (envrc--log-buffer-name)
             (insert "==== " (format-time-string "%Y-%m-%d %H:%M:%S") " ==== " env-dir " ====\n\n")
             (let ((initial-pos (point)))
               (insert (let (ansi-color-context) (ansi-color-apply stderr)))
