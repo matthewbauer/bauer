@@ -1314,41 +1314,43 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-    (use-package magit
-      :preface
-      (autoload 'magit-toplevel "magit")
-      (autoload 'magit-read-string-ns "magit")
-      (autoload 'magit-get "magit")
-      ;; (autoload 'magit-define-popup-action "magit")
-      (autoload 'magit-remote-arguments "magit")
-      (defun magit-dired-other-window ()
-        (interactive)
-        (dired-other-window (magit-toplevel)))
-      :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-      :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
-      :custom (magit-process-password-prompt-regexps '(
-                                               "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                               "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                               "Please enter the passphrase for the ssh key"
-                                               "Please enter the passphrase to unlock the OpenPGP secret key"
-                                               "^.*'s password: ?$"
-                                               "^Yubikey for .*: ?$"
-                                               "^Enter PIN for .*: ?$"
-                                               "^\\[sudo\\] password for .*: ?$"))
-      :custom (magit-clone-set-remote.pushDefault t)
-      :custom (magit-log-auto-more t)
-      :custom (magit-remote-add-set-remote.pushDefault t)
-      :custom (magit-save-repository-buffers 'dontask)
-      :commands (magit-clone)
-      :if (locate-file "git" exec-path)
-      :bind (("C-x g" . magit-status)
-             ("C-x p v" . magit-status)
-             ("C-x p m" . magit-status)
-             ("C-x G" . magit-dispatch)
-             :package magit
-             :map magit-mode-map
-             ("C-o" . magit-dired-other-window))
-      :init (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p))
+  (use-package magit
+    :preface
+    (autoload 'magit-toplevel "magit")
+    (autoload 'magit-read-string-ns "magit")
+    (autoload 'magit-get "magit")
+    ;; (autoload 'magit-define-popup-action "magit")
+    (autoload 'magit-remote-arguments "magit")
+    (defun magit-dired-other-window ()
+      (interactive)
+      (dired-other-window (magit-toplevel)))
+    ;; :hook ((git-commit-mode . git-commit-save-message)
+    ;;      (git-commit-mode . turn-on-auto-fill))
+    :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+    :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
+    :custom (magit-process-password-prompt-regexps '(
+                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                             "Please enter the passphrase for the ssh key"
+                                             "Please enter the passphrase to unlock the OpenPGP secret key"
+                                             "^.*'s password: ?$"
+                                             "^Yubikey for .*: ?$"
+                                             "^Enter PIN for .*: ?$"
+                                             "^\\[sudo\\] password for .*: ?$"))
+    :custom (magit-clone-set-remote.pushDefault t)
+    :custom (magit-log-auto-more t)
+    :custom (magit-remote-add-set-remote.pushDefault t)
+    :custom (magit-save-repository-buffers 'dontask)
+    :commands (magit-clone)
+    :if (locate-file "git" exec-path)
+    :bind (("C-x g" . magit-status)
+           ("C-x p v" . magit-status)
+           ("C-x p m" . magit-status)
+           ("C-x G" . magit-dispatch)
+           :package magit
+           :map magit-mode-map
+           ("C-o" . magit-dired-other-window))
+    :init (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p))
 #+END_SRC
 
 Magit forge.
@@ -1356,14 +1358,6 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit)
-#+END_SRC
-
-***** git-commit
-
-#+BEGIN_SRC emacs-lisp
-  (use-package git-commit
-    :hook ((git-commit-mode . git-commit-save-message)
-           (git-commit-mode . turn-on-auto-fill)))
 #+END_SRC
 
 ***** git-timemachine
@@ -3255,7 +3249,7 @@ Then setup aliases.
         chown='chown --preserve-root -c' \
         chmod='chmod --preserve-root -c' \
         chgrp='chgrp --preserve-root -c' \
-        curl='curl -L --proto-default https' \
+        curl='curl --fail --globoff --location --proto-default https --remote-name-all --remote-time --retry 10 --retry-max-time 10 --no-clobber --parallel' \
         upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
         upgrade=upgrade_bauer \
         df='df -HT' \
@@ -4469,7 +4463,7 @@ TODO: use dump-emacs here to speed up config.
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.use-package epkgs.delight]
+    ++ [default epkgs.use-package epkgs.delight epkgs.treesit-grammars.with-all-grammars]
   );
 #+END_SRC
 
