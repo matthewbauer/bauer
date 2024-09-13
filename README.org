@@ -3249,7 +3249,8 @@ Then setup aliases.
         chown='chown --preserve-root -c' \
         chmod='chmod --preserve-root -c' \
         chgrp='chgrp --preserve-root -c' \
-        curl='curl --fail --globoff --location --proto-default https --remote-name-all --remote-time --retry 10 --retry-max-time 10 --no-clobber --parallel' \
+        curl='curl --fail --globoff --location --proto-default https --retry 10 --retry-max-time 10 --no-clobber --parallel' \
+        wget='curl --remote-name-all --remote-time --fail --globoff --location --proto-default https --retry 10 --retry-max-time 10 --no-clobber --parallel' \
         upgrade_bauer='git -C "$HOME/.local/share/bauer" pull && nix-env -if "$HOME/.local/share/bauer"' \
         upgrade=upgrade_bauer \
         df='df -HT' \
