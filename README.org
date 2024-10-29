@@ -323,6 +323,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | flymake-start-syntax-check-on-newline         | nil                                    |
 | flyspell-highlight-properties                 | nil                                    |
 | flyspell-issue-welcome-flag                   | nil                                    |
+| fill-column                                   | 80                                     |
 | frame-inhibit-implied-resize                  | t                                      |
 | history-delete-duplicates                     | t                                      |
 | ibuffer-default-display-maybe-show-predicates | t                                      |
@@ -517,28 +518,20 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(whitespace-style '(face trailing lines space-before-tab empty))
    '(whitespace-global-modes '(not erc-mode ses-mode))
    '(display-buffer-alist
-     '(("\\\\*Occur\\\\*\\\\|\\\\*grep\\\\*\\\\|\\\\*xref\\\\*\\\\|\\\\*ripgrep-search\\\\*\\\\|\\\\*rg\\\\*\\\\|\\\\*compilation\\\\*" display-buffer-reuse-window
-        (inhibit-same-window))
-       ("\\\\*e?shell\\\\*" display-buffer-in-direction
-        (direction . bottom)
-        (window . root)
-        (window-height . 0.3))
-       ("\\\\*grep\\\\*\\\\|\\\\*compilation\\\\*\\\\|\\\\*ripgrep-search\\\\*\\\\|\\\\*rg\\\\*" display-buffer-in-side-window
+     '(("\\*e?shell" display-buffer-in-side-window
+        (side . bottom)
+        (slot . 1))
+       ("\\*compilation\\*"
+        (display-buffer-reuse-window display-buffer-in-side-window)
         (side . right)
-        (slot . 0)
-        (window-parameters
-         (no-delete-other-windows . t))
-        (window-width . 80))
-       ("\\\\*Help\\\\*\\\\|\\\\*helpful [^\\\\*]*\\\\*"
-        (display-buffer-reuse-window display-buffer-pop-up-window))
-       ("\\\\*Ilist\\\\*" display-buffer-in-atom-window
-        (side . right))
-       ("\\\\*vterm\\\\*"
-        (display-buffer-reuse-mode-window display-buffer-at-bottom)
-        (inhibit-same-window)
-        (mode vterm-mode vterm-copy-mode)
-        (dedicated . t)
-        (window-height . 0.3))))
+        (slot . 7)
+        (window-width . 80)
+        (dedicated . t))
+       ("\\*Help\\*\\|\\*Completions\\*"
+        (display-buffer-reuse-window display-buffer-pop-up-window)
+        (window-width . 60)
+        (side . right)
+        (slot . 3))))
    '(compilation-save-buffers-predicate
      (lambda ()
        (let ((proj (project-current)))
@@ -1057,30 +1050,31 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 A better version of ‘completing-read’ that is isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
-    (use-package orderless
-      :custom
-      (completion-styles '(substring orderless basic))
-      (completion-category-defaults nil)
-      (completion-category-overrides '((file (styles basic partial-completion)))))
+  (use-package orderless
+    :custom
+    (completion-styles '(substring orderless basic))
+    (completion-category-defaults nil)
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 
-    (use-package vertico
-      :hook (minibuffer-setup . cursor-intangible-mode)
-      :demand
-      :config
-      (vertico-mode)
+  (use-package vertico
+    :hook (minibuffer-setup . cursor-intangible-mode)
+    :demand
+    :config
+    (vertico-mode)
 
-      (defun crm-indicator (args)
-        (cons (format "[CRM%s] %s"
-                      (replace-regexp-in-string
-                       "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                       crm-separator)
-                      (car args))
-              (cdr args)))
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+                    (replace-regexp-in-string
+                     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                     crm-separator)
+                    (car args))
+            (cdr args)))
 
-      (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-      )
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+    )
 
   (use-package corfu
+    :demand
     :custom
     (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
     (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -1091,7 +1085,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous))
 
-    :init
+    :config
     (global-corfu-mode))
 
   (use-package consult
@@ -1329,14 +1323,14 @@ line are available in an intuitive Emacs buffer.
     :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
     :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
     :custom (magit-process-password-prompt-regexps '(
-                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                             "Please enter the passphrase for the ssh key"
-                                             "Please enter the passphrase to unlock the OpenPGP secret key"
-                                             "^.*'s password: ?$"
-                                             "^Yubikey for .*: ?$"
-                                             "^Enter PIN for .*: ?$"
-                                             "^\\[sudo\\] password for .*: ?$"))
+                                                     "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                                     "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                                     "Please enter the passphrase for the ssh key"
+                                                     "Please enter the passphrase to unlock the OpenPGP secret key"
+                                                     "^.*'s password: ?$"
+                                                     "^Yubikey for .*: ?$"
+                                                     "^Enter PIN for .*: ?$"
+                                                     "^\\[sudo\\] password for .*: ?$"))
     :custom (magit-clone-set-remote.pushDefault t)
     :custom (magit-log-auto-more t)
     :custom (magit-remote-add-set-remote.pushDefault t)
@@ -1498,18 +1492,18 @@ Smart hungry delete automatically delete lots of whitespace in a row.
   (use-package smart-hungry-delete
     :if (>= emacs-major-version 25)
     :bind (:map prog-mode-map
-           ("<backspace>" .
-            smart-hungry-delete-backward-char)
-           ("C-d" .
-            smart-hungry-delete-forward-char))
+                ("<backspace>" .
+                 smart-hungry-delete-backward-char)
+                ("C-d" .
+                 smart-hungry-delete-forward-char))
     :hook ((prog-mode .
-            smart-hungry-delete-default-prog-mode-hook)
+                      smart-hungry-delete-default-prog-mode-hook)
            (c-mode-common .
-            smart-hungry-delete-default-c-mode-common-hook)
+                          smart-hungry-delete-default-c-mode-common-hook)
            (python-mode .
-            smart-hungry-delete-default-c-mode-common-hook)
+                        smart-hungry-delete-default-c-mode-common-hook)
            (text-mode .
-            smart-hungry-delete-default-text-mode-hook)))
+                      smart-hungry-delete-default-text-mode-hook)))
 #+END_SRC
 
 **** sudo-edit
@@ -1536,8 +1530,8 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
     :if window-system
     :hook ((mac-effective-appearance-change . (lambda ()
                                                 (pcase (plist-get (mac-application-state) :appearance)
-                                                    ("NSAppearanceNameAqua" (load-theme 'apropospriate-light t))
-                                                    ("NSAppearanceNameDarkAqua" (load-theme 'apropospriate-dark t))))))
+                                                  ("NSAppearanceNameAqua" (load-theme 'apropospriate-light t))
+                                                  ("NSAppearanceNameDarkAqua" (load-theme 'apropospriate-dark t))))))
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
@@ -1557,7 +1551,7 @@ instance spacemacs-theme can be enabled:
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
-                   (locate-library "spacemacs-theme-pkg")))
+                  (locate-library "spacemacs-theme-pkg")))
     (load-theme 'spacemacs-dark t))
 #+END_SRC
 
@@ -1765,18 +1759,18 @@ Base mode used for shell and terminal modes.
                         (dired-get-filename t t)
                         default-directory)))
       (let ((buffer (make-term
-                      (file-name-nondirectory filename)
-                      filename))
+                     (file-name-nondirectory filename)
+                     filename))
             (buffer-read-only nil))
         (with-current-buffer buffer
           ;; (term-mode)
           (term-char-mode)
           (term-set-escape-char ?\C-x))
         (set-process-sentinel
-          (get-buffer-process buffer)
-          (lambda (proc event)
-             (when (not (process-live-p proc))
-               (kill-buffer (process-buffer proc)))))
+         (get-buffer-process buffer)
+         (lambda (proc event)
+           (when (not (process-live-p proc))
+             (kill-buffer (process-buffer proc)))))
         (switch-to-buffer buffer)))
     :bind (("C-c J" . dired-double-jump)
            :package dired
@@ -1850,9 +1844,9 @@ Provides some info for the thing at the point.
 
 Setup these modes:
 
-     - electric-quote
-     - electric-indent
-     - electric-layout
+- electric-quote
+- electric-indent
+- electric-layout
 
 #+BEGIN_SRC emacs-lisp
   (use-package electric
@@ -1876,10 +1870,10 @@ setup.
   (use-package elec-pair
     :if (>= emacs-major-version 25)
     :hook
-     ((prog-mode . electric-pair-local-mode)
-      (eval-expression-minibuffer-setup . electric-pair-local-mode)
-      (smartparens-mode . (lambda ()
-        (electric-pair-local-mode -1)))))
+    ((prog-mode . electric-pair-local-mode)
+     (eval-expression-minibuffer-setup . electric-pair-local-mode)
+     (smartparens-mode . (lambda ()
+                           (electric-pair-local-mode -1)))))
 #+END_SRC
 
 **** eww
@@ -1890,13 +1884,13 @@ eww is enabled so we can open files in non-graphical environments.
   (use-package eww
     :if (and (not window-system)
              (not (string-equal
-                    (getenv "TERM_PROGRAM")
-                    "Apple_Terminal")))
+                   (getenv "TERM_PROGRAM")
+                   "Apple_Terminal")))
     :commands (eww-browse-url eww-reload)
     :config
     (add-hook 'eww-mode-hook (lambda ()
-      (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
-      (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
+                               (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
+                               (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
     :init
     (setq browse-url-browser-function 'eww-browse-url))
 #+END_SRC
@@ -1908,7 +1902,7 @@ Make scripts executable automatically.
   (use-package executable
     :hook
     ((after-save .
-      executable-make-buffer-file-executable-if-script-p)))
+                 executable-make-buffer-file-executable-if-script-p)))
 #+END_SRC
 
 **** ffap
@@ -1941,22 +1935,22 @@ Make scripts executable automatically.
     ;; :config (auto-save-visited-mode 1)
     :preface
     (defun find-file--line-number (orig-fun filename
-                                   &optional wildcards)
+                                            &optional wildcards)
       "Turn files like file.js:14:10 into file.js and going to line 14, col 10."
       (save-match-data
         (let* ((matched (string-match
-                          "^\\(.*?\\):\\([0-9]+\\):?\\([0-9]*\\)$"
-                          filename))
+                         "^\\(.*?\\):\\([0-9]+\\):?\\([0-9]*\\)$"
+                         filename))
                (line-number (and matched
-                              (match-string 2 filename)
-                              (string-to-number
-                                (match-string 2 filename))))
+                                 (match-string 2 filename)
+                                 (string-to-number
+                                  (match-string 2 filename))))
                (col-number (and matched
-                              (match-string 3 filename)
-                              (string-to-number (match-string 3 filename))))
+                                (match-string 3 filename)
+                                (string-to-number (match-string 3 filename))))
                (filename (if matched
                              (match-string 1 filename)
-                             filename)))
+                           filename)))
           (apply orig-fun (list filename wildcards))
           (when line-number
             ;; goto-line is for interactive use
@@ -2388,6 +2382,7 @@ Make scripts executable automatically.
     :demand
     :config (which-function-mode))
 #+END_SRC
+
 **** whitespace
 
 Show whitespace
@@ -3143,6 +3138,10 @@ just in case.
       else
         /usr/bin/ssh-add -qA
       fi
+    fi
+
+    if [ "$(uname -s)" = Darwin ]; then
+      export XDG_RUNTIME_DIR=$(getconf DARWIN_USER_TEMP_DIR)
     fi
 
     HISTSIZE=50000
@@ -4432,6 +4431,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/envrc.el
                        "site-lisp/envrc.el"} \
           $out/share/emacs/site-lisp/envrc.el
+  install -D ${ensure ./site-lisp/yesod-mode.el
+                       "site-lisp/yesod-mode.el"} \
+          $out/share/emacs/site-lisp/yesod-mode.el
   '';
 #+END_SRC
 
