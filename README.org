@@ -166,6 +166,19 @@ this.
   (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
+** Benchmark
+
+Disabled for now.
+
+#+BEGIN_SRC emacs-lisp
+  ;; (eval-and-compile (require 'use-package))
+  ;; (use-package benchmark-init
+  ;;   :demand
+  ;;   :config
+  ;;   ;; To disable collection of benchmark data after init is done.
+  ;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+#+END_SRC
+
 ** Autoloads & Misc.
 
 Setup some initial aliases for Emacs. These give us an easy way to use these
@@ -1164,6 +1177,22 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
      consult--source-recent-file consult--source-project-recent-file
      :preview-key '(:debounce 0.4 any))
     )
+
+  (use-package marginalia
+    :demand
+
+    ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
+    ;; available in the *Completions* buffer, add it to the
+    ;; `completion-list-mode-map'.
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+
+    :config
+
+    ;; Marginalia must be activated in the :init section of use-package such that
+    ;; the mode gets enabled right away. Note that this forces loading the
+    ;; package.
+    (marginalia-mode))
 #+END_SRC
 
 
@@ -1582,6 +1611,25 @@ function.
     :commands (which-key-mode)
     :config (which-key-mode 1))
 #+END_SRC
+
+
+**** wgrep
+
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep)
+#+END_SRC
+
+**** embark
+
+#+BEGIN_SRC emacs-lisp
+(use-package embark
+  :bind (("C-c a" . embark-act)))
+
+(use-package embark-consult
+  ;; comes bundled with Embark; no `:ensure t' necessary
+  :after (embark consult))
+#+END_SRC
+
 
 *** Built-ins
 
@@ -2375,6 +2423,14 @@ Make scripts executable automatically.
     :config (url-handler-mode))
 #+END_SRC
 
+**** winner-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package winner
+    :demand
+    :config (winner-mode))
+#+END_SRC
+
 **** which-func
 
 #+BEGIN_SRC emacs-lisp
@@ -2520,7 +2576,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
                 ("C-c c" . haskell-process-cabal))
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
-    (require 'haskell-compile)
+    ;; (require 'haskell-compile)
     )
 #+END_SRC
 
@@ -3074,6 +3130,7 @@ Miscellaneous games
 
 #+BEGIN_SRC emacs-lisp
   (use-package persistent-scratch
+    :disabled
     :demand
     :config (persistent-scratch-setup-default))
 #+END_SRC
