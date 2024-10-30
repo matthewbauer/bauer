@@ -530,21 +530,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(whitespace-action '(cleanup))
    '(whitespace-style '(face trailing lines space-before-tab empty))
    '(whitespace-global-modes '(not erc-mode ses-mode))
-   '(display-buffer-alist
-     '(("\\*e?shell" display-buffer-in-side-window
-        (side . bottom)
-        (slot . 1))
-       ("\\*compilation\\*"
-        (display-buffer-reuse-window display-buffer-in-side-window)
-        (side . right)
-        (slot . 7)
-        (window-width . 80)
-        (dedicated . t))
-       ("\\*Help\\*\\|\\*Completions\\*"
-        (display-buffer-reuse-window display-buffer-pop-up-window)
-        (window-width . 60)
-        (side . right)
-        (slot . 3))))
    '(compilation-save-buffers-predicate
      (lambda ()
        (let ((proj (project-current)))
