@@ -307,7 +307,7 @@ DIRECTORY is the directory in which the environment changes."
         result
         process)
     (message "Running direnv in %s..." env-dir)
-    (puthash cache-key (cons callback ()) envrc--running-processes-callbacks)
+    (puthash cache-key (cons callback (gethash cache-key envrc--running-processes-callbacks)) envrc--running-processes-callbacks)
     (puthash cache-key (envrc--make-process-with-global-env
                         `("direnv" "export" "json")
                         (lambda (exit-code stdout stderr)
@@ -353,12 +353,11 @@ DIRECTORY is the directory in which the environment changes."
        (envrc--export-new-process env-dir callback))
       (callbacks
        ;; Make sure process is still running.
-       (let ((process (gethash cache-key envrc--running-processes)))
-         (if (and process (memq (process-status process) '(open run stop)))
+       (let ((process (gethash cache-key envrc--running-process)))
+         (if (and process (memq (process-status proc) '(open run stop)))
              (puthash cache-key (push callback callbacks) envrc--running-processes-callbacks)
            (progn
-             (message "Process got killed. ")
-             (remhash cache-key envrc--running-processes)
+             (remhash cache-key envrc--running-process)
              (envrc--export-new-process env-dir callback))))))))
 
 ;; Forward declaration for the byte compiler
