@@ -353,11 +353,11 @@ DIRECTORY is the directory in which the environment changes."
        (envrc--export-new-process env-dir callback))
       (callbacks
        ;; Make sure process is still running.
-       (let ((process (gethash cache-key envrc--running-process)))
+       (let ((process (gethash cache-key envrc--running-processes)))
          (if (and process (memq (process-status proc) '(open run stop)))
              (puthash cache-key (push callback callbacks) envrc--running-processes-callbacks)
            (progn
-             (remhash cache-key envrc--running-process)
+             (remhash cache-key envrc--running-processes)
              (envrc--export-new-process env-dir callback))))))))
 
 ;; Forward declaration for the byte compiler
