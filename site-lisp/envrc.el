@@ -354,7 +354,7 @@ DIRECTORY is the directory in which the environment changes."
       (callbacks
        ;; Make sure process is still running.
        (let ((process (gethash cache-key envrc--running-processes)))
-         (if (and process (memq (process-status proc) '(open run stop)))
+         (if (and process (memq (process-status process) '(open run stop)))
              (puthash cache-key (push callback callbacks) envrc--running-processes-callbacks)
            (progn
              (remhash cache-key envrc--running-processes)
