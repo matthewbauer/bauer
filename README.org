@@ -281,125 +281,105 @@ The format of arguments to =set-defaults= is identical to the one used by
 =custom-set-variables=.
 
 #+NAME: defaults
-| Default Variable                              | Default Value                          |
-|-----------------------------------------------+----------------------------------------|
-| apropos-do-all                                | t                                      |
-| async-shell-command-buffer                    | 'new-buffer                            |
-| auth-source-save-behavior                     | t                                      |
-| auto-revert-avoid-polling                     | t                                      |
-| auto-revert-check-vc-info                     | t                                      |
-| auto-revert-interval                          | 2                                      |
-| auto-revert-verbose                           | nil                                    |
-| backward-delete-char-untabify-method          | 'hungry                                |
-| bidi-inhibit-bpa                              | t                                      |
-| bidi-paragraph-direction                      | 'left-to-right                         |
-| bookmark-save-flag                            | 1                                      |
-| checkdoc-spellcheck-documentation-flag        | t                                      |
-| comint-input-ignoredups                       | t                                      |
-| comint-move-point-for-matching-input          | 'end-of-line                           |
-| comint-move-point-for-output                  | 'all                                   |
-| comint-process-echoes                         | t                                      |
-| comint-prompt-read-only                       | t                                      |
-| comint-scroll-to-bottom-on-input              | 'this                                  |
-| compilation-always-kill                       | t                                      |
-| compilation-ask-about-save                    | nil                                    |
-| compilation-context-lines                     | t                                      |
-| compilation-scroll-output                     | 'first-error                           |
-| compilation-skip-threshold                    | 1                                      |
-| completions-cycle-threshold                   | t                                      |
-| completions-detailed                          | t                                      |
-| completions-format                            | 'vertical                              |
-| completion-ignore-case                        | t                                      |
-| case-fold-search                              | t                                      |
-| cursor-in-non-selected-windows                | nil                                    |
-| custom-search-field                           | nil                                    |
-| delete-by-moving-to-trash                     | t                                      |
-| delete-old-versions                           | t                                      |
-| dired-dwim-target                             | t                                      |
-| dired-hide-details-hide-symlink-targets       | nil                                    |
-| dired-omit-verbose                            | nil                                    |
-| dired-recursive-copies                        | 'top                                   |
-| dired-recursive-deletes                       | 'top                                   |
-| ediff-window-setup-function                   | 'ediff-setup-windows-plain             |
-| eldoc-idle-delay                              | 0.4                                    |
-| enable-recursive-minibuffers                  | t                                      |
-| eshell-cmpl-autolist                          | t                                      |
-| eshell-cmpl-cycle-completions                 | nil                                    |
-| eshell-cmpl-ignore-case                       | t                                      |
-| eshell-default-target-is-dot                  | t                                      |
-| eshell-destroy-buffer-when-process-dies       | t                                      |
-| eshell-hist-ignoredups                        | 'erase                                 |
-| eshell-list-files-after-cd                    | t                                      |
-| eshell-review-quick-commands                  | t                                      |
-| eval-expression-print-level                   | nil                                    |
-| flymake-no-changes-timeout                    | nil                                    |
-| flymake-start-syntax-check-on-newline         | nil                                    |
-| flyspell-highlight-properties                 | nil                                    |
-| flyspell-issue-welcome-flag                   | nil                                    |
-| fill-column                                   | 80                                     |
-| frame-inhibit-implied-resize                  | t                                      |
-| history-delete-duplicates                     | t                                      |
-| ibuffer-default-display-maybe-show-predicates | t                                      |
-| ibuffer-expert                                | t                                      |
-| ibuffer-show-empty-filter-groups              | nil                                    |
-| ibuffer-shrink-to-minimum-size                | t                                      |
-| ibuffer-use-other-window                      | t                                      |
-| imenu-auto-rescan                             | t                                      |
-| indent-tabs-mode                              | nil                                    |
-| indicate-buffer-boundaries                    | 'left                                  |
-| indicate-empty-lines                          | t                                      |
-| isearch-allow-scroll                          | 'unlimited                             |
-| isearch-lazy-count                            | t                                      |
-| isearch-yank-on-move                          | 'shift                                 |
-| ispell-quietly                                | t                                      |
-| ispell-silently-savep                         | t                                      |
-| jit-lock-chunk-size                           | 4096                                   |
-| jit-lock-defer-time                           | 0.05                                   |
-| jit-lock-stealth-time                         | 1.25                                   |
-| kill-do-not-save-duplicates                   | t                                      |
-| kill-whole-line                               | t                                      |
-| load-prefer-newer                             | t                                      |
-| mac-command-modifier                          | 'meta                                  |
-| mac-option-modifier                           | 'super                                 |
-| mac-right-option-modifier                     | nil                                    |
-| next-error-recenter                           | t                                      |
-| ns-function-modifier                          | 'hyper                                 |
-| ns-pop-up-frames                              | nil                                    |
-| nsm-save-host-names                           | t                                      |
-| nxml-sexp-element-flag                        | t                                      |
-| nxml-slash-auto-complete-flag                 | t                                      |
-| project-compilation-buffer-name-function      | 'project-prefixed-buffer-name          |
-| read-buffer-completion-ignore-case            | t                                      |
-| read-extended-command-predicate               | 'command-completion-default-include-p  |
-| resize-mini-windows                           | t                                      |
-| ruby-insert-encoding-magic-comment            | nil                                    |
-| save-abbrevs                                  | 'silently                              |
-| save-interprogram-paste-before-kill           | t                                      |
-| scroll-conservatively                         | 101                                    |
-| scroll-preserve-screen-position               | 'always                                |
-| sentence-end-double-space                     | nil                                    |
-| set-mark-command-repeat-pop                   | t                                      |
-| shell-completion-execonly                     | nil                                    |
-| shell-input-autoexpand                        | nil                                    |
-| switch-to-buffer-in-dedicated-window          | 'pop                                   |
-| switch-to-buffer-obey-display-actions         | t                                      |
-| tab-always-indent                             | 'complete                              |
-| term-input-autoexpand                         | t                                      |
-| term-input-ignoredups                         | t                                      |
-| tls-checktrust                                | t                                      |
-| undo-limit                                    | 80000000                               |
-| undo-outer-limit                              | 120000000                              |
-| undo-strong-limit                             | 12000000                               |
-| uniquify-buffer-name-style                    | 'post-forward-angle-brackets           |
-| use-package-always-defer                      | t                                      |
-| version-control                               | t                                      |
-| view-inhibit-help-message                     | t                                      |
-| view-read-only                                | t                                      |
-| whitespace-line-column                        | 120                                    |
-| window-combination-resize                     | t                                      |
-| woman-imenu                                   | t                                      |
-| x-stretch-cursor                              | t                                      |
-| xref-show-definitions-function                | 'xref-show-definitions-completing-read |
+| Default Variable                         | Default Value                          |
+|------------------------------------------+----------------------------------------|
+| apropos-do-all                           | t                                      |
+| async-shell-command-buffer               | 'new-buffer                            |
+| auth-source-save-behavior                | t                                      |
+| backward-delete-char-untabify-method     | 'hungry                                |
+| bidi-inhibit-bpa                         | t                                      |
+| bidi-paragraph-direction                 | 'left-to-right                         |
+| bookmark-save-flag                       | 1                                      |
+| checkdoc-spellcheck-documentation-flag   | t                                      |
+| completions-cycle-threshold              | t                                      |
+| completions-detailed                     | t                                      |
+| completions-format                       | 'vertical                              |
+| completion-ignore-case                   | t                                      |
+| case-fold-search                         | t                                      |
+| cursor-in-non-selected-windows           | nil                                    |
+| custom-search-field                      | nil                                    |
+| delete-by-moving-to-trash                | t                                      |
+| delete-old-versions                      | t                                      |
+| ediff-window-setup-function              | 'ediff-setup-windows-plain             |
+| eldoc-idle-delay                         | 0.4                                    |
+| enable-recursive-minibuffers             | t                                      |
+| eval-expression-print-level              | nil                                    |
+| fill-column                              | 80                                     |
+| frame-inhibit-implied-resize             | t                                      |
+| history-delete-duplicates                | t                                      |
+| imenu-auto-rescan                        | t                                      |
+| indent-tabs-mode                         | nil                                    |
+| indicate-buffer-boundaries               | 'left                                  |
+| indicate-empty-lines                     | t                                      |
+| isearch-allow-scroll                     | 'unlimited                             |
+| isearch-lazy-count                       | t                                      |
+| isearch-yank-on-move                     | 'shift                                 |
+| ispell-quietly                           | t                                      |
+| ispell-silently-savep                    | t                                      |
+| jit-lock-chunk-size                      | 4096                                   |
+| jit-lock-defer-time                      | 0.05                                   |
+| jit-lock-stealth-time                    | 1.25                                   |
+| kill-do-not-save-duplicates              | t                                      |
+| kill-whole-line                          | t                                      |
+| load-prefer-newer                        | t                                      |
+| mac-command-modifier                     | 'meta                                  |
+| mac-option-modifier                      | 'super                                 |
+| mac-right-option-modifier                | nil                                    |
+| next-error-recenter                      | t                                      |
+| ns-function-modifier                     | 'hyper                                 |
+| ns-pop-up-frames                         | nil                                    |
+| nsm-save-host-names                      | t                                      |
+| nxml-sexp-element-flag                   | t                                      |
+| nxml-slash-auto-complete-flag            | t                                      |
+| project-compilation-buffer-name-function | 'project-prefixed-buffer-name          |
+| read-buffer-completion-ignore-case       | t                                      |
+| read-extended-command-predicate          | 'command-completion-default-include-p  |
+| resize-mini-windows                      | t                                      |
+| ruby-insert-encoding-magic-comment       | nil                                    |
+| save-abbrevs                             | 'silently                              |
+| save-interprogram-paste-before-kill      | t                                      |
+| scroll-conservatively                    | 101                                    |
+| scroll-preserve-screen-position          | 'always                                |
+| sentence-end-double-space                | nil                                    |
+| set-mark-command-repeat-pop              | t                                      |
+| shell-completion-execonly                | nil                                    |
+| shell-input-autoexpand                   | nil                                    |
+| switch-to-buffer-in-dedicated-window     | 'pop                                   |
+| switch-to-buffer-obey-display-actions    | t                                      |
+| tab-always-indent                        | 'complete                              |
+| term-input-autoexpand                    | t                                      |
+| term-input-ignoredups                    | t                                      |
+| tls-checktrust                           | t                                      |
+| undo-limit                               | 80000000                               |
+| undo-outer-limit                         | 120000000                              |
+| undo-strong-limit                        | 12000000                               |
+| uniquify-buffer-name-style               | 'post-forward-angle-brackets           |
+| use-package-always-defer                 | t                                      |
+| version-control                          | t                                      |
+| view-inhibit-help-message                | t                                      |
+| view-read-only                           | t                                      |
+| window-combination-resize                | t                                      |
+| woman-imenu                              | t                                      |
+| x-stretch-cursor                         | t                                      |
+| xref-show-definitions-function           | 'xref-show-definitions-completing-read |
+| comment-empty-lines                      | t                                      |
+| comment-multi-line                       | t                                      |
+| truncate-partial-width-windows           | nil                                    |
+| word-wrap                                | t                                      |
+| indicate-buffer-boundaries               | nil                                    |
+| indicate-empty-lines                     | nil                                    |
+| left-fringe-width                        | 8                                      |
+| right-fringe-width                       | 8                                      |
+| blink-cursor-mode                        | nil                                    |
+| hscroll-margin                           | 2                                      |
+| hscroll-step                             | 1                                      |
+| auto-window-vscroll                      | nil                                    |
+| scroll-error-top-bottom                  | t                                      |
+| fast-but-imprecise-scrolling             | t                                      |
+| history-length                           | 300                                    |
+| save-place-limit                         | 600                                    |
+| recentf-max-saved-items                  | 300                                    |
+| kill-buffer-delete-auto-save-files       | t                                      |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -435,56 +415,8 @@ Misc. defaults that don’t fit above. TODO: move these above.
        Man-context-menu
        dictionary-context-menu
        context-menu-buffers))
-   '(comint-password-prompt-regexp (concat
-                                    "\\(^ *\\|"
-                                    (regexp-opt
-                                     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
-                                       "Enter Auth" "Old" "old" "New" "new" "'s" "login"
-                                       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-                                       "[sudo]" "Repeat" "Bad" "Retype")
-                                     t)
-                                    ;; Allow for user name to precede password equivalent (Bug#31075).
-                                    " +.*\\)"
-                                    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
-                                    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
-                                    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-                                    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
-   '(compilation-error-regexp-alist
-     '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
-       epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
-       clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
-       php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
-       4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
-       perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
-       ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
-       ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
    '(completion-styles '(basic partial-completion emacs22 substring flex))
    '(custom-file (expand-file-name "settings.el" user-emacs-directory))
-   '(dired-listing-switches "-alhv --group-directories-first")
-   '(dired-omit-files "^\\.\\|^#.*#$")
-   '(dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
-   '(eshell-prompt-function
-     (lambda ()
-       (concat (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user
-                   (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-host
-                   (tramp-dissect-file-name default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
-   '(eshell-visual-commands
-     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-       "trn" "elm" "ssh" "mutt" "tmux" "htop"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
-       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
-       "telnet" "rlogin"))
-   '(eshell-visual-subcommands '(("vagrant" "ssh")))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
    '(frame-title-format
@@ -492,11 +424,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
        (if (buffer-file-name)
            (abbreviate-file-name (buffer-file-name))
          "%b")))
-   '(ibuffer-formats
-     '((mark modified read-only " " (name 16 -1) " "
-             (size 6 -1 :right) " " (mode 16 16) " " filename)
-       (mark " " (name 16 -1) " " filename)))
-   '(ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
    '(minibuffer-prompt-properties
@@ -508,14 +435,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
      '(("melpa" . "https://melpa.org/packages/")
        ("org" . "http://orgmode.org/elpa/")
        ("gnu" . "https://elpa.gnu.org/packages/")))
-   '(savehist-additional-variables '(search-ring
-                                     regexp-search-ring
-                                     kill-ring
-                                     comint-input-ring
-                                     kmacro-ring
-                                     sr-history-registry
-                                     file-name-history
-                                     tablist-name-filter))
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
@@ -523,15 +442,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(uniquify-ignore-buffers-re "^\\*")
    '(vc-git-diff-switches '("-w" "-U3"))
    '(vc-ignore-dir-regexp
-     "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)")
-   '(whitespace-action '(cleanup))
-   '(whitespace-style '(face trailing lines space-before-tab empty))
-   '(whitespace-global-modes '(not erc-mode ses-mode))
-   '(compilation-save-buffers-predicate
-     (lambda ()
-       (let ((proj (project-current)))
-         (and proj
-              (memq (current-buffer) (project-buffers proj)))))))
+     "\\(\\(\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'\\)\\|\\(\\`/[^/|:][^/|]*:\\)\\)\\|\\(\\`/[^/|:][^/|]*:\\)"))
 #+END_SRC
 
 *** Site paths
@@ -1222,6 +1133,28 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
 
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
+    :custom (eshell-prompt-function
+             (lambda ()
+               (concat (when (tramp-tramp-file-p default-directory)
+                         (concat
+                          (tramp-file-name-user
+                           (tramp-dissect-file-name default-directory))
+                          "@"
+                          (tramp-file-name-host
+                           (tramp-dissect-file-name default-directory))
+                          " "))
+                       (let ((dir (eshell/pwd)))
+                         (if (string= dir (getenv "HOME")) "~"
+                           (let ((dirname (file-name-nondirectory dir)))
+                             (if (string= dirname "") "/" dirname))))
+                       (if (= (user-uid) 0) " # " " $ "))))
+    :custom (eshell-visual-commands
+             '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+              "trn" "elm" "ssh" "mutt" "tmux" "htop"
+              "alsamixer" "watch" "elinks" "links" "nethack" "vim"
+              "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+              "telnet" "rlogin"))
+    :custom (eshell-visual-subcommands '(("vagrant" "ssh")))
     :bind (("C-c M-t" . eshell)
            ("C-c x" . eshell)
            ("C-c e" . eshell))
@@ -1255,6 +1188,14 @@ Setup eldoc integration.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
+    :custom (eshell-cmpl-autolist t)
+    :custom (eshell-cmpl-cycle-completions nil)
+    :custom (eshell-cmpl-ignore-case t)
+    :custom (eshell-default-target-is-dot t)
+    :custom (eshell-destroy-buffer-when-process-dies t)
+    :custom (eshell-hist-ignoredups 'erase)
+    :custom (eshell-list-files-after-cd t)
+    :custom (eshell-review-quick-commands t)
     :preface
     (autoload 'esh-help-eldoc-command "esh-help")
     (defun esh-help-turn-on ()
@@ -1627,6 +1568,10 @@ investigate how to fix this.
 #+BEGIN_SRC emacs-lisp
   (use-package autorevert
     :demand
+    :custom (auto-revert-avoid-polling t)
+    :custom (auto-revert-check-vc-info t)
+    :custom (auto-revert-interval 2)
+    :custom (auto-revert-verbose t)
     :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -1655,6 +1600,26 @@ Base mode used for shell and terminal modes.
     :ensure nil
     :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
            (comint-mode . (lambda () (toggle-truncate-lines 1))))
+    :custom (comint-input-ignoredups t)
+    :custom (comint-move-point-for-matching-input 'end-of-line)
+    :custom (comint-move-point-for-output 'all)
+    :custom (comint-process-echoes t)
+    :custom (comint-prompt-read-only t)
+    :custom (comint-scroll-to-bottom-on-input 'this)
+    :custom (comint-password-prompt-regexp (concat
+                                            "\\(^ *\\|"
+                                            (regexp-opt
+                                             '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
+                                               "Enter Auth" "Old" "old" "New" "new" "'s" "login"
+                                               "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
+                                               "[sudo]" "Repeat" "Bad" "Retype")
+                                             t)
+                                            ;; Allow for user name to precede password equivalent (Bug#31075).
+                                            " +.*\\)"
+                                            "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
+                                            "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
+                                            ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
+                                            "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
@@ -1742,6 +1707,24 @@ Base mode used for shell and terminal modes.
     :bind (("C-c C-c" . compile)
            :map compilation-mode-map
            ("o" . compile-goto-error))
+    :custom (compilation-always-kill t)
+    :custom (compilation-ask-about-save nil)
+    :custom (compilation-context-lines t)
+    :custom (compilation-scroll-output 'first-error)
+    :custom (compilation-skip-threshold 1)
+    :custom (compilation-error-regexp-alist '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
+                                                     epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
+                                                     clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
+                                                     php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
+                                                     4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
+                                                     perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
+                                                     ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
+                                                     ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
+    :custom (compilation-save-buffers-predicate
+             (lambda ()
+               (let ((proj (project-current)))
+                 (and proj
+                      (memq (current-buffer) (project-buffers proj))))))
     :preface
     (autoload 'ansi-color-process-output "ansi-color")
     (defun show-compilation ()
@@ -1778,6 +1761,12 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package dired
     :ensure nil
+    :custom (dired-dwim-target t)
+    :custom (dired-hide-details-hide-symlink-targets nil)
+    :custom (dired-omit-verbose nil)
+    :custom (dired-omit-files "^\\.\\|^#.*#$")
+    :custom (dired-listing-switches "-alhv --group-directories-first")
+    :custom (dired-create-destination-dirs 'ask)
     :preface
     (autoload 'dired-get-filename "dired")
     (autoload 'term-set-escape-char "term")
@@ -1998,6 +1987,8 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
+    :custom (flyspell-highlight-properties nil)
+    :custom (flyspell-issue-welcome-flag nil)
     :if (locate-file
          (if (boundp 'ispell-program-name)
              ispell-program-name "aspell")
@@ -2029,9 +2020,19 @@ Make scripts executable automatically.
 **** ibuffer
 
 #+BEGIN_SRC emacs-lisp
-(use-package ibuffer
-  :commands (ibuffer-do-sort-by-alphabetic)
-  :bind ([remap list-buffers] . ibuffer))
+  (use-package ibuffer
+    :custom (ibuffer-default-display-maybe-show-predicates t)
+    :custom (ibuffer-expert t)
+    :custom (ibuffer-show-empty-filter-groups nil)
+    :custom (ibuffer-shrink-to-minimum-size t)
+    :custom (ibuffer-use-other-window t)
+    :custom (ibuffer-formats
+             '((mark modified read-only " " (name 16 -1) " "
+                    (size 6 -1 :right) " " (mode 16 16) " " filename)
+              (mark " " (name 16 -1) " " filename)))
+    :custom (ibuffer-never-show-predicates ("\\*magit-\\(diff\\|process\\):"))
+    :commands (ibuffer-do-sort-by-alphabetic)
+    :bind ([remap list-buffers] . ibuffer))
 #+END_SRC
 
 **** imenu-list
@@ -2128,6 +2129,14 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
+    :custom (savehist-additional-variables '(search-ring
+                                            regexp-search-ring
+                                            kill-ring
+                                            comint-input-ring
+                                            kmacro-ring
+                                            sr-history-registry
+                                            file-name-history
+                                            tablist-name-filter))
     :hook (after-init . savehist-mode))
 #+END_SRC
 
@@ -2143,6 +2152,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package shell
+    :custom (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
     :bind (("C-c C-s" . shell)
            ("H-s" . shell)
            ("M-@" . shell))
@@ -2427,6 +2437,10 @@ Show whitespace
 
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
+    :custom (whitespace-line-column 120)
+    :custom (whitespace-action '(cleanup))
+    :custom (whitespace-style '(face trailing lines space-before-tab empty))
+    :custom (whitespace-global-modes '(not erc-mode ses-mode))
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
 
@@ -3030,6 +3044,7 @@ Most of these are available in MELPA.
     :demand
     :custom (undo-tree-mode-lighter "")
     :custom (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
+    :custom (undo-tree-enable-undo-in-region t)
     :config (global-undo-tree-mode))
 #+END_SRC
 
