@@ -1070,22 +1070,6 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
      consult--source-recent-file consult--source-project-recent-file
      :preview-key '(:debounce 0.4 any))
     )
-
-  (use-package marginalia
-    :demand
-
-    ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
-    ;; available in the *Completions* buffer, add it to the
-    ;; `completion-list-mode-map'.
-    :bind (:map minibuffer-local-map
-                ("M-A" . marginalia-cycle))
-
-    :config
-
-    ;; Marginalia must be activated in the :init section of use-package such that
-    ;; the mode gets enabled right away. Note that this forces loading the
-    ;; package.
-    (marginalia-mode))
 #+END_SRC
 
 
@@ -1928,17 +1912,22 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ffap
-    :bind (([remap find-file] . find-file-at-point)
-           ([remap find-file-other-window] . ffap-other-window)
+    :bind (([S-mouse-3] . ffap-at-mouse)
+           ([C-S-mouse-3] . ffap-menu)
+
+           ([remap find-file] . find-file-at-point)
            ([remap find-file-read-only] . ffap-read-only)
            ([remap find-alternate-file] . ffap-alternate-file)
+
            ([remap find-file-other-window] . ffap-other-window)
            ([remap find-file-other-frame] . ffap-other-frame)
            ([remap find-file-read-only-other-window] . ffap-read-only-other-window)
            ([remap find-file-read-only-other-frame] . ffap-read-only-other-frame)
+
            ([remap dired]  . dired-at-point)
            ([remap dired-other-window] . ffap-dired-other-window)
            ([remap dired-other-frame] . ffap-dired-other-frame)
+
            ([remap list-directory] . ffap-list-directory))
     :hook ((gnus-summary-mode . ffap-gnus-hook)
            (gnus-article-mode . ffap-gnus-hook)
@@ -2163,12 +2152,12 @@ Make scripts executable automatically.
            ;;            user-emacs-directory))))
            )
     :config
-    (require 'tramp)
     (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
       (when (file-remote-p default-directory)
         (if (file-exists-p (concat (file-remote-p default-directory) shell-file-name))
             (set (make-local-variable 'explicit-shell-file-name) shell-file-name)
-          (if (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell))
+          (if (and (boundp 'tramp-default-remote-shell)
+                   (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell)))
               (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
       (apply orig-fun args))
     (advice-add 'shell :around 'shell-set-remote-shell-path-maybe))
