@@ -1583,7 +1583,7 @@ Base mode used for shell and terminal modes.
   (use-package comint
     :ensure nil
     :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
-           (comint-mode . (lambda () (toggle-truncate-lines 1))))
+           (comint-mode . (lambda () (setq-local truncate-lines nil))))
     :custom (comint-input-ignoredups t)
     :custom (comint-move-point-for-matching-input 'end-of-line)
     :custom (comint-move-point-for-output 'all)
@@ -2458,7 +2458,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package csv-mode
     :hook ((csv-mode . (lambda () (visual-line-mode -1)))
            (csv-mode . (lambda () (auto-fill-mode -1)))
-           (csv-mode . (lambda () (toggle-truncate-lines 1)))))
+           (csv-mode . (lambda () (setq-local truncate-lines nil)))))
 #+END_SRC
 
 **** ELF
