@@ -543,7 +543,7 @@ This can be useful if a .envrc has been deleted."
 (defun envrc-show-log ()
   "Open envrc log buffer."
   (interactive)
-  (if-let ((buffer (get-buffer "*envrc*")))
+  (if-let* ((buffer (get-buffer "*envrc*")))
       (pop-to-buffer buffer)
     (message "Envrc log buffer does not exist")))
 

@@ -200,16 +200,11 @@ compiling phases used later.
     (defvar dired-mode-map))
 #+END_SRC
 
-When we are within a terminal we want to be able to use the mouse, so
-=xterm-mouse-mode= is enabled here.
-
 iTerm doesn’t seem to support xterm color reporting correctly, so we use the
 COLORFGBG method.
 
 #+BEGIN_SRC emacs-lisp
   (unless (display-graphic-p)
-    (xterm-mouse-mode 1)
-
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
                 #'(lambda
@@ -328,7 +323,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | next-error-recenter                      | t                                      |
 | ns-function-modifier                     | 'hyper                                 |
 | ns-pop-up-frames                         | nil                                    |
-| nsm-save-host-names                      | t                                      |
 | nxml-sexp-element-flag                   | t                                      |
 | nxml-slash-auto-complete-flag            | t                                      |
 | project-compilation-buffer-name-function | 'project-prefixed-buffer-name          |
@@ -1339,6 +1333,7 @@ outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org
+    :bind (("C-c l" . org-store-link))
     :ensure org-contrib
     :custom (org-latex-listings-langs
              '((emacs-lisp "Lisp")
@@ -1586,7 +1581,6 @@ Base mode used for shell and terminal modes.
            (comint-mode . (lambda () (setq-local truncate-lines nil))))
     :custom (comint-input-ignoredups t)
     :custom (comint-move-point-for-matching-input 'end-of-line)
-    :custom (comint-move-point-for-output 'all)
     :custom (comint-process-echoes t)
     :custom (comint-prompt-read-only t)
     :custom (comint-scroll-to-bottom-on-input 'this)
@@ -3172,14 +3166,16 @@ just in case.
     fi
 
     # taken from https://github.com/unixorn/zsh-quickstart-kit/blob/main/zsh/.zshrc
-    if [ "$(uname -s)" = Darwin ] && [ $(/usr/bin/ssh-add -l | grep -c "The agent has no identities.") -eq 1 ]; then
+    if [ "$(uname -s)" = Darwin ]; then
+      #  && [ $(/usr/bin/ssh-add -l | grep -c "The agent has no identities.") -eq 1 ]
+
       # check if Monterey or higher
       # https://scriptingosx.com/2020/09/macos-version-big-sur-update/
       if [[ $(sw_vers -buildVersion) > 21 ]]; then
         # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
-        /usr/bin/ssh-add --apple-load-keychain
+        /usr/bin/ssh-add -q --apple-load-keychain
       else
-        /usr/bin/ssh-add -qA
+        /usr/bin/ssh-add -qa
       fi
     fi
 
@@ -4323,7 +4319,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (if pkgs'.stdenv.hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs-git);
+  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
