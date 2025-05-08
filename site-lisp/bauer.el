@@ -1,4 +1,4 @@
-;;; bauer.el --- Helper functions for use with Bauer IDE
+;;; bauer.el --- Helper functions for use with Bauer IDE -*- lexical-binding: t; -*-
 
 
 ;;; Commentary:

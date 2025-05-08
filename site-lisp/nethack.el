@@ -1,4 +1,4 @@
-;;; nethack.el --- Run nethack in a buffer
+;;; nethack.el --- Run nethack in a buffer -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Matthew Bauer
 

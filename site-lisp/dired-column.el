@@ -1,4 +1,4 @@
-;;; dired-column.el --- Open dired in columns.
+;;; dired-column.el --- Open dired in columns. -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Matthew Bauer
 

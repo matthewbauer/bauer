@@ -1,4 +1,4 @@
-;;; macho-mode.el --- Show symbols in Mach-O files
+;;; macho-mode.el --- Show symbols in Mach-O files -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Matthew Bauer
 

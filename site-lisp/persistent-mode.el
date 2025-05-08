@@ -1,4 +1,4 @@
-;;; package --- A major mode for editing yesod persistent templates
+;;; package --- A major mode for editing yesod persistent templates -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

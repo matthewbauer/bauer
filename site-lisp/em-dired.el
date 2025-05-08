@@ -1,4 +1,4 @@
-;;; em-dired.el --- Dired features in Eshell
+;;; em-dired.el --- Dired features in Eshell -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 Matthew Bauer
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>

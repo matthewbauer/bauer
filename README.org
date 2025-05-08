@@ -147,7 +147,7 @@ that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/
 this.
 
 #+BEGIN_SRC emacs-lisp :padline no
-  ;; -*- mode: emacs-lisp; coding: utf-8; -*-
+  ;; -*- mode: emacs-lisp; coding: utf-8; lexical-binding: t; -*-
 
   (defvar file-name-handler-alist-backup
           file-name-handler-alist)
@@ -3717,6 +3717,8 @@ before we can actually run it in Emacs. To prevent Emacs from trying to run
 this, I’ve set the syntax to =text=.
 
 #+BEGIN_SRC emacs-lisp
+;; -*- lexical-binding: t; -*-
+
 (require 'set-defaults)
 (require 'subr-x)
 #+END_SRC
@@ -4946,6 +4948,8 @@ flake.nix      linguist-generated=true
 You can use this as part of [[~/.emacs.d/init.el][your Emacs init file]]:
 
 #+BEGIN_SRC emacs-lisp :tangle init.el
+;; -*- lexical-binding: t; -*-
+
 (load
   (expand-file-name "settings.el" user-emacs-directory) t)
 (package-initialize)

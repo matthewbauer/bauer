@@ -1,4 +1,4 @@
-;;; installer -- Install Nix-based repo through Emacs.
+;;; installer -- Install Nix-based repo through Emacs. -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

@@ -1,4 +1,4 @@
-;;: pcomplete-extra.el -
+;;: pcomplete-extra.el - -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 

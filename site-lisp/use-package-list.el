@@ -1,4 +1,4 @@
-;;; use-package-list.el --- List use-package declarations in config file
+;;; use-package-list.el --- List use-package declarations in config file -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 Matthew Bauer
 

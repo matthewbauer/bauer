@@ -1,4 +1,4 @@
-;;; set-defaults.el --- Custom defaults for custom
+;;; set-defaults.el --- Custom defaults for custom -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Matthew Bauer
 
