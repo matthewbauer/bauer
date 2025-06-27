@@ -887,17 +887,16 @@ Delete current buffer
 
 #+BEGIN_SRC
 ;;;###autoload
-(defun delete-file-and-buffer ()
-  "Kill the current buffer and deletes the file it is visiting."
-  (interactive)
-  (let ((filename (buffer-file-name)))
-    (when filename
-      (if (vc-backend filename)
-          (vc-delete-file filename)
-        (progn
-          (delete-file filename)
-          (message "Deleted file %s" filename)
-          (kill-buffer))))))
+(defun delete-visited-file (buffer-name)
+  "Delete the file visited by the buffer named BUFFER-NAME."
+  (interactive "bDelete file visited by buffer ")
+  (let* ((buffer (get-buffer buffer-name))
+         (filename (buffer-file-name buffer)))
+    (when buffer
+      (when (and filename
+                 (file-exists-p filename))
+        (delete-file filename))
+      (kill-buffer buffer))))
 #+END_SRC
 
 ** Setup installer
@@ -1274,7 +1273,10 @@ line are available in an intuitive Emacs buffer.
            :package magit
            :map magit-mode-map
            ("C-o" . magit-dired-other-window))
-    :init (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p))
+    :init
+    (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p)
+    (remove-hook 'server-switch-hook 'magit-commit-diff)
+    (remove-hook 'with-editor-filter-visit-hook 'magit-commit-diff))
 #+END_SRC
 
 Magit forge.
@@ -1580,24 +1582,10 @@ Base mode used for shell and terminal modes.
     :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
            (comint-mode . (lambda () (setq-local truncate-lines nil))))
     :custom (comint-input-ignoredups t)
-    :custom (comint-move-point-for-matching-input 'end-of-line)
-    :custom (comint-process-echoes t)
-    :custom (comint-prompt-read-only t)
-    :custom (comint-scroll-to-bottom-on-input 'this)
-    :custom (comint-password-prompt-regexp (concat
-                                            "\\(^ *\\|"
-                                            (regexp-opt
-                                             '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
-                                               "Enter Auth" "Old" "old" "New" "new" "'s" "login"
-                                               "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-                                               "[sudo]" "Repeat" "Bad" "Retype")
-                                             t)
-                                            ;; Allow for user name to precede password equivalent (Bug#31075).
-                                            " +.*\\)"
-                                            "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
-                                            "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
-                                            ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-                                            "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'"))
+    ;; :custom (comint-move-point-for-matching-input 'end-of-line)
+    ;; :custom (comint-process-echoes t)
+    ;; :custom (comint-prompt-read-only t)
+    ;; :custom (comint-scroll-to-bottom-on-input 'this)
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
@@ -1672,10 +1660,10 @@ Base mode used for shell and terminal modes.
                                      (setq comint-input-ring ring
                                            comint-input-ring-index nil)))))))
 
-  (use-package comint-hyperlink
-    :ensure nil
-    :commands (comint-hyperlink-process-output)
-    :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
+  ;; (use-package comint-hyperlink
+  ;;   :ensure nil
+  ;;   :commands (comint-hyperlink-process-output)
+  ;;   :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -3104,7 +3092,6 @@ Miscellaneous games
 #+BEGIN_SRC emacs-lisp
   (use-package visual-regexp)
 #+END_SRC
-
 
 **** persistent-scratch
 

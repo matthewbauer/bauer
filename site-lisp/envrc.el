@@ -322,7 +322,9 @@ DIRECTORY is the directory in which the environment changes."
                                     (when envrc-show-summary-in-minibuffer
                                       (envrc--show-summary result env-dir)))))
                             (message "Direnv failed in %s" env-dir)
-                            (setq result 'error))
+                            (setq result 'error)
+                            (setq envrc--running-processes-callbacks (make-hash-table :test 'equal :size 10))
+                            (setq envrc--running-processes (make-hash-table :test 'equal :size 10)))
                           (envrc--at-end-of-special-buffer (envrc--log-buffer-name)
                             (insert "==== " (format-time-string "%Y-%m-%d %H:%M:%S") " ==== " env-dir " ====\n\n")
                             (let ((initial-pos (point)))
@@ -335,7 +337,7 @@ DIRECTORY is the directory in which the environment changes."
 
                           ;; check again for callbacks in case they got added while this was running
                           (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
-                            (`missing (error "envrc--export: no callbacks found"))
+                            (`missing nil)
                             (callbacks
                              (remhash cache-key envrc--running-processes-callbacks)
                              (dolist (x callbacks) (funcall x result))))
