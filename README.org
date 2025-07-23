@@ -1576,24 +1576,18 @@ Base mode used for shell and terminal modes.
     "Possible prefix that may come before history elements. In
       Zshell with extended_history, this is useful.")
 
-  (defvar ffap-url-at-point)
   (use-package comint
     :ensure nil
-    :hook ((comint-mode . (lambda () (setq-local ffap-url-at-point "/ssh:")))
-           (comint-mode . (lambda () (setq-local truncate-lines nil))))
-    :custom (comint-input-ignoredups t)
-    ;; :custom (comint-move-point-for-matching-input 'end-of-line)
-    ;; :custom (comint-process-echoes t)
-    ;; :custom (comint-prompt-read-only t)
-    ;; :custom (comint-scroll-to-bottom-on-input 'this)
     :preface
     (autoload 'comint-write-input-ring "comint")
     (autoload 'comint-read-input-ring "comint")
     (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
+      (interactive)
       (setq comint-input-ring-file-name history-file)
       (comint-read-input-ring 'silent))
     (defun save-history ()
+      (interactive)
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (comint-write-input-ring))))
@@ -2129,9 +2123,13 @@ Make scripts executable automatically.
            ("M-@" . shell))
     :hook ((shell-mode . ansi-color-for-comint-mode-on)
            (shell-mode . dirtrack-mode)
+           (shell-mode . (lambda () (setq-local comint-prompt-read-only t)))
+           (shell-mode . (lambda () (setq-local comint-input-ignoredups t)))
+           (shell-mode . (lambda () (setq-local comint-process-echoes t)))
            ;; (shell-mode . (lambda ()
            ;;            (turn-on-comint-history (expand-file-name "sh-history"
            ;;            user-emacs-directory))))
+           (shell-mode . (lambda () (setq-local truncate-lines nil)))
            )
     :config
     (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
@@ -3102,6 +3100,13 @@ Miscellaneous games
     :config (persistent-scratch-setup-default))
 #+END_SRC
 
+**** vterm
+
+#+BEGIN_SRC emacs-lisp
+(use-package vterm)
+#+END_SRC
+
+
 ** END
 
 #+BEGIN_SRC emacs-lisp
@@ -3142,11 +3147,11 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:@PATH@${PATH:+:$PATH} \
+    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/node_modules/bin":@PATH@${PATH:+:$PATH} \
            INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
            MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
            XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
-           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}xrd5y
 
     if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
       eval $(ssh-agent) > /dev/null
@@ -3225,14 +3230,20 @@ just in case.
         . @bash_completion@/share/bash-completion/bash_completion
       fi
 
-      if { [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; } && [ -n "${SSH_CONNECTION-}" ]; then
+      if [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; then
         PROMPT_DIRTRIM=0
-        PS1='\[\e[34m\]/ssh:\u@\H:$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
-      elif [ -n "${SSH_CONNECTION-}" ]; then
-        PROMPT_DIRTRIM=0
-        PS1='\[\e[34m\]ssh://\u@\H\[\e[36m\]$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
+        if [ -n "${SSH_CONNECTION-}" ]; then
+          PS1='\e[34m/ssh:\u@\H:$PWD\e[0m \e[33m$\e[0m '
+        else
+          PS1='\e[34m\u@\h\e[0m:\e[36m\w \e[33m\$\e[0m '
+        fi
       else
-        PS1='\[\e[34m\]\u@\h\[\e[0m\]:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+        if [ -n "${SSH_CONNECTION-}" ]; then
+          PROMPT_DIRTRIM=0
+          PS1='\[\e[34m\]ssh://\u@\H\[\e[36m\]$PWD\[\e[0m\] \[\e[33m\]$\[\e[0m\] '
+        else
+          PS1='\[\e[34m\]\u@\h\[\e[0m\]:\[\e[36m\]\w \[\e[33m\]\$\[\e[0m\] '
+        fi
       fi
 
       if { [ "${TERM_PROGRAM-}" = iTerm.app ] || [ -n "${SSH_CONNECTION-}" ]; } && [ "$TERM" != dumb-emacs-ansi ] && [ "$TERM" != eterm-color ] && [ "$TERM" != dumb ]; then
@@ -3247,6 +3258,10 @@ just in case.
       # if command -v direnv > /dev/null; then
       #   eval "$(direnv hook bash)"
       # fi
+
+      if command -v npm > /dev/null; npm
+        npm config set prefix $HOME/.local/share/node_modules
+      fi
   fi
 #+END_SRC
 

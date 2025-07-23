@@ -323,8 +323,8 @@ DIRECTORY is the directory in which the environment changes."
                                       (envrc--show-summary result env-dir)))))
                             (message "Direnv failed in %s" env-dir)
                             (setq result 'error)
-                            (setq envrc--running-processes-callbacks (make-hash-table :test 'equal :size 10))
-                            (setq envrc--running-processes (make-hash-table :test 'equal :size 10)))
+                            (remhash cache-key envrc--running-processes-callbacks)
+                            (remhash cache-key envrc--running-processes))
                           (envrc--at-end-of-special-buffer (envrc--log-buffer-name)
                             (insert "==== " (format-time-string "%Y-%m-%d %H:%M:%S") " ==== " env-dir " ====\n\n")
                             (let ((initial-pos (point)))
@@ -336,12 +336,13 @@ DIRECTORY is the directory in which the environment changes."
                               (message "%s" stderr)))
 
                           ;; check again for callbacks in case they got added while this was running
-                          (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
-                            (`missing nil)
-                            (callbacks
-                             (remhash cache-key envrc--running-processes-callbacks)
-                             (dolist (x callbacks) (funcall x result))))
-                          (remhash cache-key envrc--running-processes)))
+                          (when (zerop exit-code)
+                            (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
+                              (`missing nil)
+                              (callbacks
+                               (remhash cache-key envrc--running-processes-callbacks)
+                               (dolist (x callbacks) (funcall x result))))
+                            (remhash cache-key envrc--running-processes))))
              envrc--running-processes)))
 
 (defun envrc--export (env-dir callback)
@@ -357,7 +358,7 @@ DIRECTORY is the directory in which the environment changes."
        ;; Make sure process is still running.
        (let ((process (gethash cache-key envrc--running-processes)))
          (if (and process (memq (process-status process) '(open run stop)))
-             (puthash cache-key (push callback callbacks) envrc--running-processes-callbacks)
+             (puthash cache-key (cons callback callbacks) envrc--running-processes-callbacks)
            (progn
              (remhash cache-key envrc--running-processes)
              (envrc--export-new-process env-dir callback))))))))
