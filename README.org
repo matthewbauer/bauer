@@ -3151,7 +3151,7 @@ just in case.
            INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
            MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
            XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
-           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}xrd5y
+           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
 
     if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
       eval $(ssh-agent) > /dev/null
@@ -3259,7 +3259,7 @@ just in case.
       #   eval "$(direnv hook bash)"
       # fi
 
-      if command -v npm > /dev/null; npm
+      if command -v npm > /dev/null; then
         npm config set prefix $HOME/.local/share/node_modules
       fi
   fi
