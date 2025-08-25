@@ -146,7 +146,7 @@ temporarily to a large number so we only garbage collect once on startup. After
 that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for more info on
 this.
 
-#+BEGIN_SRC emacs-lisp :padline no
+#+BEGIN_SRC emacs-lisp :padline no :comments no
   ;; -*- mode: emacs-lisp; coding: utf-8; lexical-binding: t; -*-
 
   (defvar file-name-handler-alist-backup
@@ -163,7 +163,7 @@ this.
             file-name-handler-alist-backup
             file-name-handler-alist))))
 
-  (setq read-process-output-max (* 1024 1024))
+  (setq read-process-output-max (* 4 1024 1024))
 #+END_SRC
 
 ** Benchmark
@@ -1066,6 +1066,14 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 #+END_SRC
 
 
+**** persistent-scratch
+
+#+BEGIN_SRC emacs-lisp
+  (use-package persistent-scratch
+    :demand
+    :config (persistent-scratch-autosave-mode))
+#+END_SRC
+
 **** envrc
 [[https://github.com/purcell/envrc][
 GitHub]]
@@ -1237,6 +1245,9 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
+  (use-package transient
+    :custom (transient-display-buffer-action '(display-buffer-below-selected (dedicated . t) (inhibit-same-window . t))))
+
   (use-package magit
     :preface
     (autoload 'magit-toplevel "magit")
@@ -2424,9 +2435,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
     :config
-    :custom (eglot-ignored-server-capabilities '(:codeLensProvider :documentFormattingProvider :documentRangeFormattingProvider :documentLinkProvider :colorProvider))
-    :custom (eglot-report-progress nil)
-    :custom (eglot-sync-connect nil)
+    (add-to-list 'eglot-server-programs '(haskell-mode . ("static-ls")))
     )
 #+END_SRC
 
@@ -2525,20 +2534,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :functions xref-push-marker-stack
     :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
                                      haskell-mode-handle-generic-loc)
-    :bind (:map haskell-mode-map
-                ("C-c h" . haskell-hoogle)
-                ("C-c C-." . haskell-navigate-imports)
-                ("C-`" . haskell-interactive-bring)
-                ("C-c `" . haskell-interactive-bring)
-                ("C-c C-t" . haskell-process-do-type)
-                ("C-c C-i" . haskell-process-do-info)
-                ("C-c C-k" . haskell-interactive-mode-clear)
-                ("C-c c" . haskell-process-cabal)
-                ;; ("M-." . haskell-mode-jump-to-def)
-                :map haskell-cabal-mode-map
-                ("C-`" . haskell-interactive-bring)
-                ("C-c C-k" . haskell-interactive-mode-clear)
-                ("C-c c" . haskell-process-cabal))
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
     ;; (require 'haskell-compile)
@@ -3100,10 +3095,208 @@ Miscellaneous games
     :config (persistent-scratch-setup-default))
 #+END_SRC
 
+**** claude-code
+
+#+BEGIN_SRC emacs-lisp
+  (use-package claude-code
+    :ensure nil
+    :bind ("C-c c" . claude-code-transient)
+    :custom (claude-code-terminal-backend 'vterm)
+    :custom (claude-code-vterm-multiline-delay 0.02)
+    :custom (claude-code-startup-delay 0.2))
+
+
+  (use-package websocket)
+
+  (use-package monet
+    :ensure nil
+    :custom (monet-prefix-key nil)
+    :init
+    (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+    (monet-mode 1))
+    #+END_SRC
+
+**** aidermacs
+
+#+BEGIN_SRC emacs-lisp
+  (use-package aidermacs
+    :bind (("C-x C-a" . aidermacs-transient-menu))
+    :config
+    (defun api-key-from-auth-source (host &optional user)
+  "Lookup api key in the auth source.
+By default, the LLM host for the active backend is used as HOST,
+and \"apikey\" as USER."
+  (if-let* ((secret
+             (plist-get
+              (car (auth-source-search
+                    :host host
+                    :user (or user "apikey")
+                    :require '(:secret)))
+              :secret)))
+      (if (functionp secret)
+          (encode-coding-string (funcall secret) 'utf-8)
+        secret)
+    (user-error "No `gptel-api-key' found in the auth source")))
+    (setenv "OPENROUTER_API_KEY" (api-key-from-auth-source "openrouter.ai"))
+    (setenv "ANTHROPIC_API_KEY" (api-key-from-auth-source "anthropic.com"))
+    :custom
+    (aidermacs-default-model "anthropic/claude-sonnet-4-20250514")
+    (aidermacs-architect-model "anthropic/claude-sonnet-4-20250514")
+    (aidermacs-editor-model "anthropic/claude-sonnet-4-20250514")
+    ;; (aidermacs-default-model "sonnet")
+    ;; (aidermacs-architect-model "haiku")
+    ;; (aidermacs-architect-model "sonnet")
+    ;; (aidermacs-editor-model "sonnet")
+    (aidermacs-backend 'comint)
+    (aidermacs-watch-files t)
+    (aidermacs-show-diff-after-change nil))
+#+END_SRC
+
+**** free-keys
+
+#+BEGIN_SRC emacs-lisp
+(use-package free-keys
+  :bind (("C-h C-k" . free-keys)))
+#+END_SRC
+
+**** gptel
+
+#+BEGIN_SRC emacs-lisp
+  (use-package gptel
+    :bind (("C-x C-g" . gptel-menu))
+    :config
+    (setq gptel--known-backends nil)
+    (defconst openrouter-api-models
+      '((openai/gpt-4o
+         :description "Advanced model for complex tasks; cheaper & faster than GPT-Turbo"
+         :capabilities (media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 128
+         :input-cost 2.50
+         :output-cost 10
+         :cutoff-date "2023-10")
+        (openai/gpt-4o-mini
+         :description "Cheap model for fast tasks; cheaper & more capable than GPT-3.5 Turbo"
+         :capabilities (media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 128
+         :input-cost 0.15
+         :output-cost 0.60
+         :cutoff-date "2023-10")
+        (openai/gpt-4.1
+         :description "Flagship model for complex tasks"
+         :capabilities (media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 1024
+         :input-cost 2.0
+         :output-cost 8.0
+         :cutoff-date "2024-05")
+        (openai/gpt-4.1-mini
+         :description "Balance between intelligence, speed and cost"
+         :capabilities (media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 1024
+         :input-cost 0.4
+         :output-cost 1.6)
+        (openai/gpt-4.1-nano
+         :description "Fastest, most cost-effective GPT-4.1 model"
+         :capabilities (media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 1024
+         :input-cost 0.10
+         :output-cost 0.40
+         :cutoff-date "2024-05")
+        (openai/gpt-4-turbo
+         :description "Previous high-intelligence model"
+         :capabilities (media tool-use url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 128
+         :input-cost 10
+         :output-cost 30
+         :cutoff-date "2023-11")
+        (openai/gpt-4
+         :description "GPT-4 snapshot from June 2023 with improved function calling support"
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :capabilities (media url)
+         :context-window 8.192
+         :input-cost 30
+         :output-cost 60
+         :cutoff-date "2023-11")
+        (openai/o4-mini
+         :description "Fast, effective reasoning with efficient performance in coding and visual tasks"
+         :capabilities (reasoning media tool-use json url)
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :context-window 200
+         :input-cost 1.10
+         :output-cost 4.40
+         :cutoff-date "2024-05")
+        (anthropic/claude-opus-4
+         :description "World’s leading coding model at release, excelling in complex, long-running tasks and agent workflows."
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :capabilities (media url)
+         :context-window 200000
+         :input-cost 15
+         :output-cost 75
+         :cutoff-date "2024-04")
+        (anthropic/claude-sonnet-4
+         :description "Enhanced successor to Sonnet 3.7, excelling in coding and reasoning tasks with improved precision."
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :capabilities (media url)
+         :context-window 200000
+         :input-cost 3
+         :output-cost 15
+         :cutoff-date "2024-04")
+        (meta-llama/llama-4-maverick
+         :description "High-capacity multimodal language model built on a mixture-of-experts architecture, delivering advanced capabilities."
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :capabilities (media url)
+         :context-window 128000
+         :input-cost 0.16
+         :output-cost 0.60
+         :cutoff-date "2023-12")
+        (meta-llama/llama-4-scout
+         :description "Mixture-of-experts language model developed by Meta, activating a significant number of parameters for diverse tasks."
+         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
+         :capabilities (media url)
+         :context-window 128000
+         :input-cost 0.08
+         :output-cost 0.30
+         :cutoff-date "2024-04")))
+    (setq gptel-backend
+          (gptel-make-openai "OpenRouter"
+            :host "openrouter.ai"
+            :endpoint "/api/v1/chat/completions"
+            :stream t
+            :key 'gptel-api-key-from-auth-source
+            :models openrouter-api-models))
+    )
+#+END_SRC
+
 **** vterm
 
 #+BEGIN_SRC emacs-lisp
-(use-package vterm)
+  (use-package vterm
+    :bind (("M-@" . vterm)
+           :map dired-mode-map ("M-@" . vterm))
+    :custom (vterm-min-window-width 40)
+    :custom (vterm-max-scrollback 10000)
+    :custom (vterm-copy-mode-remove-fake-newlines t)
+    :init
+    (defun vterm-mouse-set-point (event &optional promote-to-region)
+      "Move point to the position clicked on with the mouse.
+  But when clicking to the unused area below the last prompt,
+  move the cursor to the prompt area."
+      (interactive "e\np")
+      (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
+          (mouse-set-point event promote-to-region)
+        (vterm-reset-cursor-point)))
+    :config
+    (define-key vterm-mode-map (kbd "s-f") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-b") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-d") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-<backspace>") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "M-v") nil)
+    (define-key vterm-mode-map (kbd "C-v") nil))
 #+END_SRC
 
 
@@ -3259,9 +3452,11 @@ just in case.
       #   eval "$(direnv hook bash)"
       # fi
 
-      if command -v npm > /dev/null; then
-        npm config set prefix $HOME/.local/share/node_modules
-      fi
+      HISTFILE="$HOME/.bash_history"
+  fi
+
+  if command -v npm > /dev/null; then
+    npm config set prefix $HOME/.local/share/node_modules
   fi
 #+END_SRC
 
@@ -3718,7 +3913,7 @@ This file provides site-specific paths. However, it must be substituted in Nix
 before we can actually run it in Emacs. To prevent Emacs from trying to run
 this, I’ve set the syntax to =text=.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :comments no
 ;; -*- lexical-binding: t; -*-
 
 (require 'set-defaults)
@@ -4326,7 +4521,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor pkgs'.emacs-git;
+  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -4480,6 +4675,12 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/yesod-mode.el
                        "site-lisp/yesod-mode.el"} \
           $out/share/emacs/site-lisp/yesod-mode.el
+  install -D ${ensure ./site-lisp/claude-code.el
+                       "site-lisp/claude-code.el"} \
+          $out/share/emacs/site-lisp/claude-code.el
+  install -D ${ensure ./site-lisp/monet.el
+                       "site-lisp/monet.el"} \
+          $out/share/emacs/site-lisp/monet.el
   '';
 #+END_SRC
 

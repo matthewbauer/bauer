@@ -153,7 +153,8 @@ e.g. (define-key envrc-mode-map (kbd \"C-c e\") \\='envrc-command-map)"
 (define-globalized-minor-mode envrc-global-mode envrc-mode
   (lambda () (when (and (not (minibufferp)) (not (file-remote-p default-directory))
                         (executable-find envrc-direnv-executable))
-               (envrc-mode 1))))
+               (unless (derived-mode-p 'vterm-mode)
+                 (envrc-mode 1)))))
 
 (defface envrc-mode-line-on-face '((t :inherit success))
   "Face used in mode line to indicate that direnv is in effect.")
@@ -321,10 +322,9 @@ DIRECTORY is the directory in which the environment changes."
                                       (setq result (let ((json-key-type 'string)) (json-read-from-string stdout)))
                                     (when envrc-show-summary-in-minibuffer
                                       (envrc--show-summary result env-dir)))))
-                            (message "Direnv failed in %s" env-dir)
-                            (setq result 'error)
-                            (remhash cache-key envrc--running-processes-callbacks)
-                            (remhash cache-key envrc--running-processes))
+                            (progn
+                              (message "Direnv failed in %s" env-dir)
+                              (setq result 'error)))
                           (envrc--at-end-of-special-buffer (envrc--log-buffer-name)
                             (insert "==== " (format-time-string "%Y-%m-%d %H:%M:%S") " ==== " env-dir " ====\n\n")
                             (let ((initial-pos (point)))
@@ -336,13 +336,12 @@ DIRECTORY is the directory in which the environment changes."
                               (message "%s" stderr)))
 
                           ;; check again for callbacks in case they got added while this was running
-                          (when (zerop exit-code)
-                            (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
-                              (`missing nil)
-                              (callbacks
-                               (remhash cache-key envrc--running-processes-callbacks)
-                               (dolist (x callbacks) (funcall x result))))
-                            (remhash cache-key envrc--running-processes))))
+                          (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
+                            (`missing nil)
+                            (callbacks
+                             (remhash cache-key envrc--running-processes-callbacks)
+                             (dolist (x callbacks) (funcall x result))))
+                          (remhash cache-key envrc--running-processes)))
              envrc--running-processes)))
 
 (defun envrc--export (env-dir callback)
