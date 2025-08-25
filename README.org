@@ -1519,6 +1519,7 @@ function.
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
+    :if (>= emacs-major-version 30)
     :demand
     :custom (which-key-lighter "")
     :custom (which-key-idle-delay 0.4)
@@ -3111,6 +3112,7 @@ Miscellaneous games
   (use-package monet
     :ensure nil
     :custom (monet-prefix-key nil)
+    :commands (monet-mode)
     :init
     (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
     (monet-mode 1))
