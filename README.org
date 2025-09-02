@@ -516,8 +516,7 @@ we want to just assume everything is available.
 #+END_SRC
 
 First handle using =package.el=. We will do all of the work of bootstrapping
-here including running =package-initialize=, ensuring =use-package=, & =delight=
-are installed.
+here including running =package-initialize=, ensuring =use-package= is installed.
 
 #+BEGIN_SRC emacs-lisp
   (when needs-package-init
@@ -525,18 +524,13 @@ are installed.
     (package-initialize)
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
-      (package-install 'use-package))
-    (unless (package-installed-p 'delight)
-      (package-refresh-contents)
-      (package-install 'delight)))
+      (package-install 'use-package)))
 #+END_SRC
 
 Actually require =use-package=,
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
-    (require 'delight)
-    (require 'bind-key)
     (require 'use-package))
 #+END_SRC
 
@@ -885,7 +879,7 @@ More keys that have custom functions. TODO: move these above
 
 Delete current buffer
 
-#+BEGIN_SRC
+#+BEGIN_SRC emacs-lisp
 ;;;###autoload
 (defun delete-visited-file (buffer-name)
   "Delete the file visited by the buffer named BUFFER-NAME."
@@ -897,6 +891,21 @@ Delete current buffer
                  (file-exists-p filename))
         (delete-file filename))
       (kill-buffer buffer))))
+#+END_SRC
+
+Copy current buffer
+
+#+BEGIN_SRC emacs-lisp
+  (defun copy-visited-file (buffer-name newname)
+    "Copy the file visited by the buffer named BUFFER-NAME."
+    (interactive "bCopy file visited by buffer \nGCopy %s to file: \n")
+    (let* ((buffer (get-buffer buffer-name))
+           (filename (buffer-file-name buffer)))
+      (when buffer
+        (when (and filename
+                   (file-exists-p filename))
+          (copy-file filename newname)
+          (find-file newname)))))
 #+END_SRC
 
 ** Setup installer
@@ -1472,10 +1481,17 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 #+BEGIN_SRC emacs-lisp
   (use-package apropospriate-theme
     :if window-system
-    :hook ((mac-effective-appearance-change . (lambda ()
-                                                (pcase (plist-get (mac-application-state) :appearance)
-                                                  ("NSAppearanceNameAqua" (load-theme 'apropospriate-light t))
-                                                  ("NSAppearanceNameDarkAqua" (load-theme 'apropospriate-dark t))))))
+    :preface
+    (defun apropospriate-change-theme-appearance (&optional appearance)
+      (unless appearance
+        (setq appearance (pcase (plist-get (mac-application-state) :appearance)
+                           ("NSAppearanceNameAqua" 'light)
+                           ("NSAppearanceNameDarkAqua" 'dark))))
+      (pcase appearance
+        ('light (load-theme 'apropospriate-light t))
+        ('dark (load-theme 'apropospriate-dark t))))
+    :hook ((mac-effective-appearance-change . apropospriate-change-theme-appearance)
+           (ns-system-appearance-change-functions . apropospriate-change-theme-appearance))
     :init
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
@@ -2516,8 +2532,10 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package haskell-mode
     :custom (haskell-compile-cabal-build-command "cabal new-build")
     :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
+    :custom (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
+           (haskell-mode . haskell-indentation-mode)
            ;; (haskell-mode . flyspell-prog-mode)
            ;; (haskell-mode . haskell-indentation-mode)
            ;; (haskell-mode . haskell-auto-insert-module-template)
@@ -2801,14 +2819,6 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
-#+END_SRC
-
-**** delight
-
-[[https://elpa.gnu.org/packages/delight.html][ELPA]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package delight)
 #+END_SRC
 
 **** dired-rsync
@@ -3113,6 +3123,7 @@ Miscellaneous games
     :ensure nil
     :custom (monet-prefix-key nil)
     :commands (monet-mode)
+    :delight
     :init
     (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
     #+END_SRC
@@ -4595,10 +4606,6 @@ package-list =
   emacs --batch --quick \
         -L ${evalPkgs.emacsPackages.use-package
             }/share/emacs/site-lisp/elpa/use-package-* \
-        -L ${evalPkgs.emacsPackages.delight
-            }/share/emacs/site-lisp/elpa/delight-* \
-        -L ${evalPkgs.emacsPackages.bind-key
-            }/share/emacs/site-lisp/elpa/bind-key-* \
         -l ${ensure ./site-lisp/set-defaults.el
                      "site-lisp/set-defaults.el"} \
         -l ${ensure ./site-lisp/bauer.el
@@ -4708,13 +4715,12 @@ TODO: use dump-emacs here to speed up config.
 #+BEGIN_SRC nix
   myEmacsPackages = buildEnv {
     name = "emacs-packages-env";
-    paths = (requiredPackages customEmacsPackages myEmacsPackages')
-          ++ [ customEmacsPackages.use-package customEmacsPackages.delight ];
+    paths = (requiredPackages customEmacsPackages myEmacsPackages');
   };
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.use-package epkgs.delight epkgs.treesit-grammars.with-all-grammars]
+    ++ [default epkgs.treesit-grammars.with-all-grammars]
   );
 #+END_SRC
 
