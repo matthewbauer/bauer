@@ -132,7 +132,7 @@ See `envrc-mode-map' for how to assign a prefix binding to these."
 (defcustom envrc-mode-map (make-sparse-keymap)
   "Keymap for `envrc-mode'.
 To access `envrc-command-map' from this map, give it a prefix keybinding,
-e.g. (define-key envrc-mode-map (kbd \"C-c e\") \\='envrc-command-map)"
+e.g. (define-key envrc-mode-map (kbd \"C-c e\") \='envrc-command-map)"
   :type '(restricted-sexp :match-alternatives (keymapp)))
 
 ;;;###autoload
@@ -305,8 +305,7 @@ DIRECTORY is the directory in which the environment changes."
 (defun envrc--export-new-process (env-dir callback)
   "Export the env vars for ENV-DIR using direnv."
   (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment)))
-        result
-        process)
+        result)
     (message "Running direnv in %s..." env-dir)
     (puthash cache-key (cons callback (gethash cache-key envrc--running-processes-callbacks)) envrc--running-processes-callbacks)
     (puthash cache-key (envrc--make-process-with-global-env
@@ -348,8 +347,7 @@ DIRECTORY is the directory in which the environment changes."
   "Export the env vars for ENV-DIR using direnv."
   (unless (envrc--env-dir-p env-dir)
     (error "%s is not a directory with a .envrc" env-dir))
-  (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment)))
-        result)
+  (let ((cache-key (envrc--cache-key env-dir (default-value 'process-environment))))
     (pcase (gethash cache-key envrc--running-processes-callbacks 'missing)
       (`missing
        (envrc--export-new-process env-dir callback))
@@ -466,7 +464,8 @@ If there is no current env dir, abort with a user error."
 	  (set-marker max nil))))))
 
 (defun envrc--make-process-with-global-env (command callback)
-  "Starts a process with `make-process', but always use the global process environment.
+  "Starts a process with `make-process', but always use the global process
+environment.
 In particular, we ensure the default variable `exec-path' and
 `process-environment' are used.  This ensures an .envrc doesn't take
 `envrc-direnv-executable' out of our path.

@@ -188,15 +188,8 @@ compiling phases used later.
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
-    (autoload 'package-installed-p "package")
-    (autoload 'use-package-autoload-keymap "use-package")
-    (autoload 'pcomplete-arg "pcomplete")
-    (autoload 'pcomplete--here "pcomplete")
-    (autoload 'tramp-tramp-file-p "tramp")
-    (autoload 'tramp-dissect-file-name "tramp")
-
-    (defvar view-mode-map)
-    (defvar iso-transl-ctl-x-8-map)
+    (setq use-package-always-defer t)
+    (autoload 'xterm--init-modify-other-keys "term/xterm")
     (defvar dired-mode-map))
 #+END_SRC
 
@@ -207,7 +200,7 @@ COLORFGBG method.
   (unless (display-graphic-p)
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
-                #'(lambda
+                (lambda ()
                    ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
                    (xterm--init-modify-other-keys)
 
@@ -219,9 +212,9 @@ COLORFGBG method.
   Return an event vector."
                      (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
                                                                (logand c ?\x1f)
-                                                             (logior (lsh 1 26) c))))
-                     (if (memq 'meta modifiers) (setq c (logior (lsh 1 27) c)))
-                     (if (memq 'shift modifiers) (setq c (logior (lsh 1 25) c)))
+                                                             (logior (ash 1 26) c))))
+                     (if (memq 'meta modifiers) (setq c (logior (ash 1 27) c)))
+                     (if (memq 'shift modifiers) (setq c (logior (ash 1 25) c)))
                      (vector c))
                    (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
                      (let ((c 32))
@@ -248,7 +241,6 @@ COLORFGBG method.
       ;; ;; use COLORFGBG
       ;; (defvar xterm-extra-capabilities)
       ;; (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
-      (autoload 'rxvt-set-background-mode "term/rxvt")
       (add-hook 'window-setup-hook 'rxvt-set-background-mode)
       ))
 #+END_SRC
@@ -768,9 +760,6 @@ Some bauer-specific custom keybindings.
 
   (bind-keys
    ("C-c I"   . bauer-find-config)
-   :prefix-map bauer-git
-   :prefix "s-g"
-   ("l" . magit-clone)
 
    :prefix-map bauer-help
    :prefix "s-h"
@@ -963,10 +952,10 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
   (use-package vertico
     :hook (minibuffer-setup . cursor-intangible-mode)
+    :commands (vertico-mode)
     :demand
-    :config
-    (vertico-mode)
-
+    :preface
+    (defvar crm-separator)
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
                     (replace-regexp-in-string
@@ -974,12 +963,15 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
                      crm-separator)
                     (car args))
             (cdr args)))
+    :config
+    (vertico-mode)
 
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
     )
 
   (use-package corfu
     :demand
+    :commands (global-corfu-mode)
     :custom
     (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
     (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -994,6 +986,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (global-corfu-mode))
 
   (use-package consult
+    :autoload (consult-register-window consult-register-format)
     ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c M-x" . consult-mode-command)
@@ -1060,11 +1053,20 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
+**** jinx
+
+#+BEGIN_SRC emacs-lisp
+  (use-package jinx
+    :hook ((prog-mode . jinx-mode)))
+#+END_SRC
+
+
 **** persistent-scratch
 
 #+BEGIN_SRC emacs-lisp
   (use-package persistent-scratch
     :demand
+    :commands (persistent-scratch-autosave-mode)
     :config (persistent-scratch-autosave-mode))
 #+END_SRC
 
@@ -1087,6 +1089,7 @@ occasionally block Emacs.
            :package project
            :map project-prefix-map
            ("," . envrc-reload))
+    :commands (envrc-global-mode)
     :custom (envrc-none-lighter nil)
     :demand t
     :config
@@ -1101,6 +1104,7 @@ This mode will try to detect your indentation.
 
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
+    :disabled
     :delight
     :custom (dtrt-indent-verbosity 0)
     :hook (prog-mode . dtrt-indent-mode))
@@ -1223,6 +1227,7 @@ Intelligently adjust Emacs garbage collection size.
   (use-package gcmh
     :delight
     :demand
+    :commands (gcmh-mode)
     :config
     (gcmh-mode 1)
     :custom
@@ -1262,9 +1267,6 @@ line are available in an intuitive Emacs buffer.
                                              "^Yubikey for .*: ?$"
                                              "^Enter PIN for .*: ?$"
                                              "^\\[sudo\\] password for .*: ?$"))
-    (magit-clone-set-remote.pushDefault t)
-    (magit-log-auto-more t)
-    (magit-remote-add-set-remote.pushDefault t)
     (magit-save-repository-buffers 'dontask)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
@@ -1751,7 +1753,7 @@ Base mode used for shell and terminal modes.
           (term-set-escape-char ?\C-x))
         (set-process-sentinel
          (get-buffer-process buffer)
-         (lambda (proc event)
+         (lambda (proc _event)
            (when (not (process-live-p proc))
              (kill-buffer (process-buffer proc)))))
         (switch-to-buffer buffer)))
@@ -1870,6 +1872,7 @@ eww is enabled so we can open files in non-graphical environments.
              (not (string-equal
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
+    :commands (eww-reload)
     :config
     (add-hook 'eww-mode-hook (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
@@ -2190,6 +2193,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package term
+    :commands (term-char-mode)
     :hook ((term-mode .
                       (lambda ()
                         (setq term-prompt-regexp
@@ -2215,176 +2219,178 @@ Make scripts executable automatically.
 
 **** timeclock
 #+BEGIN_SRC emacs-lisp
-  (use-package timeclock)
+    (use-package timeclock
+  )
 
-  (require 'timeclock)
+    (require 'timeclock)
 
-  (defvar timeclock-report-mode-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map [?g] #'timeclock-report-redo)
-      (define-key map [?q] #'timeclock-report-quit)
-      map)
-    "Keymap for `timeclock-report-mode'.")
+    (defvar timeclock-report-mode-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map [?g] #'timeclock-report-redo)
+        (define-key map [?q] #'timeclock-report-quit)
+        map)
+      "Keymap for `timeclock-report-mode'.")
 
-  (easy-menu-define timeclock-report-mode-menu timeclock-report-mode-map
-    "Ledger report menu"
-    '("Timeclock Report"
-      ["Reload" timeclock-report-redo]
-      ["Quit" timeclock-report-quit]
-      ))
+    (easy-menu-define timeclock-report-mode-menu timeclock-report-mode-map
+      "Ledger report menu"
+      '("Timeclock Report"
+        ["Reload" timeclock-report-redo]
+        ["Quit" timeclock-report-quit]
+        ))
 
-  (define-derived-mode timeclock-report-mode special-mode "Timeclock-Report"
-    "A mode for viewing timeclock reports."
-    (hack-dir-local-variables-non-file-buffer)
-    (setq-local revert-buffer-function 'timeclock-report-redo))
+    (define-derived-mode timeclock-report-mode special-mode "Timeclock-Report"
+      "A mode for viewing timeclock reports."
+      (hack-dir-local-variables-non-file-buffer)
+      (setq-local revert-buffer-function 'timeclock-report-redo))
 
-  (defvar timeclock-report-buffer-name "*Timeclock Report*")
+    (defvar timeclock-report-buffer-name "*Timeclock Report*")
 
-  (defun timeclock-report-quit ()
-    (interactive)
-    (unless (buffer-live-p (get-buffer timeclock-report-buffer-name))
-      (user-error "No timeclock report buffer"))
-    (quit-windows-on timeclock-report-buffer-name 'kill))
+    (defun timeclock-report-quit ()
+      (interactive)
+      (unless (buffer-live-p (get-buffer timeclock-report-buffer-name))
+        (user-error "No timeclock report buffer"))
+      (quit-windows-on timeclock-report-buffer-name 'kill))
 
-  (defun timeclock-report-redo (&optional _ignore-auto _noconfirm)
-    (interactive)
-    (unless (derived-mode-p 'timeclock-report-mode)
-      (user-error "Not in a timeclock-report-mode buffer"))
-    (timeclock-reread-log)
-    (let ((cur-buf (current-buffer)))
-      (when (get-buffer timeclock-report-buffer-name)
+    (defun timeclock-report-redo (&optional _ignore-auto _noconfirm)
+      (interactive)
+      (unless (derived-mode-p 'timeclock-report-mode)
+        (user-error "Not in a timeclock-report-mode buffer"))
+      (timeclock-reread-log)
+      (let ((cur-buf (current-buffer)))
+        (when (get-buffer timeclock-report-buffer-name)
+          (with-silent-modifications
+            (erase-buffer)
+            (timeclock-report-mode)
+            (timeclock-generate-report)
+            (newline))
+          (pop-to-buffer cur-buf))))
+
+    (defun timeclock-report ()
+      "Timeclock report."
+      (interactive)
+      (timeclock-reread-log)
+      (with-current-buffer
+          (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) 'display-buffer-pop-up-window)
         (with-silent-modifications
           (erase-buffer)
           (timeclock-report-mode)
           (timeclock-generate-report)
-          (newline))
-        (pop-to-buffer cur-buf))))
+          (newline))))
 
-  (defun timeclock-report ()
-    "Timeclock report."
-    (interactive)
-    (timeclock-reread-log)
-    (with-current-buffer
-        (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) 'display-buffer-pop-up-window)
-      (with-silent-modifications
-        (erase-buffer)
-        (timeclock-report-mode)
-        (timeclock-generate-report)
-        (newline))))
+    (defvar ledger-binary-path)
 
-  (defun timeclock-ledger-report ()
-    "Timeclock ledger report."
-    (interactive)
-    (let* ((timeclock-file buffer-file-name)
-           (buffer-name (format "*Ledger Report [%s]*" timeclock-file))
-           (ledger-report-name "timelog")
-           (report-cmd (format "%s --color --force-color -f %s reg -D \"expr(commodity == 's')\""
-                                  (shell-quote-argument ledger-binary-path)
-                                  (shell-quote-argument timeclock-file))))
-      (with-current-buffer
-          (pop-to-buffer (get-buffer-create buffer-name))
-        (with-silent-modifications
-          (erase-buffer)
-          (ledger-report-mode)
-          (set (make-local-variable 'ledger-report-cmd) report-cmd)
-          (ledger-do-report report-cmd)))))
+    (defun timeclock-ledger-report ()
+      "Timeclock ledger report."
+      (interactive)
+      (let* ((timeclock-file buffer-file-name)
+             (buffer-name (format "*Ledger Report [%s]*" timeclock-file))
+             (report-cmd (format "%s --color --force-color -f %s reg -D \"expr(commodity == 's')\""
+                                    (shell-quote-argument ledger-binary-path)
+                                    (shell-quote-argument timeclock-file))))
+        (with-current-buffer
+            (pop-to-buffer (get-buffer-create buffer-name))
+          (with-silent-modifications
+            (erase-buffer)
+            (ledger-report-mode)
+            (set (make-local-variable 'ledger-report-cmd) report-cmd)
+            (ledger-do-report report-cmd)))))
 
-  (defvar timeclock-mode-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "C-c C-i") 'timeclock-in)
-      (define-key map (kbd "C-c C-o") 'timeclock-out)
-      (define-key map (kbd "C-c C-c") 'timeclock-change)
-      (define-key map (kbd "C-c C-r") 'timeclock-reread-log)
-      (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
-      (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
-      (define-key map (kbd "C-c C-t") 'timeclock-report)
-      (define-key map (kbd "C-c C-e") 'timeclock-ledger-report)
+    (defvar timeclock-mode-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "C-c C-i") 'timeclock-in)
+        (define-key map (kbd "C-c C-o") 'timeclock-out)
+        (define-key map (kbd "C-c C-c") 'timeclock-change)
+        (define-key map (kbd "C-c C-r") 'timeclock-reread-log)
+        (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
+        (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
+        (define-key map (kbd "C-c C-t") 'timeclock-report)
+        (define-key map (kbd "C-c C-e") 'timeclock-ledger-report)
 
-      ;; Reset the `text-mode' override of this standard binding
-      (define-key map (kbd "C-M-i") 'completion-at-point)
-      map)
-    "Keymap for `timeclock-mode'.")
+        ;; Reset the `text-mode' override of this standard binding
+        (define-key map (kbd "C-M-i") 'completion-at-point)
+        map)
+      "Keymap for `timeclock-mode'.")
 
-  (easy-menu-define timeclock-mode-menu timeclock-mode-map
-    "Menu for `timeclock-mode'."
-    '("Timeclock"
-      ["Clock in" timeclock-in]
-      ["Clock out" timeclock-out]
-      ["Change project" timeclock-change]
-      ["Reread log" timeclock-reread-log]
-      ["Update modeline" timeclock-update-mode-line]
-      ["When to leave" timeclock-when-to-leave-string]
-      "---"
-      ["Customize Timeclock Mode" (lambda () (interactive) (customize-group 'timeclock))]
-      "---"
-      ["Report" timeclock-report]
-      ["Ledger Report" timeclock-ledger-report]
-      ))
+    (easy-menu-define timeclock-mode-menu timeclock-mode-map
+      "Menu for `timeclock-mode'."
+      '("Timeclock"
+        ["Clock in" timeclock-in]
+        ["Clock out" timeclock-out]
+        ["Change project" timeclock-change]
+        ["Reread log" timeclock-reread-log]
+        ["Update modeline" timeclock-update-mode-line]
+        ["When to leave" timeclock-when-to-leave-string]
+        "---"
+        ["Customize Timeclock Mode" (lambda () (interactive) (customize-group 'timeclock))]
+        "---"
+        ["Report" timeclock-report]
+        ["Ledger Report" timeclock-ledger-report]
+        ))
 
-  (defgroup timeclock-faces nil "Timeclock mode highlighting" :group 'timeclock)
+    (defgroup timeclock-faces nil "Timeclock mode highlighting" :group 'timeclock)
 
-  (defface timeclock-font-directive-face
-    `((t :inherit font-lock-preprocessor-face))
-    "Default face for timeclock"
-    :group 'timeclock-faces)
+    (defface timeclock-font-directive-face
+      `((t :inherit font-lock-preprocessor-face))
+      "Default face for timeclock"
+      :group 'timeclock-faces)
 
-  (defface timeclock-font-uncleared-face
-    `((t :inherit warning))
-    "Uncleared face fortimeclock"
-    :group 'timeclock-faces)
+    (defface timeclock-font-uncleared-face
+      `((t :inherit warning))
+      "Uncleared face fortimeclock"
+      :group 'timeclock-faces)
 
-  (defface timeclock-font-cleared-face
-    `((t :inherit shadow))
-    "Cleared face for timeclock"
-    :group 'timeclock-faces)
+    (defface timeclock-font-cleared-face
+      `((t :inherit shadow))
+      "Cleared face for timeclock"
+      :group 'timeclock-faces)
 
-  (defface timeclock-font-comment-face
-    `((t :inherit font-lock-comment-face))
-    "Face for Timeclock comments"
-    :group 'timeclock-faces)
+    (defface timeclock-font-comment-face
+      `((t :inherit font-lock-comment-face))
+      "Face for Timeclock comments"
+      :group 'timeclock-faces)
 
-  (defface timeclock-font-date-face
-    `((t :inherit font-lock-keyword-face))
-    "Face for Timeclock dates"
-    :group 'timeclock-faces)
+    (defface timeclock-font-date-face
+      `((t :inherit font-lock-keyword-face))
+      "Face for Timeclock dates"
+      :group 'timeclock-faces)
 
-  (defun timeclock-font-face-by-state (num faces)
-    "Choose one of two faces depending on a timeclock directive character.
-  NUM specifies a match group containing the character.
-  FACES has the form (CLEARED UNCLEARED).
-  Return CLEARED if the character specifies a cleared transaction,
-  UNCLEARED otherwise."
-    (if (member (match-string num) '("I" "O"))
-        (nth 0 faces)
-      (nth 1 faces)))
+    (defun timeclock-font-face-by-state (num faces)
+      "Choose one of two faces depending on a timeclock directive character.
+    NUM specifies a match group containing the character.
+    FACES has the form (CLEARED UNCLEARED).
+    Return CLEARED if the character specifies a cleared transaction,
+    UNCLEARED otherwise."
+      (if (member (match-string num) '("I" "O"))
+          (nth 0 faces)
+        (nth 1 faces)))
 
-  (defvar timeclock-font-lock-keywords
-    `((,(concat "^\\([IiOo]\\)"
-                "\\(?:[[:blank:]]+\\([^[:blank:]\n]+"
-                "\\(?:[[:blank:]]+[^[:blank:]\n]+\\)?\\)"
-                "\\(?:[[:blank:]]+\\(.*?\\)"
-                "\\(?:\t\\|[ \t]\\{2,\\}\\(.*?\\)"
-                "\\(?:\t\\|[ \t]\\{2,\\}\\(;.*\\)\\)?\\)?\\)?\\)?$")
-       (1 'timeclock-font-directive-face)
-       (2 'timeclock-font-date-face nil :lax)
-       (3 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
-                                            timeclock-font-directive-face)) nil :lax)
-       (4 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
-                                            timeclock-font-uncleared-face)) nil :lax)
-       (5 'timeclock-font-comment-face nil :lax)))
-    "Expressions to highlight in Timeclock mode.")
+    (defvar timeclock-font-lock-keywords
+      `((,(concat "^\\([IiOo]\\)"
+                  "\\(?:[[:blank:]]+\\([^[:blank:]\n]+"
+                  "\\(?:[[:blank:]]+[^[:blank:]\n]+\\)?\\)"
+                  "\\(?:[[:blank:]]+\\(.*?\\)"
+                  "\\(?:\t\\|[ \t]\\{2,\\}\\(.*?\\)"
+                  "\\(?:\t\\|[ \t]\\{2,\\}\\(;.*\\)\\)?\\)?\\)?\\)?$")
+         (1 'timeclock-font-directive-face)
+         (2 'timeclock-font-date-face nil :lax)
+         (3 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
+                                              timeclock-font-directive-face)) nil :lax)
+         (4 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
+                                              timeclock-font-uncleared-face)) nil :lax)
+         (5 'timeclock-font-comment-face nil :lax)))
+      "Expressions to highlight in Timeclock mode.")
 
-  ;;;###autoload
-  (define-derived-mode timeclock-mode text-mode "Timeclock"
-    "A major mode to timelog files."
-    (setq font-lock-defaults
-          '(timeclock-font-lock-keywords t nil nil nil))
+    ;;;###autoload
+    (define-derived-mode timeclock-mode text-mode "Timeclock"
+      "A major mode to timelog files."
+      (setq font-lock-defaults
+            '(timeclock-font-lock-keywords t nil nil nil))
 
-    (when (and (boundp 'display-time-mode) display-time-mode)
-      (timeclock-mode-line-display t)))
+      (when (and (boundp 'display-time-mode) display-time-mode)
+        (timeclock-mode-line-display t)))
 
-  ;;;###autoload
-  (add-to-list 'auto-mode-alist '("timelog\\'" . timeclock-mode))
+    ;;;###autoload
+    (add-to-list 'auto-mode-alist '("timelog\\'" . timeclock-mode))
 #+END_SRC
 **** url-handlers
 
@@ -2555,7 +2561,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package typescript-ts-mode
     :if (treesit-language-available-p 'typescript)
     :mode (("\\.ts\\'" . typescript-ts-mode)
-           ("\\.tsx\\'" . typescript-ts-mode)))
+           ("\\.tsx\\'" . tsx-ts-mode)))
 
   (use-package js
     :mode (("\\(\\.js[mx]?\\|\\.har\\)\\'" . js-ts-mode)
@@ -2570,6 +2576,15 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
            ("\\.json$" . json-ts-mode)))
 #+END_SRC
 
+**** Dockerfile
+
+#+BEGIN_SRC emacs-lisp
+   (use-package dockerfile-ts-mode
+     :if (treesit-language-available-p 'dockerfile)
+     :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
+                   . dockerfile-ts-mode)))
+#+END_SRC
+
 **** CMake
 
 #+BEGIN_SRC emacs-lisp
@@ -2578,7 +2593,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
      :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
 #+END_SRC
 
-
 **** Rust
 
 #+BEGIN_SRC emacs-lisp
@@ -2586,6 +2600,28 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :if (treesit-language-available-p 'rust)
     :mode (("\\.rs\\'" . rust-ts-mode))
     )
+#+END_SRC
+
+**** Elixir
+
+#+BEGIN_SRC emacs-lisp
+  (use-package elixir-ts-mode
+    :if (treesit-language-available-p 'elixir)
+    :mode (("\\.elixir\\'" . elixir-ts-mode)
+           ("\\.ex\\'" . elixir-ts-mode)
+           ("\\.exs\\'" . elixir-ts-mode)
+           ("mix\\.lock" . elixir-ts-mode)))
+#+END_SRC
+
+**** PHP
+
+#+BEGIN_SRC emacs-lisp
+  (use-package php-ts-mode
+    :if (treesit-language-available-p 'php)
+    :mode (("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode)
+           ("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode)
+           ("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode))
+    :interpreter ("php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" . php-ts-mode))
 #+END_SRC
 
 **** Go
@@ -2796,7 +2832,7 @@ repositories.
 **** pcomplete-extra
 
 #+BEGIN_SRC emacs-lisp
-(use-package pcomplete-extras
+(use-package pcomplete-extra
   :ensure nil)
 #+END_SRC
 
@@ -2903,6 +2939,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer-vc
+    :commands (ibuffer-vc-set-filter-groups-by-vc-root ibuffer-do-sort-by-alphabetic)
     :hook ((ibuffer . (lambda ()
                         (ibuffer-vc-set-filter-groups-by-vc-root)
                         (unless (eq ibuffer-sorting-mode 'alphabetic)
@@ -2923,6 +2960,8 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ledger-mode
+    :autoload ledger-do-report
+    :commands (ledger-report-mode)
     :mode "\\.journal\\'")
 #+END_SRC
 **** mwim
@@ -2958,7 +2997,8 @@ Most of these are available in MELPA.
             prog-mode
             haskell-mode
             help-mode
-            magit-mode) . page-break-lines-mode))
+            magit-mode
+            emacs-news-mode) . page-break-lines-mode))
 #+END_SRC
 
 **** pandoc-mode
@@ -3050,6 +3090,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :demand
+    :commands (global-undo-tree-mode)
     :custom
     (undo-tree-mode-lighter "")
     (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
@@ -3090,19 +3131,6 @@ Most of these are available in MELPA.
     (defalias 'url-unescape 'url-decode))
 #+END_SRC
 
-**** xterm-mode
-
-[[https://github.com/atomontage/xterm-color][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package xterm-color
-    :init
-    (defun advice-compilation-filter (f proc string)
-      (funcall f proc (xterm-color-filter string)))
-    (advice-add 'compilation-filter :around #'advice-compilation-filter)
-    )
-#+END_SRC
-
 **** games
 
 Miscellaneous games
@@ -3118,6 +3146,7 @@ Miscellaneous games
 
 #+BEGIN_SRC emacs-lisp
   (use-package dumb-jump
+    :autoload dumb-jump-xref-activate
     :init
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 #+END_SRC
@@ -3323,6 +3352,7 @@ Miscellaneous games
 
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
+    :commands (vterm-reset-cursor-point)
     :bind (("M-@" . vterm)
            :package dired
            :map dired-mode-map ("M-@" . vterm))
@@ -3330,6 +3360,8 @@ Miscellaneous games
     (vterm-min-window-width 40)
     (vterm-max-scrollback 10000)
     (vterm-copy-mode-remove-fake-newlines t)
+    :preface
+    (defvar-local vterm-cursor-type-saved nil)
     :init
     (defun vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
@@ -3343,7 +3375,6 @@ Miscellaneous games
     ;; turn on cursor in case it’s been disabled
     ;; this allows things that disable cursor like claude-code
     ;; to still be able to enter copy mode.
-    (defvar-local vterm-cursor-type-saved nil)
     (add-hook 'vterm-copy-mode-hook (lambda ()
                                       (if vterm-copy-mode
                                           (progn
@@ -4583,7 +4614,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs);
+  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs-git);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -4767,10 +4798,18 @@ TODO: use dump-emacs here to speed up config.
           ++ [ customEmacsPackages.delight ];
   };
 
-  myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
+  myEmacs = (customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.delight epkgs.treesit-grammars.with-all-grammars]
-  );
+    ++ [default epkgs.delight epkgs.treesit-grammars.with-all-grammars])).overrideAttrs (old: {
+      deps = old.deps.overrideAttrs (old2: {
+        buildCommand = old2.buildCommand + ''
+          $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs -l $siteStart -f batch-byte-compile $out/share/emacs/site-lisp/*.el
+          $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs -l $siteStart \
+            --eval "(add-to-list 'native-comp-eln-load-path \"$out/share/emacs/native-lisp/\")" \
+            -f batch-native-compile $out/share/emacs/site-lisp/*.el
+        '';
+      });
+    });
 #+END_SRC
 
 *** The environment

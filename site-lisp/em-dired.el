@@ -1,4 +1,4 @@
-;;; em-dired.el --- Dired features in Eshell -*- lexical-binding: t; -*-
+;; em-dired.el --- Dired features in Eshell -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 Matthew Bauer
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
@@ -57,7 +57,7 @@
   :group 'eshell)
 
 ;;;###autoload
-(defun em-dired (&rest args)
+(defun em-dired (&rest _args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")
@@ -65,7 +65,7 @@ ARGS anything else Eshell needs."
   (eshell))
 
 ;;;###autoload
-(defun em-dired-new (&rest args)
+(defun em-dired-new (&rest _args)
   "Load a new eshell for the current directory.
 ARGS anything else Eshell needs."
   (interactive "P")

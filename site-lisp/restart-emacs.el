@@ -101,7 +101,7 @@ On Windows get path to runemacs.exe if possible."
         runemacs-binary-path
       emacs-binary-path)))
 
-(defun restart-emacs--record-tty-file (current &rest ignored)
+(defun restart-emacs--record-tty-file (current &rest _ignored)
   "Save the buffer which is being currently selected in the frame.
 
 This function is used as a filter for tty frames in `frameset-filter-alist'.
@@ -178,8 +178,8 @@ PARAMETERS and SAVING."
         (progn
           ;; TODO: The following might break things
 	  (when (daemonp)
-	    (fset 'display-color-p (lambda (&rest ignored) t))
-	    (fset 'display-graphic-p (lambda (&rest ignored) t)))
+	    (fset 'display-color-p (lambda (&rest _ignored) t))
+	    (fset 'display-graphic-p (lambda (&rest _ignored) t)))
           (desktop-read desktop-dirname)
           (desktop-release-lock desktop-dirname))
       ;; Restore display-color-p's definition
@@ -374,7 +374,7 @@ finally just using whatever is the current `default-directory'."
 ;; User interface
 
 ;;;###autoload
-(defun restart-emacs-handle-command-line-args (&rest ignored)
+(defun restart-emacs-handle-command-line-args (&rest _ignored)
   "Handle the --restart-emacs-desktop command line argument.
 
 The value of the argument is the desktop file from which the frames should be

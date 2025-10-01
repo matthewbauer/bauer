@@ -21,7 +21,6 @@
 
   (defvar use-package-list--is-running t)
   (let ((use-package-verbose t)
-        (use-package-debug t)
         (use-package-always-ensure nil)
         (use-package-always-defer t)
         (use-package-list--packages nil)
@@ -41,13 +40,12 @@
                             (add-to-list 'use-package-list--packages name))))
 
     (advice-add 'use-package-handler/:defer
-                :around (lambda (x name keyword arg rest state)
+                :around (lambda (_x name _keyword _arg rest state)
                           (let ((body (use-package-process-keywords name rest
-                                        (plist-put state :deferred t)))
-                                (name-string (use-package-as-string name)))
+                                        (plist-put state :deferred t))))
                             (dolist (command
                                      (delete-dups (plist-get state :commands)))
-                              (fset command (lambda (&rest args))))
+                              (fset command (lambda (&rest _))))
                             body)))
 
     (advice-add 'use-package-load-name :override #'ignore)
