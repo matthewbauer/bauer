@@ -1,7 +1,7 @@
 ;;; monet.el  --- Claude Code MCP over websockets   -*- lexical-binding:t -*-
 
 ;; Author: Stephen Molitor <stevemolitor@gmail.com>
-;; Version: 0.0.1
+;; Version: 0.0.3
 ;; Package-Requires: ((emacs "30.0") (websocket "1.15"))
 ;; Keywords: tools, ai
 ;; URL: https://github.com/stevemolitor/monet
@@ -40,17 +40,20 @@ Set to nil to not bind any prefix key."
   :group 'monet)
 
 (defgroup monet-tool nil
-  "Tool configuration for Monet."
+  "Tool configuration for Monet.
+These settings control which MCP tools are available to Claude Code."
   :group 'monet
   :prefix "monet-")
 
 (defcustom monet-diff-tool 'monet-simple-diff-tool
   "Function to use for creating diff displays.
 The function should have the signature:
-  (old-file-path new-file-path new-file-contents on-accept on-quit)
-where ON-ACCEPT and ON-QUIT are no-argument callbacks.
-It should return the created diff buffer."
-  :type 'function
+  (old-file-path new-file-path new-file-contents on-accept on-quit &optional session)
+where ON-ACCEPT and ON-QUIT are no-argument callbacks, and SESSION provides context.
+It should return the created diff buffer.
+Set to nil to disable diff functionality entirely."
+  :type '(choice (function :tag "Diff function")
+                 (const :tag "Disable diff tools" nil))
   :group 'monet-tool)
 
 (defcustom monet-diff-cleanup-tool 'monet-simple-diff-cleanup-tool
@@ -103,6 +106,13 @@ This key will be bound in the diff buffer to quit without saving changes."
 Diff buffers will only be shown when editing files within the
 associated Claude session directory or the file that initiated
 the diff request."
+  :type 'boolean
+  :group 'monet-tool)
+
+(defcustom monet-do-not-disturb nil
+  "When non-nil, don't display diff buffers in tabs other than the originating tab.
+If the current tab is different from the tab where the Claude session was started,
+the diff buffer will not be displayed (though it remains accessible in the Claude buffer)."
   :type 'boolean
   :group 'monet-tool)
 
@@ -200,6 +210,9 @@ The MCP response should be a list of content objects."
   auth-token                            ; UUID auth token for validation
   opened-diffs                          ; Hash table of active diff sessions keyed by tab-name
   deferred-responses                    ; Hash table of deferred responses keyed by unique-key
+  originating-buffer                    ; Buffer where session was started (for claude-code.el integration)
+  originating-tab                       ; Tab name where session was started (if tab-bar-mode is active)
+  originating-frame                     ; Frame where session was started
   )
 
 ;;; Utility Functions
@@ -255,10 +268,17 @@ The MCP response should be a list of content objects."
              return port
              finally (error "No free ports available"))))
 
+(defun monet--get-lockfile-dir ()
+  "Get the lockfile directory path, handling Windows correctly."
+  (let ((home-dir (if (eq system-type 'windows-nt)
+                      (getenv "USERPROFILE")
+                    (expand-file-name "~"))))
+    (expand-file-name ".claude/ide/" home-dir)))
+
 (defun monet--remove-lockfile (port)
   "Remove lock file for PORT."
   (when port
-    (let* ((dir (expand-file-name "~/.claude/ide/"))
+    (let* ((dir (monet--get-lockfile-dir))
            (file (expand-file-name (format "%d.lock" port) dir)))
       (when (file-exists-p file)
         (condition-case err
@@ -269,7 +289,7 @@ The MCP response should be a list of content objects."
 (defun monet--create-lockfile (folder port auth-token session-key)
   "Create lock file for claude running in FOLDER for PORT with AUTH-TOKEN and SESSION-KEY."
   (condition-case err
-      (let* ((dir (expand-file-name "~/.claude/ide/"))
+      (let* ((dir (monet--get-lockfile-dir))
              (file (expand-file-name (format "%d.lock" port) dir))
              (content (json-encode
                        `((pid . ,(emacs-pid))
@@ -571,12 +591,18 @@ Remove SESSION from `monet--sessions'."
            (error-message-string error)))
 
 (defun monet-start-server-in-directory (key directory)
-  "Start websocker server for claude process with KEY running in DIR.
+  "Start websocker server for claude process with KEY running in DIRECTORY.
 
 Returns the session object."
   (let* ((dir (expand-file-name directory))
          (port (monet--find-free-port))
          (auth-token (monet--generate-uuid))
+         ;; Capture current tab name if tab-bar-mode is active
+         (current-tab-name (when (and (fboundp 'tab-bar-mode) tab-bar-mode
+                                      (fboundp 'tab-bar--current-tab))
+                             (let ((current-tab (tab-bar--current-tab)))
+                               (when current-tab
+                                 (alist-get 'name current-tab)))))
          (session (make-monet--session
                    :key key
                    :directory dir
@@ -584,7 +610,10 @@ Returns the session object."
                    :initialized nil
                    :auth-token auth-token
                    :opened-diffs (make-hash-table :test 'equal)
-                   :deferred-responses (make-hash-table :test 'equal))))
+                   :deferred-responses (make-hash-table :test 'equal)
+                   :originating-buffer (current-buffer)
+                   :originating-tab current-tab-name
+                   :originating-frame (selected-frame))))
     (condition-case err
         (let ((server (websocket-server
                        port
@@ -617,6 +646,7 @@ Returns the session object."
        (message "Failed to start MCP server: %s" (error-message-string err))
        nil))))
 
+;;;###autoload
 (defun monet-start-server-function (key directory)
   "Start a Monet server with KEY in DIRECTORY.
 
@@ -703,19 +733,21 @@ This is sent when Claude Code has successfully connected to the IDE."
 ;;;; Tool handlers
 (defun monet--get-tool-handler (name)
   "Return the handler function for tool NAME."
-  (pcase name
-    ("getCurrentSelection" #'monet--tool-get-current-selection-handler)
-    ("openDiff" #'monet--tool-open-diff-handler)
-    ("closeAllDiffTabs" #'monet--tool-close-all-diff-tabs-handler)
-    ("close_tab" #'monet--tool-close-tab-handler)
-    ("openFile" #'monet--tool-open-file-handler)
-    ("saveDocument" #'monet--tool-save-document-handler)
-    ("checkDocumentDirty" #'monet--tool-check-document-dirty-handler)
-    ("getOpenEditors" #'monet--tool-get-open-editors-handler)
-    ("getWorkspaceFolders" #'monet--tool-get-workspace-folders-handler)
-    ("getDiagnostics" #'monet--tool-get-diagnostics-handler)
-    ("getLatestSelection" #'monet--tool-get-latest-selection-handler)
-    (_ nil)))
+  (let ((handler
+         (pcase name
+           ("getCurrentSelection" #'monet--tool-get-current-selection-handler)
+           ("openDiff" (when monet-diff-tool #'monet--tool-open-diff-handler))
+           ("closeAllDiffTabs" (when monet-diff-tool #'monet--tool-close-all-diff-tabs-handler))
+           ("close_tab" #'monet--tool-close-tab-handler)
+           ("openFile" #'monet--tool-open-file-handler)
+           ("saveDocument" #'monet--tool-save-document-handler)
+           ("checkDocumentDirty" #'monet--tool-check-document-dirty-handler)
+           ("getOpenEditors" #'monet--tool-get-open-editors-handler)
+           ("getWorkspaceFolders" #'monet--tool-get-workspace-folders-handler)
+           ("getDiagnostics" #'monet--tool-get-diagnostics-handler)
+           ("getLatestSelection" #'monet--tool-get-latest-selection-handler)
+           (_ nil))))
+    handler))
 
 ;; Tool handler adapters (convert MCP protocol to tool function calls)
 (defun monet--tool-get-current-selection-handler (_params _session)
@@ -727,6 +759,7 @@ _PARAMS and _SESSION are unused."
   "MCP handler for getLatestSelection tool.
 _PARAMS and _SESSION are unused."
   (funcall monet-get-latest-selection-tool))
+
 (defun monet--tool-open-diff-handler (params session)
   "MCP handler for openDiff tool.
 
@@ -784,9 +817,8 @@ Returns deferred response indicator."
          ;; Create the diff using the configured diff tool
          (diff-context (condition-case err
                            (funcall monet-diff-tool old-file-path new-file-path
-                                    new-file-contents on-accept on-quit)
+                                    new-file-contents on-accept on-quit session)
                          (error "Diff tool failed: %s" (error-message-string err)))))
-
     ;; Enhance the diff context with session information
     (when diff-context
       (setf (alist-get 'initiating-file diff-context) initiating-file)
@@ -927,62 +959,70 @@ _SESSION is unused."
 ;;; MCP Over Websockets Implementation
 (defun monet--get-tools-list ()
   "Return the list of available MCP tools."
-  (vector
-   `((name . "getCurrentSelection")
-     (description . "Get the current text selection or cursor position in the active editor")
-     (inputSchema . ((type . "object")
-                     (properties . ()))))
-   `((name . "openFile")
-     (description . "Open a file in the editor. <important>Do NOT use emacs or emacsclient to open a file. Use this IDE openFile tool to open a file in the editor / Emacs / IDE.")
-     (inputSchema . ((type . "object")
-                     (properties . ((uri . ((type . "string")
-                                            (description . "The file URI or path to open")))))
-                     (required . ["uri"]))))
-   `((name . "openDiff")
-     (description . "Open a diff view")
-     (inputSchema . ((type . "object")
-                     (properties . ((old_file_path . ((type . "string")))
-                                    (new_file_path . ((type . "string")))
-                                    (new_file_contents . ((type . "string")))
-                                    (tab_name . ((type . "string")))))
-                     (required . ["old_file_path" "new_file_path" "new_file_contents"]))))
-   `((name . "closeAllDiffTabs")
-     (description . "Close all diff tabs")
-     (inputSchema . ((type . "object")
-                     (properties . ()))))
-   `((name . "close_tab")
-     (description . "Close a tab")
-     (inputSchema . ((type . "object")
-                     (properties . ((tab_name . ((type . "string")))))
-                     (required . ["tab_name"]))))
-   `((name . "getDiagnostics")
-     (description . "Get diagnostics for a file. <important>Unless told otherwise, do NOT use external commands, typecheckers, or lint tools to get diagnostics, errors, or warnings. Use this getDiagnostics IDE tool</important>")
-     (inputSchema . ((type . "object")
-                     (properties . ((uri . ((type . "string"))))))))
-   `((name . "getOpenEditors")
-     (description . "Get the list of currently open files in the editor")
-     (inputSchema . ((type . "object")
-                     (properties . ()))))
-   `((name . "getWorkspaceFolders")
-     (description . "Get the list of workspace folders (project directories)")
-     (inputSchema . ((type . "object")
-                     (properties . ()))))
-   `((name . "checkDocumentDirty")
-     (description . "Check if a document has unsaved changes")
-     (inputSchema . ((type . "object")
-                     (properties . ((uri . ((type . "string")
-                                            (description . "The file URI or path to check")))))
-                     (required . ["uri"]))))
-   `((name . "saveDocument")
-     (description . "Save a document to disk")
-     (inputSchema . ((type . "object")
-                     (properties . ((uri . ((type . "string")
-                                            (description . "The file URI or path to save")))))
-                     (required . ["uri"]))))
-   `((name . "getLatestSelection")
-     (description . "Get the latest text selection from any file")
-     (inputSchema . ((type . "object")
-                     (properties . ()))))))
+  (let ((tools
+         (list
+          `((name . "getCurrentSelection")
+            (description . "Get the current text selection or cursor position in the active editor")
+            (inputSchema . ((type . "object")
+                            (properties . ()))))
+          `((name . "openFile")
+            (description . "Open a file in the editor. <important>Do NOT use emacs or emacsclient to open a file. Use this IDE openFile tool to open a file in the editor / Emacs / IDE.")
+            (inputSchema . ((type . "object")
+                            (properties . ((uri . ((type . "string")
+                                                   (description . "The file URI or path to open")))))
+                            (required . ["uri"]))))
+          `((name . "close_tab")
+            (description . "Close a tab")
+            (inputSchema . ((type . "object")
+                            (properties . ((tab_name . ((type . "string")))))
+                            (required . ["tab_name"]))))
+          `((name . "getDiagnostics")
+            (description . "Get diagnostics for a file. <important>Unless told otherwise, do NOT use external commands, typecheckers, or lint tools to get diagnostics, errors, or warnings. Use this getDiagnostics IDE tool</important>")
+            (inputSchema . ((type . "object")
+                            (properties . ((uri . ((type . "string"))))))))
+          `((name . "getOpenEditors")
+            (description . "Get the list of currently open files in the editor")
+            (inputSchema . ((type . "object")
+                            (properties . ()))))
+          `((name . "getWorkspaceFolders")
+            (description . "Get the list of workspace folders (project directories)")
+            (inputSchema . ((type . "object")
+                            (properties . ()))))
+          `((name . "checkDocumentDirty")
+            (description . "Check if a document has unsaved changes")
+            (inputSchema . ((type . "object")
+                            (properties . ((uri . ((type . "string")
+                                                   (description . "The file URI or path to check")))))
+                            (required . ["uri"]))))
+          `((name . "saveDocument")
+            (description . "Save a document to disk")
+            (inputSchema . ((type . "object")
+                            (properties . ((uri . ((type . "string")
+                                                   (description . "The file URI or path to save")))))
+                            (required . ["uri"]))))
+          `((name . "getLatestSelection")
+            (description . "Get the latest text selection from any file")
+            (inputSchema . ((type . "object")
+                            (properties . ())))))))
+    ;; Add diff-related tools only if monet-diff-tool is not nil
+    (when monet-diff-tool
+      (setq tools
+            (append tools
+                    (list
+                     `((name . "openDiff")
+                       (description . "Open a diff view")
+                       (inputSchema . ((type . "object")
+                                       (properties . ((old_file_path . ((type . "string")))
+                                                      (new_file_path . ((type . "string")))
+                                                      (new_file_contents . ((type . "string")))
+                                                      (tab_name . ((type . "string")))))
+                                       (required . ["old_file_path" "new_file_path" "new_file_contents"]))))
+                     `((name . "closeAllDiffTabs")
+                       (description . "Close all diff tabs")
+                       (inputSchema . ((type . "object")
+                                       (properties . ()))))))))
+    ;; Convert to vector
+    (apply #'vector tools)))
 
 ;; Resource definitions
 (defun monet--get-file-resources (&optional cursor)
@@ -1113,7 +1153,7 @@ Only runs when `monet-hide-diff-when-irrelevant' is non-nil."
 
 (defun monet--track-diff-visibility ()
   "Track buffer changes and update diff visibility with debouncing.
-This is called from post-command-hook."
+This is called from `post-command-hook'."
   (when (and monet-hide-diff-when-irrelevant
              ;; Only run if there are active diffs
              (cl-some (lambda (session)
@@ -1134,22 +1174,48 @@ This is called from post-command-hook."
            (point-pos (point))
            (start-pos (if (use-region-p) (region-beginning) point-pos))
            (end-pos (if (use-region-p) (region-end) point-pos))
-           (text (if (use-region-p)
-                     (buffer-substring-no-properties start-pos end-pos)
+           ;; Check if we're in evil-mode visual line mode with active selection
+           (in-evil-visual-line (and (bound-and-true-p evil-mode)
+                                      (bound-and-true-p evil-visual-selection)
+                                      (eq evil-visual-selection 'line)
+                                      ;; Must also have an active region or be in visual state
+                                      (or (use-region-p)
+                                          (and (boundp 'evil-visual-state-minor-mode)
+                                               evil-visual-state-minor-mode))))
+           ;; Adjust positions for evil visual line mode
+           (adjusted-start-pos (if in-evil-visual-line
+                                   ;; In visual line mode, ensure start is at beginning of line
+                                   (save-excursion
+                                     (goto-char start-pos)
+                                     (beginning-of-line)
+                                     (point))
+                                 start-pos))
+           (adjusted-end-pos (if in-evil-visual-line
+                                 ;; In visual line mode, end-pos is at the start of the last
+                                 ;; selected line. We need to move it to the END of that line
+                                 ;; for correct line counting.
+                                 (save-excursion
+                                   (goto-char end-pos)
+                                   ;; Always move to the end of the current line
+                                   (end-of-line)
+                                   (point))
+                               end-pos))
+           (text (if (or (use-region-p) in-evil-visual-line)
+                     (buffer-substring-no-properties adjusted-start-pos adjusted-end-pos)
                    ""))
-           (start-line (1- (line-number-at-pos start-pos)))
-           (end-line (1- (line-number-at-pos end-pos)))
+           (start-line (1- (line-number-at-pos adjusted-start-pos t)))
+           (end-line (1- (line-number-at-pos adjusted-end-pos t)))
            (start-col (save-excursion
-                        (goto-char start-pos)
+                        (goto-char adjusted-start-pos)
                         (current-column)))
            (end-col (save-excursion
-                      (goto-char end-pos)
+                      (goto-char adjusted-end-pos)
                       (current-column)))
            (selection `((start . ((line . ,start-line)
                                   (character . ,start-col)))
                         (end . ((line . ,end-line)
                                 (character . ,end-col)))
-                        (isEmpty . ,(if (use-region-p) :json-false t))))
+                        (isEmpty . ,(if (or (use-region-p) in-evil-visual-line) :json-false t))))
            (file-url (concat "file://" file-path)))
       `((text . ,text)
         (filePath . ,file-path)
@@ -1243,14 +1309,53 @@ ON-ACCEPT and ON-QUIT are the callbacks to execute."
       (when (fboundp 'evil-emacs-state)
         (evil-emacs-state)))))
 
-(defun monet-simple-diff-tool (old-file-path new-file-path new-file-contents on-accept on-quit)
-  "Create a simple, read- diff display using diff-mode.
+(defun monet--display-diff-buffer (diff-buffer &optional session)
+  "Display DIFF-BUFFER in appropriate frame and tab context.
+When SESSION is provided and has an originating-tab, displays in that tab.
+If `monet-do-not-disturb' is non-nil and current tab or frame differs from
+originating tab or frame, the diff buffer is not displayed at all.
+Otherwise uses default display behavior.
+Returns the window displaying the diff buffer."
+  (let* ((originating-tab (when session
+                            (monet--session-originating-tab session)))
+         (originating-frame (when session
+                              (monet--session-originating-frame session)))
+         (current-tab (when (and (fboundp 'tab-bar-mode) tab-bar-mode
+                                 (fboundp 'tab-bar--current-tab))
+                        (let ((tab (tab-bar--current-tab)))
+                          (when tab
+                            (alist-get 'name tab)))))
+         (current-frame (selected-frame))
+         (display-action '((display-buffer-pop-up-window))))
+
+    ;; Check if we should skip display due to do-not-disturb mode
+    (cond
+     ;; If do-not-disturb is on and we're in a different tab or frame, don't display
+     ((and monet-do-not-disturb
+           (or (and originating-tab
+                    current-tab
+                    (not (string= originating-tab current-tab)))
+               (and originating-frame
+                    (not (eq originating-frame current-frame)))))
+      (message "Diff created but not displayed (do-not-disturb mode)")
+      nil)  ; Don't display the buffer
+     ;; If we have an originating tab, try to display in that tab
+     (originating-tab
+      (display-buffer diff-buffer `((display-buffer-in-tab display-buffer-pop-up-window)
+                                    (tab-name . ,originating-tab))))
+     ;; No tab context, use default behavior
+     (t
+      (display-buffer diff-buffer display-action)))))
+
+(defun monet-simple-diff-tool (old-file-path new-file-path new-file-contents on-accept on-quit &optional session)
+  "Create a simple, read-only diff display using `diff-mode'.
 
 OLD-FILE-PATH is the path to the original file.
 NEW-FILE-PATH is the path where changes will be saved (often same as old).
 NEW-FILE-CONTENTS is the proposed new content.
 ON-ACCEPT is a function called when user accepts (no arguments).
 ON-QUIT is a function called when user quits (no arguments).
+SESSION is the optional monet session associated with this diff.
 
 Returns the diff context object for later used by the cleanup tool."
   (unless (and old-file-path new-file-contents)
@@ -1274,7 +1379,7 @@ Returns the diff context object for later used by the cleanup tool."
     ;; Create the diff
     (let* ((diff-buffer-name (format "*Diff: %s*" (file-name-nondirectory old-file-path)))
            (diff-buffer (get-buffer-create diff-buffer-name t))
-           (switches `("-u" "--label" ,old-file-path "--label" ,(or new-file-path old-file-path)))
+           (switches `("-u" "--label" ,(shell-quote-argument old-file-path) "--label" ,(shell-quote-argument (or new-file-path old-file-path))))
            ;; syntax highlighting
            (diff-font-lock-syntax 'hunk-also)
            (diff-font-lock-prettify t)
@@ -1308,12 +1413,14 @@ Returns the diff context object for later used by the cleanup tool."
         ;; Call on-quit on quit window
         (add-hook 'quit-window-hook (lambda () (funcall on-quit)) nil t))
 
-      ;; Display the diff buffer and switch to it
+      ;; Display the diff buffer
       ;; Note: visibility management will be handled by the post-command-hook
       ;; after the context is enhanced with session info in the handler
-      (let ((diff-window (display-buffer diff-buffer
-                                         '((display-buffer-pop-up-window)))))
-        (when diff-window
+      (let ((diff-window (monet--display-diff-buffer diff-buffer session)))
+        ;; Don't select the window if it's in a different frame
+        ;; This avoids switching frames unexpectedly
+        (when (and diff-window
+                   (eq (window-frame diff-window) (selected-frame)))
           (select-window diff-window)))
 
       ;; Help message
@@ -1362,7 +1469,7 @@ DIFF-CONTEXT is a context object containing diff-buffer and temp buffers."
           (set-buffer-modified-p nil))
         (kill-buffer old-temp-buffer)))))
 
-(defun monet-ediff-tool (old-file-path new-file-path new-file-contents on-accept on-quit)
+(defun monet-ediff-tool (old-file-path new-file-path new-file-contents on-accept on-quit &optional session)
   "Show a diff using ediff.
 
 OLD-FILE-PATH is the path to the original file.
@@ -1370,6 +1477,7 @@ NEW-FILE-PATH is the path where changes will be saved (often same as old).
 NEW-FILE-CONTENTS is the proposed new content.
 ON-ACCEPT is a function called when user accepts (no arguments).
 ON-QUIT is a function called when user quits (no arguments).
+SESSION is the optional monet session associated with this diff.
 
 Returns the diff context object."
   (let* (;; Get the old and new buffers
@@ -1691,8 +1799,8 @@ If URI is nil, gets diagnostics for all open files."
                        (end (flymake-diagnostic-end diag))
                        (type (flymake-diagnostic-type diag))
                        (text (flymake-diagnostic-text diag))
-                       (start-line (1- (line-number-at-pos beg)))
-                       (end-line (1- (line-number-at-pos end)))
+                       (start-line (1- (line-number-at-pos beg t)))
+                       (end-line (1- (line-number-at-pos end t)))
                        (start-char (save-excursion
                                      (goto-char beg)
                                      (current-column)))
@@ -1957,15 +2065,15 @@ sessions. KEY is the session identifier."
                  session-info)))
        monet--sessions)
       (with-current-buffer (get-buffer-create "*Monet Sessions*")
-        (erase-buffer)
-        (insert "Active Monet Sessions:\n")
-        (insert "======================\n\n")
-        (dolist (info (nreverse session-info))
-          (insert info "\n"))
-        (insert (format "\nTotal sessions: %d\n" (hash-table-count monet--sessions)))
-        (goto-char (point-min))
-        (view-mode 1)
-        (display-buffer (current-buffer))))))
+        (let ((inhibit-read-only t)) (erase-buffer)
+             (insert "Active Monet Sessions:\n")
+             (insert "======================\n\n")
+             (dolist (info (nreverse session-info))
+               (insert info "\n"))
+             (insert (format "\nTotal sessions: %d\n" (hash-table-count monet--sessions)))
+             (goto-char (point-min))
+             (view-mode 1)
+             (display-buffer (current-buffer)))))))
 
 (defun monet-stop-all-servers ()
   "Stop all running monet websocket servers."

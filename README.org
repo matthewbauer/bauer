@@ -281,30 +281,38 @@ The format of arguments to =set-defaults= is identical to the one used by
 | apropos-do-all                           | t                                      |
 | async-shell-command-buffer               | 'new-buffer                            |
 | auth-source-save-behavior                | t                                      |
+| auto-window-vscroll                      | nil                                    |
 | backward-delete-char-untabify-method     | 'hungry                                |
 | bidi-inhibit-bpa                         | t                                      |
 | bidi-paragraph-direction                 | 'left-to-right                         |
+| blink-cursor-mode                        | nil                                    |
 | bookmark-save-flag                       | 1                                      |
+| case-fold-search                         | t                                      |
 | checkdoc-spellcheck-documentation-flag   | t                                      |
+| comment-empty-lines                      | t                                      |
+| comment-multi-line                       | t                                      |
+| completion-ignore-case                   | t                                      |
 | completions-cycle-threshold              | t                                      |
 | completions-detailed                     | t                                      |
 | completions-format                       | 'vertical                              |
-| completion-ignore-case                   | t                                      |
-| case-fold-search                         | t                                      |
 | cursor-in-non-selected-windows           | nil                                    |
 | custom-search-field                      | nil                                    |
 | delete-by-moving-to-trash                | t                                      |
 | delete-old-versions                      | t                                      |
 | ediff-window-setup-function              | 'ediff-setup-windows-plain             |
-| eldoc-idle-delay                         | 0.4                                    |
 | enable-recursive-minibuffers             | t                                      |
 | eval-expression-print-level              | nil                                    |
-| fill-column                              | 80                                     |
+| fast-but-imprecise-scrolling             | t                                      |
 | frame-inhibit-implied-resize             | t                                      |
 | history-delete-duplicates                | t                                      |
+| history-length                           | 300                                    |
+| hscroll-margin                           | 2                                      |
+| hscroll-step                             | 1                                      |
 | imenu-auto-rescan                        | t                                      |
 | indent-tabs-mode                         | nil                                    |
 | indicate-buffer-boundaries               | 'left                                  |
+| indicate-buffer-boundaries               | nil                                    |
+| indicate-empty-lines                     | nil                                    |
 | indicate-empty-lines                     | t                                      |
 | isearch-allow-scroll                     | 'unlimited                             |
 | isearch-lazy-count                       | t                                      |
@@ -312,10 +320,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 | ispell-quietly                           | t                                      |
 | ispell-silently-savep                    | t                                      |
 | jit-lock-chunk-size                      | 4096                                   |
-| jit-lock-defer-time                      | 0.05                                   |
+| jit-lock-defer-time                      | 0                                      |
 | jit-lock-stealth-time                    | 1.25                                   |
+| kill-buffer-delete-auto-save-files       | t                                      |
 | kill-do-not-save-duplicates              | t                                      |
 | kill-whole-line                          | t                                      |
+| left-fringe-width                        | 8                                      |
 | load-prefer-newer                        | t                                      |
 | mac-command-modifier                     | 'meta                                  |
 | mac-option-modifier                      | 'super                                 |
@@ -328,25 +338,22 @@ The format of arguments to =set-defaults= is identical to the one used by
 | project-compilation-buffer-name-function | 'project-prefixed-buffer-name          |
 | read-buffer-completion-ignore-case       | t                                      |
 | read-extended-command-predicate          | 'command-completion-default-include-p  |
+| recentf-max-saved-items                  | 300                                    |
 | resize-mini-windows                      | t                                      |
 | ruby-insert-encoding-magic-comment       | nil                                    |
-| save-abbrevs                             | 'silently                              |
 | save-interprogram-paste-before-kill      | t                                      |
 | scroll-conservatively                    | 101                                    |
+| scroll-error-top-bottom                  | t                                      |
 | scroll-preserve-screen-position          | 'always                                |
 | sentence-end-double-space                | nil                                    |
 | set-mark-command-repeat-pop              | t                                      |
-| shell-completion-execonly                | nil                                    |
-| shell-input-autoexpand                   | nil                                    |
 | switch-to-buffer-in-dedicated-window     | 'pop                                   |
 | switch-to-buffer-obey-display-actions    | t                                      |
 | tab-always-indent                        | 'complete                              |
-| term-input-autoexpand                    | t                                      |
-| term-input-ignoredups                    | t                                      |
-| tls-checktrust                           | t                                      |
-| undo-limit                               | 80000000                               |
-| undo-outer-limit                         | 120000000                              |
-| undo-strong-limit                        | 12000000                               |
+| truncate-partial-width-windows           | nil                                    |
+| undo-limit                               | 67108864                               |
+| undo-outer-limit                         | 100663296                              |
+| undo-strong-limit                        | 1006632960                             |
 | uniquify-buffer-name-style               | 'post-forward-angle-brackets           |
 | use-package-always-defer                 | t                                      |
 | version-control                          | t                                      |
@@ -354,26 +361,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | view-read-only                           | t                                      |
 | window-combination-resize                | t                                      |
 | woman-imenu                              | t                                      |
+| word-wrap                                | t                                      |
 | x-stretch-cursor                         | t                                      |
 | xref-show-definitions-function           | 'xref-show-definitions-completing-read |
-| comment-empty-lines                      | t                                      |
-| comment-multi-line                       | t                                      |
-| truncate-partial-width-windows           | nil                                    |
-| word-wrap                                | t                                      |
-| indicate-buffer-boundaries               | nil                                    |
-| indicate-empty-lines                     | nil                                    |
-| left-fringe-width                        | 8                                      |
-| right-fringe-width                       | 8                                      |
-| blink-cursor-mode                        | nil                                    |
-| hscroll-margin                           | 2                                      |
-| hscroll-step                             | 1                                      |
-| auto-window-vscroll                      | nil                                    |
-| scroll-error-top-bottom                  | t                                      |
-| fast-but-imprecise-scrolling             | t                                      |
-| history-length                           | 300                                    |
-| save-place-limit                         | 600                                    |
-| recentf-max-saved-items                  | 300                                    |
-| kill-buffer-delete-auto-save-files       | t                                      |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply 'set-defaults
@@ -427,8 +417,9 @@ Misc. defaults that don’t fit above. TODO: move these above.
        face minibuffer-prompt))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
-       ("org" . "http://orgmode.org/elpa/")
-       ("gnu" . "https://elpa.gnu.org/packages/")))
+       ("org" . "https://orgmode.org/elpa/")
+       ("gnu" . "https://elpa.gnu.org/packages/")
+       ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
@@ -516,7 +507,8 @@ we want to just assume everything is available.
 #+END_SRC
 
 First handle using =package.el=. We will do all of the work of bootstrapping
-here including running =package-initialize=, ensuring =use-package= is installed.
+here including running =package-initialize=, ensuring =use-package=, & =delight=
+are installed.
 
 #+BEGIN_SRC emacs-lisp
   (when needs-package-init
@@ -524,13 +516,18 @@ here including running =package-initialize=, ensuring =use-package= is installed
     (package-initialize)
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
-      (package-install 'use-package)))
+      (package-install 'use-package))
+    (unless (package-installed-p 'delight)
+      (package-refresh-contents)
+      (package-install 'delight)))
 #+END_SRC
 
 Actually require =use-package=,
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
+    (require 'delight)
+    (require 'bind-key)
     (require 'use-package))
 #+END_SRC
 
@@ -1060,20 +1057,8 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (setq register-preview-delay 0.5
           register-preview-function #'consult-register-format)
 
-    (advice-add #'register-preview :override #'consult-register-window)
-
-    :config
-
-    (consult-customize
-     consult-theme :preview-key '(:debounce 0.2 any)
-     consult-ripgrep consult-git-grep consult-grep
-     consult-bookmark consult-recent-file consult-xref
-     consult--source-bookmark consult--source-file-register
-     consult--source-recent-file consult--source-project-recent-file
-     :preview-key '(:debounce 0.4 any))
-    )
+    (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
-
 
 **** persistent-scratch
 
@@ -1127,28 +1112,29 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
 
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
-    :custom (eshell-prompt-function
-             (lambda ()
-               (concat (when (tramp-tramp-file-p default-directory)
-                         (concat
-                          (tramp-file-name-user
-                           (tramp-dissect-file-name default-directory))
-                          "@"
-                          (tramp-file-name-host
-                           (tramp-dissect-file-name default-directory))
-                          " "))
-                       (let ((dir (eshell/pwd)))
-                         (if (string= dir (getenv "HOME")) "~"
-                           (let ((dirname (file-name-nondirectory dir)))
-                             (if (string= dirname "") "/" dirname))))
-                       (if (= (user-uid) 0) " # " " $ "))))
-    :custom (eshell-visual-commands
-             '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-              "trn" "elm" "ssh" "mutt" "tmux" "htop"
-              "alsamixer" "watch" "elinks" "links" "nethack" "vim"
-              "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
-              "telnet" "rlogin"))
-    :custom (eshell-visual-subcommands '(("vagrant" "ssh")))
+    :custom
+    (eshell-prompt-function
+     (lambda ()
+       (concat (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user
+                   (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-host
+                   (tramp-dissect-file-name default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
+    (eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+       "telnet" "rlogin"))
+    (eshell-visual-subcommands '(("vagrant" "ssh")))
     :bind (("C-c M-t" . eshell)
            ("C-c x" . eshell)
            ("C-c e" . eshell))
@@ -1182,22 +1168,23 @@ Setup eldoc integration.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
-    :custom (eshell-cmpl-autolist t)
-    :custom (eshell-cmpl-cycle-completions nil)
-    :custom (eshell-cmpl-ignore-case t)
-    :custom (eshell-default-target-is-dot t)
-    :custom (eshell-destroy-buffer-when-process-dies t)
-    :custom (eshell-hist-ignoredups 'erase)
-    :custom (eshell-list-files-after-cd t)
-    :custom (eshell-review-quick-commands t)
+    :custom
+    (eshell-cmpl-autolist t)
+    (eshell-cmpl-cycle-completions nil)
+    (eshell-cmpl-ignore-case t)
+    (eshell-default-target-is-dot t)
+    (eshell-destroy-buffer-when-process-dies t)
+    (eshell-hist-ignoredups 'erase)
+    (eshell-list-files-after-cd t)
+    (eshell-review-quick-commands t)
+    :autoload esh-help-eldoc-command
     :preface
-    (autoload 'esh-help-eldoc-command "esh-help")
     (defun esh-help-turn-on ()
       (interactive)
       (setq-local eldoc-documentation-function
                   'esh-help-eldoc-command)
       (setq eldoc-documentation-function
-                  'esh-help-eldoc-command)
+            'esh-help-eldoc-command)
       (eldoc-mode 1))
     :hook (eshell-mode . esh-help-turn-on))
 #+END_SRC
@@ -1206,8 +1193,6 @@ Setup eldoc integration.
 
 #+BEGIN_SRC emacs-lisp
 (use-package em-dired
-  :preface
-  (autoload 'em-dired-new "em-dired")
   :ensure nil
   :bind (:package dired
          :map dired-mode-map
@@ -1259,32 +1244,28 @@ line are available in an intuitive Emacs buffer.
 
   (use-package magit
     :preface
-    (autoload 'magit-toplevel "magit")
-    (autoload 'magit-read-string-ns "magit")
-    (autoload 'magit-get "magit")
-    ;; (autoload 'magit-define-popup-action "magit")
-    (autoload 'magit-remote-arguments "magit")
+    (autoload 'magit-toplevel "magit-git")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
     ;; :hook ((git-commit-mode . git-commit-save-message)
     ;;      (git-commit-mode . turn-on-auto-fill))
-    :custom (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-    :custom (magit-process-find-password-functions '(magit-process-password-auth-source))
-    :custom (magit-process-password-prompt-regexps '(
-                                                     "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                                     "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                                     "Please enter the passphrase for the ssh key"
-                                                     "Please enter the passphrase to unlock the OpenPGP secret key"
-                                                     "^.*'s password: ?$"
-                                                     "^Yubikey for .*: ?$"
-                                                     "^Enter PIN for .*: ?$"
-                                                     "^\\[sudo\\] password for .*: ?$"))
-    :custom (magit-clone-set-remote.pushDefault t)
-    :custom (magit-log-auto-more t)
-    :custom (magit-remote-add-set-remote.pushDefault t)
-    :custom (magit-save-repository-buffers 'dontask)
-    :commands (magit-clone)
+    :custom
+    (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+    (magit-process-find-password-functions '(magit-process-password-auth-source))
+    (magit-process-password-prompt-regexps '(
+                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                             "Please enter the passphrase for the ssh key"
+                                             "Please enter the passphrase to unlock the OpenPGP secret key"
+                                             "^.*'s password: ?$"
+                                             "^Yubikey for .*: ?$"
+                                             "^Enter PIN for .*: ?$"
+                                             "^\\[sudo\\] password for .*: ?$"))
+    (magit-clone-set-remote.pushDefault t)
+    (magit-log-auto-more t)
+    (magit-remote-add-set-remote.pushDefault t)
+    (magit-save-repository-buffers 'dontask)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
            ("C-x p v" . magit-status)
@@ -1309,8 +1290,7 @@ Magit forge.
 ***** git-timemachine
 
 #+BEGIN_SRC emacs-lisp
-  (use-package git-timemachine
-    :commands (git-timemachine))
+  (use-package git-timemachine)
 #+END_SRC
 
 **** MMM Mode
@@ -1357,63 +1337,64 @@ outliner but also much much more.
   (use-package org
     :bind (("C-c l" . org-store-link))
     :ensure org-contrib
-    :custom (org-latex-listings-langs
-             '((emacs-lisp "Lisp")
-               (lisp "Lisp")
-               (clojure "Lisp")
-               (c "C")
-               (cc "C++")
-               (fortran "fortran")
-               (perl "Perl")
-               (cperl "Perl")
-               (python "Python")
-               (ruby "Ruby")
-               (html "HTML")
-               (xml "XML")
-               (tex "TeX")
-               (latex "[LaTeX]TeX")
-               (shell-script "bash")
-               (gnuplot "Gnuplot")
-               (ocaml "Caml")
-               (caml "Caml")
-               (sql "SQL")
-               (sqlite "sql")
-               (makefile "make")
-               (R "r")
-               (nix "{}")
-               (nil "{}")
-               (yaml "{}")
-               (gitattributes "{}")
-               (gitignore "{}")
-               (shell "{}")
-               (gitconfig "{}")))
-    :custom (org-latex-default-packages-alist
-             '(("utf8" "inputenc" t
-                ("pdflatex"))
-               ("T1" "fontenc" t
-                ("pdflatex"))
-               ("" "graphicx" t nil)
-               ("" "grffile" t nil)
-               ("" "longtable" nil nil)
-               ("" "wrapfig" nil nil)
-               ("" "rotating" nil nil)
-               ("normalem" "ulem" t nil)
-               ("" "amsmath" t nil)
-               ("" "textcomp" t nil)
-               ("" "amssymb" t nil)
-               ("" "capt-of" nil nil)
-               ("" "hyperref" nil nil)
-               ("" "parskip" nil nil)
-               ("" "alltt" nil nil)
-               ("" "upquote" nil nil)
-               ("" "listings" nil nil)))
-    :custom (org-catch-invisible-edits 'smart)
-    :custom (org-confirm-babel-evaluate nil)
-    :custom (org-export-with-toc nil)
-    :custom (org-html-htmlize-output-type 'css)
-    :custom (org-log-done 'time)
-    :custom (org-special-ctrl-a/e t)
-    :custom (org-support-shift-select t)
+    :custom
+    (org-latex-listings-langs
+     '((emacs-lisp "Lisp")
+       (lisp "Lisp")
+       (clojure "Lisp")
+       (c "C")
+       (cc "C++")
+       (fortran "fortran")
+       (perl "Perl")
+       (cperl "Perl")
+       (python "Python")
+       (ruby "Ruby")
+       (html "HTML")
+       (xml "XML")
+       (tex "TeX")
+       (latex "[LaTeX]TeX")
+       (shell-script "bash")
+       (gnuplot "Gnuplot")
+       (ocaml "Caml")
+       (caml "Caml")
+       (sql "SQL")
+       (sqlite "sql")
+       (makefile "make")
+       (R "r")
+       (nix "{}")
+       (nil "{}")
+       (yaml "{}")
+       (gitattributes "{}")
+       (gitignore "{}")
+       (shell "{}")
+       (gitconfig "{}")))
+    (org-latex-default-packages-alist
+     '(("utf8" "inputenc" t
+        ("pdflatex"))
+       ("T1" "fontenc" t
+        ("pdflatex"))
+       ("" "graphicx" t nil)
+       ("" "grffile" t nil)
+       ("" "longtable" nil nil)
+       ("" "wrapfig" nil nil)
+       ("" "rotating" nil nil)
+       ("normalem" "ulem" t nil)
+       ("" "amsmath" t nil)
+       ("" "textcomp" t nil)
+       ("" "amssymb" t nil)
+       ("" "capt-of" nil nil)
+       ("" "hyperref" nil nil)
+       ("" "parskip" nil nil)
+       ("" "alltt" nil nil)
+       ("" "upquote" nil nil)
+       ("" "listings" nil nil)))
+    (org-catch-invisible-edits 'smart)
+    (org-confirm-babel-evaluate nil)
+    (org-export-with-toc nil)
+    (org-html-htmlize-output-type 'css)
+    (org-log-done 'time)
+    (org-special-ctrl-a/e t)
+    (org-support-shift-select t)
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
                                    'pcomplete-completions-at-point nil t)))
@@ -1537,10 +1518,10 @@ function.
   (use-package which-key
     :if (>= emacs-major-version 30)
     :demand
-    :custom (which-key-lighter "")
-    :custom (which-key-idle-delay 0.4)
-    :custom (which-key-idle-secondary-delay 0.4)
-    :commands (which-key-mode)
+    :custom
+    (which-key-lighter "")
+    (which-key-idle-delay 0.4)
+    (which-key-idle-secondary-delay 0.4)
     :config (which-key-mode 1))
 #+END_SRC
 
@@ -1577,10 +1558,11 @@ investigate how to fix this.
 #+BEGIN_SRC emacs-lisp
   (use-package autorevert
     :demand
-    :custom (auto-revert-avoid-polling t)
-    :custom (auto-revert-check-vc-info t)
-    :custom (auto-revert-interval 2)
-    :custom (auto-revert-verbose t)
+    :custom
+    (auto-revert-avoid-polling t)
+    (auto-revert-check-vc-info t)
+    (auto-revert-interval 2)
+    (auto-revert-verbose t)
     :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -1606,10 +1588,8 @@ Base mode used for shell and terminal modes.
 
   (use-package comint
     :ensure nil
+    :autoload (comint-write-input-ring comint-read-input-ring)
     :preface
-    (autoload 'comint-write-input-ring "comint")
-    (autoload 'comint-read-input-ring "comint")
-    (autoload 'comint-send-invisible "comint")
     (defun turn-on-comint-history (history-file)
       (interactive)
       (setq comint-input-ring-file-name history-file)
@@ -1681,11 +1661,6 @@ Base mode used for shell and terminal modes.
                                              (setq count (1+ count))))))
                                      (setq comint-input-ring ring
                                            comint-input-ring-index nil)))))))
-
-  ;; (use-package comint-hyperlink
-  ;;   :ensure nil
-  ;;   :commands (comint-hyperlink-process-output)
-  ;;   :init (add-to-list 'comint-output-filter-functions 'comint-hyperlink-process-output))
 #+END_SRC
 
 **** compile
@@ -1695,26 +1670,26 @@ Base mode used for shell and terminal modes.
     :bind (("C-c C-c" . compile)
            :map compilation-mode-map
            ("o" . compile-goto-error))
-    :custom (compilation-always-kill t)
-    :custom (compilation-ask-about-save nil)
-    :custom (compilation-context-lines t)
-    :custom (compilation-scroll-output 'first-error)
-    :custom (compilation-skip-threshold 1)
-    :custom (compilation-error-regexp-alist '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
-                                                     epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
-                                                     clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
-                                                     php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
-                                                     4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
-                                                     perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
-                                                     ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
-                                                     ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
-    :custom (compilation-save-buffers-predicate
-             (lambda ()
-               (let ((proj (project-current)))
-                 (and proj
-                      (memq (current-buffer) (project-buffers proj))))))
+    :custom
+    (compilation-always-kill t)
+    (compilation-ask-about-save nil)
+    (compilation-context-lines t)
+    (compilation-scroll-output 'first-error)
+    (compilation-skip-threshold 1)
+    (compilation-error-regexp-alist '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
+                                             epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
+                                             clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
+                                             php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
+                                             4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
+                                             perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
+                                             ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
+                                             ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
+    (compilation-save-buffers-predicate
+     (lambda ()
+       (let ((proj (project-current)))
+         (and proj
+              (memq (current-buffer) (project-buffers proj))))))
     :preface
-    (autoload 'ansi-color-process-output "ansi-color")
     (defun show-compilation ()
       (interactive)
       (let ((compile-buf
@@ -1749,14 +1724,15 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package dired
     :ensure nil
-    :custom (dired-dwim-target t)
-    :custom (dired-hide-details-hide-symlink-targets nil)
-    :custom (dired-omit-verbose nil)
-    :custom (dired-omit-files "^\\.\\|^#.*#$")
-    :custom (dired-listing-switches "-alhv --group-directories-first")
-    :custom (dired-create-destination-dirs 'ask)
+    :custom
+    (dired-dwim-target t)
+    (dired-hide-details-hide-symlink-targets nil)
+    (dired-omit-verbose nil)
+    (dired-omit-files "^\\.\\|^#.*#$")
+    (dired-listing-switches "-alhv --group-directories-first")
+    (dired-create-destination-dirs 'ask)
+    :autoload (dired-get-filename)
     :preface
-    (autoload 'dired-get-filename "dired")
     (autoload 'term-set-escape-char "term")
     (defun dired-run-command (&optional filename)
       "Run file at point in a new buffer."
@@ -1844,7 +1820,8 @@ Provides some info for the thing at the point.
            (haskell-mode . eldoc-mode)
            (python-mode . eldoc-mode)
            (eshell-mode . eldoc-mode)
-           (org-mode . eldoc-mode)))
+           (org-mode . eldoc-mode))
+    :custom (eldoc-idle-delay 0.4))
 #+END_SRC
 
 **** electric
@@ -1893,7 +1870,6 @@ eww is enabled so we can open files in non-graphical environments.
              (not (string-equal
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
-    :commands (eww-browse-url eww-reload)
     :config
     (add-hook 'eww-mode-hook (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
@@ -1980,8 +1956,9 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
-    :custom (flyspell-highlight-properties nil)
-    :custom (flyspell-issue-welcome-flag nil)
+    :custom
+    (flyspell-highlight-properties nil)
+    (flyspell-issue-welcome-flag nil)
     :if (locate-file
          (if (boundp 'ispell-program-name)
              ispell-program-name "aspell")
@@ -2014,17 +1991,17 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer
-    :custom (ibuffer-default-display-maybe-show-predicates t)
-    :custom (ibuffer-expert t)
-    :custom (ibuffer-show-empty-filter-groups nil)
-    :custom (ibuffer-shrink-to-minimum-size t)
-    :custom (ibuffer-use-other-window t)
-    :custom (ibuffer-formats
-             '((mark modified read-only " " (name 16 -1) " "
-                    (size 6 -1 :right) " " (mode 16 16) " " filename)
-              (mark " " (name 16 -1) " " filename)))
-    :custom (ibuffer-never-show-predicates ("\\*magit-\\(diff\\|process\\):"))
-    :commands (ibuffer-do-sort-by-alphabetic)
+    :custom
+    (ibuffer-default-display-maybe-show-predicates t)
+    (ibuffer-expert t)
+    (ibuffer-show-empty-filter-groups nil)
+    (ibuffer-shrink-to-minimum-size t)
+    (ibuffer-use-other-window t)
+    (ibuffer-formats
+     '((mark modified read-only " " (name 16 -1) " "
+             (size 6 -1 :right) " " (mode 16 16) " " filename)
+       (mark " " (name 16 -1) " " filename)))
+    (ibuffer-never-show-predicates ("\\*magit-\\(diff\\|process\\):"))
     :bind ([remap list-buffers] . ibuffer))
 #+END_SRC
 
@@ -2115,7 +2092,8 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package persistent-mode
-    :ensure nil)
+    :ensure nil
+    :mode "\\.persistentmodels$")
 #+END_SRC
 
 **** savehist-mode
@@ -2138,19 +2116,22 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :if (>= emacs-major-version 25)
-    :hook (after-init . save-place-mode))
+    :hook (after-init . save-place-mode)
+    :custom (save-place-limit 600))
 #+END_SRC
 
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
   (use-package shell
-    :custom (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
+    :custom
+    (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
+    (shell-completion-execonly nil)
+    (shell-input-autoexpand nil)
     :bind (("C-c C-s" . shell)
            ("H-s" . shell)
            ("M-@" . shell))
-    :hook ((shell-mode . ansi-color-for-comint-mode-on)
-           (shell-mode . dirtrack-mode)
+    :hook ((shell-mode . dirtrack-mode)
            (shell-mode . (lambda () (setq-local comint-prompt-read-only t)))
            (shell-mode . (lambda () (setq-local comint-input-ignoredups t)))
            (shell-mode . (lambda () (setq-local comint-process-echoes t)))
@@ -2209,13 +2190,15 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package term
-    :commands (term-char-mode)
     :hook ((term-mode .
-             (lambda ()
-               (setq term-prompt-regexp
-                     "^[^#$%>\n]*[#$%>] *")
-               (setq-local transient-mark-mode nil)
-               (auto-fill-mode -1))))
+                      (lambda ()
+                        (setq term-prompt-regexp
+                              "^[^#$%>\n]*[#$%>] *")
+                        (setq-local transient-mark-mode nil)
+                        (auto-fill-mode -1))))
+    :custom
+    (term-input-autoexpand t)
+    (term-input-ignoredup t)
     :preface
     (autoload 'tramp-tramp-file-p "tramp")
     (autoload 'tramp-dissect-file-name "tramp"))
@@ -2434,10 +2417,11 @@ Show whitespace
 
 #+BEGIN_SRC emacs-lisp
   (use-package whitespace
-    :custom (whitespace-line-column 120)
-    :custom (whitespace-action '(cleanup))
-    :custom (whitespace-style '(face trailing lines space-before-tab empty))
-    :custom (whitespace-global-modes '(not erc-mode ses-mode))
+    :custom
+    (whitespace-line-column 120)
+    (whitespace-action '(cleanup))
+    (whitespace-style '(face trailing lines space-before-tab empty))
+    (whitespace-global-modes '(not erc-mode ses-mode))
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
 
@@ -2453,7 +2437,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package eglot
     :config
     (add-to-list 'eglot-server-programs '(haskell-mode . ("static-ls")))
-    )
+    (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("static-ls"))))
 #+END_SRC
 
 **** CSV
@@ -2530,9 +2514,10 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
-    :custom (haskell-compile-cabal-build-command "cabal new-build")
-    :custom (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
-    :custom (haskell-mode-hook nil)
+    :custom
+    (haskell-compile-cabal-build-command "cabal new-build")
+    (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
+    (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
            (haskell-mode . haskell-indentation-mode)
@@ -2549,30 +2534,77 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
            ;;            (setq-local eldoc-documentation-function
            ;;                        'haskell-doc-current-info)))
            (haskell-mode . (lambda () (whitespace-mode -1))))
-
-    :functions xref-push-marker-stack
-    :commands (haskell-session-maybe haskell-mode-find-def haskell-ident-at-point
-                                     haskell-mode-handle-generic-loc)
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
     ;; (require 'haskell-compile)
     )
+
+  (use-package haskell-ts-mode
+    :if (treesit-language-available-p 'haskell)
+    :mode (("\\.[gh]s\\'" . haskell-ts-mode)
+           ("\\.hsig\\'" . haskell-ts-mode)
+           ("\\.hsc\\'" . haskell-ts-mode)))
+
+  (use-package consult-hoogle
+    :commands (consult-hoogle))
 #+END_SRC
 
 **** JavaScript
 
 #+BEGIN_SRC emacs-lisp
-    (use-package typescript-ts-mode
-      :mode (("\\.ts\\'" . typescript-ts-mode)
-             ("\\.tsx\\'" . typescript-ts-mode)))
+  (use-package typescript-ts-mode
+    :if (treesit-language-available-p 'typescript)
+    :mode (("\\.ts\\'" . typescript-ts-mode)
+           ("\\.tsx\\'" . typescript-ts-mode)))
 
-    (use-package js-mode
-      :ensure nil
-      :mode (("\\.es6\\'" . js-mode)
-             ("\\.ejs\\'" . js-mode)
-             ("\\.jshintrc$"    . js-json-mode)
-             ("\\.json_schema$" . js-json-mode))
-      :interpreter "node")
+  (use-package js
+    :mode (("\\(\\.js[mx]?\\|\\.har\\)\\'" . js-ts-mode)
+           ("\\.es6\\'" . js-ts-mode)
+           ("\\.ejs\\'" . js-ts-mode))
+    :interpreter "node")
+
+  (use-package json-ts-mode
+    :if (treesit-language-available-p 'json)
+    :mode (("\\.jshintrc$"    . json-ts-mode)
+           ("\\.json_schema$" . json-ts-mode)
+           ("\\.json$" . json-ts-mode)))
+#+END_SRC
+
+**** CMake
+
+#+BEGIN_SRC emacs-lisp
+   (use-package cmake-ts-mode
+     :if (treesit-language-available-p 'cmake)
+     :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
+#+END_SRC
+
+
+**** Rust
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rust-ts-mode
+    :if (treesit-language-available-p 'rust)
+    :mode (("\\.rs\\'" . rust-ts-mode))
+    )
+#+END_SRC
+
+**** Go
+
+#+BEGIN_SRC emacs-lisp
+  (use-package go-ts-mode
+    :if (treesit-language-available-p 'go)
+    :mode (("\\.go\\'" . go-ts-mode)
+           ("/go\\.mod\\'" . go-mod-ts-mode))
+    )
+#+END_SRC
+
+**** Lua
+
+#+BEGIN_SRC emacs-lisp
+  (use-package lua-ts-mode
+    :if (treesit-language-available-p 'lua)
+    :mode (("\\.lua\\'" . lua-ts-mode))
+    :interpreter ("\\<lua\\(?:jit\\)?" . lua-ts-mode))
 #+END_SRC
 
 **** LaTeX
@@ -2583,11 +2615,12 @@ Auctex provides some helpful tools for working with LaTeX.
 ****** tex-mode
 #+BEGIN_SRC emacs-lisp
   (use-package tex-mode
-   :custom (TeX-auto-save t)
-   :custom (TeX-auto-untabify t)
-   :custom (TeX-electric-escape t)
-   :custom (TeX-parse-self t)
-   :hook (TeX-mode . latex-electric-env-pair-mode))
+    :custom
+    (TeX-auto-save t)
+    (TeX-auto-untabify t)
+    (TeX-electric-escape t)
+    (TeX-parse-self t)
+    :hook (TeX-mode . latex-electric-env-pair-mode))
 #+END_SRC
 **** Lisp
 
@@ -2687,15 +2720,16 @@ macho-mode to toggle then M-x hexl-mode.
   (use-package proof-site
     :ensure proofgeneral
     :disabled
-    :custom (proof-auto-action-when-deactivating-scripting 'retract)
-    :custom (proof-autosend-enable nil)
-    :custom (proof-electric-terminator-enable t)
-    :custom (proof-fast-process-buffer nil)
-    :custom (proof-script-fly-past-comments t)
-    :custom (proof-shell-fiddle-frames nil)
-    :custom (proof-splash-enable nil)
-    :custom (proof-sticky-errors t)
-    :custom (proof-tidy-response t)
+    :custom
+    (proof-auto-action-when-deactivating-scripting 'retract)
+    (proof-autosend-enable nil)
+    (proof-electric-terminator-enable t)
+    (proof-fast-process-buffer nil)
+    (proof-script-fly-past-comments t)
+    (proof-shell-fiddle-frames nil)
+    (proof-splash-enable nil)
+    (proof-sticky-errors t)
+    (proof-tidy-response t)
     :demand
     :if (not needs-package-init))
 #+END_SRC
@@ -2821,6 +2855,14 @@ Most of these are available in MELPA.
   (use-package daemons)
 #+END_SRC
 
+**** delight
+
+[[https://elpa.gnu.org/packages/delight.html][ELPA]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package delight)
+#+END_SRC
+
 **** dired-rsync
 
 [[https://github.com/stsquad/dired-rsync][GitHub]]
@@ -2837,14 +2879,6 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package gif-screencast
   :bind ("<f9>". gif-screencast-start-or-stop))
-#+END_SRC
-
-**** ethan-wspace
-
-#+BEGIN_SRC emacs-lisp
-(use-package ethan-wspace
-  :config
-  (global-ethan-wspace-mode 1))
 #+END_SRC
 
 **** git-attr
@@ -2869,7 +2903,6 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer-vc
-    :commands (ibuffer-vc-set-filter-groups-by-vc-root)
     :hook ((ibuffer . (lambda ()
                         (ibuffer-vc-set-filter-groups-by-vc-root)
                         (unless (eq ibuffer-sorting-mode 'alphabetic)
@@ -3017,9 +3050,10 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :demand
-    :custom (undo-tree-mode-lighter "")
-    :custom (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
-    :custom (undo-tree-enable-undo-in-region t)
+    :custom
+    (undo-tree-mode-lighter "")
+    (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
+    (undo-tree-enable-undo-in-region t)
     :config (global-undo-tree-mode))
 #+END_SRC
 
@@ -3037,7 +3071,6 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package url-util
     :ensure nil
-    :functions (url-hexify-string url-unhex-string region-active-p)
     :preface
     (defun func-region (start end func)
       "Run a function over the region between START and END in current buffer."
@@ -3112,43 +3145,44 @@ Miscellaneous games
   (use-package claude-code
     :ensure nil
     :bind ("C-c c" . claude-code-transient)
-    :custom (claude-code-terminal-backend 'vterm)
-    :custom (claude-code-vterm-multiline-delay 0.02)
-    :custom (claude-code-startup-delay 0.2))
-
+    :custom
+    (claude-code-terminal-backend 'vterm)
+    (claude-code-vterm-multiline-delay 0.02)
+    (claude-code-startup-delay 0.2))
 
   (use-package websocket)
 
   (use-package monet
     :ensure nil
     :custom (monet-prefix-key nil)
-    :commands (monet-mode)
+    :autoload (monet-start-server-function)
     :delight
     :init
     (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
-    #+END_SRC
+#+END_SRC
 
 **** aidermacs
 
 #+BEGIN_SRC emacs-lisp
   (use-package aidermacs
+    :disabled
     :bind (("C-x C-a" . aidermacs-transient-menu))
     :config
     (defun api-key-from-auth-source (host &optional user)
-  "Lookup api key in the auth source.
-By default, the LLM host for the active backend is used as HOST,
-and \"apikey\" as USER."
-  (if-let* ((secret
-             (plist-get
-              (car (auth-source-search
-                    :host host
-                    :user (or user "apikey")
-                    :require '(:secret)))
-              :secret)))
-      (if (functionp secret)
-          (encode-coding-string (funcall secret) 'utf-8)
-        secret)
-    (user-error "No `gptel-api-key' found in the auth source")))
+      "Lookup api key in the auth source.
+  By default, the LLM host for the active backend is used as HOST,
+  and \"apikey\" as USER."
+      (if-let* ((secret
+                 (plist-get
+                  (car (auth-source-search
+                        :host host
+                        :user (or user "apikey")
+                        :require '(:secret)))
+                  :secret)))
+          (if (functionp secret)
+              (encode-coding-string (funcall secret) 'utf-8)
+            secret)
+        (user-error "No `gptel-api-key' found in the auth source")))
     (setenv "OPENROUTER_API_KEY" (api-key-from-auth-source "openrouter.ai"))
     (setenv "ANTHROPIC_API_KEY" (api-key-from-auth-source "anthropic.com"))
     :custom
@@ -3175,6 +3209,7 @@ and \"apikey\" as USER."
 
 #+BEGIN_SRC emacs-lisp
   (use-package gptel
+    :disabled
     :bind (("C-x C-g" . gptel-menu))
     :config
     (setq gptel--known-backends nil)
@@ -3289,10 +3324,12 @@ and \"apikey\" as USER."
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
     :bind (("M-@" . vterm)
+           :package dired
            :map dired-mode-map ("M-@" . vterm))
-    :custom (vterm-min-window-width 40)
-    :custom (vterm-max-scrollback 10000)
-    :custom (vterm-copy-mode-remove-fake-newlines t)
+    :custom
+    (vterm-min-window-width 40)
+    (vterm-max-scrollback 10000)
+    (vterm-copy-mode-remove-fake-newlines t)
     :init
     (defun vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
@@ -3302,6 +3339,19 @@ and \"apikey\" as USER."
       (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
           (mouse-set-point event promote-to-region)
         (vterm-reset-cursor-point)))
+
+    ;; turn on cursor in case it’s been disabled
+    ;; this allows things that disable cursor like claude-code
+    ;; to still be able to enter copy mode.
+    (defvar-local vterm-cursor-type-saved nil)
+    (add-hook 'vterm-copy-mode-hook (lambda ()
+                                      (if vterm-copy-mode
+                                          (progn
+                                            (setq-local vterm-cursor-type-saved cursor-type)
+                                            (setq-local cursor-type t))
+                                        (progn
+                                          (setq-local cursor-type vterm-cursor-type-saved)
+                                          ))))
     :config
     (define-key vterm-mode-map (kbd "s-f") 'vterm--self-insert-meta)
     (define-key vterm-mode-map (kbd "s-b") 'vterm--self-insert-meta)
@@ -3310,7 +3360,6 @@ and \"apikey\" as USER."
     (define-key vterm-mode-map (kbd "M-v") nil)
     (define-key vterm-mode-map (kbd "C-v") nil))
 #+END_SRC
-
 
 ** END
 
@@ -3517,7 +3566,8 @@ Then setup aliases.
 
   take() { mkdir -p $@ && cd ${@:$#} ; }
 
-  set -o noclobber -o notify
+  # set -o noclobber
+  set -o notify
 
   if [ "$TERM" != "dumb" ]; then
       if [ "$TERM" != eterm-color ] && [ "${TERM_PROGRAM-}" != iTerm.app ]; then
@@ -4604,8 +4654,7 @@ package-list =
 
 #+BEGIN_SRC nix
   emacs --batch --quick \
-        -L ${evalPkgs.emacsPackages.use-package
-            }/share/emacs/site-lisp/elpa/use-package-* \
+        -L ${evalPkgs.emacsPackages.delight}/share/emacs/site-lisp/elpa/delight-* \
         -l ${ensure ./site-lisp/set-defaults.el
                      "site-lisp/set-defaults.el"} \
         -l ${ensure ./site-lisp/bauer.el
@@ -4613,7 +4662,7 @@ package-list =
         -l ${ensure ./site-lisp/use-package-list.el
                      "site-lisp/use-package-list.el"} \
         --eval "(use-package-list \"${./README.el}\")" \
-        > $out 2>/dev/null
+        > $out
 #+END_SRC
 
 #+BEGIN_SRC nix
@@ -4621,8 +4670,7 @@ package-list =
 #+END_SRC
 
 #+BEGIN_SRC nix
-myEmacsPackages' = builtins.fromJSON
-                   (builtins.readFile package-list);
+myEmacsPackages' = builtins.fromJSON (builtins.readFile package-list);
 #+END_SRC
 
 **** Phase 2: byte compiling
@@ -4705,7 +4753,7 @@ requiredPackages = epkgs: map (x:
     then builtins.getAttr x epkgs
   else if builtins.hasAttr x pkgs.emacsPackages
     then builtins.getAttr x pkgs.emacsPackages
-  else abort "no attribute found for use-package ${x}");
+  else abort "no attribute found for use-package${x}");
 #+END_SRC
 
 Now we build our Emacs distribution.
@@ -4715,12 +4763,13 @@ TODO: use dump-emacs here to speed up config.
 #+BEGIN_SRC nix
   myEmacsPackages = buildEnv {
     name = "emacs-packages-env";
-    paths = (requiredPackages customEmacsPackages myEmacsPackages');
+    paths = (requiredPackages customEmacsPackages myEmacsPackages')
+          ++ [ customEmacsPackages.delight ];
   };
 
   myEmacs = customEmacsPackages.emacsWithPackages (epkgs:
     (requiredPackages epkgs myEmacsPackages')
-    ++ [default epkgs.treesit-grammars.with-all-grammars]
+    ++ [default epkgs.delight epkgs.treesit-grammars.with-all-grammars]
   );
 #+END_SRC
 
