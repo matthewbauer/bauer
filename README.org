@@ -1054,46 +1054,13 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
-**** persistent-scratch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package persistent-scratch
-    :demand
-    :commands (persistent-scratch-autosave-mode)
-    :config (persistent-scratch-autosave-mode))
-#+END_SRC
-
-**** envrc
-[[https://github.com/purcell/envrc][
-GitHub]]
-
-Envrc is able to execute a project’s .envrc file for you automatically.
-Unfortunately, it doesn’t support asynchronous updates yet, so this can
-occasionally block Emacs.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package inheritenv)
-
-  ;; envrc must come late in the init.el file so add-hook adds it first
-  ;; in `find-file-hook'.
-  (use-package envrc
-    :ensure nil
-    :bind (
-           :package project
-           :map project-prefix-map
-           ("," . envrc-reload))
-    :commands (envrc-global-mode)
-    :custom (envrc-none-lighter nil)
-    :demand t
-    :config
-    (envrc-global-mode))
-#+END_SRC
-
 **** dtrt-indent
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
 
 This mode will try to detect your indentation.
+
+disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
@@ -1103,111 +1070,15 @@ This mode will try to detect your indentation.
     :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
-**** Emacs shell
-
-Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
+**** embark
 
 #+BEGIN_SRC emacs-lisp
-  (use-package eshell
-    :custom
-    (eshell-prompt-function
-     (lambda ()
-       (concat (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user
-                   (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-host
-                   (tramp-dissect-file-name default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
-    (eshell-visual-commands
-     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-       "trn" "elm" "ssh" "mutt" "tmux" "htop"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
-       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
-       "telnet" "rlogin"))
-    (eshell-visual-subcommands '(("vagrant" "ssh")))
-    :bind (("C-c M-t" . eshell)
-           ("C-c x" . eshell)
-           ("C-c e" . eshell))
-    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
-    :preface
-    (defvar eshell-isearch-map
-      (let ((map (copy-keymap isearch-mode-map)))
-        (define-key map [(control ?m)] 'eshell-isearch-return)
-        (define-key map [return]       'eshell-isearch-return)
-        (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-        (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-        (define-key map [(control ?g)] 'eshell-isearch-abort)
-        (define-key map [backspace]    'eshell-isearch-delete-char)
-        (define-key map [delete]       'eshell-isearch-delete-char)
-        map)
-      "Keymap used in isearch in Eshell.")
-    (defun eshell-spawn-external-command (beg end)
-      "Parse and expand any history references in current input."
-      (save-excursion
-        (goto-char end)
-        (when (looking-back "&!" beg)
-          (delete-region (match-beginning 0) (match-end 0))
-          (goto-char beg)
-          (insert "spawn ")))))
-#+END_SRC
+(use-package embark
+  :bind (("C-c a" . embark-act)))
 
-***** esh-help
-
-Setup eldoc integration.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package esh-help
-    :custom
-    (eshell-cmpl-autolist t)
-    (eshell-cmpl-cycle-completions nil)
-    (eshell-cmpl-ignore-case t)
-    (eshell-default-target-is-dot t)
-    (eshell-destroy-buffer-when-process-dies t)
-    (eshell-hist-ignoredups 'erase)
-    (eshell-list-files-after-cd t)
-    (eshell-review-quick-commands t)
-    :autoload esh-help-eldoc-command
-    :preface
-    (defun esh-help-turn-on ()
-      (interactive)
-      (setq-local eldoc-documentation-function
-                  'esh-help-eldoc-command)
-      (setq eldoc-documentation-function
-            'esh-help-eldoc-command)
-      (eldoc-mode 1))
-    :hook (eshell-mode . esh-help-turn-on))
-#+END_SRC
-
-***** em-dired
-
-#+BEGIN_SRC emacs-lisp
-(use-package em-dired
-  :ensure nil
-  :bind (:package dired
-         :map dired-mode-map
-         ("e" . em-dired))
-  :hook (eshell-mode . em-dired-mode)
-  :init
-  (advice-add 'eshell :before 'em-dired-new))
-#+END_SRC
-
-**** Gnus
-
-[[http://www.gnus.org][Website]]
-
-Gnus is an infamous email client & news reader.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gnus
-    :hook ((dired-mode . turn-on-gnus-dired-mode)))
+(use-package embark-consult
+  ;; comes bundled with Embark; no `:ensure t' necessary
+  :after (embark consult))
 #+END_SRC
 
 **** GCMH
@@ -1227,6 +1098,17 @@ Intelligently adjust Emacs garbage collection size.
     (gcmh-idle-delay 'auto)
     (gcmh-auto-idle-delay-factor 10)
     (gcmh-high-cons-threshold (* 16 1024 1024)))
+#+END_SRC
+
+**** Gnus
+
+[[http://www.gnus.org][Website]]
+
+Gnus is an infamous email client & news reader.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package gnus
+    :hook ((dired-mode . turn-on-gnus-dired-mode)))
 #+END_SRC
 
 **** Magit
@@ -1411,6 +1293,17 @@ outliner but also much much more.
   (use-package org-present)
 #+END_SRC
 
+**** persistent-scratch
+
+Automatically save the scratch buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package persistent-scratch
+    :demand
+    :commands (persistent-scratch-autosave-mode)
+    :config (persistent-scratch-autosave-mode))
+#+END_SRC
+
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
@@ -1501,6 +1394,173 @@ Try out packages without installing them.
   (use-package try)
 #+END_SRC
 
+**** undo-tree
+
+[[https://elpa.gnu.org/packages/undo-tree.html][ELPA]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-tree
+    :demand
+    :commands (global-undo-tree-mode)
+    :custom
+    (undo-tree-mode-lighter "")
+    (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
+    (undo-tree-enable-undo-in-region t)
+    :config (global-undo-tree-mode))
+#+END_SRC
+
+**** vterm
+
+#+BEGIN_SRC emacs-lisp
+  (use-package vterm
+    :commands (vterm-reset-cursor-point)
+    :bind (("M-@" . vterm)
+           :package dired
+           :map dired-mode-map ("M-@" . vterm))
+    :custom
+    (vterm-min-window-width 40)
+    (vterm-max-scrollback 10000)
+    (vterm-copy-mode-remove-fake-newlines t)
+    :preface
+    (defvar-local vterm-cursor-type-saved nil)
+    :init
+    (defun vterm-mouse-set-point (event &optional promote-to-region)
+      "Move point to the position clicked on with the mouse.
+  But when clicking to the unused area below the last prompt,
+  move the cursor to the prompt area."
+      (interactive "e\np")
+      (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
+          (mouse-set-point event promote-to-region)
+        (vterm-reset-cursor-point)))
+
+    ;; turn on cursor in case it’s been disabled
+    ;; this allows things that disable cursor like claude-code
+    ;; to still be able to enter copy mode.
+    (add-hook 'vterm-copy-mode-hook (lambda ()
+                                      (if vterm-copy-mode
+                                          (progn
+                                            (setq-local vterm-cursor-type-saved cursor-type)
+                                            (setq-local cursor-type t))
+                                        (progn
+                                          (setq-local cursor-type vterm-cursor-type-saved)
+                                          ))))
+    :config
+    (define-key vterm-mode-map (kbd "s-f") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-b") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-d") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-<backspace>") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "M-v") nil)
+    (define-key vterm-mode-map (kbd "M-:") nil)
+    (define-key vterm-mode-map (kbd "C-v") nil))
+#+END_SRC
+
+**** wgrep
+
+#+BEGIN_SRC emacs-lisp
+(use-package wgrep)
+#+END_SRC
+
+*** Built-ins
+
+These are available automatically, so these =use-package= blocks just
+configure them.
+
+**** Emacs shell
+
+Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eshell
+    :custom
+    (eshell-prompt-function
+     (lambda ()
+       (concat (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user
+                   (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-host
+                   (tramp-dissect-file-name default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
+    (eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+       "telnet" "rlogin"))
+    (eshell-visual-subcommands '(("vagrant" "ssh")))
+    :bind (("C-c M-t" . eshell)
+           ("C-c x" . eshell)
+           ("C-c e" . eshell))
+    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
+           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
+    :preface
+    (defvar eshell-isearch-map
+      (let ((map (copy-keymap isearch-mode-map)))
+        (define-key map [(control ?m)] 'eshell-isearch-return)
+        (define-key map [return]       'eshell-isearch-return)
+        (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+        (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+        (define-key map [(control ?g)] 'eshell-isearch-abort)
+        (define-key map [backspace]    'eshell-isearch-delete-char)
+        (define-key map [delete]       'eshell-isearch-delete-char)
+        map)
+      "Keymap used in isearch in Eshell.")
+    (defun eshell-spawn-external-command (beg end)
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn ")))))
+#+END_SRC
+
+***** esh-help
+
+Setup eldoc integration.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package esh-help
+    :custom
+    (eshell-cmpl-autolist t)
+    (eshell-cmpl-cycle-completions nil)
+    (eshell-cmpl-ignore-case t)
+    (eshell-default-target-is-dot t)
+    (eshell-destroy-buffer-when-process-dies t)
+    (eshell-hist-ignoredups 'erase)
+    (eshell-list-files-after-cd t)
+    (eshell-review-quick-commands t)
+    :autoload esh-help-eldoc-command
+    :preface
+    (defun esh-help-turn-on ()
+      (interactive)
+      (setq-local eldoc-documentation-function
+                  'esh-help-eldoc-command)
+      (setq eldoc-documentation-function
+            'esh-help-eldoc-command)
+      (eldoc-mode 1))
+    :hook (eshell-mode . esh-help-turn-on))
+#+END_SRC
+
+***** em-dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package em-dired
+  :ensure nil
+  :bind (:package dired
+         :map dired-mode-map
+         ("e" . em-dired))
+  :hook (eshell-mode . em-dired-mode)
+  :init
+  (advice-add 'eshell :before 'em-dired-new))
+#+END_SRC
+
 **** which-key
 
 [[https://github.com/justbur/emacs-which-key][GitHub]]
@@ -1519,30 +1579,6 @@ function.
     (which-key-idle-secondary-delay 0.4)
     :config (which-key-mode 1))
 #+END_SRC
-
-
-**** wgrep
-
-#+BEGIN_SRC emacs-lisp
-(use-package wgrep)
-#+END_SRC
-
-**** embark
-
-#+BEGIN_SRC emacs-lisp
-(use-package embark
-  :bind (("C-c a" . embark-act)))
-
-(use-package embark-consult
-  ;; comes bundled with Embark; no `:ensure t' necessary
-  :after (embark consult))
-#+END_SRC
-
-
-*** Built-ins
-
-These are available automatically, so these =use-package= blocks just
-configure them.
 
 **** autorevert
 
@@ -2025,6 +2061,14 @@ Make scripts executable automatically.
            (smartparens-mode . (lambda () (show-paren-mode -1)))))
 #+END_SRC
 
+**** persistent-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package persistent-mode
+    :ensure nil
+    :mode "\\.persistentmodels$")
+#+END_SRC
+
 **** pp
 
 #+BEGIN_SRC emacs-lisp
@@ -2084,14 +2128,6 @@ Make scripts executable automatically.
       (push '("=>" . ?⇒) prettify-symbols-alist)))
 #+END_SRC
 
-**** persistent-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package persistent-mode
-    :ensure nil
-    :mode "\\.persistentmodels$")
-#+END_SRC
-
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2115,6 +2151,16 @@ Make scripts executable automatically.
     :hook (after-init . save-place-mode)
     :custom (save-place-limit 600))
 #+END_SRC
+
+**** server
+
+Optionally, start a server (disabled by default):
+
+#+BEGIN_SRC emacs-lisp
+  (use-package server
+    :disabled
+    :hook (after-init . (lambda () (unless (server-running-p) (server-start))))
+    )
 
 **** Shell
 
@@ -2166,13 +2212,6 @@ Make scripts executable automatically.
            (text-mode . auto-fill-mode))
     :config (column-number-mode))
 #+END_SRC
-**** subword
-
-#+BEGIN_SRC emacs-lisp
-  (use-package subword
-    :hook ((java-mode . subword-mode)))
-#+END_SRC
-
 **** so-long
 
 #+BEGIN_SRC emacs-lisp
@@ -2180,6 +2219,13 @@ Make scripts executable automatically.
     :if (>= emacs-major-version 27)
     :demand
     :config (global-so-long-mode 1))
+#+END_SRC
+
+**** subword
+
+#+BEGIN_SRC emacs-lisp
+  (use-package subword
+    :hook ((java-mode . subword-mode)))
 #+END_SRC
 
 **** term
@@ -2394,14 +2440,6 @@ Make scripts executable automatically.
     :config (url-handler-mode))
 #+END_SRC
 
-**** winner-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package winner
-    :demand
-    :config (winner-mode))
-#+END_SRC
-
 **** which-func
 
 #+BEGIN_SRC emacs-lisp
@@ -2424,6 +2462,14 @@ Show whitespace
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
 
+**** winner-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package winner
+    :demand
+    :config (winner-mode))
+#+END_SRC
+
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
@@ -2439,6 +2485,14 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("static-ls"))))
 #+END_SRC
 
+**** CMake
+
+#+BEGIN_SRC emacs-lisp
+   (use-package cmake-ts-mode
+     :if (treesit-language-available-p 'cmake)
+     :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
+#+END_SRC
+
 **** CSV
 
 [[https://elpa.gnu.org/packages/csv-mode.html][ELPA]]
@@ -2450,6 +2504,15 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
            (csv-mode . (lambda () (setq-local truncate-lines nil)))))
 #+END_SRC
 
+**** Dockerfile
+
+#+BEGIN_SRC emacs-lisp
+   (use-package dockerfile-ts-mode
+     :if (treesit-language-available-p 'dockerfile)
+     :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
+                   . dockerfile-ts-mode)))
+#+END_SRC
+
 **** ELF
 
 [[https://oremacs.com/2016/08/28/elf-mode/][Website]]
@@ -2457,6 +2520,17 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+BEGIN_SRC emacs-lisp
   (use-package elf-mode
     :magic ("ELF" . elf-mode))
+#+END_SRC
+
+**** Elixir
+
+#+BEGIN_SRC emacs-lisp
+  (use-package elixir-ts-mode
+    :if (treesit-language-available-p 'elixir)
+    :mode (("\\.elixir\\'" . elixir-ts-mode)
+           ("\\.ex\\'" . elixir-ts-mode)
+           ("\\.exs\\'" . elixir-ts-mode)
+           ("mix\\.lock" . elixir-ts-mode)))
 #+END_SRC
 
 **** Emacs speaks statistics
@@ -2507,9 +2581,21 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package git-modes)
 #+END_SRC
 
-**** Haskell
+**** Go
 
+#+BEGIN_SRC emacs-lisp
+  (use-package go-ts-mode
+    :if (treesit-language-available-p 'go)
+    :mode (("\\.go\\'" . go-ts-mode)
+           ("/go\\.mod\\'" . go-mod-ts-mode))
+    )
+#+END_SRC
+
+**** Haskell
 [[https://github.com/haskell/haskell-mode][GitHub]]
+
+Two modes are available. I tried the treesitter one, but found the indentation
+didn’t work well enough.
 
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
@@ -2570,73 +2656,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
            ("\\.json$" . json-ts-mode)))
 #+END_SRC
 
-**** Dockerfile
-
-#+BEGIN_SRC emacs-lisp
-   (use-package dockerfile-ts-mode
-     :if (treesit-language-available-p 'dockerfile)
-     :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
-                   . dockerfile-ts-mode)))
-#+END_SRC
-
-**** CMake
-
-#+BEGIN_SRC emacs-lisp
-   (use-package cmake-ts-mode
-     :if (treesit-language-available-p 'cmake)
-     :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
-#+END_SRC
-
-**** Rust
-
-#+BEGIN_SRC emacs-lisp
-  (use-package rust-ts-mode
-    :if (treesit-language-available-p 'rust)
-    :mode (("\\.rs\\'" . rust-ts-mode))
-    )
-#+END_SRC
-
-**** Elixir
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elixir-ts-mode
-    :if (treesit-language-available-p 'elixir)
-    :mode (("\\.elixir\\'" . elixir-ts-mode)
-           ("\\.ex\\'" . elixir-ts-mode)
-           ("\\.exs\\'" . elixir-ts-mode)
-           ("mix\\.lock" . elixir-ts-mode)))
-#+END_SRC
-
-**** PHP
-
-#+BEGIN_SRC emacs-lisp
-  (use-package php-ts-mode
-    :if (treesit-language-available-p 'php)
-    :mode (("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode)
-           ("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode)
-           ("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode))
-    :interpreter ("php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" . php-ts-mode))
-#+END_SRC
-
-**** Go
-
-#+BEGIN_SRC emacs-lisp
-  (use-package go-ts-mode
-    :if (treesit-language-available-p 'go)
-    :mode (("\\.go\\'" . go-ts-mode)
-           ("/go\\.mod\\'" . go-mod-ts-mode))
-    )
-#+END_SRC
-
-**** Lua
-
-#+BEGIN_SRC emacs-lisp
-  (use-package lua-ts-mode
-    :if (treesit-language-available-p 'lua)
-    :mode (("\\.lua\\'" . lua-ts-mode))
-    :interpreter ("\\<lua\\(?:jit\\)?" . lua-ts-mode))
-#+END_SRC
-
 **** LaTeX
 ***** auctex
 
@@ -2665,6 +2684,15 @@ Auctex provides some helpful tools for working with LaTeX.
 #+BEGIN_SRC emacs-lisp
   (use-package ielm
     :bind ("C-c :" . ielm))
+#+END_SRC
+
+**** Lua
+
+#+BEGIN_SRC emacs-lisp
+  (use-package lua-ts-mode
+    :if (treesit-language-available-p 'lua)
+    :mode (("\\.lua\\'" . lua-ts-mode))
+    :interpreter ("\\<lua\\(?:jit\\)?" . lua-ts-mode))
 #+END_SRC
 
 **** Mach-O
@@ -2711,6 +2739,9 @@ macho-mode to toggle then M-x hexl-mode.
     :ensure nil)
 #+END_SRC
 ***** nix-update
+
+disabled
+
 #+BEGIN_SRC emacs-lisp
 (use-package nix-update
   :disabled
@@ -2719,6 +2750,8 @@ macho-mode to toggle then M-x hexl-mode.
 **** OCaml
 
 [[https://github.com/ocaml/tuareg][GitHub]]
+
+disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package tuareg
@@ -2742,9 +2775,22 @@ macho-mode to toggle then M-x hexl-mode.
                         (merlin-mode)))))))
 #+END_SRC
 
+**** PHP
+
+#+BEGIN_SRC emacs-lisp
+  (use-package php-ts-mode
+    :if (treesit-language-available-p 'php)
+    :mode (("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode)
+           ("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode)
+           ("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode))
+    :interpreter ("php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" . php-ts-mode))
+#+END_SRC
+
 **** Proof General
 
 [[https://proofgeneral.github.io][Website]]
+
+disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package proof-site
@@ -2762,6 +2808,15 @@ macho-mode to toggle then M-x hexl-mode.
     (proof-tidy-response t)
     :demand
     :if (not needs-package-init))
+#+END_SRC
+
+**** Rust
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rust-ts-mode
+    :if (treesit-language-available-p 'rust)
+    :mode (("\\.rs\\'" . rust-ts-mode))
+    )
 #+END_SRC
 
 **** Scala
@@ -2782,10 +2837,12 @@ macho-mode to toggle then M-x hexl-mode.
          ("\\.zsh\\'" . sh-mode)))
 #+END_SRC
 
-**** texinfo
+**** systemd
+
+[[https://github.com/holomorph/systemd-mode][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-  (use-package texinfo)
+(use-package systemd)
 #+END_SRC
 
 **** Terraform
@@ -2794,6 +2851,12 @@ macho-mode to toggle then M-x hexl-mode.
 
 #+BEGIN_SRC emacs-lisp
   (use-package terraform-mode)
+#+END_SRC
+
+**** texinfo
+
+#+BEGIN_SRC emacs-lisp
+  (use-package texinfo)
 #+END_SRC
 
 **** YAML
@@ -2809,8 +2872,56 @@ macho-mode to toggle then M-x hexl-mode.
 These are all available in [[./site-lisp][./site-lisp]]. Eventually they should go into separate
 repositories.
 
+**** claude-code
+
+#+BEGIN_SRC emacs-lisp
+  (use-package claude-code
+    :ensure nil
+    :bind ("C-c c" . claude-code-transient)
+    :custom
+    (claude-code-terminal-backend 'vterm)
+    (claude-code-vterm-multiline-delay 0.02)
+    (claude-code-startup-delay 0.2))
+
+  (use-package websocket)
+
+  (use-package monet
+    :ensure nil
+    :custom (monet-prefix-key nil)
+    :autoload (monet-start-server-function)
+    :delight
+    :init
+    (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
+#+END_SRC
+
 **** dired-column
 **** em-dired
+**** envrc
+[[https://github.com/purcell/envrc][
+GitHub]]
+
+Envrc is able to execute a project’s .envrc file for you automatically.
+Unfortunately, it doesn’t support asynchronous updates yet, so this can
+occasionally block Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package inheritenv)
+
+  ;; envrc must come late in the init.el file so add-hook adds it first
+  ;; in `find-file-hook'.
+  (use-package envrc
+    :ensure nil
+    :bind (
+           :package project
+           :map project-prefix-map
+           ("," . envrc-reload))
+    :commands (envrc-global-mode)
+    :custom (envrc-none-lighter nil)
+    :demand t
+    :config
+    (envrc-global-mode))
+#+END_SRC
+
 **** installer
 **** macho-mode
 **** nethack
@@ -2821,8 +2932,6 @@ repositories.
 #+END_SRC
 
 **** nix-fontify
-**** set-defaults
-**** use-package-list
 **** pcomplete-extra
 
 #+BEGIN_SRC emacs-lisp
@@ -2830,12 +2939,61 @@ repositories.
   :ensure nil)
 #+END_SRC
 
+**** set-defaults
+**** use-package-list
 *** Other
 
 These should correspond to minor modes or helper functions. Some of them are
 more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
+
+**** aidermacs
+
+disabled
+
+#+BEGIN_SRC emacs-lisp
+  (use-package aidermacs
+    :disabled
+    :bind (("C-x C-a" . aidermacs-transient-menu))
+    :config
+    (defun api-key-from-auth-source (host &optional user)
+      "Lookup api key in the auth source.
+  By default, the LLM host for the active backend is used as HOST,
+  and \"apikey\" as USER."
+      (if-let* ((secret
+                 (plist-get
+                  (car (auth-source-search
+                        :host host
+                        :user (or user "apikey")
+                        :require '(:secret)))
+                  :secret)))
+          (if (functionp secret)
+              (encode-coding-string (funcall secret) 'utf-8)
+            secret)
+        (user-error "No `gptel-api-key' found in the auth source")))
+    (setenv "OPENROUTER_API_KEY" (api-key-from-auth-source "openrouter.ai"))
+    (setenv "ANTHROPIC_API_KEY" (api-key-from-auth-source "anthropic.com"))
+    :custom
+    (aidermacs-default-model "anthropic/claude-sonnet-4-20250514")
+    (aidermacs-architect-model "anthropic/claude-sonnet-4-20250514")
+    (aidermacs-editor-model "anthropic/claude-sonnet-4-20250514")
+    ;; (aidermacs-default-model "sonnet")
+    ;; (aidermacs-architect-model "haiku")
+    ;; (aidermacs-architect-model "sonnet")
+    ;; (aidermacs-editor-model "sonnet")
+    (aidermacs-backend 'comint)
+    (aidermacs-watch-files t)
+    (aidermacs-show-diff-after-change nil))
+#+END_SRC
+
+**** bats-mode
+
+[[https://github.com/dougm/bats-mode][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package bats-mode)
+#+END_SRC
 
 **** browse-at-remote
 
@@ -2902,6 +3060,15 @@ Most of these are available in MELPA.
   :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
 #+END_SRC
 
+**** dumb-jump
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dumb-jump
+    :autoload dumb-jump-xref-activate
+    :init
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+#+END_SRC
+
 **** emacs-gif-screencast
 
 [[https://gitlab.com/ambrevar/emacs-gif-screencast][GitLab]]
@@ -2911,218 +3078,11 @@ Most of these are available in MELPA.
   :bind ("<f9>". gif-screencast-start-or-stop))
 #+END_SRC
 
-**** git-attr
+**** free-keys
 
 #+BEGIN_SRC emacs-lisp
-(use-package git-attr-linguist
-  :ensure git-attr
-  :hook (find-file . git-attr-linguist))
-#+END_SRC
-
-**** htmlize
-
-[[https://github.com/hniksic/emacs-htmlize][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package htmlize :no-require)
-#+END_SRC
-
-**** ibuffer-vc
-
-[[https://github.com/purcell/ibuffer-vc][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ibuffer-vc
-    :commands (ibuffer-vc-set-filter-groups-by-vc-root ibuffer-do-sort-by-alphabetic)
-    :hook ((ibuffer . (lambda ()
-                        (ibuffer-vc-set-filter-groups-by-vc-root)
-                        (unless (eq ibuffer-sorting-mode 'alphabetic)
-                          (ibuffer-do-sort-by-alphabetic))))))
-#+END_SRC
-
-**** keycast
-
-[[https://github.com/tarsius/keycast][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package keycast)
-#+END_SRC
-
-**** ledger-mode
-
-[[https://github.com/ledger/ledger-mode][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ledger-mode
-    :autoload ledger-do-report
-    :commands (ledger-report-mode)
-    :mode "\\.journal\\'")
-#+END_SRC
-**** mwim
-
-[[https://github.com/alezost/mwim.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mwim
-    :bind (([remap move-beginning-of-line]
-            . mwim-beginning-of-code-or-line)
-           ([remap move-end-of-line]
-            . mwim-end-of-code-or-line)))
-#+END_SRC
-
-**** org-static-blog
-
-[[https://github.com/bastibe/org-static-blog][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog)
-#+END_SRC
-
-**** page-break-lines
-
-[[https://github.com/purcell/page-break-lines][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package page-break-lines
-    :delight
-    :hook ((doc-mode
-            emacs-lisp-mode
-            outline-mode
-            prog-mode
-            haskell-mode
-            help-mode
-            magit-mode
-            emacs-news-mode) . page-break-lines-mode))
-#+END_SRC
-
-**** pandoc-mode
-
-[[https://github.com/joostkremers/pandoc-mode][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package pandoc-mode
-    :hook ((markdown-mode . pandoc-mode)
-           (pandoc-mode . pandoc-load-default-settings)))
-#+END_SRC
-
-**** rainbow-delimiters
-
-[[https://github.com/Fanael/rainbow-delimiters][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package rainbow-delimiters
-    :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
-            ielm-mode
-            lisp-mode
-            inferior-lisp-mode
-            lisp-interaction-mode
-            slime-repl-mode) . rainbow-delimiters-mode))
-#+END_SRC
-
-**** bats-mode
-
-[[https://github.com/dougm/bats-mode][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package bats-mode)
-#+END_SRC
-
-**** rainbow-mode
-
-[[https://elpa.gnu.org/packages/rainbow-mode.html][ELPA]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package rainbow-mode
-    :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
-            ielm-mode
-            lisp-mode
-            inferior-lisp-mode
-            lisp-interaction-mode
-            slime-repl-mode
-            less-css-mode
-            html-mode
-            css-mode) . rainbow-mode))
-#+END_SRC
-
-**** shrink-whitespace
-
-[[https://github.com/jcpetkovich/shrink-whitespace.el][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package shrink-whitespace
-    :bind ("H-SPC" . shrink-whitespace))
-#+END_SRC
-
-**** string-inflection
-
-[[https://github.com/akicho8/string-inflection][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package string-inflection
-    :bind (("C-c r r" . string-inflection-all-cycle)
-           ("C-c r c" . string-inflection-camelcase)
-           ("C-c r l" . string-inflection-lower-camelcase)
-           ("C-c r u" . string-inflection-underscore)
-           ("C-c r k" . string-inflection-kebab-case)
-           ("C-c r J" . string-inflection-java-style-cycle)))
-#+END_SRC
-
-**** systemd
-
-[[https://github.com/holomorph/systemd-mode][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-(use-package systemd)
-#+END_SRC
-
-**** undo-tree
-
-[[https://elpa.gnu.org/packages/undo-tree.html][ELPA]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package undo-tree
-    :demand
-    :commands (global-undo-tree-mode)
-    :custom
-    (undo-tree-mode-lighter "")
-    (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
-    (undo-tree-enable-undo-in-region t)
-    :config (global-undo-tree-mode))
-#+END_SRC
-
-**** unfill
-
-[[https://github.com/purcell/unfill][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package unfill
-    :bind ([remap fill-paragraph] . unfill-toggle))
-#+END_SRC
-
-**** url-util
-
-#+BEGIN_SRC emacs-lisp
-  (use-package url-util
-    :ensure nil
-    :preface
-    (defun func-region (start end func)
-      "Run a function over the region between START and END in current buffer."
-      (unless (region-active-p) (error "No active region."))
-      (save-excursion
-        (let ((text (delete-and-extract-region start end)))
-          (insert (funcall func text)))))
-    (defun url-encode (start end)
-      "URL encode the region between START and END in current buffer."
-      (interactive "r")
-      (func-region start end 'url-hexify-string))
-    (defalias 'url-escape 'url-encode)
-    (defun url-decode (start end)
-      "URL decode the region between START and END in current buffer."
-      (interactive "r")
-      (func-region start end 'url-unhex-string))
-    (defalias 'url-unescape 'url-decode))
+(use-package free-keys
+  :bind (("C-h C-k" . free-keys)))
 #+END_SRC
 
 **** games
@@ -3136,99 +3096,17 @@ Miscellaneous games
 (use-package 2048-game)
 #+END_SRC
 
-**** dumb-jump
+**** git-attr
 
 #+BEGIN_SRC emacs-lisp
-  (use-package dumb-jump
-    :autoload dumb-jump-xref-activate
-    :init
-    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
-#+END_SRC
-
-**** visual-regexp
-
-[[https://github.com/rmuslimov/browse-at-remote][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package visual-regexp)
-#+END_SRC
-
-**** persistent-scratch
-
-#+BEGIN_SRC emacs-lisp
-  (use-package persistent-scratch
-    :disabled
-    :demand
-    :config (persistent-scratch-setup-default))
-#+END_SRC
-
-**** claude-code
-
-#+BEGIN_SRC emacs-lisp
-  (use-package claude-code
-    :ensure nil
-    :bind ("C-c c" . claude-code-transient)
-    :custom
-    (claude-code-terminal-backend 'vterm)
-    (claude-code-vterm-multiline-delay 0.02)
-    (claude-code-startup-delay 0.2))
-
-  (use-package websocket)
-
-  (use-package monet
-    :ensure nil
-    :custom (monet-prefix-key nil)
-    :autoload (monet-start-server-function)
-    :delight
-    :init
-    (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
-#+END_SRC
-
-**** aidermacs
-
-#+BEGIN_SRC emacs-lisp
-  (use-package aidermacs
-    :disabled
-    :bind (("C-x C-a" . aidermacs-transient-menu))
-    :config
-    (defun api-key-from-auth-source (host &optional user)
-      "Lookup api key in the auth source.
-  By default, the LLM host for the active backend is used as HOST,
-  and \"apikey\" as USER."
-      (if-let* ((secret
-                 (plist-get
-                  (car (auth-source-search
-                        :host host
-                        :user (or user "apikey")
-                        :require '(:secret)))
-                  :secret)))
-          (if (functionp secret)
-              (encode-coding-string (funcall secret) 'utf-8)
-            secret)
-        (user-error "No `gptel-api-key' found in the auth source")))
-    (setenv "OPENROUTER_API_KEY" (api-key-from-auth-source "openrouter.ai"))
-    (setenv "ANTHROPIC_API_KEY" (api-key-from-auth-source "anthropic.com"))
-    :custom
-    (aidermacs-default-model "anthropic/claude-sonnet-4-20250514")
-    (aidermacs-architect-model "anthropic/claude-sonnet-4-20250514")
-    (aidermacs-editor-model "anthropic/claude-sonnet-4-20250514")
-    ;; (aidermacs-default-model "sonnet")
-    ;; (aidermacs-architect-model "haiku")
-    ;; (aidermacs-architect-model "sonnet")
-    ;; (aidermacs-editor-model "sonnet")
-    (aidermacs-backend 'comint)
-    (aidermacs-watch-files t)
-    (aidermacs-show-diff-after-change nil))
-#+END_SRC
-
-**** free-keys
-
-#+BEGIN_SRC emacs-lisp
-(use-package free-keys
-  :bind (("C-h C-k" . free-keys)))
+(use-package git-attr-linguist
+  :ensure git-attr
+  :hook (find-file . git-attr-linguist))
 #+END_SRC
 
 **** gptel
+
+disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package gptel
@@ -3342,49 +3220,187 @@ Miscellaneous games
     )
 #+END_SRC
 
-**** vterm
+**** htmlize
+
+[[https://github.com/hniksic/emacs-htmlize][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-  (use-package vterm
-    :commands (vterm-reset-cursor-point)
-    :bind (("M-@" . vterm)
-           :package dired
-           :map dired-mode-map ("M-@" . vterm))
-    :custom
-    (vterm-min-window-width 40)
-    (vterm-max-scrollback 10000)
-    (vterm-copy-mode-remove-fake-newlines t)
-    :preface
-    (defvar-local vterm-cursor-type-saved nil)
-    :init
-    (defun vterm-mouse-set-point (event &optional promote-to-region)
-      "Move point to the position clicked on with the mouse.
-  But when clicking to the unused area below the last prompt,
-  move the cursor to the prompt area."
-      (interactive "e\np")
-      (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
-          (mouse-set-point event promote-to-region)
-        (vterm-reset-cursor-point)))
+  (use-package htmlize :no-require)
+#+END_SRC
 
-    ;; turn on cursor in case it’s been disabled
-    ;; this allows things that disable cursor like claude-code
-    ;; to still be able to enter copy mode.
-    (add-hook 'vterm-copy-mode-hook (lambda ()
-                                      (if vterm-copy-mode
-                                          (progn
-                                            (setq-local vterm-cursor-type-saved cursor-type)
-                                            (setq-local cursor-type t))
-                                        (progn
-                                          (setq-local cursor-type vterm-cursor-type-saved)
-                                          ))))
-    :config
-    (define-key vterm-mode-map (kbd "s-f") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-b") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-d") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-<backspace>") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "M-v") nil)
-    (define-key vterm-mode-map (kbd "M-:") nil)
-    (define-key vterm-mode-map (kbd "C-v") nil))
+**** ibuffer-vc
+
+[[https://github.com/purcell/ibuffer-vc][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ibuffer-vc
+    :commands (ibuffer-vc-set-filter-groups-by-vc-root ibuffer-do-sort-by-alphabetic)
+    :hook ((ibuffer . (lambda ()
+                        (ibuffer-vc-set-filter-groups-by-vc-root)
+                        (unless (eq ibuffer-sorting-mode 'alphabetic)
+                          (ibuffer-do-sort-by-alphabetic))))))
+#+END_SRC
+
+**** keycast
+
+[[https://github.com/tarsius/keycast][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package keycast)
+#+END_SRC
+
+**** ledger-mode
+
+[[https://github.com/ledger/ledger-mode][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ledger-mode
+    :autoload ledger-do-report
+    :commands (ledger-report-mode)
+    :mode "\\.journal\\'")
+#+END_SRC
+**** mwim
+
+[[https://github.com/alezost/mwim.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwim
+    :bind (([remap move-beginning-of-line]
+            . mwim-beginning-of-code-or-line)
+           ([remap move-end-of-line]
+            . mwim-end-of-code-or-line)))
+#+END_SRC
+
+**** org-static-blog
+
+[[https://github.com/bastibe/org-static-blog][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog)
+#+END_SRC
+
+**** page-break-lines
+
+[[https://github.com/purcell/page-break-lines][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package page-break-lines
+    :delight
+    :hook ((doc-mode
+            emacs-lisp-mode
+            outline-mode
+            prog-mode
+            haskell-mode
+            help-mode
+            magit-mode
+            emacs-news-mode) . page-break-lines-mode))
+#+END_SRC
+
+**** pandoc-mode
+
+[[https://github.com/joostkremers/pandoc-mode][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pandoc-mode
+    :hook ((markdown-mode . pandoc-mode)
+           (pandoc-mode . pandoc-load-default-settings)))
+#+END_SRC
+
+**** rainbow-delimiters
+
+[[https://github.com/Fanael/rainbow-delimiters][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            lisp-interaction-mode
+            slime-repl-mode) . rainbow-delimiters-mode))
+#+END_SRC
+
+**** rainbow-mode
+
+[[https://elpa.gnu.org/packages/rainbow-mode.html][ELPA]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-mode
+    :hook ((emacs-lisp-mode
+            inferior-emacs-lisp-mode
+            ielm-mode
+            lisp-mode
+            inferior-lisp-mode
+            lisp-interaction-mode
+            slime-repl-mode
+            less-css-mode
+            html-mode
+            css-mode) . rainbow-mode))
+#+END_SRC
+
+**** shrink-whitespace
+
+[[https://github.com/jcpetkovich/shrink-whitespace.el][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package shrink-whitespace
+    :bind ("H-SPC" . shrink-whitespace))
+#+END_SRC
+
+**** string-inflection
+
+[[https://github.com/akicho8/string-inflection][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package string-inflection
+    :bind (("C-c r r" . string-inflection-all-cycle)
+           ("C-c r c" . string-inflection-camelcase)
+           ("C-c r l" . string-inflection-lower-camelcase)
+           ("C-c r u" . string-inflection-underscore)
+           ("C-c r k" . string-inflection-kebab-case)
+           ("C-c r J" . string-inflection-java-style-cycle)))
+#+END_SRC
+
+**** unfill
+
+[[https://github.com/purcell/unfill][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package unfill
+    :bind ([remap fill-paragraph] . unfill-toggle))
+#+END_SRC
+
+**** url-util
+
+#+BEGIN_SRC emacs-lisp
+  (use-package url-util
+    :ensure nil
+    :preface
+    (defun func-region (start end func)
+      "Run a function over the region between START and END in current buffer."
+      (unless (region-active-p) (error "No active region."))
+      (save-excursion
+        (let ((text (delete-and-extract-region start end)))
+          (insert (funcall func text)))))
+    (defun url-encode (start end)
+      "URL encode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-hexify-string))
+    (defalias 'url-escape 'url-encode)
+    (defun url-decode (start end)
+      "URL decode the region between START and END in current buffer."
+      (interactive "r")
+      (func-region start end 'url-unhex-string))
+    (defalias 'url-unescape 'url-decode))
+#+END_SRC
+
+**** visual-regexp
+
+[[https://github.com/rmuslimov/browse-at-remote][GitHub]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package visual-regexp)
 #+END_SRC
 
 ** END
@@ -4609,7 +4625,7 @@ currently).
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs-git);
+  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs);
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
