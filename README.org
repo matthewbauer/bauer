@@ -866,22 +866,23 @@ More keys that have custom functions. TODO: move these above
 Delete current buffer
 
 #+BEGIN_SRC emacs-lisp
-;;;###autoload
-(defun delete-visited-file (buffer-name)
-  "Delete the file visited by the buffer named BUFFER-NAME."
-  (interactive "bDelete file visited by buffer ")
-  (let* ((buffer (get-buffer buffer-name))
-         (filename (buffer-file-name buffer)))
-    (when buffer
-      (when (and filename
-                 (file-exists-p filename))
-        (delete-file filename))
-      (kill-buffer buffer))))
+  ;;;###autoload
+  (defun delete-visited-file (buffer-name)
+    "Delete the file visited by the buffer named BUFFER-NAME."
+    (interactive "bDelete file visited by buffer ")
+    (let* ((buffer (get-buffer buffer-name))
+           (filename (buffer-file-name buffer)))
+      (when buffer
+        (when (and filename
+                   (file-exists-p filename))
+          (delete-file filename))
+        (kill-buffer buffer))))
 #+END_SRC
 
 Copy current buffer
 
 #+BEGIN_SRC emacs-lisp
+  ;;;###autoload
   (defun copy-visited-file (buffer-name newname)
     "Copy the file visited by the buffer named BUFFER-NAME."
     (interactive "bCopy file visited by buffer \nGCopy %s to file: \n")
@@ -1052,14 +1053,6 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
-
-**** jinx
-
-#+BEGIN_SRC emacs-lisp
-  (use-package jinx
-    :hook ((prog-mode . jinx-mode)))
-#+END_SRC
-
 
 **** persistent-scratch
 
@@ -2546,6 +2539,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     )
 
   (use-package haskell-ts-mode
+    :disabled
     :if (treesit-language-available-p 'haskell)
     :mode (("\\.[gh]s\\'" . haskell-ts-mode)
            ("\\.hsig\\'" . haskell-ts-mode)
@@ -3389,6 +3383,7 @@ Miscellaneous games
     (define-key vterm-mode-map (kbd "s-d") 'vterm--self-insert-meta)
     (define-key vterm-mode-map (kbd "s-<backspace>") 'vterm--self-insert-meta)
     (define-key vterm-mode-map (kbd "M-v") nil)
+    (define-key vterm-mode-map (kbd "M-:") nil)
     (define-key vterm-mode-map (kbd "C-v") nil))
 #+END_SRC
 
