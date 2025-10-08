@@ -188,7 +188,6 @@ compiling phases used later.
 
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
-    (setq use-package-always-defer t)
     (autoload 'xterm--init-modify-other-keys "term/xterm")
     (defvar dired-mode-map))
 #+END_SRC
@@ -241,7 +240,8 @@ COLORFGBG method.
       ;; ;; use COLORFGBG
       ;; (defvar xterm-extra-capabilities)
       ;; (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
-      (add-hook 'window-setup-hook 'rxvt-set-background-mode)
+      ;; (require 'term/rxvt)
+      ;; (add-hook 'window-setup-hook 'rxvt-set-background-mode)
       ))
 #+END_SRC
 
@@ -275,8 +275,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | auth-source-save-behavior                | t                                      |
 | auto-window-vscroll                      | nil                                    |
 | backward-delete-char-untabify-method     | 'hungry                                |
-| bidi-inhibit-bpa                         | t                                      |
-| bidi-paragraph-direction                 | 'left-to-right                         |
 | blink-cursor-mode                        | nil                                    |
 | bookmark-save-flag                       | 1                                      |
 | case-fold-search                         | t                                      |
@@ -303,8 +301,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | imenu-auto-rescan                        | t                                      |
 | indent-tabs-mode                         | nil                                    |
 | indicate-buffer-boundaries               | 'left                                  |
-| indicate-buffer-boundaries               | nil                                    |
-| indicate-empty-lines                     | nil                                    |
 | indicate-empty-lines                     | t                                      |
 | isearch-allow-scroll                     | 'unlimited                             |
 | isearch-lazy-count                       | t                                      |
@@ -317,7 +313,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | kill-buffer-delete-auto-save-files       | t                                      |
 | kill-do-not-save-duplicates              | t                                      |
 | kill-whole-line                          | t                                      |
-| left-fringe-width                        | 8                                      |
 | load-prefer-newer                        | t                                      |
 | mac-command-modifier                     | 'meta                                  |
 | mac-option-modifier                      | 'super                                 |
@@ -330,7 +325,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | project-compilation-buffer-name-function | 'project-prefixed-buffer-name          |
 | read-buffer-completion-ignore-case       | t                                      |
 | read-extended-command-predicate          | 'command-completion-default-include-p  |
-| recentf-max-saved-items                  | 300                                    |
 | resize-mini-windows                      | t                                      |
 | ruby-insert-encoding-magic-comment       | nil                                    |
 | save-interprogram-paste-before-kill      | t                                      |
@@ -349,8 +343,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | uniquify-buffer-name-style               | 'post-forward-angle-brackets           |
 | use-package-always-defer                 | t                                      |
 | version-control                          | t                                      |
-| view-inhibit-help-message                | t                                      |
-| view-read-only                           | t                                      |
 | window-combination-resize                | t                                      |
 | woman-imenu                              | t                                      |
 | word-wrap                                | t                                      |
@@ -506,11 +498,11 @@ are installed.
   (when needs-package-init
     (require 'package)
     (package-initialize)
+    (unless (and (package-installed-p 'use-package) (package-installed-p 'delight))
+      (package-refresh-contents))
     (unless (package-installed-p 'use-package)
-      (package-refresh-contents)
       (package-install 'use-package))
     (unless (package-installed-p 'delight)
-      (package-refresh-contents)
       (package-install 'delight)))
 #+END_SRC
 
@@ -533,6 +525,27 @@ Basically, we’ll prevent use-package from running ‘ensure’ on anything.
       (setq use-package-ensure-function 'ignore
             package-enable-at-startup nil
             package--init-file-ensured t)))
+#+END_SRC
+
+Always defer
+
+#+BEGIN_SRC emacs-lisp
+  (eval-and-compile
+    (setq use-package-always-defer t))
+#+END_SRC
+
+Expand minimally
+
+#+BEGIN_SRC emacs-lisp
+  (eval-and-compile
+    (unless (and (boundp 'use-package-list--is-running) use-package-list--is-running)
+      (setq use-package-expand-minimally t)))
+#+END_SRC
+
+Compute statistics
+
+#+BEGIN_SRC emacs-lisp
+  ;; (eval-and-compile (setq use-package-compute-statistics t))
 #+END_SRC
 
 ** Key bindings
@@ -947,9 +960,9 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
     :custom
-    (completion-styles '(substring orderless basic))
-    (completion-category-defaults nil)
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles partial-completion))))
+    (completion-category-defaults nil))
 
   (use-package vertico
     :hook (minibuffer-setup . cursor-intangible-mode)
@@ -966,7 +979,6 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
             (cdr args)))
     :config
     (vertico-mode)
-
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
     )
 
@@ -985,6 +997,30 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
     :config
     (global-corfu-mode))
+
+  (use-package cape
+    :after corfu
+    :init
+    ;; Add to the global default value of `completion-at-point-functions' which is
+    ;; used by `completion-at-point'.  The order of the functions matters, the
+    ;; first function returning a result wins.  Note that the list of buffer-local
+    ;; completion functions takes precedence over the global list.
+
+    ;; The functions that are added later will be the first in the list
+    (add-hook 'completion-at-point-functions #'cape-dabbrev) ;; Complete word from current buffers
+    (add-hook 'completion-at-point-functions #'cape-dict) ;; Dictionary completion
+    (add-hook 'completion-at-point-functions #'cape-file) ;; Path completion
+    (add-hook 'completion-at-point-functions #'cape-elisp-block) ;; Complete elisp in Org or Markdown mode
+    (add-hook 'completion-at-point-functions #'cape-keyword) ;; Keyword completion
+
+    ;;(add-hook 'completion-at-point-functions #'cape-abbrev) ;; Complete abbreviation
+    ;;(add-hook 'completion-at-point-functions #'cape-history) ;; Complete from Eshell, Comint or minibuffer history
+    ;;(add-hook 'completion-at-point-functions #'cape-line) ;; Complete entire line from current buffer
+    ;;(add-hook 'completion-at-point-functions #'cape-elisp-symbol) ;; Complete Elisp symbol
+    ;;(add-hook 'completion-at-point-functions #'cape-tex) ;; Complete Unicode char from TeX command, e.g. \hbar
+    ;;(add-hook 'completion-at-point-functions #'cape-sgml) ;; Complete Unicode char from SGML entity, e.g., &alpha
+    ;;(add-hook 'completion-at-point-functions #'cape-rfc1345) ;; Complete Unicode char using RFC 1345 mnemonics
+    )
 
   (use-package consult
     :autoload (consult-register-window consult-register-format)
@@ -1051,6 +1087,8 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (setq register-preview-delay 0.5
           register-preview-function #'consult-register-format)
 
+    (setq xref-show-definitions-function #'consult-xref)
+
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
@@ -1096,8 +1134,7 @@ Intelligently adjust Emacs garbage collection size.
     (gcmh-mode 1)
     :custom
     (gcmh-idle-delay 'auto)
-    (gcmh-auto-idle-delay-factor 10)
-    (gcmh-high-cons-threshold (* 16 1024 1024)))
+    (gcmh-auto-idle-delay-factor 10))
 #+END_SRC
 
 **** Gnus
@@ -1413,6 +1450,7 @@ Try out packages without installing them.
 
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
+    :if (locate-library "vterm-module")
     :commands (vterm-reset-cursor-point)
     :bind (("M-@" . vterm)
            :package dired
@@ -1464,121 +1502,6 @@ Try out packages without installing them.
 
 These are available automatically, so these =use-package= blocks just
 configure them.
-
-**** Emacs shell
-
-Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package eshell
-    :custom
-    (eshell-prompt-function
-     (lambda ()
-       (concat (when (tramp-tramp-file-p default-directory)
-                 (concat
-                  (tramp-file-name-user
-                   (tramp-dissect-file-name default-directory))
-                  "@"
-                  (tramp-file-name-host
-                   (tramp-dissect-file-name default-directory))
-                  " "))
-               (let ((dir (eshell/pwd)))
-                 (if (string= dir (getenv "HOME")) "~"
-                   (let ((dirname (file-name-nondirectory dir)))
-                     (if (string= dirname "") "/" dirname))))
-               (if (= (user-uid) 0) " # " " $ "))))
-    (eshell-visual-commands
-     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-       "trn" "elm" "ssh" "mutt" "tmux" "htop"
-       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
-       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
-       "telnet" "rlogin"))
-    (eshell-visual-subcommands '(("vagrant" "ssh")))
-    :bind (("C-c M-t" . eshell)
-           ("C-c x" . eshell)
-           ("C-c e" . eshell))
-    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
-    :preface
-    (defvar eshell-isearch-map
-      (let ((map (copy-keymap isearch-mode-map)))
-        (define-key map [(control ?m)] 'eshell-isearch-return)
-        (define-key map [return]       'eshell-isearch-return)
-        (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-        (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-        (define-key map [(control ?g)] 'eshell-isearch-abort)
-        (define-key map [backspace]    'eshell-isearch-delete-char)
-        (define-key map [delete]       'eshell-isearch-delete-char)
-        map)
-      "Keymap used in isearch in Eshell.")
-    (defun eshell-spawn-external-command (beg end)
-      "Parse and expand any history references in current input."
-      (save-excursion
-        (goto-char end)
-        (when (looking-back "&!" beg)
-          (delete-region (match-beginning 0) (match-end 0))
-          (goto-char beg)
-          (insert "spawn ")))))
-#+END_SRC
-
-***** esh-help
-
-Setup eldoc integration.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package esh-help
-    :custom
-    (eshell-cmpl-autolist t)
-    (eshell-cmpl-cycle-completions nil)
-    (eshell-cmpl-ignore-case t)
-    (eshell-default-target-is-dot t)
-    (eshell-destroy-buffer-when-process-dies t)
-    (eshell-hist-ignoredups 'erase)
-    (eshell-list-files-after-cd t)
-    (eshell-review-quick-commands t)
-    :autoload esh-help-eldoc-command
-    :preface
-    (defun esh-help-turn-on ()
-      (interactive)
-      (setq-local eldoc-documentation-function
-                  'esh-help-eldoc-command)
-      (setq eldoc-documentation-function
-            'esh-help-eldoc-command)
-      (eldoc-mode 1))
-    :hook (eshell-mode . esh-help-turn-on))
-#+END_SRC
-
-***** em-dired
-
-#+BEGIN_SRC emacs-lisp
-(use-package em-dired
-  :ensure nil
-  :bind (:package dired
-         :map dired-mode-map
-         ("e" . em-dired))
-  :hook (eshell-mode . em-dired-mode)
-  :init
-  (advice-add 'eshell :before 'em-dired-new))
-#+END_SRC
-
-**** which-key
-
-[[https://github.com/justbur/emacs-which-key][GitHub]]
-
-which-key will tell you what key bindings are available give a prefix. Test it
-out by pressing =C-x= & waiting a few seconds. Each key listed is bound to a
-function.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :if (>= emacs-major-version 30)
-    :demand
-    :custom
-    (which-key-lighter "")
-    (which-key-idle-delay 0.4)
-    (which-key-idle-secondary-delay 0.4)
-    :config (which-key-mode 1))
-#+END_SRC
 
 **** autorevert
 
@@ -1891,6 +1814,102 @@ setup.
                            (electric-pair-local-mode -1)))))
 #+END_SRC
 
+**** Emacs shell
+
+Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eshell
+    :custom
+    (eshell-prompt-function
+     (lambda ()
+       (concat (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user
+                   (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-host
+                   (tramp-dissect-file-name default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
+    (eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+       "telnet" "rlogin"))
+    (eshell-visual-subcommands '(("vagrant" "ssh")))
+    :bind (("C-c M-t" . eshell)
+           ("C-c x" . eshell)
+           ("C-c e" . eshell))
+    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
+           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
+    :preface
+    (defvar eshell-isearch-map
+      (let ((map (copy-keymap isearch-mode-map)))
+        (define-key map [(control ?m)] 'eshell-isearch-return)
+        (define-key map [return]       'eshell-isearch-return)
+        (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
+        (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
+        (define-key map [(control ?g)] 'eshell-isearch-abort)
+        (define-key map [backspace]    'eshell-isearch-delete-char)
+        (define-key map [delete]       'eshell-isearch-delete-char)
+        map)
+      "Keymap used in isearch in Eshell.")
+    (defun eshell-spawn-external-command (beg end)
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn ")))))
+#+END_SRC
+
+***** esh-help
+
+Setup eldoc integration.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package esh-help
+    :custom
+    (eshell-cmpl-autolist t)
+    (eshell-cmpl-cycle-completions nil)
+    (eshell-cmpl-ignore-case t)
+    (eshell-default-target-is-dot t)
+    (eshell-destroy-buffer-when-process-dies t)
+    (eshell-hist-ignoredups 'erase)
+    (eshell-list-files-after-cd t)
+    (eshell-review-quick-commands t)
+    :autoload esh-help-eldoc-command
+    :preface
+    (defun esh-help-turn-on ()
+      (interactive)
+      (setq-local eldoc-documentation-function
+                  'esh-help-eldoc-command)
+      (setq eldoc-documentation-function
+            'esh-help-eldoc-command)
+      (eldoc-mode 1))
+    :hook (eshell-mode . esh-help-turn-on))
+#+END_SRC
+
+***** em-dired
+
+#+BEGIN_SRC emacs-lisp
+(use-package em-dired
+  :ensure nil
+  :bind (:package dired
+         :map dired-mode-map
+         ("e" . em-dired))
+  :hook (eshell-mode . em-dired-mode)
+  :init
+  (advice-add 'eshell :before 'em-dired-new))
+#+END_SRC
+
 **** eww
 
 eww is enabled so we can open files in non-graphical environments.
@@ -2131,16 +2150,17 @@ Make scripts executable automatically.
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
-  (use-package savehist
-    :custom (savehist-additional-variables '(search-ring
-                                            regexp-search-ring
-                                            kill-ring
-                                            comint-input-ring
-                                            kmacro-ring
-                                            sr-history-registry
-                                            file-name-history
-                                            tablist-name-filter))
-    :hook (after-init . savehist-mode))
+    (use-package savehist
+      :custom (savehist-additional-variables '(search-ring
+                                              regexp-search-ring
+                                              kill-ring
+                                              comint-input-ring
+                                              kmacro-ring
+                                              sr-history-registry
+                                              file-name-history
+                                              tablist-name-filter))
+      :demand
+      :config (savehist-mode))
 #+END_SRC
 
 **** saveplace-mode
@@ -2148,7 +2168,8 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :if (>= emacs-major-version 25)
-    :hook (after-init . save-place-mode)
+    :demand
+    :config (save-place-mode)
     :custom (save-place-limit 600))
 #+END_SRC
 
@@ -2159,8 +2180,8 @@ Optionally, start a server (disabled by default):
 #+BEGIN_SRC emacs-lisp
   (use-package server
     :disabled
-    :hook (after-init . (lambda () (unless (server-running-p) (server-start))))
-    )
+    :demand
+    :config (unless (server-running-p) (server-start)))
 
 **** Shell
 
@@ -2440,12 +2461,39 @@ Optionally, start a server (disabled by default):
     :config (url-handler-mode))
 #+END_SRC
 
+**** View
+
+#+BEGIN_SRC emacs-lisp
+  (use-package view
+    :custom (view-read-only t)
+    :hook (view-mode-hook . (lambda () (whitespace-mode -1))))
+#+END_SRC
+
 **** which-func
 
 #+BEGIN_SRC emacs-lisp
   (use-package which-func
     :demand
     :config (which-function-mode))
+#+END_SRC
+
+**** which-key
+
+[[https://github.com/justbur/emacs-which-key][GitHub]]
+
+which-key will tell you what key bindings are available give a prefix. Test it
+out by pressing =C-x= & waiting a few seconds. Each key listed is bound to a
+function.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :if (>= emacs-major-version 30)
+    :demand
+    :custom
+    (which-key-lighter "")
+    (which-key-idle-delay 0.4)
+    (which-key-idle-secondary-delay 0.4)
+    :config (which-key-mode 1))
 #+END_SRC
 
 **** whitespace
@@ -2480,6 +2528,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
+    :custom (eglot-ignored-server-capabilities '(:inlayHintProvider))
     :config
     (add-to-list 'eglot-server-programs '(haskell-mode . ("static-ls")))
     (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("static-ls"))))
@@ -2488,9 +2537,9 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 **** CMake
 
 #+BEGIN_SRC emacs-lisp
-   (use-package cmake-ts-mode
-     :if (treesit-language-available-p 'cmake)
-     :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
+  (use-package cmake-ts-mode
+    :if (treesit-language-available-p 'cmake)
+    :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
 #+END_SRC
 
 **** CSV
@@ -2507,10 +2556,10 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 **** Dockerfile
 
 #+BEGIN_SRC emacs-lisp
-   (use-package dockerfile-ts-mode
-     :if (treesit-language-available-p 'dockerfile)
-     :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
-                   . dockerfile-ts-mode)))
+  (use-package dockerfile-ts-mode
+    :if (treesit-language-available-p 'dockerfile)
+    :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
+                  . dockerfile-ts-mode)))
 #+END_SRC
 
 **** ELF
@@ -2630,9 +2679,6 @@ didn’t work well enough.
     :mode (("\\.[gh]s\\'" . haskell-ts-mode)
            ("\\.hsig\\'" . haskell-ts-mode)
            ("\\.hsc\\'" . haskell-ts-mode)))
-
-  (use-package consult-hoogle
-    :commands (consult-hoogle))
 #+END_SRC
 
 **** JavaScript
@@ -2819,6 +2865,15 @@ disabled
     )
 #+END_SRC
 
+**** YAML
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-ts-mode
+    :if (treesit-language-available-p 'yaml)
+    :mode (("\\.ya?ml\\'" . yaml-ts-mode))
+    )
+#+END_SRC
+
 **** Scala
 
 [[https://github.com/hvesalai/emacs-scala-mode][GitHub]]
@@ -2859,14 +2914,6 @@ disabled
   (use-package texinfo)
 #+END_SRC
 
-**** YAML
-
-[[https://github.com/yoshiki/yaml-mode][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package yaml-mode)
-#+END_SRC
-
 *** Custom
 
 These are all available in [[./site-lisp][./site-lisp]]. Eventually they should go into separate
@@ -2889,7 +2936,6 @@ repositories.
     :ensure nil
     :custom (monet-prefix-key nil)
     :autoload (monet-start-server-function)
-    :delight
     :init
     (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
 #+END_SRC
@@ -2917,9 +2963,7 @@ occasionally block Emacs.
            ("," . envrc-reload))
     :commands (envrc-global-mode)
     :custom (envrc-none-lighter nil)
-    :demand t
-    :config
-    (envrc-global-mode))
+    :hook (after-init . envrc-global-mode))
 #+END_SRC
 
 **** installer
@@ -3056,8 +3100,8 @@ disabled
 [[https://github.com/stsquad/dired-rsync][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package dired-rsync
-  :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+  (use-package dired-rsync
+    :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
 #+END_SRC
 
 **** dumb-jump
@@ -3074,15 +3118,15 @@ disabled
 [[https://gitlab.com/ambrevar/emacs-gif-screencast][GitLab]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package gif-screencast
-  :bind ("<f9>". gif-screencast-start-or-stop))
+  (use-package gif-screencast
+    :bind ("<f9>". gif-screencast-start-or-stop))
 #+END_SRC
 
 **** free-keys
 
 #+BEGIN_SRC emacs-lisp
-(use-package free-keys
-  :bind (("C-h C-k" . free-keys)))
+  (use-package free-keys
+    :bind (("C-h C-k" . free-keys)))
 #+END_SRC
 
 **** games
@@ -3090,18 +3134,18 @@ disabled
 Miscellaneous games
 
 #+BEGIN_SRC emacs-lisp
-(use-package chess)
-(use-package mines)
-(use-package gnugo)
-(use-package 2048-game)
+  (use-package chess)
+  (use-package mines)
+  (use-package gnugo)
+  (use-package 2048-game)
 #+END_SRC
 
 **** git-attr
 
 #+BEGIN_SRC emacs-lisp
-(use-package git-attr-linguist
-  :ensure git-attr
-  :hook (find-file . git-attr-linguist))
+  (use-package git-attr-linguist
+    :ensure git-attr
+    :hook (find-file . git-attr-linguist))
 #+END_SRC
 
 **** gptel
@@ -3285,7 +3329,7 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package page-break-lines
-    :delight
+    :custom (page-break-lines-lighter "")
     :hook ((doc-mode
             emacs-lisp-mode
             outline-mode
@@ -4334,6 +4378,7 @@ Set some defaults that depend on the path variables below,
            "@schemas@"
            ,(expand-file-name
               "schema/schemas.xml" data-directory)))
+   '(grep-find-command '(concat ripgrep-executable " -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)" . 27))
    )
 #+END_SRC
 
@@ -4621,11 +4666,12 @@ currently).
 
 #+BEGIN_SRC nix
   customEmacsPackages = let
+    emacsBinary = if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs);
+  in pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + "-Os -march=native -mtune=native"; }; }));
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -4795,7 +4841,7 @@ requiredPackages = epkgs: map (x:
     then builtins.getAttr x epkgs
   else if builtins.hasAttr x pkgs.emacsPackages
     then builtins.getAttr x pkgs.emacsPackages
-  else abort "no attribute found for use-package${x}");
+  else abort "no attribute found for use-package: ${x}");
 #+END_SRC
 
 Now we build our Emacs distribution.
