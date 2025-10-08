@@ -176,26 +176,17 @@ Disabled for now.
   ;;   :demand
   ;;   :config
   ;;   ;; To disable collection of benchmark data after init is done.
-  ;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+  ;;   (add-hook 'after-init-hook #'benchmark-init/deactivate 100))
 #+END_SRC
 
 ** Autoloads & Misc.
-
-Setup some initial aliases for Emacs. These give us an easy way to use these
-functions without actually require'ing them. Ideally, Emacs should pick these up
-through the automatic autoloading method, but that sometimes conflicts with the
-compiling phases used later.
-
-#+BEGIN_SRC emacs-lisp
-  (eval-and-compile
-    (autoload 'xterm--init-modify-other-keys "term/xterm")
-    (defvar dired-mode-map))
-#+END_SRC
 
 iTerm doesn’t seem to support xterm color reporting correctly, so we use the
 COLORFGBG method.
 
 #+BEGIN_SRC emacs-lisp
+  (eval-and-compile
+    (autoload #'xterm--init-modify-other-keys "term/xterm"))
   (unless (display-graphic-p)
     (xterm-mouse-mode)
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
@@ -242,7 +233,7 @@ COLORFGBG method.
       ;; (defvar xterm-extra-capabilities)
       ;; (setq xterm-extra-capabilities '(modifyOtherKeys getSelection setSelection))
       ;; (require 'term/rxvt)
-      ;; (add-hook 'window-setup-hook 'rxvt-set-background-mode)
+      ;; (add-hook 'window-setup-hook #'rxvt-set-background-mode)
       ))
 #+END_SRC
 
@@ -290,7 +281,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | custom-search-field                      | nil                                    |
 | delete-by-moving-to-trash                | t                                      |
 | delete-old-versions                      | t                                      |
-| ediff-window-setup-function              | 'ediff-setup-windows-plain             |
+| ediff-window-setup-function              | #'ediff-setup-windows-plain            |
 | enable-recursive-minibuffers             | t                                      |
 | eval-expression-print-level              | nil                                    |
 | fast-but-imprecise-scrolling             | t                                      |
@@ -323,9 +314,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | ns-pop-up-frames                         | nil                                    |
 | nxml-sexp-element-flag                   | t                                      |
 | nxml-slash-auto-complete-flag            | t                                      |
-| project-compilation-buffer-name-function | 'project-prefixed-buffer-name          |
+| project-compilation-buffer-name-function | #'project-prefixed-buffer-name         |
 | read-buffer-completion-ignore-case       | t                                      |
-| read-extended-command-predicate          | 'command-completion-default-include-p  |
+| read-extended-command-predicate          | #'command-completion-default-include-p |
 | resize-mini-windows                      | t                                      |
 | ruby-insert-encoding-magic-comment       | nil                                    |
 | save-interprogram-paste-before-kill      | t                                      |
@@ -348,10 +339,10 @@ The format of arguments to =set-defaults= is identical to the one used by
 | woman-imenu                              | t                                      |
 | word-wrap                                | t                                      |
 | x-stretch-cursor                         | t                                      |
-| xref-show-definitions-function           | 'xref-show-definitions-completing-read |
+| xref-show-definitions-function           | #'xref-show-definitions-completing-read |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
-  (apply 'set-defaults
+  (apply #'set-defaults
          (mapcar (lambda (x) (list (intern (car x))
                                    (if (stringp (cadr x))
                                        (car (read-from-string (cadr x)))
@@ -523,7 +514,7 @@ Basically, we’ll prevent use-package from running ‘ensure’ on anything.
   (eval-and-compile
     (setq use-package-always-ensure needs-package-init)
     (when (not needs-package-init)
-      (setq use-package-ensure-function 'ignore
+      (setq use-package-ensure-function #'ignore
             package-enable-at-startup nil
             package--init-file-ensured t)))
 #+END_SRC
@@ -543,11 +534,19 @@ Expand minimally
       (setq use-package-expand-minimally t)))
 #+END_SRC
 
-Compute statistics
+Compute statistics (disabled)
 
 #+BEGIN_SRC emacs-lisp
   ;; (eval-and-compile (setq use-package-compute-statistics t))
 #+END_SRC
+
+Future work: we should be able to automatically build the autoloads file in Nix.
+This would work like `package-quickstart`, but have the advantage of being
+deterministic (no refresh needed) & avoid the need for package.el.
+`loaddefs-generate-batch` is available to do this, however, we might need to
+call it something different than loaddefs to avoid breaking the Emacs
+installation loaddefs. For now, it doesn’t seem worth it since start time is
+pretty quick (under 1s on my machine).
 
 ** Key bindings
 
@@ -595,17 +594,6 @@ Define some helper functions.
         (goto-char (point-min))
         (while (search-forward "\\\"" nil t)
           (replace-match "\"" t t)))))
-#+END_SRC
-
-#+BEGIN_SRC
-  (with-eval-after-load 'project
-    (defun project-find-regexp-with-unique-buffer (orig-fun &rest args)
-      "An advice function that gives project-find-regexp a unique buffer name"
-      (require 'xref)
-      (let ((xref-buffer-name (format "%s %s" xref-buffer-name (car args))))
-        (apply orig-fun args)))
-
-    (advice-add 'project-find-regexp :around #'project-find-regexp-with-unique-buffer))
 #+END_SRC
 
 Now we will call =bind-keys=. We give it keys to bind & what function to run
@@ -723,8 +711,8 @@ move text.
 
 #+BEGIN_SRC emacs-lisp
   (unless window-system
-    (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
-    (global-set-key (kbd "<mouse-5>") 'scroll-up-line))
+    (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
+    (global-set-key (kbd "<mouse-5>") #'scroll-up-line))
 #+END_SRC
 
 macOS-specific bindings follow. Fullscreen handling should use the macOS
@@ -732,23 +720,22 @@ feature, while by default it uses a custom Emacs stuff. In addition, drag and
 drop needs a special binding.
 
 #+BEGIN_SRC emacs-lisp
-  (when (eq window-system 'mac)
-    (defun mac-fullscreen ()
-      (interactive)
-      (let ((fullscreen (frame-parameter nil 'fullscreen)))
-        (if (memq fullscreen '(fullscreen fullboth))
-            (let ((fullscreen-restore (frame-parameter nil 'fullscreen-restore)))
-              (if (memq fullscreen-restore '(maximized fullheight fullwidth))
-                  (set-frame-parameter nil 'fullscreen fullscreen-restore)
-                (set-frame-parameter nil 'fullscreen nil)))
-          (modify-frame-parameters
-           nil `((fullscreen . fullscreen) (fullscreen-restore . ,fullscreen))))))
+  (defun mac-fullscreen ()
+    (interactive)
+    (let ((fullscreen (frame-parameter nil 'fullscreen)))
+      (if (memq fullscreen '(fullscreen fullboth))
+          (let ((fullscreen-restore (frame-parameter nil 'fullscreen-restore)))
+            (if (memq fullscreen-restore '(maximized fullheight fullwidth))
+                (set-frame-parameter nil 'fullscreen fullscreen-restore)
+              (set-frame-parameter nil 'fullscreen nil)))
+        (modify-frame-parameters
+         nil `((fullscreen . fullscreen) (fullscreen-restore . ,fullscreen))))))
 
-    (bind-key "C-x 5 4" 'mac-fullscreen)
+  (when (eq window-system 'mac)
+    (bind-key "C-x 5 4" #'mac-fullscreen)
 
     (when (fboundp 'ns-drag-n-drop-as-text)
-      (global-set-key [M-s-drag-n-drop]
-                     'ns-drag-n-drop-as-text)))
+      (global-set-key [M-s-drag-n-drop] 'ns-drag-n-drop-as-text)))
 #+END_SRC
 
 Add special quotes and arrows to ctrl x 8 keymap.
@@ -787,8 +774,7 @@ Bind help map keys.
     :map help-map
     ("C-r" . woman)
     ("j" . woman)
-    ("C-j" . man)
-    ("C-s" . web-search))
+    ("C-j" . man))
 #+END_SRC
 
 More keys that have custom functions. TODO: move these above
@@ -915,7 +901,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
             (cdr args)))
     :config
     (vertico-mode)
-    (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+    (advice-add 'completing-read-multiple :filter-args #'crm-indicator)
     )
 
   (use-package corfu
@@ -936,6 +922,9 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
   (use-package cape
     :after corfu
+    :commands (cape-file cape-dabbrev cape-dict cape-elisp-block)
+    :preface
+    (autoload #'cape-keyword "cape-keyword")
     :init
     ;; Add to the global default value of `completion-at-point-functions' which is
     ;; used by `completion-at-point'.  The order of the functions matters, the
@@ -959,7 +948,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     )
 
   (use-package consult
-    :autoload (consult-register-window consult-register-format)
+    :autoload (consult-register-window consult-register-format consult-xref)
     ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c M-x" . consult-mode-command)
@@ -1017,13 +1006,13 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult-preview-at-point-mode)
 
+    :custom
+    (register-preview-delay 0.5)
+    (register-preview-function #'consult-register-format)
+    (xref-show-definitions-function #'consult-xref)
+
     ;; The :init configuration is always executed (Not lazy)
     :init
-
-    (setq register-preview-delay 0.5
-          register-preview-function #'consult-register-format)
-
-    (setq xref-show-definitions-function #'consult-xref)
 
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
@@ -1097,7 +1086,8 @@ line are available in an intuitive Emacs buffer.
 
   (use-package magit
     :preface
-    (autoload 'magit-toplevel "magit-git")
+    (autoload #'magit-toplevel "magit-git")
+    (autoload #'magit-commit-diff "magit-commit")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
@@ -1116,6 +1106,7 @@ line are available in an intuitive Emacs buffer.
                                              "^Enter PIN for .*: ?$"
                                              "^\\[sudo\\] password for .*: ?$"))
     (magit-save-repository-buffers 'dontask)
+    (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
     :if (locate-file "git" exec-path)
     :bind (("C-x g" . magit-status)
            ("C-x p v" . magit-status)
@@ -1125,9 +1116,8 @@ line are available in an intuitive Emacs buffer.
            :map magit-mode-map
            ("C-o" . magit-dired-other-window))
     :init
-    (setq auto-revert-buffer-list-filter 'magit-auto-revert-repository-buffer-p)
-    (remove-hook 'server-switch-hook 'magit-commit-diff)
-    (remove-hook 'with-editor-filter-visit-hook 'magit-commit-diff))
+    (remove-hook 'server-switch-hook #'magit-commit-diff)
+    (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff))
 #+END_SRC
 
 Magit forge.
@@ -1245,16 +1235,18 @@ outliner but also much much more.
     (org-log-done 'time)
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
+    :preface
+    (autoload #'pcomplete-completions-at-point "pcomplete")
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
-                                   'pcomplete-completions-at-point nil t)))
+                                   #'pcomplete-completions-at-point nil t)))
            (org-mode . (lambda () (visual-line-mode -1)))
            (org-mode . (lambda () (setq-local scroll-margin 3)))
            (message-mode . turn-on-orgtbl)
            ;; (org-mode . (lambda ()
            ;;               (autoload 'org-eldoc-documentation-function "org-eldoc")
            ;;               (setq-local eldoc-documentation-function
-           ;;                           'org-eldoc-documentation-function)))
+           ;;                           #'org-eldoc-documentation-function)))
            )
     :config
     ;; (org-babel-do-load-languages 'org-babel-load-languages
@@ -1387,7 +1379,7 @@ Try out packages without installing them.
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
     :if (locate-library "vterm-module")
-    :commands (vterm-reset-cursor-point)
+    :commands (vterm-reset-cursor-point vterm--self-insert-meta)
     :bind (("M-@" . vterm)
            :package dired
            :map dired-mode-map ("M-@" . vterm))
@@ -1419,10 +1411,10 @@ Try out packages without installing them.
                                           (setq-local cursor-type vterm-cursor-type-saved)
                                           ))))
     :config
-    (define-key vterm-mode-map (kbd "s-f") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-b") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-d") 'vterm--self-insert-meta)
-    (define-key vterm-mode-map (kbd "s-<backspace>") 'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-f") #'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-b") #'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-d") #'vterm--self-insert-meta)
+    (define-key vterm-mode-map (kbd "s-<backspace>") #'vterm--self-insert-meta)
     (define-key vterm-mode-map (kbd "M-v") nil)
     (define-key vterm-mode-map (kbd "M-:") nil)
     (define-key vterm-mode-map (kbd "C-v") nil))
@@ -1490,7 +1482,7 @@ Base mode used for shell and terminal modes.
         (with-current-buffer buffer
           (comint-write-input-ring))))
     :config
-    (advice-add 'comint-read-input-ring
+    (advice-add #'comint-read-input-ring
                 :override (lambda (&optional silent)
                             (cond ((or (null comint-input-ring-file-name)
                                        (equal comint-input-ring-file-name ""))
@@ -1590,7 +1582,7 @@ Base mode used for shell and terminal modes.
                      (throw 'found buf))))))
         (if compile-buf
             (switch-to-buffer-other-window compile-buf)
-          (call-interactively 'compile)))))
+          (call-interactively #'compile)))))
 #+END_SRC
 
 **** conf-mode
@@ -1623,7 +1615,7 @@ Base mode used for shell and terminal modes.
     (dired-create-destination-dirs 'ask)
     :autoload (dired-get-filename)
     :preface
-    (autoload 'term-set-escape-char "term")
+    (autoload #'term-set-escape-char "term")
     (defun dired-run-command (&optional filename)
       "Run file at point in a new buffer."
       (interactive)
@@ -1783,17 +1775,22 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
            ("C-c x" . eshell)
            ("C-c e" . eshell))
     :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions 'eshell-spawn-external-command))))
+           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command))))
     :preface
+    (autoload #'eshell-isearch-return "em-hist")
+    (autoload #'eshell-isearch-repeat-backward "em-hist")
+    (autoload #'eshell-isearch-repeat-forward "em-hist")
+    (autoload #'eshell-isearch-abort "em-hist")
+    (autoload #'eshell-isearch-delete-char "em-hist")
     (defvar eshell-isearch-map
       (let ((map (copy-keymap isearch-mode-map)))
-        (define-key map [(control ?m)] 'eshell-isearch-return)
-        (define-key map [return]       'eshell-isearch-return)
-        (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-        (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-        (define-key map [(control ?g)] 'eshell-isearch-abort)
-        (define-key map [backspace]    'eshell-isearch-delete-char)
-        (define-key map [delete]       'eshell-isearch-delete-char)
+        (define-key map [(control ?m)] #'eshell-isearch-return)
+        (define-key map [return]       #'eshell-isearch-return)
+        (define-key map [(control ?r)] #'eshell-isearch-repeat-backward)
+        (define-key map [(control ?s)] #'eshell-isearch-repeat-forward)
+        (define-key map [(control ?g)] #'eshell-isearch-abort)
+        (define-key map [backspace]    #'eshell-isearch-delete-char)
+        (define-key map [delete]       #'eshell-isearch-delete-char)
         map)
       "Keymap used in isearch in Eshell.")
     (defun eshell-spawn-external-command (beg end)
@@ -1826,9 +1823,9 @@ Setup eldoc integration.
     (defun esh-help-turn-on ()
       (interactive)
       (setq-local eldoc-documentation-function
-                  'esh-help-eldoc-command)
+                  #'esh-help-eldoc-command)
       (setq eldoc-documentation-function
-            'esh-help-eldoc-command)
+            #'esh-help-eldoc-command)
       (eldoc-mode 1))
     :hook (eshell-mode . esh-help-turn-on))
 #+END_SRC
@@ -1836,14 +1833,15 @@ Setup eldoc integration.
 ***** em-dired
 
 #+BEGIN_SRC emacs-lisp
-(use-package em-dired
-  :ensure nil
-  :bind (:package dired
-         :map dired-mode-map
-         ("e" . em-dired))
-  :hook (eshell-mode . em-dired-mode)
-  :init
-  (advice-add 'eshell :before 'em-dired-new))
+  (use-package em-dired
+    :ensure nil
+    :commands (em-dired-new)
+    :bind (:package dired
+           :map dired-mode-map
+           ("e" . em-dired))
+    :hook (eshell-mode . em-dired-mode)
+    :init
+    (advice-add #'eshell :before #'em-dired-new))
 #+END_SRC
 
 **** eww
@@ -1862,7 +1860,7 @@ eww is enabled so we can open files in non-graphical environments.
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
                                (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
     :init
-    (setq browse-url-browser-function 'eww-browse-url))
+    (setq browse-url-browser-function #'eww-browse-url))
 #+END_SRC
 **** executable
 
@@ -1934,7 +1932,7 @@ Make scripts executable automatically.
             (when (> col-number 0)
               (forward-char (1- col-number)))))))
     :config
-    (advice-add 'find-file
+    (advice-add #'find-file
                 :around #'find-file--line-number)
     )
 #+END_SRC
@@ -2036,7 +2034,7 @@ Make scripts executable automatically.
     (defun always-eval-sexp ()
       (define-key (current-local-map)
                   (kbd "C-x C-e")
-                  'pp-eval-last-sexp)))
+                  #'pp-eval-last-sexp)))
 #+END_SRC
 
 **** prog-mode
@@ -2148,7 +2146,7 @@ Optionally, start a server (disabled by default):
                    (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell)))
               (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
       (apply orig-fun args))
-    (advice-add 'shell :around 'shell-set-remote-shell-path-maybe))
+    (advice-add #'shell :around #'shell-set-remote-shell-path-maybe))
 #+END_SRC
 
 **** simple
@@ -2200,8 +2198,8 @@ Optionally, start a server (disabled by default):
     (term-input-autoexpand t)
     (term-input-ignoredup t)
     :preface
-    (autoload 'tramp-tramp-file-p "tramp")
-    (autoload 'tramp-dissect-file-name "tramp"))
+    (autoload #'tramp-tramp-file-p "tramp")
+    (autoload #'tramp-dissect-file-name "tramp"))
 #+END_SRC
 
 **** text-mode
@@ -2237,7 +2235,7 @@ Optionally, start a server (disabled by default):
     (define-derived-mode timeclock-report-mode special-mode "Timeclock-Report"
       "A mode for viewing timeclock reports."
       (hack-dir-local-variables-non-file-buffer)
-      (setq-local revert-buffer-function 'timeclock-report-redo))
+      (setq-local revert-buffer-function #'timeclock-report-redo))
 
     (defvar timeclock-report-buffer-name "*Timeclock Report*")
 
@@ -2266,7 +2264,7 @@ Optionally, start a server (disabled by default):
       (interactive)
       (timeclock-reread-log)
       (with-current-buffer
-          (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) 'display-buffer-pop-up-window)
+          (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) #'display-buffer-pop-up-window)
         (with-silent-modifications
           (erase-buffer)
           (timeclock-report-mode)
@@ -2293,17 +2291,17 @@ Optionally, start a server (disabled by default):
 
     (defvar timeclock-mode-map
       (let ((map (make-sparse-keymap)))
-        (define-key map (kbd "C-c C-i") 'timeclock-in)
-        (define-key map (kbd "C-c C-o") 'timeclock-out)
-        (define-key map (kbd "C-c C-c") 'timeclock-change)
-        (define-key map (kbd "C-c C-r") 'timeclock-reread-log)
-        (define-key map (kbd "C-c C-u") 'timeclock-update-mode-line)
-        (define-key map (kbd "C-c C-w") 'timeclock-when-to-leave-string)
-        (define-key map (kbd "C-c C-t") 'timeclock-report)
-        (define-key map (kbd "C-c C-e") 'timeclock-ledger-report)
+        (define-key map (kbd "C-c C-i") #'timeclock-in)
+        (define-key map (kbd "C-c C-o") #'timeclock-out)
+        (define-key map (kbd "C-c C-c") #'timeclock-change)
+        (define-key map (kbd "C-c C-r") #'timeclock-reread-log)
+        (define-key map (kbd "C-c C-u") #'timeclock-update-mode-line)
+        (define-key map (kbd "C-c C-w") #'timeclock-when-to-leave-string)
+        (define-key map (kbd "C-c C-t") #'timeclock-report)
+        (define-key map (kbd "C-c C-e") #'timeclock-ledger-report)
 
         ;; Reset the `text-mode' override of this standard binding
-        (define-key map (kbd "C-M-i") 'completion-at-point)
+        (define-key map (kbd "C-M-i") #'completion-at-point)
         map)
       "Keymap for `timeclock-mode'.")
 
@@ -2739,7 +2737,7 @@ disabled
       (declare-function merlin-mode "merlin.el")
 
       (when (functionp 'merlin-document)
-        (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+        (define-key tuareg-mode-map (kbd "\C-c\C-h") #'merlin-document))
 
       ;; Run Merlin if a .merlin file in the parent dirs is detected
       (add-hook 'tuareg-mode-hook
@@ -2891,7 +2889,7 @@ occasionally block Emacs.
            ("," . envrc-reload))
     :commands (envrc-global-mode)
     :custom (envrc-none-lighter nil)
-    :hook (emacs-startup-hook . envrc-global-mode))
+    :hook (after-init . envrc-global-mode))
 #+END_SRC
 
 **** installer
@@ -3029,7 +3027,8 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dired-rsync
-    :bind (:map dired-mode-map ("C-c C-r" . dired-rsync)))
+    :bind (:package dired
+                    :map dired-mode-map ("C-c C-r" . dired-rsync)))
 #+END_SRC
 
 **** dumb-jump
@@ -3358,13 +3357,13 @@ disabled
     (defun url-encode (start end)
       "URL encode the region between START and END in current buffer."
       (interactive "r")
-      (func-region start end 'url-hexify-string))
-    (defalias 'url-escape 'url-encode)
+      (func-region start end #'url-hexify-string))
+    (defalias #'url-escape #'url-encode)
     (defun url-decode (start end)
       "URL decode the region between START and END in current buffer."
       (interactive "r")
       (func-region start end 'url-unhex-string))
-    (defalias 'url-unescape 'url-decode))
+    (defalias #'url-unescape #'url-decode))
 #+END_SRC
 
 **** visual-regexp
