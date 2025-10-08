@@ -197,6 +197,7 @@ COLORFGBG method.
 
 #+BEGIN_SRC emacs-lisp
   (unless (display-graphic-p)
+    (xterm-mouse-mode)
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
                 (lambda ()
@@ -569,71 +570,6 @@ used as key bindings.
 #+END_SRC
 
 Define some helper functions.
-
-#+BEGIN_SRC emacs-lisp
-  (defun web-search (start end)
-    (interactive "r")
-    (let ((q (buffer-substring-no-properties start end)))
-      (browse-url (concat "http://www.google.com/search?btnI&q="
-        (url-hexify-string q)))))
-#+END_SRC
-
-Override browse-url to handle man protocol better.
-
-#+BEGIN_SRC emacs-lisp
-(require 'browse-url)
-(defun my-browse-url (url &rest args)
-  "Ask a WWW browser to load URL.
-Prompt for a URL, defaulting to the URL at or before point.
-Invokes a suitable browser function which does the actual job.
-The variable `browse-url-browser-function' says which browser function to
-use.  If the URL is a mailto: URL, consult `browse-url-mailto-function'
-first, if that exists.
-
-The additional ARGS are passed to the browser function.  See the doc
-strings of the actual functions, starting with `browse-url-browser-function',
-for information about the significance of ARGS (most of the functions
-ignore it).
-If ARGS are omitted, the default is to pass `browse-url-new-window-flag'
-as ARGS."
-  (interactive (browse-url-interactive-arg "URL: "))
-  (unless (called-interactively-p 'interactive)
-    (setq args (or args (list browse-url-new-window-flag))))
-  (when (and url-handler-mode
-             (not (file-name-absolute-p url))
-             (not (string-match "\\`[a-z]+:" url)))
-    (setq url (expand-file-name url)))
-  (let ((process-environment (copy-sequence process-environment))
-	(function (or (and (string-match "\\`mailto:" url)
-			   browse-url-mailto-function)
-                      (and (string-match "\\`man:" url)
-                           browse-url-man-function)
-		      browse-url-browser-function))
-	;; Ensure that `default-directory' exists and is readable (b#6077).
-	(default-directory (or (unhandled-file-name-directory default-directory)
-			       (expand-file-name "~/"))))
-    ;; When connected to various displays, be careful to use the display of
-    ;; the currently selected frame, rather than the original start display,
-    ;; which may not even exist any more.
-    (if (stringp (frame-parameter nil 'display))
-        (setenv "DISPLAY" (frame-parameter nil 'display)))
-    (if (and (consp function)
-	     (not (functionp function)))
-	;; The `function' can be an alist; look down it for first match
-	;; and apply the function (which might be a lambda).
-	(catch 'done
-	  (dolist (bf function)
-	    (when (string-match (car bf) url)
-	      (apply (cdr bf) url args)
-	      (throw 'done t)))
-	  (error "No browse-url-browser-function matching URL %s"
-		 url))
-      ;; Unbound symbols go down this leg, since void-function from
-      ;; apply is clearer than wrong-type-argument from dolist.
-      (apply function url args))))
-
-(advice-add 'browse-url :override 'my-browse-url)
-#+END_SRC
 
 #+BEGIN_SRC emacs-lisp
   (defun my-escape-quotes (begin end)
@@ -2452,14 +2388,6 @@ Optionally, start a server (disabled by default):
     ;;;###autoload
     (add-to-list 'auto-mode-alist '("timelog\\'" . timeclock-mode))
 #+END_SRC
-**** url-handlers
-
-#+BEGIN_SRC emacs-lisp
-  (use-package url-handlers
-    :ensure nil
-    :demand
-    :config (url-handler-mode))
-#+END_SRC
 
 **** View
 
@@ -2963,7 +2891,7 @@ occasionally block Emacs.
            ("," . envrc-reload))
     :commands (envrc-global-mode)
     :custom (envrc-none-lighter nil)
-    :hook (after-init . envrc-global-mode))
+    :hook (emacs-startup-hook . envrc-global-mode))
 #+END_SRC
 
 **** installer
@@ -4378,8 +4306,9 @@ Set some defaults that depend on the path variables below,
            "@schemas@"
            ,(expand-file-name
               "schema/schemas.xml" data-directory)))
-   '(grep-find-command '(concat ripgrep-executable " -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)" . 27))
    )
+
+  (setq grep-find-command `(,(concat ripgrep-executable " -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 27))
 #+END_SRC
 
 ** =bootstrap.sh=

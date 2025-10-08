@@ -86,7 +86,7 @@ With a universal argument (just C-u), ask by how much."
   (while (re-search-forward "" end t)
     (replace-match (number-to-string (1+ (string-to-number (match-string 0)))))))
 
-(defcustom bauer-dir (expand-file-name ".local/share" (getenv "HOME"))
+(defcustom bauer-dir (expand-file-name ".local/share/bauer" (getenv "HOME"))
   "Directory of installation."
   :group 'bauer
   :type 'string)
