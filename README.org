@@ -915,7 +915,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
   (use-package corfu
     :demand
-    :commands (global-corfu-mode)
+    :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
     :custom
     (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
     (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -933,6 +933,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
   (use-package cape
     :demand
+    :autoload (cape-wrap-buster)
     :after corfu
     :hook ((completion-at-point-functions . cape-dabbrev)
            (completion-at-point-functions . cape-dict)
@@ -940,12 +941,14 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
            (completion-at-point-functions . cape-elisp-block)
            (completion-at-point-functions . cape-history)
            (completion-at-point-functions . cape-keyword))
-    :config
+    :preface
+    (autoload #'eglot-completion-at-point "eglot")
+    :init
     (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
     )
 
   (use-package consult
-    :autoload (consult-register-window consult-register-format consult-xref)
+    :autoload (consult-register-window)
     ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
            ("C-c M-x" . consult-mode-command)
@@ -1082,9 +1085,8 @@ line are available in an intuitive Emacs buffer.
     :custom (transient-display-buffer-action '(display-buffer-below-selected (dedicated . t) (inhibit-same-window . t))))
 
   (use-package magit
+    :functions (magit-commit-diff magit-toplevel)
     :preface
-    (autoload #'magit-toplevel "magit-git")
-    (autoload #'magit-commit-diff "magit-commit")
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
@@ -1232,8 +1234,7 @@ outliner but also much much more.
     (org-log-done 'time)
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
-    :preface
-    (autoload #'pcomplete-completions-at-point "pcomplete")
+    :functions pcomplete-completions-at-point
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
                                    #'pcomplete-completions-at-point nil t)))
@@ -1245,7 +1246,7 @@ outliner but also much much more.
            ;;               (setq-local eldoc-documentation-function
            ;;                           #'org-eldoc-documentation-function)))
            )
-    :config
+    ;;:config
     ;; (org-babel-do-load-languages 'org-babel-load-languages
     ;;                              '((sql . t)
     ;;                                (shell . t)))
@@ -1339,7 +1340,8 @@ instance spacemacs-theme can be enabled:
   (use-package spacemacs-common
     :ensure spacemacs-theme
     :if window-system
-    :init
+    :demand
+    :config
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
                   (locate-library "spacemacs-theme-pkg")))
@@ -1467,21 +1469,21 @@ Try out packages without installing them.
     (vterm-copy-mode-remove-fake-newlines t)
     :preface
     (defvar-local vterm-cursor-type-saved nil)
-    (defun old-version-of-vterm--get-color (index &rest args)
-      "This is the old version before it was broken by commit
-  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-      (cond
-       ((and (>= index 0) (< index 16))
-        (face-foreground
-         (elt vterm-color-palette index)
-         nil 'default))
-       ((= index -11)
-        (face-foreground 'vterm-color-underline nil 'default))
-       ((= index -12)
-        (face-background 'vterm-color-inverse-video nil 'default))
-       (t
-        nil)))
+    ;; (defun old-version-of-vterm--get-color (index &rest args)
+    ;;   "This is the old version before it was broken by commit
+    ;; https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+    ;; Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+    ;;   (cond
+    ;;    ((and (>= index 0) (< index 16))
+    ;;     (face-foreground
+    ;;      (elt vterm-color-palette index)
+    ;;      nil 'default))
+    ;;    ((= index -11)
+    ;;     (face-foreground 'vterm-color-underline nil 'default))
+    ;;    ((= index -12)
+    ;;     (face-background 'vterm-color-inverse-video nil 'default))
+    ;;    (t
+    ;;     nil)))
     (defun vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
     But when clicking to the unused area below the last prompt,
@@ -1491,8 +1493,8 @@ Try out packages without installing them.
           (mouse-set-point event promote-to-region)
         (vterm-reset-cursor-point)))
 
-    :init
-    (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
+    ;; :init
+    ;; (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
 
     ;; turn on cursor in case it’s been disabled
     ;; this allows things that disable cursor like claude-code
@@ -1505,9 +1507,9 @@ Try out packages without installing them.
                                        (progn
                                          (setq-local cursor-type vterm-cursor-type-saved)
                                          ))))
-           (vterm-mode-hook . (lambda ()
-                                (set (make-local-variable 'buffer-face-mode-face) '(:foreground "#E0E0E0" :background "#424242"))
-                                (buffer-face-mode t)))
+           ;; (vterm-mode-hook . (lambda ()
+           ;;                      (set (make-local-variable 'buffer-face-mode-face) '(:foreground "#E0E0E0" :background "#424242"))
+           ;;                      (buffer-face-mode t)))
            )
     :bind (:map vterm-mode-map
                 ("s-f" . vterm--self-insert-meta)
@@ -1880,12 +1882,10 @@ eww is enabled so we can open files in non-graphical environments.
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
     :commands (eww-reload)
-    :config
-    (add-hook 'eww-mode-hook (lambda ()
+    :custom (browse-url-browser-function . #'eww-browse-url)
+    :hook (eww-mode-hook . (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
-                               (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t)))
-    :init
-    (setq browse-url-browser-function #'eww-browse-url))
+                               (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t))))
 #+END_SRC
 **** executable
 
@@ -2750,7 +2750,7 @@ disabled
       (defvar merlin-command)
       (setq merlin-command 'opam)
 
-      (declare-function merlin-mode "merlin.el")
+      (declare-function merlin-mode "merlin")
 
       (when (functionp 'merlin-document)
         (define-key tuareg-mode-map (kbd "\C-c\C-h") #'merlin-document))
@@ -2877,9 +2877,7 @@ repositories.
   (use-package monet
     :ensure nil
     :custom (monet-prefix-key nil)
-    :autoload (monet-start-server-function)
-    :init
-    (add-hook 'claude-code-process-environment-functions #'monet-start-server-function))
+    :hook (claude-code-process-environment-functions . monet-start-server-function))
 #+END_SRC
 
 **** dired-column
@@ -2914,6 +2912,7 @@ occasionally block Emacs.
 
 #+BEGIN_SRC emacs-lisp
   (use-package nethack
+    :commands (nethack)
     :ensure nil)
 #+END_SRC
 
@@ -3051,9 +3050,7 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dumb-jump
-    :autoload dumb-jump-xref-activate
-    :init
-    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+    :hook (xref-backend-functions . dumb-jump-xref-activate))
 #+END_SRC
 
 **** emacs-gif-screencast
