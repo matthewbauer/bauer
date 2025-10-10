@@ -1053,7 +1053,7 @@ Intelligently adjust Emacs garbage collection size.
     :demand
     :commands (gcmh-mode)
     :config
-    (gcmh-mode 1)
+    (gcmh-mode)
     :custom
     (gcmh-idle-delay 'auto)
     (gcmh-auto-idle-delay-factor 10))
@@ -1282,10 +1282,8 @@ Smart hungry delete automatically delete lots of whitespace in a row.
                  smart-hungry-delete-forward-char))
     :hook ((prog-mode .
                       smart-hungry-delete-default-prog-mode-hook)
-           (c-mode-common .
+           ((c-mode-common python-mode) .
                           smart-hungry-delete-default-c-mode-common-hook)
-           (python-mode .
-                        smart-hungry-delete-default-c-mode-common-hook)
            (text-mode .
                       smart-hungry-delete-default-text-mode-hook)))
 #+END_SRC
@@ -1465,10 +1463,8 @@ Try out packages without installing them.
            :map dired-mode-map
            ("M-@" . vterm))
     :custom
-    (vterm-min-window-width 40)
     (vterm-max-scrollback 10000)
     (vterm-copy-mode-remove-fake-newlines t)
-    (vterm-set-bold-hightbright t)
     :preface
     (defvar-local vterm-cursor-type-saved nil)
     (defun old-version-of-vterm--get-color (index &rest args)
@@ -1539,9 +1535,7 @@ configure them.
 #+BEGIN_SRC emacs-lisp
   (use-package completion-preview
     :if (>= emacs-major-version 30)
-    :hook ((prog-mode . completion-preview-mode)
-           (text-mode . completion-preview-mode)
-           (comint-mode . completion-preview-mode))
+    :hook (((prog-mode text-mode comint-mode) . completion-preview-mode))
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
                 ("M-p" . completion-preview-prev-candidate)
@@ -1572,8 +1566,7 @@ Provides links to bugs listed in source code.
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
     :custom (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-    :hook ((prog-mode . bug-reference-prog-mode)
-           (text-mode . bug-reference-mode)))
+    :hook (((prog-mode text-mode) . bug-reference-prog-mode)))
 #+END_SRC
 
 **** comint
@@ -1724,8 +1717,7 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package display-line-numbers
     :if (>= emacs-major-version 26)
-    :hook ((prog-mode . display-line-numbers-mode)
-           (conf-mode . display-line-numbers-mode)))
+    :hook (((prog-mode conf-mode) . display-line-numbers-mode)))
 #+END_SRC
 **** eldoc
 
@@ -1733,14 +1725,14 @@ Provides some info for the thing at the point.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eldoc
-    :hook ((emacs-lisp-mode . eldoc-mode)
-           (eval-expression-minibuffer-setup . eldoc-mode)
-           (lisp-mode-interactive-mode . eldoc-mode)
-           (typescript-mode . eldoc-mode)
-           (haskell-mode . eldoc-mode)
-           (python-mode . eldoc-mode)
-           (eshell-mode . eldoc-mode)
-           (org-mode . eldoc-mode))
+    :hook (((emacs-lisp-mode
+             eval-expression-minibuffer-setup
+             lisp-mode-interactive-mode
+             typescript-mode
+             haskell-mode
+             python-mode
+             eshell-mode
+             org-mode) . eldoc-mode))
     :custom (eldoc-idle-delay 0.4))
 #+END_SRC
 
@@ -1755,14 +1747,10 @@ Setup these modes:
 #+BEGIN_SRC emacs-lisp
   (use-package electric
     :if (>= emacs-major-version 25)
-    :hook ((prog-mode . electric-quote-local-mode)
-           (text-mode . electric-quote-local-mode)
-           (org-mode . electric-quote-local-mode)
-           (message-mode . electric-quote-local-mode)
+    :hook (((prog-mode text-mode org-mode message-mode) . electric-quote-local-mode)
            (prog-mode . electric-indent-local-mode)
            (prog-mode . electric-layout-mode)
-           (haskell-mode . (lambda () (electric-indent-local-mode -1)))
-           (nix-mode . (lambda () (electric-indent-local-mode -1)))))
+           ((haskell-mode nix-mode) . (lambda () (electric-indent-local-mode -1)))))
 #+END_SRC
 
 ***** elec-pair
@@ -1774,8 +1762,7 @@ setup.
   (use-package elec-pair
     :if (>= emacs-major-version 25)
     :hook
-    ((prog-mode . electric-pair-local-mode)
-     (eval-expression-minibuffer-setup . electric-pair-local-mode)
+    (((prog-mode eval-expression-minibuffer-setup) . electric-pair-local-mode)
      (smartparens-mode . (lambda ()
                            (electric-pair-local-mode -1)))))
 #+END_SRC
@@ -1864,7 +1851,7 @@ Setup eldoc integration.
                   #'esh-help-eldoc-command)
       (setq eldoc-documentation-function
             #'esh-help-eldoc-command)
-      (eldoc-mode 1))
+      (eldoc-mode))
     :hook (eshell-mode . esh-help-turn-on))
 #+END_SRC
 
@@ -1932,10 +1919,8 @@ Make scripts executable automatically.
            ([remap dired-other-frame] . ffap-dired-other-frame)
 
            ([remap list-directory] . ffap-list-directory))
-    :hook ((gnus-summary-mode . ffap-gnus-hook)
-           (gnus-article-mode . ffap-gnus-hook)
-           (vm-mode . ffap-ro-mode-hook)
-           (rmail-mode . ffap-ro-mode-hook)))
+    :hook (((gnus-summary-mode gnus-article-mode) . ffap-gnus-hook)
+           ((vm-mode rmail-mode) . ffap-ro-mode-hook)))
 #+END_SRC
 **** files
 
@@ -1986,9 +1971,8 @@ Make scripts executable automatically.
          (if (boundp 'ispell-program-name)
              ispell-program-name "aspell")
          exec-path)
-    :hook ((text-mode . flyspell-mode)
-           (prog-mode . flyspell-prog-mode)
-           (git-commit-mode . flyspell-mode))
+    :hook (((text-mode git-commit-mode) . flyspell-mode)
+           (prog-mode . flyspell-prog-mode))
     :bind (:map flyspell-mode-map
                 ("C-M-i" . nil)))
 #+END_SRC
@@ -1998,17 +1982,13 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package goto-addr
     :hook (((prog-mode conf-mode) . goto-address-prog-mode)
-           ((help-mode org-mode text-mode) . goto-address-mode)
-           (git-commit-mode . goto-address-mode)
-           (shell-mode . goto-address-mode)))
+           ((help-mode org-mode text-mode git-commit-mode shell-mode) . goto-address-mode)))
 #+END_SRC
 
 **** hl-line
 #+BEGIN_SRC emacs-lisp
   (use-package hl-line
-    :hook ((prog-mode . hl-line-mode)
-           (org-mode . hl-line-mode)
-           (dired-mode . hl-line-mode)))
+    :hook (((prog-mode org-mode dired-mode) . hl-line-mode)))
 #+END_SRC
 **** ibuffer
 
@@ -2040,8 +2020,7 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
 (use-package mouse
   :ensure nil
-  :hook ((text-mode . context-menu-mode)
-         (prog-mode . context-menu-mode)))
+  :hook (((text-mode prog-mode) . context-menu-mode)))
 #+END_SRC
 
 **** paren
@@ -2085,8 +2064,7 @@ Make scripts executable automatically.
            ;; (c-mode . prettify-symbols-c)
            ;; (c++-mode . prettify-symbols-c++)
            ;; ((js-mode js2-mode) . prettify-symbols-js)
-           (prog-mode . (lambda ()
-             (setq-local scroll-margin 3))))
+           (prog-mode . (lambda () (setq-local scroll-margin 3))))
     :preface
     (defun prettify-symbols-prog ()
       (push '("<=" . ?≤) prettify-symbols-alist)
@@ -2211,7 +2189,7 @@ Optionally, start a server (disabled by default):
   (use-package so-long
     :if (>= emacs-major-version 27)
     :demand
-    :config (global-so-long-mode 1))
+    :config (global-so-long-mode))
 #+END_SRC
 
 **** subword
@@ -2457,7 +2435,7 @@ function.
     (which-key-lighter "")
     (which-key-idle-delay 0.4)
     (which-key-idle-secondary-delay 0.4)
-    :config (which-key-mode 1))
+    :config (which-key-mode))
 #+END_SRC
 
 **** whitespace
