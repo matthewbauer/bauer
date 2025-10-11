@@ -908,10 +908,10 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
                      crm-separator)
                     (car args))
             (cdr args)))
-    :config
-    (vertico-mode)
+    :init
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-    )
+    :config
+    (vertico-mode))
 
   (use-package corfu
     :demand
@@ -1537,6 +1537,7 @@ configure them.
 #+BEGIN_SRC emacs-lisp
   (use-package completion-preview
     :if (>= emacs-major-version 30)
+    :delight
     :hook (((prog-mode text-mode comint-mode) . completion-preview-mode))
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
@@ -1867,7 +1868,7 @@ Setup eldoc integration.
            :map dired-mode-map
            ("e" . em-dired))
     :hook (eshell-mode . em-dired-mode)
-    :init
+    :config
     (advice-add #'eshell :before #'em-dired-new))
 #+END_SRC
 
