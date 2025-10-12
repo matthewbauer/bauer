@@ -153,6 +153,7 @@ BUFFER is the buffer to show output in."
                                        (run-sequentially buffer fns)))))
       (unless proc (run-sequentially buffer fns)))))
 
+;;;###autoload
 (defun install (&optional buffer)
   "Install Emacs.
 BUFFER to show output in."
@@ -172,6 +173,7 @@ BUFFER to show output in."
                                  repo-build
                                  restart-info)))))
 
+;;;###autoload
 (defun dev-restart (&optional buffer)
   "Development restart Emacs.
 BUFFER to show output in."
@@ -195,6 +197,7 @@ BUFFER to show output in."
       (run-sequentially buffer '(repo-build
                                  restart-info)))))
 
+;;;###autoload
 (defun upgrade (&optional buffer)
   "Upgrade Emacs.
 BUFFER to show output in."

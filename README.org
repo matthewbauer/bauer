@@ -161,7 +161,7 @@ this.
         file-name-handler-alist
           (append
             file-name-handler-alist-backup
-            file-name-handler-alist))))
+            file-name-handler-alist))) 100)
 
   (setq read-process-output-max (* 4 1024 1024))
 #+END_SRC
@@ -845,7 +845,10 @@ IDE at any time by typing =M-x upgrade= from within Emacs. You may have to
 restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
 
 #+BEGIN_SRC emacs-lisp
-  (require 'installer nil t)
+  ;; (require 'installer nil t)
+  (autoload 'install "installer" nil t)
+  (autoload 'dev-restart "installer" nil t)
+  (autoload 'upgrade "installer" nil t)
 #+END_SRC
 
 ** Packages
@@ -1460,6 +1463,7 @@ Try out packages without installing them.
   (use-package vterm
     :if (locate-library "vterm-module")
     :commands (vterm-reset-cursor-point vterm--self-insert-meta)
+    :autoload (vterm--get-color)
     :bind (("M-@" . vterm)
            :package dired
            :map dired-mode-map
@@ -1469,21 +1473,21 @@ Try out packages without installing them.
     (vterm-copy-mode-remove-fake-newlines t)
     :preface
     (defvar-local vterm-cursor-type-saved nil)
-    ;; (defun old-version-of-vterm--get-color (index &rest args)
-    ;;   "This is the old version before it was broken by commit
-    ;; https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-    ;; Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-    ;;   (cond
-    ;;    ((and (>= index 0) (< index 16))
-    ;;     (face-foreground
-    ;;      (elt vterm-color-palette index)
-    ;;      nil 'default))
-    ;;    ((= index -11)
-    ;;     (face-foreground 'vterm-color-underline nil 'default))
-    ;;    ((= index -12)
-    ;;     (face-background 'vterm-color-inverse-video nil 'default))
-    ;;    (t
-    ;;     nil)))
+    (defun old-version-of-vterm--get-color (index &rest _args)
+      "This is the old version before it was broken by commit
+  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+      (cond
+       ((and (>= index 0) (< index 16))
+        (face-foreground
+         (elt vterm-color-palette index)
+         nil 'default))
+       ((= index -11)
+        (face-foreground 'vterm-color-underline nil 'default))
+       ((= index -12)
+        (face-background 'vterm-color-inverse-video nil 'default))
+       (t
+        nil)))
     (defun vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
     But when clicking to the unused area below the last prompt,
@@ -1493,8 +1497,8 @@ Try out packages without installing them.
           (mouse-set-point event promote-to-region)
         (vterm-reset-cursor-point)))
 
-    ;; :init
-    ;; (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
+    :config
+    (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
 
     ;; turn on cursor in case it’s been disabled
     ;; this allows things that disable cursor like claude-code
@@ -1507,9 +1511,9 @@ Try out packages without installing them.
                                        (progn
                                          (setq-local cursor-type vterm-cursor-type-saved)
                                          ))))
-           ;; (vterm-mode-hook . (lambda ()
-           ;;                      (set (make-local-variable 'buffer-face-mode-face) '(:foreground "#E0E0E0" :background "#424242"))
-           ;;                      (buffer-face-mode t)))
+           (vterm-mode-hook . (lambda ()
+                                (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
+                                (buffer-face-mode t)))
            )
     :bind (:map vterm-mode-map
                 ("s-f" . vterm--self-insert-meta)
@@ -1865,8 +1869,8 @@ Setup eldoc integration.
     :ensure nil
     :commands (em-dired-new)
     :bind (:package dired
-           :map dired-mode-map
-           ("e" . em-dired))
+                    :map dired-mode-map
+                    ("e" . em-dired))
     :hook (eshell-mode . em-dired-mode)
     :config
     (advice-add #'eshell :before #'em-dired-new))
@@ -2120,7 +2124,7 @@ Make scripts executable automatically.
   (use-package saveplace
     :if (>= emacs-major-version 25)
     :demand
-    :config (save-place-mode)
+    :hook (after-init . save-place-mode)
     :custom (save-place-limit 600))
 #+END_SRC
 
@@ -2154,7 +2158,7 @@ Optionally, start a server (disabled by default):
            ;;            user-emacs-directory))))
            (shell-mode . (lambda () (setq-local truncate-lines nil)))
            )
-    :config
+    :preface
     (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
       (when (file-remote-p default-directory)
         (if (file-exists-p (concat (file-remote-p default-directory) shell-file-name))
@@ -2163,6 +2167,7 @@ Optionally, start a server (disabled by default):
                    (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell)))
               (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
       (apply orig-fun args))
+    :config
     (advice-add #'shell :around #'shell-set-remote-shell-path-maybe))
 #+END_SRC
 
@@ -2197,7 +2202,7 @@ Optionally, start a server (disabled by default):
 
 #+BEGIN_SRC emacs-lisp
   (use-package subword
-    :hook ((java-mode . subword-mode)))
+    :hook (java-mode . subword-mode))
 #+END_SRC
 
 **** term
@@ -2205,12 +2210,12 @@ Optionally, start a server (disabled by default):
 #+BEGIN_SRC emacs-lisp
   (use-package term
     :commands (term-char-mode)
-    :hook ((term-mode .
+    :hook (term-mode .
                       (lambda ()
                         (setq term-prompt-regexp
                               "^[^#$%>\n]*[#$%>] *")
                         (setq-local transient-mark-mode nil)
-                        (auto-fill-mode -1))))
+                        (auto-fill-mode -1)))
     :custom
     (term-input-autoexpand t)
     (term-input-ignoredup t)
@@ -2225,7 +2230,7 @@ Optionally, start a server (disabled by default):
   (use-package text-mode
     :no-require
     :ensure nil
-    :hook ((text-mode . turn-on-auto-fill)))
+    :hook (text-mode . turn-on-auto-fill))
 #+END_SRC
 
 **** timeclock
@@ -2898,10 +2903,9 @@ occasionally block Emacs.
   ;; in `find-file-hook'.
   (use-package envrc
     :ensure nil
-    :bind (
-           :package project
-           :map project-prefix-map
-           ("," . envrc-reload))
+    :bind (:package project
+                    :map project-prefix-map
+                    ("," . envrc-reload))
     :commands (envrc-global-mode)
     :custom (envrc-none-lighter nil)
     :hook (after-init . envrc-global-mode))
@@ -3220,10 +3224,10 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer-vc
     :commands (ibuffer-vc-set-filter-groups-by-vc-root ibuffer-do-sort-by-alphabetic)
-    :hook ((ibuffer . (lambda ()
+    :hook (ibuffer . (lambda ()
                         (ibuffer-vc-set-filter-groups-by-vc-root)
                         (unless (eq ibuffer-sorting-mode 'alphabetic)
-                          (ibuffer-do-sort-by-alphabetic))))))
+                          (ibuffer-do-sort-by-alphabetic)))))
 #+END_SRC
 
 **** keycast
