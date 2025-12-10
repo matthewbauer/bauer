@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 if [ $# -eq 0 ]; then
-    echo Usage: "$0" [ GIST_ID | URL ] [ -u USER ] [ -t TOKEN ] >&2
+    echo Usage: "$0" [ GIST_ID \| URL ] [ -u USER ] [ -t TOKEN ] >&2
     exit 1
 fi
 

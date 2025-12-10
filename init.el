@@ -1,4 +1,6 @@
 ;; [[file:README.org::*=init.el=][=init.el=:1]]
+;; -*- lexical-binding: t; -*-
+
 (load
   (expand-file-name "settings.el" user-emacs-directory) t)
 (package-initialize)
