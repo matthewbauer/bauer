@@ -172,7 +172,7 @@ for f in *; do
     else
         cp "$f" "$DEST"
     fi
-    case "$f" of
+    case "$f" in
          .authinfo) chmod 600 "$DEST" ;;
          "Library/LaunchAgents/"*) launchctl load -w "$HOME/$f" ;;
     esac
