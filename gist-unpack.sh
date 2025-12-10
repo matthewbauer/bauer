@@ -132,6 +132,9 @@ for f in *; do
     if [ "$f" = ".git" ]; then
         continue
     fi
+    if [ "$f" = gnu.emacs.daemon.plist ] && [ "$(uname)" != Darwin ]; then
+        continue
+    fi
     if ! [ -f "$f" ]; then
         echo Skipping "$f", not a file >&2
         continue
@@ -147,6 +150,7 @@ for f in *; do
         .gitconfig) DEST="$HOME/.config/git/config" ;;
         .gitattributes) DEST="$HOME/.config/git/attributes" ;;
         credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
+        gnu.emacs.daemon.plist) DEST="$HOME/Library/LaunchAgents/gnu.emacs.daemon.plist" ;;
         *) DEST="$HOME/$f" ;;
     esac
     CONCAT=
@@ -174,6 +178,6 @@ for f in *; do
     fi
     case "$f" in
          .authinfo) chmod 600 "$DEST" ;;
-         "Library/LaunchAgents/"*) launchctl load -w "$HOME/$f" ;;
+         gnu.emacs.daemon.plist) launchctl load -w "$DEST" ;;
     esac
 done
