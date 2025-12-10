@@ -117,6 +117,8 @@ Luckily, it’s not very hard to do this. From the terminal, run:
 #+BEGIN_SRC shell
   defaults write org.gnu.Emacs NSAppSleepDisabled -bool YES
   defaults write emacs NSAppSleepDisabled -bool YES
+  defaults write com.apple.Terminal NSAppSleepDisabled -bool YES
+  defaults write com.googlecode.iterm2 NSAppSleepDisabled -bool YES
 #+END_SRC
 
 I’ve seen some of the org.gnu.Emacs form posted online. However, if you start
@@ -126,6 +128,20 @@ will identify the binary.
 This is totally optional. If this doesn’t bother you, feel free to leave it, and
 it will probably slightly improve your energy usage, since it can suspend Emacs
 when unfocused.
+
+*** Disabling gatekeeper
+
+Terminal apps needs to be manually configured to avoid performance issues. You need to run:
+
+#+BEGIN_SRC shell
+  sudo spctl developer-mode enable-terminal
+#+END_SRC
+
+Then, go to System Preferences and then to Security & Privacy.
+
+Toggle your newly added terminal manually.
+
+Restart your terminal.
 
 * Emacs init file
 :PROPERTIES:
@@ -149,19 +165,18 @@ this.
 #+BEGIN_SRC emacs-lisp :padline no :comments no
   ;; -*- mode: emacs-lisp; coding: utf-8; lexical-binding: t; -*-
 
-  (defvar file-name-handler-alist-backup
-          file-name-handler-alist)
+  (defvar file-name-handler-alist-backup file-name-handler-alist)
   (setq gc-cons-threshold most-positive-fixnum
         file-name-handler-alist nil)
   (add-hook 'after-init-hook
-    (lambda ()
-      (garbage-collect)
-      (setq gc-cons-threshold
-              (car (get 'gc-cons-threshold 'standard-value))
-        file-name-handler-alist
-          (append
-            file-name-handler-alist-backup
-            file-name-handler-alist))) 100)
+            (lambda ()
+              (garbage-collect)
+              (when (eq gc-cons-threshold most-positive-fixnum)
+                (setq gc-cons-threshold
+                      (car (get 'gc-cons-threshold 'standard-value))))
+              (setq file-name-handler-alist (append
+                                             file-name-handler-alist-backup
+                                             file-name-handler-alist))) 100)
 
   (setq read-process-output-max (* 4 1024 1024))
 #+END_SRC
@@ -174,6 +189,7 @@ Disabled for now.
   ;; (eval-and-compile (require 'use-package))
   ;; (use-package benchmark-init
   ;;   :demand
+  ;;   :commands (benchmark-init/deactivate)
   ;;   :config
   ;;   ;; To disable collection of benchmark data after init is done.
   ;;   (add-hook 'after-init-hook #'benchmark-init/deactivate 100))
@@ -286,6 +302,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | eval-expression-print-level              | nil                                     |
 | fast-but-imprecise-scrolling             | t                                       |
 | frame-inhibit-implied-resize             | t                                       |
+| highlight-nonselected-windows            | t                                       |
 | history-delete-duplicates                | t                                       |
 | history-length                           | 300                                     |
 | hscroll-margin                           | 2                                       |
@@ -317,6 +334,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | project-compilation-buffer-name-function | #'project-prefixed-buffer-name          |
 | read-buffer-completion-ignore-case       | t                                       |
 | read-extended-command-predicate          | #'command-completion-default-include-p  |
+| redisplay-skip-fontification-on-input    | t                                       |
 | resize-mini-windows                      | t                                       |
 | ruby-insert-encoding-magic-comment       | nil                                     |
 | save-interprogram-paste-before-kill      | t                                       |
@@ -335,10 +353,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 | uniquify-buffer-name-style               | 'post-forward-angle-brackets            |
 | use-package-always-defer                 | t                                       |
 | version-control                          | t                                       |
+| warning-display-at-bottom                | nil                                     |
 | window-combination-resize                | t                                       |
 | woman-imenu                              | t                                       |
 | word-wrap                                | t                                       |
 | x-stretch-cursor                         | t                                       |
+| xref-search-program                      | 'ripgrep                                |
 | xref-show-definitions-function           | #'xref-show-definitions-completing-read |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
@@ -623,12 +643,18 @@ better navigations.
 | s-C-<right>     | shrink-window-horizontally      |
 | s-C-<down>      | shrink-window                   |
 | s-C-<up>        | enlarge-window                  |
-| <S-s-up>        | shrink-window                   |
-| <S-s-down>      | enlarge-window                  |
 | <s-down>        | windmove-down                   |
 | <s-up>          | windmove-up                     |
 | <s-left>        | windmove-left                   |
 | <s-right>       | windmove-right                  |
+| <S-s-down>      | windmove-swap-states-down       |
+| <S-s-up>        | windmove-swap-states-up         |
+| <S-s-left>      | windmove-swap-states-left       |
+| <S-s-right>     | windmove-swap-states-right      |
+| C-x <s-down>    | windmove-delete-down            |
+| C-x <s-up>      | windmove-delete-up              |
+| C-x <s-left>    | windmove-delete-left            |
+| C-x <s-right>   | windmove-delete-right           |
 | C-x 5 3         | iconify-frame                   |
 | C-x 5 4         | toggle-frame-fullscreen         |
 | <C-return>      | other-window                    |
@@ -677,7 +703,6 @@ better navigations.
 | M-s l           | sort-lines                      |
 | M-s m           | multi-occur                     |
 | M-s M           | multi-occur-in-matching-buffers |
-| C-c i i         | imenu                           |
 | s-v             | scroll-down-command             |
 | s-M-e           | end-of-defun                    |
 | s-M-a           | beginning-of-defun              |
@@ -798,12 +823,17 @@ More keys that have custom functions. TODO: move these above
                   (save-excursion (other-window 1)
                                   (quit-window))))
 
-   ("C-M--" . (lambda () (interactive)
+   ("C-M--" . text-scale-decrease)
+   ("C-M-=" . text-scale-increase)
+   ("C-M-0" . (lambda () (interactive) (text-scale-set 0)))
+
+   ("M-s--" . (lambda () (interactive)
                 (update-font-size -1 t)))
-   ("C-M-=" . (lambda () (interactive)
+   ("M-s-=" . (lambda () (interactive)
                 (update-font-size 1 t)))
-   ("C-M-0" . (lambda () (interactive)
+   ("M-s-0" . (lambda () (interactive)
                 (update-font-size 12 nil))))
+
 #+END_SRC
 
 Delete current buffer
@@ -892,6 +922,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
+    :disabled
     :custom
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles partial-completion))))
@@ -1065,6 +1096,59 @@ Intelligently adjust Emacs garbage collection size.
     (gcmh-auto-idle-delay-factor 10))
 #+END_SRC
 
+
+**** recentf
+
+#+BEGIN_SRC emacs-lisp
+  (use-package recentf
+    :disabled
+    :demand
+    :custom
+    (recentf-auto-cleanup 'never)
+    (recentf-max-saved-items 1000)
+    :config
+    (recentf-mode 1)
+    (setq recentf-save-file (locate-user-emacs-file "recentf"))
+    ;; I'd rather run cleanup manually, if ever required; running
+    ;; cleanup automatically is a recipe for losing your recentf entries
+    ;; when a disk happens to be unmounted.
+    ;; :hook (kill-emacs . recentf-cleanup)
+    (run-with-idle-timer 10 t #'recentf-save-list))
+#+END_SRC
+
+**** treemacs
+
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs
+  :disabled
+  :demand
+  :preface
+  (defun idemacs-treemacs ()
+    "Initialise Treemacs, or toggle focus to it."
+    (interactive)
+    (pcase (treemacs-current-visibility)
+      ((or 'exists 'visible) (treemacs-select-window))
+      ('none (treemacs--init))))
+  (defun idemacs-treemacs-init ()
+    "Show Treemacs if not visible."
+    (let ((w (selected-window)))
+      (save-excursion (treemacs--init default-directory))
+      (select-window w)))
+  :bind
+  ("C-k C-o" . treemacs-select-directory)
+  ;; In VSCode, this keybinding -
+  ;; 1. (if explorer was closed) opens the explorer
+  ;; 2. (if explorer is open) switches focus between explorer and code
+  ("C-S-e" . idemacs-treemacs)
+  (:map treemacs-mode-map
+        ([mouse-1] . #'treemacs-single-click-expand-action))
+  :config
+  (add-hook 'after-init-hook #'idemacs-treemacs-init 90)
+  (treemacs-project-follow-mode)
+  (setq treemacs--project-follow-delay 0.5)
+  (treemacs-indent-guide-mode))
+#+END_SRC
+
 **** Gnus
 
 [[http://www.gnus.org][Website]]
@@ -1168,6 +1252,18 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
      ("C-S-c C-S-c" . mc/edit-lines)))
 #+END_SRC
 
+**** expand-region
+
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :disabled
+  ;; "Multi-cursor and selection"
+  :bind
+  ("S-M-<right>" . er/expand-region)
+  ("S-M-<left>" . er/contract-region))
+#+END_SRC
+
+
 **** Org
 
 [[https://orgmode.org][Website]]
@@ -1237,6 +1333,8 @@ outliner but also much much more.
     (org-log-done 'time)
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
+    (org-pretty-entities t)
+    (org-indent-mode t)
     :functions pcomplete-completions-at-point
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
@@ -1456,7 +1554,6 @@ Try out packages without installing them.
            (")" . dired-omit-mode)))
 #+END_SRC
 
-
 **** vterm
 
 #+BEGIN_SRC emacs-lisp
@@ -1475,8 +1572,8 @@ Try out packages without installing them.
     (defvar-local vterm-cursor-type-saved nil)
     (defun old-version-of-vterm--get-color (index &rest _args)
       "This is the old version before it was broken by commit
-  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+      https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+      Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
       (cond
        ((and (>= index 0) (< index 16))
         (face-foreground
@@ -1490,8 +1587,8 @@ Try out packages without installing them.
         nil)))
     (defun vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
-    But when clicking to the unused area below the last prompt,
-    move the cursor to the prompt area."
+        But when clicking to the unused area below the last prompt,
+        move the cursor to the prompt area."
       (interactive "e\np")
       (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
           (mouse-set-point event promote-to-region)
@@ -1503,7 +1600,7 @@ Try out packages without installing them.
     ;; turn on cursor in case it’s been disabled
     ;; this allows things that disable cursor like claude-code
     ;; to still be able to enter copy mode.
-    :hook ((vterm-copy-mode-hook . (lambda ()
+    :hook ((vterm-copy-mode . (lambda ()
                                      (if vterm-copy-mode
                                          (progn
                                            (setq-local vterm-cursor-type-saved cursor-type)
@@ -1511,7 +1608,7 @@ Try out packages without installing them.
                                        (progn
                                          (setq-local cursor-type vterm-cursor-type-saved)
                                          ))))
-           (vterm-mode-hook . (lambda ()
+           (vterm-mode . (lambda ()
                                 (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
                                 (buffer-face-mode t)))
            )
@@ -1522,7 +1619,15 @@ Try out packages without installing them.
                 ("s-<backspace>" . vterm--self-insert-meta)
                 ("M-v" . nil)
                 ("M-:" . nil)
-                ("C-v" . nil)))
+                ("C-v" . nil)
+                ("C-q" . vterm-send-next-key)))
+
+  (use-package vterm-toggle
+    :bind (:package vterm
+                    :map vterm-mode-map
+                    ("C-<return>" . vterm-toggle-insert-cd)
+                    ("s-n" . vterm-toggle-forward)
+                    ("s-p" . vterm-toggle-backward)))
 #+END_SRC
 
 **** wgrep
@@ -1670,6 +1775,7 @@ Base mode used for shell and terminal modes.
     :bind (("C-c C-c" . compile)
            :map compilation-mode-map
            ("o" . compile-goto-error))
+    :hook (compilation-filter . ansi-color-compilation-filter)
     :custom
     (compilation-always-kill t)
     (compilation-ask-about-save nil)
@@ -1806,8 +1912,8 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
     :bind (("C-c M-t" . eshell)
            ("C-c x" . eshell)
            ("C-c e" . eshell))
-    :hook (;; (eshell-first-time-mode-hook . eshell-read-history)
-           (eshell-first-time-mode-hook . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command))))
+    :hook (;; (eshell-first-time-mode . eshell-read-history)
+           (eshell-first-time-mode . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command))))
     :preface
     (autoload #'eshell-isearch-return "em-hist")
     (autoload #'eshell-isearch-repeat-backward "em-hist")
@@ -1887,8 +1993,8 @@ eww is enabled so we can open files in non-graphical environments.
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
     :commands (eww-reload)
-    :custom (browse-url-browser-function . #'eww-browse-url)
-    :hook (eww-mode-hook . (lambda ()
+    :custom (browse-url-browser-function . 'eww-browse-url)
+    :hook (eww-mode . (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
                                (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t))))
 #+END_SRC
@@ -2105,17 +2211,20 @@ Make scripts executable automatically.
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
-    (use-package savehist
-      :custom (savehist-additional-variables '(search-ring
-                                              regexp-search-ring
-                                              kill-ring
-                                              comint-input-ring
-                                              kmacro-ring
-                                              sr-history-registry
-                                              file-name-history
-                                              tablist-name-filter))
-      :demand
-      :config (savehist-mode))
+  (use-package savehist
+    :custom (savehist-additional-variables '(search-ring
+                                             regexp-search-ring
+                                             kill-ring
+                                             comint-input-ring
+                                             kmacro-ring
+                                             sr-history-registry
+                                             file-name-history
+                                             tablist-name-filter
+                                             register-alist
+                                             mark-ring
+                                             global-mark-ring))
+    :demand
+    :config (savehist-mode))
 #+END_SRC
 
 **** saveplace-mode
@@ -2414,7 +2523,7 @@ Optionally, start a server (disabled by default):
 #+BEGIN_SRC emacs-lisp
   (use-package view
     :custom (view-read-only t)
-    :hook (view-mode-hook . (lambda () (whitespace-mode -1))))
+    :hook (view-mode . (lambda () (whitespace-mode -1))))
 #+END_SRC
 
 **** which-func
@@ -2465,6 +2574,15 @@ Show whitespace
     :demand
     :config (winner-mode))
 #+END_SRC
+
+**** repeat-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package repeat
+    :demand
+    :config (repeat-mode))
+#+END_SRC
+
 
 *** Programming languages
 
@@ -2907,7 +3025,6 @@ occasionally block Emacs.
                     :map project-prefix-map
                     ("," . envrc-reload))
     :commands (envrc-global-mode)
-    :custom (envrc-none-lighter nil)
     :hook (after-init . envrc-global-mode))
 #+END_SRC
 
@@ -4325,7 +4442,10 @@ Set some defaults that depend on the path variables below,
               "schema/schemas.xml" data-directory)))
    )
 
-  (setq grep-find-command `(,(concat ripgrep-executable " -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 27))
+  (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 27))
+  (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
+  (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
+  (setopt grep-use-null-device nil) ;; since ripgrep supports and is configured to use --with-filename
 #+END_SRC
 
 ** =bootstrap.sh=
@@ -4606,13 +4726,13 @@ Here we define our package set. This will just give us access to all of the
 Emacs packages defined in Nixpkgs.
 
 We also define our Emacs version to use. Mitsuharo’s Emacs package is much
-better for MacOS so we use that when we’re on Darwin systems. Otherwise, just
-default to ‘emacs’ which should be the latest (Nixpkgs-unstable has version 26.1
-currently).
+better for MacOS so we use that when we’re on Darwin systems (now taken over by
+JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
+(Nixpkgs-unstable has version 26.1 currently).
 
 #+BEGIN_SRC nix
   customEmacsPackages = let
-    emacsBinary = if hostPlatform.isDarwin then pkgs'.emacsMacport else pkgs'.emacs;
+    emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
@@ -5042,17 +5162,17 @@ the most direct access to. Global directories should only contain system paths.
       "\C-n": history-search-forward
     $endif
 
-    set keyseq-timeout 1200
-    set colored-stats on
     set colored-completion-prefix on
+    set colored-stats on
     set completion-ignore-case on
     set completion-prefix-display-length 3
     set enable-bracketed-paste on
     set expand-tilde on
-    set menu-complete-display-prefix on
     set mark-symlinked-directories on
+    set menu-complete-display-prefix on
     set show-all-if-ambiguous on
     set show-all-if-unmodified on
+    set skip-completed-text on
     set visible-stats on
 
     $if Bash
