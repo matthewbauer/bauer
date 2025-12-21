@@ -744,8 +744,8 @@ move text.
 
 #+BEGIN_SRC emacs-lisp
   (unless window-system
-    (global-set-key (kbd "<mouse-4>") #'scroll-down-line)
-    (global-set-key (kbd "<mouse-5>") #'scroll-up-line))
+    (global-set-key [mouse-4] #'scroll-down-line)
+    (global-set-key [mouse-5] #'scroll-up-line))
 #+END_SRC
 
 macOS-specific bindings follow. Fullscreen handling should use the macOS
@@ -1585,7 +1585,7 @@ Try out packages without installing them.
         (face-background 'vterm-color-inverse-video nil 'default))
        (t
         nil)))
-    (defun vterm-mouse-set-point (event &optional promote-to-region)
+    (defun my-vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
         But when clicking to the unused area below the last prompt,
         move the cursor to the prompt area."
@@ -1620,7 +1620,8 @@ Try out packages without installing them.
                 ("M-v" . nil)
                 ("M-:" . nil)
                 ("C-v" . nil)
-                ("C-q" . vterm-send-next-key)))
+                ("C-q" . vterm-send-next-key)
+                ([mouse-1] . my-vterm-mouse-set-point)))
 
   (use-package vterm-toggle
     :bind (:package vterm
@@ -1993,7 +1994,7 @@ eww is enabled so we can open files in non-graphical environments.
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
     :commands (eww-reload)
-    :custom (browse-url-browser-function . 'eww-browse-url)
+    :custom (browse-url-browser-function . eww-browse-url)
     :hook (eww-mode . (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
                                (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t))))
@@ -2715,7 +2716,6 @@ didn’t work well enough.
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
     :custom
-    (haskell-compile-cabal-build-command "cabal new-build")
     (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
     (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
@@ -4891,6 +4891,9 @@ have the time to do it currently.
   install -D ${ensure ./site-lisp/monet.el
                        "site-lisp/monet.el"} \
           $out/share/emacs/site-lisp/monet.el
+  install -D ${ensure ./site-lisp/ghci-compilation.el
+                       "site-lisp/ghci-compilation.el"} \
+          $out/share/emacs/site-lisp/ghci-compilation.el
   '';
 #+END_SRC
 
