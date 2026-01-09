@@ -33,28 +33,33 @@
 
 (defvar ghci-compilation-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-r" 'ghci-reload)
-    (define-key map "\C-c\C-g" 'ghci-reload)
+    (define-key map "\C-c\C-r" 'ghci-compilation-reload)
+    (define-key map "\C-c\C-g" 'ghci-compilation-reload)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
-    (define-key map "\M-n" 'ghci-next)
-    (define-key map "\M-p" 'ghci-previous)
-    (define-key map "g" 'ghci-maybe-refresh)
-    (define-key map "\C-m" 'ghci-send-input)
-    (define-key map "\t" 'ghci-maybe-completion-at-point)
+    (define-key map "\M-n" 'ghci-compilation-next)
+    (define-key map "\M-p" 'ghci-compilation-previous)
+    (define-key map "g" 'ghci-compilation-maybe-refresh)
+    (define-key map "\C-m" 'ghci-compilation-send-input)
+    (define-key map "\t" 'ghci-compilation-maybe-completion-at-point)
     map))
 
 (define-derived-mode ghci-compilation-mode comint-mode "Ghci Compilation mode"
   "Major mode for Ghci Compilation Mode.")
 
-(defun ghci-compilation (&optional buffer flake-ref package)
+(defun ghci-compilation (&optional buffer flake-ref package ghci-repl-command)
   "Start ghci."
   (interactive
    (list
     nil
     "."
+    nil
     nil))
   (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name package))))
   (unless flake-ref (setq flake-ref "."))
+  (unless ghci-repl-command
+    (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+                                '("mwb-ghci")
+                              '("cabal" "repl"))))
   (let* ((proc-alive (comint-check-proc buffer))
          (process (get-buffer-process buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
@@ -80,11 +85,32 @@
         (setq-local ghci-compilation-has-loaded-prompt nil)
         (setq-local comint-input-ring-file-name (expand-file-name "ghci-compilation-history" user-emacs-directory))
 
-        (make-comint-in-buffer "ghci-compilation" buffer "nix" nil "develop" flake-ref "-c" "cabal" "repl" (if package package ""))
+        (apply 'make-comint-in-buffer "ghci-compilation" buffer "nix" nil "develop" flake-ref "-c" ghci-repl-command)
 
         (comint-read-input-ring 'silent)
 
-        (setq-local compilation-error-regexp-alist '(gnu))
+        (setq-local compilation-error-regexp-alist `((,(concat
+                                                        "^ *\\([^\n\r\t>]*\s*> \\)?" ;; if using multi-package stack project, remove the package name that is prepended
+                                                        "\\(?1:[^\t\r\n]+?\\):"
+                                                        "\\(?:"
+                                                        "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+                                                        "\\|"
+                                                        "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+                                                        "\\)"
+                                                        ":\\(?6:\n?[ \t]+[Ww]arning:\\)?")
+                                                      1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
+
+                                                     ;; multiple declarations
+                                                     ("^    \\(?:Declared at:\\|            \\) \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
+                                                      1 2 4 0) ;; info locus
+
+                                                     ;; failed tasty tests
+                                                     (".*error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in .*" 1 2 3 2 1)
+                                                     (" +\\(.*\\.hs\\):\\([0-9]+\\):$" 1 2 nil 2 1)
+
+                                                     ;; this is the weakest pattern as it's subject to line wrapping et al.
+                                                     (" at \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?[)]?$"
+                                                      1 2 (4 . 5) 0)))
         (setq-local jit-lock-defer-time nil)
         (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
         (compilation-shell-minor-mode 1)
@@ -350,6 +376,6 @@
   )
 
 ;; (ghci-compilation-bind-keys)
-(ghci-compilation-hooks)
+;; (ghci-compilation-hooks)
 
 (provide 'ghci-compilation)

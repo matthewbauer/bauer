@@ -1421,17 +1421,19 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
       (pcase appearance
         ('light (load-theme 'apropospriate-light t))
         ('dark (load-theme 'apropospriate-dark t))))
-    :hook ((mac-effective-appearance-change . apropospriate-change-theme-appearance)
-           (ns-system-appearance-change-functions . apropospriate-change-theme-appearance))
+    ;; :hook ((mac-effective-appearance-change . apropospriate-change-theme-appearance)
+    ;;        (ns-system-appearance-change-functions . apropospriate-change-theme-appearance))
     :demand
     :config
     (add-to-list 'custom-theme-load-path
                  (file-name-directory
                   (locate-library "apropospriate-theme")))
 
-    (if (eq (frame-parameter nil 'background-mode) 'light)
-        (load-theme 'apropospriate-light t)
-      (load-theme 'apropospriate-dark t)))
+    ;; (if (eq (frame-parameter nil 'background-mode) 'light)
+    ;;     (load-theme 'apropospriate-light t)
+    ;;   (load-theme 'apropospriate-dark t))
+    (load-theme 'apropospriate-dark t)
+    )
 #+END_SRC
 
 While apropospriate is the default, other themes can be used as well! For
@@ -1628,7 +1630,11 @@ Try out packages without installing them.
                     :map vterm-mode-map
                     ("C-<return>" . vterm-toggle-insert-cd)
                     ("s-n" . vterm-toggle-forward)
-                    ("s-p" . vterm-toggle-backward)))
+                    ("s-p" . vterm-toggle-backward))
+    :config
+    (add-to-list 'vterm-toggle-togglable-buffer-functions
+                 (lambda (buf)
+                   (not (string-prefix-p "*claude" (buffer-name buf))))))
 #+END_SRC
 
 **** wgrep
@@ -1994,7 +2000,6 @@ eww is enabled so we can open files in non-graphical environments.
                    (getenv "TERM_PROGRAM")
                    "Apple_Terminal")))
     :commands (eww-reload)
-    :custom (browse-url-browser-function . eww-browse-url)
     :hook (eww-mode . (lambda ()
                                (add-hook 'text-scale-mode-hook (lambda (&rest _) (eww-reload t)) nil t)
                                (add-hook 'window-size-change-functions (lambda (&rest _) (eww-reload t)) nil t))))
@@ -2745,6 +2750,16 @@ didn’t work well enough.
     :mode (("\\.[gh]s\\'" . haskell-ts-mode)
            ("\\.hsig\\'" . haskell-ts-mode)
            ("\\.hsc\\'" . haskell-ts-mode)))
+
+  (use-package ghci-compilation
+    :ensure nil
+    :autoload ghci-compilation-haskell-completion-at-point
+    :bind (("C-x p ." . ghci-compilation)
+           ("C-x C-1" . ghci-compilation-transient-menu)
+           :map haskell-mode-map
+           ("C-c C-l" . ghci-compilation-add-file)
+           ("C-c C-z" . ghci-compilation-switch-to-buffer))
+    :hook (haskell-mode . (lambda () (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point))))
 #+END_SRC
 
 **** JavaScript
