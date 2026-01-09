@@ -76,6 +76,7 @@
 
         (ghci-compilation-mode)
 
+        (setq-local comint-terminfo-terminal "xterm-256color")
         (setq-local comint-prompt-regexp "^ghci> ")
         (setq-local comint-prompt-read-only t)
         (setq-local comint-use-prompt-regexp t)
