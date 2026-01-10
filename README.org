@@ -3582,9 +3582,9 @@ just in case.
       # https://scriptingosx.com/2020/09/macos-version-big-sur-update/
       if [[ $(sw_vers -buildVersion) > 21 ]]; then
         # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
-        /usr/bin/ssh-add -q --apple-load-keychain
+        /usr/bin/ssh-add -q --apple-load-keychain 2> /dev/null
       else
-        /usr/bin/ssh-add -qa
+        /usr/bin/ssh-add -qa 2> /dev/null
       fi
     fi
 
@@ -5230,7 +5230,6 @@ have been configured to use the paths above.
     ] ++ lib.optional hostPlatform.isDarwin "/Applications";
     meta = with lib; {
       description = "Bauer's automated unified Emacs realm";
-      maintainers = with maintainers; [ matthewbauer ];
       platforms = platforms.all;
       priority = 4;
     };
