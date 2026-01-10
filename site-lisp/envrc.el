@@ -546,7 +546,8 @@ CALLBACK the function which will get the return value."
                                                       (/= 9 exit-code)))
                     (display-buffer (current-buffer)))))
               (kill-buffer stdout)
-              (kill-buffer stderr)
+              (let ((kill-buffer-query-functions nil))
+                (kill-buffer stderr))
               result)))
          (sentinel (lambda (process msg)
                      (funcall callback
