@@ -11,6 +11,7 @@
 (require 'haskell-mode)
 (require 'haskell-completions)
 (require 'transient)
+(require 'comint-hyperlink)
 
 (defvar-local ghci-compilation-running nil)
 (defvar-local ghci-compilation-has-loaded-prompt nil)
@@ -76,6 +77,10 @@
 
         (ghci-compilation-mode)
 
+        ;; performance
+        (show-paren-mode -1)
+        (setq-local bidi-inhibit-bpa nil)
+
         (setq-local comint-terminfo-terminal "xterm-256color")
         (setq-local comint-prompt-regexp "^ghci> ")
         (setq-local comint-prompt-read-only t)
@@ -104,14 +109,7 @@
                                                      ;; multiple declarations
                                                      ("^    \\(?:Declared at:\\|            \\) \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
                                                       1 2 4 0) ;; info locus
-
-                                                     ;; failed tasty tests
-                                                     (".*error, called at \\(.*\\.hs\\):\\([0-9]+\\):\\([0-9]+\\) in .*" 1 2 3 2 1)
-                                                     (" +\\(.*\\.hs\\):\\([0-9]+\\):$" 1 2 nil 2 1)
-
-                                                     ;; this is the weakest pattern as it's subject to line wrapping et al.
-                                                     (" at \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?[)]?$"
-                                                      1 2 (4 . 5) 0)))
+                                                     ))
         (setq-local jit-lock-defer-time nil)
         (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
         (compilation-shell-minor-mode 1)
@@ -121,6 +119,7 @@
         (add-hook 'comint-dynamic-complete-functions 'ghci-compilation-complete-at-point nil 'local)
         (setq-local comint-dynamic-complete-functions (delete 'comint-filename-completion comint-dynamic-complete-functions))
         (add-hook 'comint-output-filter-functions 'ghci-compilation-process-output nil 'local)
+        (add-hook 'comint-output-filter-functions 'comint-hyperlink-process-output nil 'local)
         (add-hook 'comint-preoutput-filter-functions 'ghci-compilation-preoutput-filter nil 'local)
 
         (let ((pkgdir (concat (project-root proj) "/local-packages/" package)))
@@ -180,7 +179,7 @@
 
   (if ghci-compilation-has-loaded-prompt
       (let ((buffer (ghci-compilation-get-buffer package)))
-        (compilation-forget-errors)
+        (when compilation-locs (compilation-forget-errors))
         (with-current-buffer buffer
           (let ((inhibit-read-only t))
             (erase-buffer)))

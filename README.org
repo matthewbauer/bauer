@@ -3003,21 +3003,84 @@ repositories.
 **** claude-code
 
 #+BEGIN_SRC emacs-lisp
-  (use-package claude-code
-    :ensure nil
-    :bind ("C-c c" . claude-code-transient)
-    :custom
-    (claude-code-terminal-backend 'vterm)
-    (claude-code-vterm-multiline-delay 0.02)
-    (claude-code-startup-delay 0.2))
+    (use-package claude-code
+      :ensure nil
+      :bind ("C-c c" . claude-code-transient)
+      :custom
+      (claude-code-terminal-backend 'vterm)
+      (claude-code-vterm-multiline-delay 0.02)
+      (claude-code-startup-delay 0.2))
 
-  (use-package websocket)
+    (use-package websocket)
 
-  (use-package monet
-    :ensure nil
-    :custom (monet-prefix-key nil)
-    :hook (claude-code-process-environment-functions . monet-start-server-function))
+    (use-package monet
+      :ensure nil
+      :custom (monet-prefix-key nil)
+      :hook (claude-code-process-environment-functions . monet-start-server-function))
+
+    (use-package minuet
+      :bind
+      (;; ("C-c m" . minuet-complete-with-minibuffer) ;; use minibuffer for completion
+       ;; ("M-ai" . minuet-show-suggestion) ;; use overlay for completion
+       :map minuet-active-mode-map
+       ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
+       ("M-p" . minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+       ("M-n" . minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+       ("M-A" . minuet-accept-suggestion) ;; accept whole completion
+       ;; Accept the first line of completion, or N lines with a numeric-prefix:
+       ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
+       ("M-a" . minuet-accept-suggestion-line)
+       ("M-e" . minuet-dismiss-suggestion))
+      :hook (prog-mode . minuet-auto-suggestion-mode)
+      :custom
+      (minuet-provider 'openai-fim-compatible)
+      (minuet-n-completions 1)
+      (minuet-context-window 512)
+      (minuet-add-single-line-entry t)
+      (minuet-auto-suggestion-debounce-delay 0.3)
+      :config
+      (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:8012/v1/completions")
+      (plist-put minuet-openai-fim-compatible-options :name "Llama.cpp")
+      (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+      (plist-put minuet-openai-fim-compatible-options :model "gemma-3-1b")
+
+      (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56))
+
+  ;; (use-package gptel)
+  ;; (use-package request)
+
+  ;; (use-package wingman
+  ;;   :custom
+  ;;   (wingman-prefix-key (kbd "C-c w"))
+  ;;   (wingman-log-level 4)
+  ;;   (wingman-ring-n-chunks 16)
+  ;;   :hook (prog-mode . wingman-mode)
+  ;;
+  ;;   :config
+  ;;
+  ;;   ;; don't provide completions in files that typically contain secrets
+  ;;   (add-to-list 'wingman-disable-predicates
+  ;;                (lambda ()
+  ;;                  (or (derived-mode-p 'envrc-file-mode)
+  ;;                      (derived-mode-p 'direnv-envrc-mode)
+  ;;                      (when buffer-file-name
+  ;;                        (let ((fname (file-name-nondirectory buffer-file-name)))
+  ;;                          (or (string-equal ".env" fname)
+  ;;                              (string-equal ".envrc" fname)
+  ;;                              (string-prefix-p ".localrc" fname)))))))
+  ;;
+  ;;   :bind
+  ;;   ((:map wingman-mode-prefix-map
+  ;;    ("TAB" . wingman-fim)              ; Request Native FIM
+  ;;    ("S-TAB" . wingman-fim-emulated)   ; Request Emulated FIM
+  ;;    ("d" . wingman-fim-debug))
+  ;;
+  ;;    :map wingman-mode-completion-transient-map
+  ;;    ("TAB" . wingman-accept-full)
+  ;;    ("S-TAB" . wingman-accept-line)
+  ;;    ("M-S-TAB" . wingman-accept-word)))
 #+END_SRC
+
 
 **** dired-column
 **** em-dired
@@ -3070,43 +3133,11 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
-**** aidermacs
-
-disabled
+**** agent-shell
 
 #+BEGIN_SRC emacs-lisp
-  (use-package aidermacs
-    :disabled
-    :bind (("C-x C-a" . aidermacs-transient-menu))
-    :config
-    (defun api-key-from-auth-source (host &optional user)
-      "Lookup api key in the auth source.
-  By default, the LLM host for the active backend is used as HOST,
-  and \"apikey\" as USER."
-      (if-let* ((secret
-                 (plist-get
-                  (car (auth-source-search
-                        :host host
-                        :user (or user "apikey")
-                        :require '(:secret)))
-                  :secret)))
-          (if (functionp secret)
-              (encode-coding-string (funcall secret) 'utf-8)
-            secret)
-        (user-error "No `gptel-api-key' found in the auth source")))
-    (setenv "OPENROUTER_API_KEY" (api-key-from-auth-source "openrouter.ai"))
-    (setenv "ANTHROPIC_API_KEY" (api-key-from-auth-source "anthropic.com"))
-    :custom
-    (aidermacs-default-model "anthropic/claude-sonnet-4-20250514")
-    (aidermacs-architect-model "anthropic/claude-sonnet-4-20250514")
-    (aidermacs-editor-model "anthropic/claude-sonnet-4-20250514")
-    ;; (aidermacs-default-model "sonnet")
-    ;; (aidermacs-architect-model "haiku")
-    ;; (aidermacs-architect-model "sonnet")
-    ;; (aidermacs-editor-model "sonnet")
-    (aidermacs-backend 'comint)
-    (aidermacs-watch-files t)
-    (aidermacs-show-diff-after-change nil))
+(use-package agent-shell
+  :custom (agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t)))
 #+END_SRC
 
 **** bats-mode
@@ -3187,7 +3218,15 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dumb-jump
-    :hook (xref-backend-functions . dumb-jump-xref-activate))
+    :hook (xref-backend-functions . dumb-jump-xref-activate)
+    :config
+    (defun my-dumb-jump-get-language-from-aliases (lang)
+      "Extract the lang from LANG and aliases."
+      (assoc-default lang '(("sh" . "shell") ("shell" . "shell") ("cperl" . "perl")
+                            ("matlab" . "matlab") ("octave" . "matlab")
+                            ("emacs-lisp" . "elisp") ("elisp" . "elisp")
+                            ("R" . "r") ("r" . "r") ("ghci-compilation" . "haskell"))))
+    (advice-add #'dumb-jump-get-language-from-aliases :override #'my-dumb-jump-get-language-from-aliases))
 #+END_SRC
 
 **** emacs-gif-screencast
@@ -4457,10 +4496,10 @@ Set some defaults that depend on the path variables below,
               "schema/schemas.xml" data-directory)))
    )
 
-  (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 27))
-  (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
-  (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
-  (setopt grep-use-null-device nil) ;; since ripgrep supports and is configured to use --with-filename
+  ;; (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 86))
+  ;; (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
+  ;; (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
+  ;; (setopt grep-use-null-device nil) ;; since ripgrep supports and is configured to use --with-filename
 #+END_SRC
 
 ** =bootstrap.sh=

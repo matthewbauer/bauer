@@ -50,6 +50,8 @@
 (defvar comint-hyperlink-control-seq-regexp
   "\e\\]8;;\\([^\a\e]*\\)[\a\e]\\(?:\\\\\\)?\\([^\e]*\\)\e]8;;[\a\e]\\(?:\\\\\\)?")
 
+(defvar comint-hyperlink-control-seq-regexp-start "\e\\]8")
+
 (defvar comint-hyperlink-file-regexp
   "^file://\\([^/]*\\)")
 
@@ -113,7 +115,9 @@ Asks for confirmation with ‘yes-or-no-p’"
   'action (lambda (x) (funcall comint-hyperlink-action
                                (button-get x 'comint-hyperlink-url))))
 
-(defvar-local comint-hyperlink-escape-start nil)
+(defvar comint-last-output-start)
+
+(defvar-local comint-hyperlink-context-region nil)
 
 ;;;###autoload
 (defun comint-hyperlink-process-output (&optional _)
@@ -121,40 +125,41 @@ Asks for confirmation with ‘yes-or-no-p’"
 
 This is a good function to put in
 `comint-output-filter-functions'."
-  (interactive)
   (when comint-hyperlink-for-comint-mode
-    (let ((start-marker (or ;; (cadr ansi-color-context-region)
-			 comint-hyperlink-escape-start
-                         (if (and (markerp comint-last-output-start)
-                                  (eq (marker-buffer comint-last-output-start)
-                                      (current-buffer))
-                                  (marker-position comint-last-output-start))
-                             comint-last-output-start
-                           (point-min-marker))))
-          (end-marker (process-mark (get-buffer-process (current-buffer)))))
+    (unless comint-hyperlink-context-region
+      (setq comint-hyperlink-context-region (make-marker)))
+
+    (unless (marker-position comint-hyperlink-context-region)
+      (set-marker comint-hyperlink-context-region
+                  (if (and (markerp comint-last-output-start)
+	                   (eq (marker-buffer comint-last-output-start)
+		               (current-buffer))
+	                   (marker-position comint-last-output-start))
+	              (marker-position comint-last-output-start)
+                    (point-min))))
+
+    (let ((start-marker comint-hyperlink-context-region)
+          (end-marker (copy-marker (process-mark (get-buffer-process (current-buffer))))))
 
       (save-excursion
         (goto-char start-marker)
         (while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
           (let ((url (match-string 1)) (text (match-string 2)))
-            (cond
-             ((eq comint-hyperlink-for-comint-mode 'filter)
-              (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
-              (delete-region (match-beginning 0) (match-end 0))
-              (insert text))
-             ((eq comint-hyperlink-for-comint-mode t)
-              (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
-              (delete-region (match-beginning 0) (match-end 0))
-              (insert-button text
-                             'type 'comint-hyperlink
-                             'comint-hyperlink-url (url-unhex-string url)
-                             'help-echo (format "Visit %s"
-                                                (url-unhex-string url)))))))
+            (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
+            (delete-region (match-beginning 0) (match-end 0))
+            (insert-before-markers text)
+            (when (eq comint-hyperlink-for-comint-mode t)
+              (make-text-button (match-beginning 0) (point)
+                                'type 'comint-hyperlink
+                                'comint-hyperlink-url (url-unhex-string url)
+                                'help-echo (format "Visit %s"
+                                                   (url-unhex-string url))))))
 
-        ;; Save ending escape sequence that isn’t closed
-	(if (re-search-forward "\e\\]8" end-marker t)
-	    (setq comint-hyperlink-escape-start (match-beginning 0))
-	  (setq comint-hyperlink-escape-start nil))))))
+        ;; search for the possible start of a new escape sequence
+        (while (re-search-forward comint-hyperlink-control-seq-regexp-start end-marker t))
+        (set-marker start-marker (when (and (/= (point) start-marker) (= (point) end-marker)) (match-beginning 0))))
+
+      (set-marker end-marker nil))))
 
 (provide 'comint-hyperlink)
 ;;; comint-hyperlink.el ends here
