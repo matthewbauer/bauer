@@ -2661,10 +2661,9 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
-    :custom (eglot-ignored-server-capabilities '(:inlayHintProvider))
     :config
-    (add-to-list 'eglot-server-programs '(haskell-mode . ("static-ls")))
-    (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("static-ls"))))
+    (add-to-list 'eglot-server-programs
+                 `((haskell-mode haskell-ts-mode) . ,(eglot-alternatives '(("static-ls") ("haskell-language-server-wrapper" "--lsp"))))))
 #+END_SRC
 
 **** Bazel
