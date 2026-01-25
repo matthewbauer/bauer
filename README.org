@@ -281,10 +281,12 @@ The format of arguments to =set-defaults= is identical to the one used by
 | apropos-do-all                           | t                                       |
 | async-shell-command-buffer               | 'new-buffer                             |
 | auth-source-save-behavior                | t                                       |
+| auto-mode-case-fold                      | nil                                     |
 | auto-window-vscroll                      | nil                                     |
 | backward-delete-char-untabify-method     | 'hungry                                 |
 | blink-cursor-mode                        | nil                                     |
 | bookmark-save-flag                       | 1                                       |
+| calendar-view-holidays-initially-flag    | t                                       |
 | case-fold-search                         | t                                       |
 | checkdoc-spellcheck-documentation-flag   | t                                       |
 | comment-empty-lines                      | t                                       |
@@ -297,6 +299,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | custom-search-field                      | nil                                     |
 | delete-by-moving-to-trash                | t                                       |
 | delete-old-versions                      | t                                       |
+| ediff-keep-variants                      | nil                                     |
+| ediff-show-clashes-only                  | t                                       |
+| ediff-split-window-function              | #'split-window-horizontally             |
 | ediff-window-setup-function              | #'ediff-setup-windows-plain             |
 | enable-recursive-minibuffers             | t                                       |
 | eval-expression-print-level              | nil                                     |
@@ -1051,6 +1056,86 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
+**** dired
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dired
+    :ensure nil
+    :custom
+    (dired-dwim-target t)
+    (dired-hide-details-hide-symlink-targets nil)
+    (dired-omit-verbose nil)
+    (dired-omit-files "^\\.\\|^#.*#$")
+    (dired-listing-switches "-alhv --group-directories-first")
+    (dired-create-destination-dirs 'ask)
+    :autoload (dired-get-filename)
+    :preface
+    (autoload #'term-set-escape-char "term")
+    (defun dired-run-command (&optional filename)
+      "Run file at point in a new buffer."
+      (interactive)
+      (unless filename
+        (setq filename (expand-file-name
+                        (dired-get-filename t t)
+                        default-directory)))
+      (let ((buffer (make-term
+                     (file-name-nondirectory filename)
+                     filename))
+            (buffer-read-only nil))
+        (with-current-buffer buffer
+          ;; (term-mode)
+          (term-char-mode)
+          (term-set-escape-char ?\C-x))
+        (set-process-sentinel
+         (get-buffer-process buffer)
+         (lambda (proc _event)
+           (when (not (process-live-p proc))
+             (kill-buffer (process-buffer proc)))))
+        (switch-to-buffer buffer)))
+    :bind (("C-c J" . dired-double-jump)
+           :package dired
+           :map dired-mode-map
+           ("C-c C-c" . compile)
+           ("r" . term)
+           ("M-@" . shell)
+           ("M-*" . eshell)
+           ("W" . browse-url-of-dired-file)
+           ("@" . dired-run-command)))
+#+END_SRC
+
+***** dired-column
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dired-column
+    :ensure nil
+    :bind (:package dired
+                    :map dired-mode-map
+                    ("o" . dired-column-find-file)))
+#+END_SRC
+
+***** dired-subtree
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dired-subtree
+    :bind (:package dired
+                    :map dired-mode-map
+                    ("<tab>" . dired-subtree-toggle)
+                    ("TAB" . dired-subtree-toggle)
+                    ("<backtab>" . dired-subtree-cycle)))
+#+END_SRC
+
+***** dired-x
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dired-x
+    :ensure nil
+    :hook ((dired-mode . dired-omit-mode))
+    :bind (("s-\\" . dired-jump-other-window)
+           :package dired
+           :map dired-mode-map
+           (")" . dired-omit-mode)))
+#+END_SRC
+
 **** dtrt-indent
 
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
@@ -1078,6 +1163,18 @@ disabled
   :after (embark consult))
 #+END_SRC
 
+**** expand-region
+
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :disabled
+  ;; "Multi-cursor and selection"
+  :bind
+  ("S-M-<right>" . er/expand-region)
+  ("S-M-<left>" . er/contract-region))
+#+END_SRC
+
+
 **** GCMH
 
 [[https://github.com/emacsmirror/gcmh][GitHub]]
@@ -1096,58 +1193,6 @@ Intelligently adjust Emacs garbage collection size.
     (gcmh-auto-idle-delay-factor 10))
 #+END_SRC
 
-
-**** recentf
-
-#+BEGIN_SRC emacs-lisp
-  (use-package recentf
-    :disabled
-    :demand
-    :custom
-    (recentf-auto-cleanup 'never)
-    (recentf-max-saved-items 1000)
-    :config
-    (recentf-mode 1)
-    (setq recentf-save-file (locate-user-emacs-file "recentf"))
-    ;; I'd rather run cleanup manually, if ever required; running
-    ;; cleanup automatically is a recipe for losing your recentf entries
-    ;; when a disk happens to be unmounted.
-    ;; :hook (kill-emacs . recentf-cleanup)
-    (run-with-idle-timer 10 t #'recentf-save-list))
-#+END_SRC
-
-**** treemacs
-
-#+BEGIN_SRC emacs-lisp
-(use-package treemacs
-  :disabled
-  :demand
-  :preface
-  (defun idemacs-treemacs ()
-    "Initialise Treemacs, or toggle focus to it."
-    (interactive)
-    (pcase (treemacs-current-visibility)
-      ((or 'exists 'visible) (treemacs-select-window))
-      ('none (treemacs--init))))
-  (defun idemacs-treemacs-init ()
-    "Show Treemacs if not visible."
-    (let ((w (selected-window)))
-      (save-excursion (treemacs--init default-directory))
-      (select-window w)))
-  :bind
-  ("C-k C-o" . treemacs-select-directory)
-  ;; In VSCode, this keybinding -
-  ;; 1. (if explorer was closed) opens the explorer
-  ;; 2. (if explorer is open) switches focus between explorer and code
-  ("C-S-e" . idemacs-treemacs)
-  (:map treemacs-mode-map
-        ([mouse-1] . #'treemacs-single-click-expand-action))
-  :config
-  (add-hook 'after-init-hook #'idemacs-treemacs-init 90)
-  (treemacs-project-follow-mode)
-  (setq treemacs--project-follow-delay 0.5)
-  (treemacs-indent-guide-mode))
-#+END_SRC
 
 **** Gnus
 
@@ -1249,20 +1294,31 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
      ("M-<mouse-1>" . mc/add-cursor-on-click)
      ("C-c C-<"     . mc/mark-all-like-this)
      ("C-!"         . mc/mark-next-symbol-like-this)
-     ("C-S-c C-S-c" . mc/edit-lines)))
+     ("C-S-c C-S-c" . mc/edit-lines)
+     ("M-A" . symbol-overlay-mc-mark-all))
+    :preface
+    (defun symbol-overlay-mc-mark-all ()
+      "Mark all symbol overlays using multiple cursors."
+      (interactive)
+      (when-let* ((overlays (symbol-overlay-get-list 0))
+                  (point (point))
+                  (point-overlay (seq-find
+                                  (lambda (overlay)
+                                    (and (<= (overlay-start overlay) point)
+                                         (<= point (overlay-end overlay))))
+                                  overlays))
+                  (offset (- point (overlay-start point-overlay))))
+        (setq deactivate-mark t)
+        (mapc (lambda (overlay)
+                (unless (eq overlay point-overlay)
+                  (save-excursion
+                   (goto-char (+ (overlay-start overlay) offset))
+                   (mc/create-fake-cursor-at-point))))
+              overlays)
+        (mc/maybe-multiple-cursors-mode)))
+    :config
+    (add-to-list 'mc--default-cmds-to-run-once 'symbol-overlay-mc-mark-all t))
 #+END_SRC
-
-**** expand-region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :disabled
-  ;; "Multi-cursor and selection"
-  :bind
-  ("S-M-<right>" . er/expand-region)
-  ("S-M-<left>" . er/contract-region))
-#+END_SRC
-
 
 **** Org
 
@@ -1368,6 +1424,24 @@ Automatically save the scratch buffer.
     :config (persistent-scratch-autosave-mode))
 #+END_SRC
 
+**** recentf
+
+#+BEGIN_SRC emacs-lisp
+  (use-package recentf
+    :demand
+    :custom
+    (recentf-auto-cleanup 'never)
+    (recentf-max-saved-items 1000)
+    :config
+    (recentf-mode 1)
+    (setq recentf-save-file (locate-user-emacs-file "recentf"))
+    ;; I'd rather run cleanup manually, if ever required; running
+    ;; cleanup automatically is a recipe for losing your recentf entries
+    ;; when a disk happens to be unmounted.
+    ;; :hook (kill-emacs . recentf-cleanup)
+    (run-with-idle-timer 10 t #'recentf-save-list))
+#+END_SRC
+
 **** smart-hungry-delete
 
 [[https://github.com/hrehfeld/emacs-smart-hungry-delete][GitHub]]
@@ -1400,6 +1474,17 @@ achieve this).
 #+BEGIN_SRC emacs-lisp
   (use-package sudo-edit
     :bind (("C-c C-r" . sudo-edit)))
+#+END_SRC
+
+**** symbol-overlay
+
+#+BEGIN_SRC emacs-lisp
+  (use-package symbol-overlay
+    :delight
+    :hook ((prog-mode . symbol-overlay-mode))
+    :bind (:map symbol-overlay-mode-map
+           (("M-n" . symbol-overlay-jump-next)
+            ("M-p" . symbol-overlay-jump-prev))))
 #+END_SRC
 
 **** Theme
@@ -1451,6 +1536,39 @@ instance spacemacs-theme can be enabled:
     (load-theme 'spacemacs-dark t))
 #+END_SRC
 
+**** treemacs
+
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs
+  :disabled
+  :demand
+  :preface
+  (defun idemacs-treemacs ()
+    "Initialise Treemacs, or toggle focus to it."
+    (interactive)
+    (pcase (treemacs-current-visibility)
+      ((or 'exists 'visible) (treemacs-select-window))
+      ('none (treemacs--init))))
+  (defun idemacs-treemacs-init ()
+    "Show Treemacs if not visible."
+    (let ((w (selected-window)))
+      (save-excursion (treemacs--init default-directory))
+      (select-window w)))
+  :bind
+  ("C-k C-o" . treemacs-select-directory)
+  ;; In VSCode, this keybinding -
+  ;; 1. (if explorer was closed) opens the explorer
+  ;; 2. (if explorer is open) switches focus between explorer and code
+  ("C-S-e" . idemacs-treemacs)
+  (:map treemacs-mode-map
+        ([mouse-1] . #'treemacs-single-click-expand-action))
+  :config
+  (add-hook 'after-init-hook #'idemacs-treemacs-init 90)
+  (treemacs-project-follow-mode)
+  (setq treemacs--project-follow-delay 0.5)
+  (treemacs-indent-guide-mode))
+#+END_SRC
+
 **** try
 
 [[https://github.com/larstvei/Try][GitHub]]
@@ -1476,86 +1594,6 @@ Try out packages without installing them.
     :config (global-undo-tree-mode))
 #+END_SRC
 
-**** dired
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dired
-    :ensure nil
-    :custom
-    (dired-dwim-target t)
-    (dired-hide-details-hide-symlink-targets nil)
-    (dired-omit-verbose nil)
-    (dired-omit-files "^\\.\\|^#.*#$")
-    (dired-listing-switches "-alhv --group-directories-first")
-    (dired-create-destination-dirs 'ask)
-    :autoload (dired-get-filename)
-    :preface
-    (autoload #'term-set-escape-char "term")
-    (defun dired-run-command (&optional filename)
-      "Run file at point in a new buffer."
-      (interactive)
-      (unless filename
-        (setq filename (expand-file-name
-                        (dired-get-filename t t)
-                        default-directory)))
-      (let ((buffer (make-term
-                     (file-name-nondirectory filename)
-                     filename))
-            (buffer-read-only nil))
-        (with-current-buffer buffer
-          ;; (term-mode)
-          (term-char-mode)
-          (term-set-escape-char ?\C-x))
-        (set-process-sentinel
-         (get-buffer-process buffer)
-         (lambda (proc _event)
-           (when (not (process-live-p proc))
-             (kill-buffer (process-buffer proc)))))
-        (switch-to-buffer buffer)))
-    :bind (("C-c J" . dired-double-jump)
-           :package dired
-           :map dired-mode-map
-           ("C-c C-c" . compile)
-           ("r" . term)
-           ("M-@" . shell)
-           ("M-*" . eshell)
-           ("W" . browse-url-of-dired-file)
-           ("@" . dired-run-command)))
-#+END_SRC
-
-***** dired-column
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dired-column
-    :ensure nil
-    :bind (:package dired
-                    :map dired-mode-map
-                    ("o" . dired-column-find-file)))
-#+END_SRC
-
-***** dired-subtree
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dired-subtree
-    :bind (:package dired
-                    :map dired-mode-map
-                    ("<tab>" . dired-subtree-toggle)
-                    ("TAB" . dired-subtree-toggle)
-                    ("<backtab>" . dired-subtree-cycle)))
-#+END_SRC
-
-***** dired-x
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dired-x
-    :ensure nil
-    :hook ((dired-mode . dired-omit-mode))
-    :bind (("s-\\" . dired-jump-other-window)
-           :package dired
-           :map dired-mode-map
-           (")" . dired-omit-mode)))
-#+END_SRC
-
 **** vterm
 
 #+BEGIN_SRC emacs-lisp
@@ -1571,22 +1609,22 @@ Try out packages without installing them.
     (vterm-max-scrollback 10000)
     (vterm-copy-mode-remove-fake-newlines t)
     :preface
-    (defvar-local vterm-cursor-type-saved nil)
-    (defun old-version-of-vterm--get-color (index &rest _args)
-      "This is the old version before it was broken by commit
-      https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-      Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-      (cond
-       ((and (>= index 0) (< index 16))
-        (face-foreground
-         (elt vterm-color-palette index)
-         nil 'default))
-       ((= index -11)
-        (face-foreground 'vterm-color-underline nil 'default))
-       ((= index -12)
-        (face-background 'vterm-color-inverse-video nil 'default))
-       (t
-        nil)))
+    ;; (defvar-local vterm-cursor-type-saved nil)
+    ;; (defun old-version-of-vterm--get-color (index &rest _args)
+    ;;   "This is the old version before it was broken by commit
+    ;;   https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+    ;;   Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+    ;;   (cond
+    ;;    ((and (>= index 0) (< index 16))
+    ;;     (face-foreground
+    ;;      (elt vterm-color-palette index)
+    ;;      nil 'default))
+    ;;    ((= index -11)
+    ;;     (face-foreground 'vterm-color-underline nil 'default))
+    ;;    ((= index -12)
+    ;;     (face-background 'vterm-color-inverse-video nil 'default))
+    ;;    (t
+    ;;     nil)))
     (defun my-vterm-mouse-set-point (event &optional promote-to-region)
       "Move point to the position clicked on with the mouse.
         But when clicking to the unused area below the last prompt,
@@ -1597,23 +1635,23 @@ Try out packages without installing them.
         (vterm-reset-cursor-point)))
 
     :config
-    (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
+    ;; (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
 
     ;; turn on cursor in case it’s been disabled
     ;; this allows things that disable cursor like claude-code
     ;; to still be able to enter copy mode.
-    :hook ((vterm-copy-mode . (lambda ()
-                                     (if vterm-copy-mode
-                                         (progn
-                                           (setq-local vterm-cursor-type-saved cursor-type)
-                                           (setq-local cursor-type t))
-                                       (progn
-                                         (setq-local cursor-type vterm-cursor-type-saved)
-                                         ))))
-           (vterm-mode . (lambda ()
-                                (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
-                                (buffer-face-mode t)))
-           )
+    ;; :hook ((vterm-copy-mode . (lambda ()
+    ;;                                  (if vterm-copy-mode
+    ;;                                      (progn
+    ;;                                        (setq-local vterm-cursor-type-saved cursor-type)
+    ;;                                        (setq-local cursor-type t))
+    ;;                                    (progn
+    ;;                                      (setq-local cursor-type vterm-cursor-type-saved)
+    ;;                                      ))))
+    ;;        (vterm-mode . (lambda ()
+    ;;                             (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
+    ;;                             (buffer-face-mode t)))
+    ;;        )
     :bind (:map vterm-mode-map
                 ("s-f" . vterm--self-insert-meta)
                 ("s-b" . vterm--self-insert-meta)
@@ -1648,19 +1686,6 @@ Try out packages without installing them.
 These are available automatically, so these =use-package= blocks just
 configure them.
 
-**** completion-preview-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package completion-preview
-    :if (>= emacs-major-version 30)
-    :delight
-    :hook (((prog-mode text-mode comint-mode) . completion-preview-mode))
-    :bind (:map completion-preview-active-mode-map
-                ("M-n" . completion-preview-next-candidate)
-                ("M-p" . completion-preview-prev-candidate)
-                ("M-i" . completion-preview-insert)))
-#+END_SRC
-
 **** autorevert
 
 Autorevert mode makes files update when they have changed on disk. Unfortunately
@@ -1672,9 +1697,6 @@ investigate how to fix this.
     :demand
     :custom
     (auto-revert-avoid-polling t)
-    (auto-revert-check-vc-info t)
-    (auto-revert-interval 2)
-    (auto-revert-verbose t)
     :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -1814,6 +1836,19 @@ Base mode used for shell and terminal modes.
         (if compile-buf
             (switch-to-buffer-other-window compile-buf)
           (call-interactively #'compile)))))
+#+END_SRC
+
+**** completion-preview-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package completion-preview
+    :if (>= emacs-major-version 30)
+    :delight
+    :hook (((prog-mode text-mode comint-mode) . completion-preview-mode))
+    :bind (:map completion-preview-active-mode-map
+                ("M-n" . completion-preview-next-candidate)
+                ("M-p" . completion-preview-prev-candidate)
+                ("M-i" . completion-preview-insert)))
 #+END_SRC
 
 **** conf-mode
@@ -2214,6 +2249,17 @@ Make scripts executable automatically.
       (push '("=>" . ?⇒) prettify-symbols-alist)))
 #+END_SRC
 
+**** repeat-mode
+
+#+BEGIN_SRC emacs-lisp
+  (use-package repeat
+    :demand
+    :config (repeat-mode)
+    :custom
+    (repeat-exit-timeout 0.5)
+    (ring-bell-function 'ignore))
+#+END_SRC
+
 **** savehist-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2573,6 +2619,30 @@ Show whitespace
     :hook (prog-mode . whitespace-mode))
 #+END_SRC
 
+**** window
+
+#+BEGIN_SRC emacs-lisp
+  (use-package window
+    :ensure nil
+    :bind (("C-x 2" . ar/vsplit-last-buffer)
+           ("C-x 3" . ar/hsplit-last-buffer))
+    :preface
+    ;; From http://www.reddit.com/r/emacs/comments/25v0eo/you_emacs_tips_and_tricks/chldury
+    (defun ar/vsplit-last-buffer ()
+      "Vertically splitting the screen and open the previous buffer instead of identical buffers."
+      (interactive)
+      (split-window-vertically)
+      (other-window 1 nil)
+      (switch-to-next-buffer))
+
+    (defun ar/hsplit-last-buffer ()
+      "Horizontally splitting the screen and open the previous buffer instead of identical buffers."
+      (interactive)
+      (split-window-horizontally)
+      (other-window 1 nil)
+      (switch-to-next-buffer)))
+#+END_SRC
+
 **** winner-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2580,15 +2650,6 @@ Show whitespace
     :demand
     :config (winner-mode))
 #+END_SRC
-
-**** repeat-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package repeat
-    :demand
-    :config (repeat-mode))
-#+END_SRC
-
 
 *** Programming languages
 
@@ -2604,6 +2665,13 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :config
     (add-to-list 'eglot-server-programs '(haskell-mode . ("static-ls")))
     (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("static-ls"))))
+#+END_SRC
+
+**** Bazel
+
+#+BEGIN_SRC emacs-lisp
+  (use-package bazel
+    :mode ((rx ?/ (or "BUILD" "BUILD.bazel") eos) . bazel-build-mode))
 #+END_SRC
 
 **** CMake
@@ -2622,7 +2690,12 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package csv-mode
     :hook ((csv-mode . (lambda () (visual-line-mode -1)))
            (csv-mode . (lambda () (auto-fill-mode -1)))
-           (csv-mode . (lambda () (setq-local truncate-lines nil)))))
+           (csv-mode . (lambda () (setq-local truncate-lines nil)))
+           ;; (csv-mode . csv-align-mode)
+           )
+    :bind (:map csv-mode-map
+                ("<tab>" . csv-forward-field)
+                ("<backtab>" . csv-backward-field)))
 #+END_SRC
 
 **** Dockerfile
@@ -2946,15 +3019,6 @@ disabled
     )
 #+END_SRC
 
-**** YAML
-
-#+BEGIN_SRC emacs-lisp
-  (use-package yaml-ts-mode
-    :if (treesit-language-available-p 'yaml)
-    :mode (("\\.ya?ml\\'" . yaml-ts-mode))
-    )
-#+END_SRC
-
 **** Scala
 
 [[https://github.com/hvesalai/emacs-scala-mode][GitHub]]
@@ -2995,6 +3059,15 @@ disabled
   (use-package texinfo)
 #+END_SRC
 
+**** YAML
+
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-ts-mode
+    :if (treesit-language-available-p 'yaml)
+    :mode (("\\.ya?ml\\'" . yaml-ts-mode))
+    )
+#+END_SRC
+
 *** Custom
 
 These are all available in [[./site-lisp][./site-lisp]]. Eventually they should go into separate
@@ -3003,84 +3076,55 @@ repositories.
 **** claude-code
 
 #+BEGIN_SRC emacs-lisp
-    (use-package claude-code
-      :ensure nil
-      :bind ("C-c c" . claude-code-transient)
-      :custom
-      (claude-code-terminal-backend 'vterm)
-      (claude-code-vterm-multiline-delay 0.02)
-      (claude-code-startup-delay 0.2))
+  (use-package websocket)
+  (use-package web-server)
 
-    (use-package websocket)
-
-    (use-package monet
-      :ensure nil
-      :custom (monet-prefix-key nil)
-      :hook (claude-code-process-environment-functions . monet-start-server-function))
-
-    (use-package minuet
-      :bind
-      (;; ("C-c m" . minuet-complete-with-minibuffer) ;; use minibuffer for completion
-       ;; ("M-ai" . minuet-show-suggestion) ;; use overlay for completion
-       :map minuet-active-mode-map
-       ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
-       ("M-p" . minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-       ("M-n" . minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-       ("M-A" . minuet-accept-suggestion) ;; accept whole completion
-       ;; Accept the first line of completion, or N lines with a numeric-prefix:
-       ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
-       ("M-a" . minuet-accept-suggestion-line)
-       ("M-e" . minuet-dismiss-suggestion))
-      :hook (prog-mode . minuet-auto-suggestion-mode)
-      :custom
-      (minuet-provider 'openai-fim-compatible)
-      (minuet-n-completions 1)
-      (minuet-context-window 512)
-      (minuet-add-single-line-entry t)
-      (minuet-auto-suggestion-debounce-delay 0.3)
-      :config
-      (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:8012/v1/completions")
-      (plist-put minuet-openai-fim-compatible-options :name "Llama.cpp")
-      (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
-      (plist-put minuet-openai-fim-compatible-options :model "gemma-3-1b")
-
-      (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 56))
-
-  ;; (use-package gptel)
-  ;; (use-package request)
-
-  ;; (use-package wingman
-  ;;   :custom
-  ;;   (wingman-prefix-key (kbd "C-c w"))
-  ;;   (wingman-log-level 4)
-  ;;   (wingman-ring-n-chunks 16)
-  ;;   :hook (prog-mode . wingman-mode)
-  ;;
-  ;;   :config
-  ;;
-  ;;   ;; don't provide completions in files that typically contain secrets
-  ;;   (add-to-list 'wingman-disable-predicates
-  ;;                (lambda ()
-  ;;                  (or (derived-mode-p 'envrc-file-mode)
-  ;;                      (derived-mode-p 'direnv-envrc-mode)
-  ;;                      (when buffer-file-name
-  ;;                        (let ((fname (file-name-nondirectory buffer-file-name)))
-  ;;                          (or (string-equal ".env" fname)
-  ;;                              (string-equal ".envrc" fname)
-  ;;                              (string-prefix-p ".localrc" fname)))))))
-  ;;
-  ;;   :bind
-  ;;   ((:map wingman-mode-prefix-map
-  ;;    ("TAB" . wingman-fim)              ; Request Native FIM
-  ;;    ("S-TAB" . wingman-fim-emulated)   ; Request Emulated FIM
-  ;;    ("d" . wingman-fim-debug))
-  ;;
-  ;;    :map wingman-mode-completion-transient-map
-  ;;    ("TAB" . wingman-accept-full)
-  ;;    ("S-TAB" . wingman-accept-line)
-  ;;    ("M-S-TAB" . wingman-accept-word)))
+  (use-package claude-code-ide
+    :ensure nil
+    :commands (claude-code-ide)
+    :bind ("C-c C-'" . claude-code-ide-menu)
+    :custom (claude-code-ide-enable-mcp-server t)
+    :config
+    (require 'claude-code-ide-mcp-server)
+    (require 'ghci-compilation)
+    (claude-code-ide-emacs-tools-setup)
+    (defun claude-ghci-compilation-reload ()
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string ":r")))
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-reload
+     :name "ghci-compilation-reload"
+     :description "Compile Haskell code to test that changes work. Perfect after making some change to a Haskell file."
+     :args nil)
+    (defun claude-ghci-compilation-add (module)
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string (format ":add %s" module))))
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-add
+     :name "ghci-compilation-add"
+     :description "Add Haskell module to scope. Run after first making changes to a module."
+     :args '((:name "module"
+                    :type string
+                    :description "The module name to add to scope")))
+    ;; (defun claude-ghci-compilation-send-command (command)
+    ;;   (claude-code-ide-mcp-server-with-session-context nil
+    ;;     (progn (ghci-compilation--send-string command))))
+    ;; (claude-code-ide-make-tool
+    ;;  :function #'claude-ghci-compilation-send-command
+    ;;  :name "ghci-compilation-send-command"
+    ;;  :description "Send a GHCI command to the running process."
+    ;;  :args '((:name "command"
+    ;;                 :type string
+    ;;                 :description "The command to run in GHCI.")))
+    (defun claude-ghci-compilation-check-output ()
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation-get-last-output)))
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-check-output
+     :name "ghci-compilation-check-output"
+     :description "Get last output from GHCI."
+     :args nil))
 #+END_SRC
-
 
 **** dired-column
 **** em-dired
@@ -3136,8 +3180,12 @@ Most of these are available in MELPA.
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package agent-shell
-  :custom (agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t)))
+  (use-package agent-shell
+    :config (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
+    :custom (agent-shell-file-completion-enabled t))
+
+  (use-package chatgpt-shell
+    :bind (("C-c C-e" . chatgpt-shell-prompt-compose)))
 #+END_SRC
 
 **** bats-mode
@@ -3227,6 +3275,25 @@ Most of these are available in MELPA.
                             ("emacs-lisp" . "elisp") ("elisp" . "elisp")
                             ("R" . "r") ("r" . "r") ("ghci-compilation" . "haskell"))))
     (advice-add #'dumb-jump-get-language-from-aliases :override #'my-dumb-jump-get-language-from-aliases))
+#+END_SRC
+
+**** dwim-shell-command
+
+#+BEGIN_SRC emacs-lisp
+(use-package dwim-shell-command
+  :bind (([remap shell-command] . dwim-shell-command)
+         :map dired-mode-map
+         ([remap dired-do-async-shell-command] . dwim-shell-command)
+         ([remap dired-do-shell-command] . dwim-shell-command)
+         ([remap dired-smart-shell-command] . dwim-shell-command))
+  :config
+  (defun my/dwim-shell-command-convert-to-gif ()
+    "Convert all marked videos to optimized gif(s)."
+    (interactive)
+    (dwim-shell-command-on-marked-files
+     "Convert to gif"
+     "ffmpeg -loglevel quiet -stats -y -i '<<f>>' -pix_fmt rgb24 -r 15 '<<fne>>.gif'"
+     :utils "ffmpeg")))
 #+END_SRC
 
 **** emacs-gif-screencast
@@ -3406,7 +3473,8 @@ disabled
 [[https://github.com/tarsius/keycast][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package keycast)
+  (use-package keycast
+    :commands keycast-mode-line-mode)
 #+END_SRC
 
 **** ledger-mode
@@ -3522,6 +3590,13 @@ disabled
            ("C-c r J" . string-inflection-java-style-cycle)))
 #+END_SRC
 
+**** time-zones
+
+#+BEGIN_SRC emacs-lisp
+(use-package time-zones
+  :commands time-zones)
+#+END_SRC
+
 **** unfill
 
 [[https://github.com/purcell/unfill][GitHub]]
@@ -3603,7 +3678,7 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/node_modules/bin":@PATH@${PATH:+:$PATH} \
+    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/node_modules/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
            INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
            MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
            XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
@@ -4893,61 +4968,83 @@ Install our lisp files. Many of these should be released into MELPA but don’t
 have the time to do it currently.
 
 #+BEGIN_SRC nix
-  install -D ${site-paths} \
-          $out/share/emacs/site-lisp/site-paths.el
-  install -D ${./README.el} \
-          $out/share/emacs/site-lisp/default.el
-  install -D ${ensure ./site-lisp/em-dired.el
-                       "site-lisp/em-dired.el"} \
-          $out/share/emacs/site-lisp/em-dired.el
-  install -D ${ensure ./site-lisp/dired-column.el
-                       "site-lisp/dired-column.el"} \
-          $out/share/emacs/site-lisp/dired-column.el
-  install -D ${ensure ./site-lisp/macho-mode.el
-                       "site-lisp/macho-mode.el"} \
-          $out/share/emacs/site-lisp/macho-mode.el
-  install -D ${ensure ./site-lisp/nethack.el
-                       "site-lisp/nethack.el"} \
-          $out/share/emacs/site-lisp/nethack.el
-  install -D ${ensure ./site-lisp/set-defaults.el
-                       "site-lisp/set-defaults.el"} \
-          $out/share/emacs/site-lisp/set-defaults.el
-  install -D ${ensure ./site-lisp/pcomplete-extra.el
-                       "site-lisp/pcomplete-extra.el"} \
-          $out/share/emacs/site-lisp/pcomplete-extra.el
-  install -D ${ensure ./site-lisp/installer.el
-                       "site-lisp/installer.el"} \
-          $out/share/emacs/site-lisp/installer.el
-  install -D ${ensure ./site-lisp/restart-emacs.el
-                       "site-lisp/restart-emacs.el"} \
-          $out/share/emacs/site-lisp/restart-emacs.el
-  install -D ${ensure ./site-lisp/use-package-list.el
-                       "site-lisp/use-package-list.el"} \
-          $out/share/emacs/site-lisp/use-package-list.el
-  install -D ${ensure ./site-lisp/bauer.el
-                      "site-lisp/bauer.el"} \
-          $out/share/emacs/site-lisp/bauer.el
-  install -D ${ensure ./site-lisp/comint-hyperlink.el
-                      "site-lisp/comint-hyperlink.el"} \
-          $out/share/emacs/site-lisp/comint-hyperlink.el
-  install -D ${ensure ./site-lisp/persistent-mode.el
-                       "site-lisp/persistent-mode.el"} \
-          $out/share/emacs/site-lisp/persistent-mode.el
-  install -D ${ensure ./site-lisp/envrc.el
-                       "site-lisp/envrc.el"} \
-          $out/share/emacs/site-lisp/envrc.el
-  install -D ${ensure ./site-lisp/yesod-mode.el
-                       "site-lisp/yesod-mode.el"} \
-          $out/share/emacs/site-lisp/yesod-mode.el
-  install -D ${ensure ./site-lisp/claude-code.el
-                       "site-lisp/claude-code.el"} \
-          $out/share/emacs/site-lisp/claude-code.el
-  install -D ${ensure ./site-lisp/monet.el
-                       "site-lisp/monet.el"} \
-          $out/share/emacs/site-lisp/monet.el
-  install -D ${ensure ./site-lisp/ghci-compilation.el
-                       "site-lisp/ghci-compilation.el"} \
-          $out/share/emacs/site-lisp/ghci-compilation.el
+    install -D ${site-paths} \
+            $out/share/emacs/site-lisp/site-paths.el
+    install -D ${./README.el} \
+            $out/share/emacs/site-lisp/default.el
+    install -D ${ensure ./site-lisp/em-dired.el
+                         "site-lisp/em-dired.el"} \
+            $out/share/emacs/site-lisp/em-dired.el
+    install -D ${ensure ./site-lisp/dired-column.el
+                         "site-lisp/dired-column.el"} \
+            $out/share/emacs/site-lisp/dired-column.el
+    install -D ${ensure ./site-lisp/macho-mode.el
+                         "site-lisp/macho-mode.el"} \
+            $out/share/emacs/site-lisp/macho-mode.el
+    install -D ${ensure ./site-lisp/nethack.el
+                         "site-lisp/nethack.el"} \
+            $out/share/emacs/site-lisp/nethack.el
+    install -D ${ensure ./site-lisp/set-defaults.el
+                         "site-lisp/set-defaults.el"} \
+            $out/share/emacs/site-lisp/set-defaults.el
+    install -D ${ensure ./site-lisp/pcomplete-extra.el
+                         "site-lisp/pcomplete-extra.el"} \
+            $out/share/emacs/site-lisp/pcomplete-extra.el
+    install -D ${ensure ./site-lisp/installer.el
+                         "site-lisp/installer.el"} \
+            $out/share/emacs/site-lisp/installer.el
+    install -D ${ensure ./site-lisp/restart-emacs.el
+                         "site-lisp/restart-emacs.el"} \
+            $out/share/emacs/site-lisp/restart-emacs.el
+    install -D ${ensure ./site-lisp/use-package-list.el
+                         "site-lisp/use-package-list.el"} \
+            $out/share/emacs/site-lisp/use-package-list.el
+    install -D ${ensure ./site-lisp/bauer.el
+                        "site-lisp/bauer.el"} \
+            $out/share/emacs/site-lisp/bauer.el
+    install -D ${ensure ./site-lisp/comint-hyperlink.el
+                        "site-lisp/comint-hyperlink.el"} \
+            $out/share/emacs/site-lisp/comint-hyperlink.el
+    install -D ${ensure ./site-lisp/persistent-mode.el
+                         "site-lisp/persistent-mode.el"} \
+            $out/share/emacs/site-lisp/persistent-mode.el
+    install -D ${ensure ./site-lisp/envrc.el
+                         "site-lisp/envrc.el"} \
+            $out/share/emacs/site-lisp/envrc.el
+    install -D ${ensure ./site-lisp/yesod-mode.el
+                         "site-lisp/yesod-mode.el"} \
+            $out/share/emacs/site-lisp/yesod-mode.el
+    install -D ${ensure ./site-lisp/ghci-compilation.el
+                         "site-lisp/ghci-compilation.el"} \
+            $out/share/emacs/site-lisp/ghci-compilation.el
+
+    install -D ${ensure ./site-lisp/claude-code-ide.el
+                         "site-lisp/claude-code-ide.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide.el
+    install -D ${ensure ./site-lisp/claude-code-ide-debug.el
+                         "site-lisp/claude-code-ide-debug.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-debug.el
+    install -D ${ensure ./site-lisp/claude-code-ide-diagnostics.el
+                         "site-lisp/claude-code-ide-diagnostics.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-diagnostics.el
+    install -D ${ensure ./site-lisp/claude-code-ide-emacs-tools.el
+                         "site-lisp/claude-code-ide-emacs-tools.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-emacs-tools.el
+    install -D ${ensure ./site-lisp/claude-code-ide-mcp.el
+                         "site-lisp/claude-code-ide-mcp"} \
+            $out/share/emacs/site-lisp/claude-code-ide-mcp.el
+    install -D ${ensure ./site-lisp/claude-code-ide-mcp-handlers.el
+                         "site-lisp/claude-code-ide-mcp-handlers.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-mcp-handlers.el
+    install -D ${ensure ./site-lisp/claude-code-ide-mcp-http-server.el
+                         "site-lisp/claude-code-ide-mcp-http-server.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-mcp-http-server.el
+    install -D ${ensure ./site-lisp/claude-code-ide-mcp-server.el
+                         "site-lisp/claude-code-ide-mcp-server.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-mcp-server.el
+    install -D ${ensure ./site-lisp/claude-code-ide-transient.el
+                         "site-lisp/claude-code-ide-transient.el"} \
+            $out/share/emacs/site-lisp/claude-code-ide-transient.el
   '';
 #+END_SRC
 

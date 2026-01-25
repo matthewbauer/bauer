@@ -144,8 +144,7 @@ This is a good function to put in
       (save-excursion
         (goto-char start-marker)
         (while (re-search-forward comint-hyperlink-control-seq-regexp end-marker t)
-          (let ((url (match-string 1)) (text (match-string 2)))
-            (remove-text-properties (match-beginning 0) (match-end 0) '(read-only t))
+          (let ((url (match-string 1)) (text (match-string 2)) (inhibit-read-only t))
             (delete-region (match-beginning 0) (match-end 0))
             (insert-before-markers text)
             (when (eq comint-hyperlink-for-comint-mode t)
