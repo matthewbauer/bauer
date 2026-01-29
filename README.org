@@ -1633,12 +1633,16 @@ Try out packages without installing them.
         (mouse-set-point event promote-to-region)
       (vterm-reset-cursor-point)))
   (defun vterm-bell-detector (orig-fun process input)
-    (when (and (string-match-p "\007" input)
+    (when (and (string-match-p "\a" input)
                ;; Ignore bells in OSC sequences (terminal title updates)
-               (not (string-match-p "]0;.*\007" input)))
-      (require 'mode-line-notify)
+               ;; (not (string-match-p "]0;.*\007" input))
+               (not (string-match-p "\e][^\a]+\a" input)))
+      ;; (when (string-match-p "]0;.*\007" input) (message input))
+      ;; (require 'mode-line-notify)
       (let ((buffer (current-buffer)))
-        (mode-line-notify-send :title (format "%s Bell" (buffer-name buffer)) :action (lambda () (switch-to-buffer buffer)))))
+        (mode-line-notify-send
+         :title (format "%s Bell" (buffer-name buffer))
+         :action `(lambda () (switch-to-buffer ,buffer)))))
     (funcall orig-fun process input))
 
   :config

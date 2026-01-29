@@ -23,7 +23,7 @@
 (defun ghci-compilation-notify ()
   (require 'mode-line-notify)
   (let ((buffer (current-buffer)))
-    (mode-line-notify-send :title "GHCi Ready" :action (lambda () (switch-to-buffer buffer))))
+    (mode-line-notify-send :title "GHCi Ready" :action `(lambda () (switch-to-buffer ,buffer))))
   ;; (require 'notifications)
   ;; (let (buf (current-buffer))
   ;;   (notifications-notify
