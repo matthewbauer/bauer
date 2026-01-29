@@ -330,7 +330,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (unless buffer
     (setq buffer (ghci-compilation-get-buffer nil)))
   (with-current-buffer buffer
-    (when ghci-compilation-has-loaded-prompt
+    (when (ghci-compilation--is-running-command)
       (error "currently waiting on response from ghci"))
     (let* ((end (or (car comint-last-prompt) comint-last-input-start (point-min)))
            (beg (save-excursion (goto-char end) (if (re-search-backward comint-prompt-regexp (point-min) t) (match-beginning 0) (point-min)))))

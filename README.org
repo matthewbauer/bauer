@@ -1298,6 +1298,7 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
     (defun symbol-overlay-mc-mark-all ()
       "Mark all symbol overlays using multiple cursors."
       (interactive)
+      (require 'multiple-cursors-core)
       (when-let* ((overlays (symbol-overlay-get-list 0))
                   (point (point))
                   (point-overlay (seq-find
@@ -1595,71 +1596,82 @@ Try out packages without installing them.
 **** vterm
 
 #+BEGIN_SRC emacs-lisp
-  (use-package vterm
-    :if (locate-library "vterm-module")
-    :commands (vterm-reset-cursor-point vterm--self-insert-meta)
-    :autoload (vterm--get-color)
-    :bind (("M-@" . vterm)
-           :package dired
-           :map dired-mode-map
-           ("M-@" . vterm))
-    :custom
-    (vterm-max-scrollback 10000)
-    (vterm-copy-mode-remove-fake-newlines t)
-    :preface
-    ;; (defvar-local vterm-cursor-type-saved nil)
-    ;; (defun old-version-of-vterm--get-color (index &rest _args)
-    ;;   "This is the old version before it was broken by commit
-    ;;   https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-    ;;   Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-    ;;   (cond
-    ;;    ((and (>= index 0) (< index 16))
-    ;;     (face-foreground
-    ;;      (elt vterm-color-palette index)
-    ;;      nil 'default))
-    ;;    ((= index -11)
-    ;;     (face-foreground 'vterm-color-underline nil 'default))
-    ;;    ((= index -12)
-    ;;     (face-background 'vterm-color-inverse-video nil 'default))
-    ;;    (t
-    ;;     nil)))
-    (defun my-vterm-mouse-set-point (event &optional promote-to-region)
-      "Move point to the position clicked on with the mouse.
+(use-package vterm
+  :if (locate-library "vterm-module")
+  :commands (vterm-reset-cursor-point vterm--self-insert-meta)
+  :autoload (vterm--get-color)
+  :bind (("M-@" . vterm)
+         :package dired
+         :map dired-mode-map
+         ("M-@" . vterm))
+  :custom
+  (vterm-max-scrollback 10000)
+  (vterm-copy-mode-remove-fake-newlines t)
+  :preface
+  ;; (defvar-local vterm-cursor-type-saved nil)
+  ;; (defun old-version-of-vterm--get-color (index &rest _args)
+  ;;   "This is the old version before it was broken by commit
+  ;;   https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+  ;;   Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+  ;;   (cond
+  ;;    ((and (>= index 0) (< index 16))
+  ;;     (face-foreground
+  ;;      (elt vterm-color-palette index)
+  ;;      nil 'default))
+  ;;    ((= index -11)
+  ;;     (face-foreground 'vterm-color-underline nil 'default))
+  ;;    ((= index -12)
+  ;;     (face-background 'vterm-color-inverse-video nil 'default))
+  ;;    (t
+  ;;     nil)))
+  (defun my-vterm-mouse-set-point (event &optional promote-to-region)
+    "Move point to the position clicked on with the mouse.
         But when clicking to the unused area below the last prompt,
         move the cursor to the prompt area."
-      (interactive "e\np")
-      (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
-          (mouse-set-point event promote-to-region)
-        (vterm-reset-cursor-point)))
+    (interactive "e\np")
+    (if (> (count-words (posn-point (event-end event)) (point-max)) 0)
+        (mouse-set-point event promote-to-region)
+      (vterm-reset-cursor-point)))
+  (defun vterm-bell-detector (orig-fun process input)
+    (when (and (string-match-p "\007" input)
+               ;; Ignore bells in OSC sequences (terminal title updates)
+               (not (string-match-p "]0;.*\007" input)))
+      (require 'mode-line-notify)
+      (let ((buffer (current-buffer)))
+        (mode-line-notify-send :title (format "%s Bell" (buffer-name buffer)) :action (lambda () (switch-to-buffer buffer)))))
+    (funcall orig-fun process input))
 
-    :config
-    ;; (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
+  :config
+  ;; (advice-add #'vterm--get-color :override #'old-version-of-vterm--get-color)
 
-    ;; turn on cursor in case it’s been disabled
-    ;; this allows things that disable cursor like claude-code
-    ;; to still be able to enter copy mode.
-    ;; :hook ((vterm-copy-mode . (lambda ()
-    ;;                                  (if vterm-copy-mode
-    ;;                                      (progn
-    ;;                                        (setq-local vterm-cursor-type-saved cursor-type)
-    ;;                                        (setq-local cursor-type t))
-    ;;                                    (progn
-    ;;                                      (setq-local cursor-type vterm-cursor-type-saved)
-    ;;                                      ))))
-    ;;        (vterm-mode . (lambda ()
-    ;;                             (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
-    ;;                             (buffer-face-mode t)))
-    ;;        )
-    :bind (:map vterm-mode-map
-                ("s-f" . vterm--self-insert-meta)
-                ("s-b" . vterm--self-insert-meta)
-                ("s-d" . vterm--self-insert-meta)
-                ("s-<backspace>" . vterm--self-insert-meta)
-                ("M-v" . nil)
-                ("M-:" . nil)
-                ("C-v" . nil)
-                ("C-q" . vterm-send-next-key)
-                ([mouse-1] . my-vterm-mouse-set-point)))
+  ;; turn on cursor in case it’s been disabled
+  ;; this allows things that disable cursor like claude-code
+  ;; to still be able to enter copy mode.
+  ;; :hook ((vterm-copy-mode . (lambda ()
+  ;;                                  (if vterm-copy-mode
+  ;;                                      (progn
+  ;;                                        (setq-local vterm-cursor-type-saved cursor-type)
+  ;;                                        (setq-local cursor-type t))
+  ;;                                    (progn
+  ;;                                      (setq-local cursor-type vterm-cursor-type-saved)
+  ;;                                      ))))
+  ;;        (vterm-mode . (lambda ()
+  ;;                             (setq-local buffer-face-mode-face '(:foreground "#E0E0E0" :background "#424242"))
+  ;;                             (buffer-face-mode t)))
+  ;;        )
+
+  (advice-add 'vterm--filter :around #'vterm-bell-detector)
+
+  :bind (:map vterm-mode-map
+              ("s-f" . vterm--self-insert-meta)
+              ("s-b" . vterm--self-insert-meta)
+              ("s-d" . vterm--self-insert-meta)
+              ("s-<backspace>" . vterm--self-insert-meta)
+              ("M-v" . nil)
+              ("M-:" . nil)
+              ("C-v" . nil)
+              ("C-q" . vterm-send-next-key)
+              ([mouse-1] . my-vterm-mouse-set-point)))
 
   (use-package vterm-toggle
     :bind (:package vterm
@@ -2649,14 +2661,14 @@ Show whitespace
   :bind (("C-x 2" . split-window-below-last-buffer)
          ("C-x 3" . split-window-right-last-buffer))
   :config
-
-  (advice-add #'other-window :before
-              (defun other-window-split-if-single (&rest _)
+  (advice-add #'other-window :around
+              (defun other-window-split-if-single (orig-fun &rest args)
                 "Split the frame if there is a single window."
-                (when (one-window-p)
+                (if (one-window-p)
                   (when-let ((window (split-window-sensibly)))
                     (select-window window)
-                    (let ((switch-to-prev-buffer-skip 'this)) (switch-to-next-buffer))))))
+                    (let ((switch-to-prev-buffer-skip 'this)) (switch-to-next-buffer)))
+                  (apply orig-fun args))))
 
   (setq other-window-scroll-default
         (lambda ()
