@@ -1,4 +1,4 @@
-;;; ghci-compilation.el --- a GHCI comint buffer that supports compile-goto-error -*- lexical-binding: t; -*-
+;;; ghci-compilation.el --- a GHCI comint bufferthat supports compile-goto-error -*- lexical-binding: t; -*-
 
 ;; Author: Matthew Bauer <matthew@mercury.com>
 
@@ -13,25 +13,56 @@
 (require 'transient)
 (require 'comint-hyperlink)
 (require 'project)
+(require 'svg)
 
-(defvar-local ghci-compilation-running nil)
+(defvar-local ghci-compilation-process-started nil)
 (defvar-local ghci-compilation-has-loaded-prompt nil)
+(defvar-local ghci-compilation-last-command-started-at nil)
+(defvar-local ghci-compilation-last-prompt-marker nil)
+
+(defun ghci-compilation-notify ()
+  (require 'mode-line-notify)
+  (let ((buffer (current-buffer)))
+    (mode-line-notify-send :title "GHCi Ready" :action (lambda () (switch-to-buffer buffer))))
+  ;; (require 'notifications)
+  ;; (let (buf (current-buffer))
+  ;;   (notifications-notify
+  ;;    :title "GHCi has completed."
+  ;;    :body "A GHCi process has completed. "
+  ;;    :actions '("Goto GHCi")
+  ;;    :on-action (lambda () (switch-to-buffer buffer))))
+  )
+
+(defcustom ghci-compilation-loaded-hook '(ghci-compilation-notify)
+  "Called when ghci process has loaded."
+  :type 'hook
+  :group 'ghci-compilation)
+
+(defcustom ghci-compilation-last-command-minimum-time 60
+  "Minimum number of seconds a command took to be eligible to call
+ghci-compilation-loaded-hook. Defaults to 60."
+  :type 'number
+  :group 'ghci-compilation)
+
+(defcustom ghci-compilation-last-command-finished-hook '(ghci-compilation-notify)
+  "Called when ghci has finished after a while."
+  :type 'hook
+  :group 'ghci-compilation)
 
 (defun ghci-compilation-buffer-name (package)
   "Generate a name for ghci compilation buffer."
-  (concat "*"
-          "ghci-compilation"
-          (when package (concat "-" package))
-          "*"
-          "<"
-          (project-root (project-current))
-          ">*"))
+  (if-let (proj (project-current))
+      (concat "*"
+              "ghci-compilation"
+              (when package (concat "-" package))
+              "*"
+              "<"
+              (project-root (project-current))
+              ">*")
+    (error "No current project.")))
 
 (defun ghci-compilation-get-buffer (package)
   "Try to find the ghci-compilation buffer."
-  ;; (if ghci-compilation-running
-  ;;     (current-buffer)
-  ;;   (get-buffer (ghci-compilation-buffer-name package)))
   (get-buffer (ghci-compilation-buffer-name package))
   )
 
@@ -47,7 +78,7 @@
     (define-key map "\t" 'ghci-compilation-maybe-completion-at-point)
     map))
 
-(define-derived-mode ghci-compilation-mode comint-mode "Ghci Compilation mode"
+(define-derived-mode ghci-compilation-mode comint-mode "Ghci"
   "Major mode for Ghci Compilation Mode.")
 
 (defun ghci-compilation--fetch-haskell-icon ()
@@ -69,8 +100,7 @@
               (message "Icon fetch failed: %s" url)))
           (kill-buffer buffer))))
     (when (file-exists-p cache-path)
-      cache-path))
-  )
+      cache-path)))
 
 (defun ghci-compilation--make-header ()
   (if (display-graphic-p)
@@ -99,6 +129,16 @@
                         (buffer-string))))
     "====================== GHCi ======================"))
 
+(defun ghci-compilation-input-sender (proc string)
+  (unless (ghci-compilation--is-running-command)
+    (setq-local ghci-compilation-last-command-started-at (current-time)))
+  (comint-simple-send proc string))
+
+(defun ghci-compilation--indicator ()
+  ""
+  (when (and ghci-compilation-last-command-started-at (ghci-compilation--is-running-command))
+    '("running[" (:eval (format-time-string "%S" (time-subtract (current-time) ghci-compilation-last-command-started-at))) "] ")))
+
 (defun ghci-compilation (&optional buffer flake-ref package ghci-repl-command)
   "Start ghci."
   (interactive
@@ -108,17 +148,18 @@
     nil
     nil))
   (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name package))))
-  (unless flake-ref (setq flake-ref "."))
+  (unless flake-ref (setq flake-ref (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+                                        ".#exclude.all"
+                                      ".")))
   (unless ghci-repl-command
     (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
                                 '("mwb-ghci")
                               '("cabal" "repl"))))
   (let* ((proc-alive (comint-check-proc buffer))
-         (process (get-buffer-process buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
          (proj (project-current)))
     (unless proc-alive
-      (setq-local ghci-compilation-running t)
+      (setq-local ghci-compilation-process-start t)
 
       (with-current-buffer buffer
         (let ((inhibit-read-only t))
@@ -138,14 +179,23 @@
         (setq-local comint-prompt-read-only t)
         (setq-local comint-use-prompt-regexp t)
         (setq-local comint-process-echoes nil)
+        (setq-local comint-input-sender 'ghci-compilation-input-sender)
         (setq-local process-environment buffer-env)
         (setq-local default-directory (project-root proj))
+
         (setq-local ghci-compilation-has-loaded-prompt nil)
+        (setq-local ghci-compilation-last-prompt-marker (make-marker))
+
         (setq-local comint-input-ring-file-name (expand-file-name "ghci-compilation-history" user-emacs-directory))
+
+        (make-local-variable 'mode-line-misc-info)
+        (add-to-list 'mode-line-misc-info '(:eval (ghci-compilation--indicator)))
 
         (apply 'make-comint-in-buffer "ghci-compilation" buffer "nix" nil "develop" flake-ref "-c" ghci-repl-command)
 
         (comint-read-input-ring 'silent)
+
+        (compilation-setup t)
 
         (setq-local compilation-error-regexp-alist `((,(concat
                                                         "^ *\\([^\n\r\t>]*\s*> \\)?" ;; if using multi-package stack project, remove the package name that is prepended
@@ -164,7 +214,6 @@
                                                      ))
         (setq-local jit-lock-defer-time nil)
         (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
-        (compilation-shell-minor-mode 1)
 
         (add-hook 'kill-buffer-hook 'comint-write-input-ring 'local)
 
@@ -180,30 +229,16 @@
             (add-to-list 'compilation-search-path (project-root proj))))))
     (pop-to-buffer buffer)))
 
-(defun ghci-compilation--is-running (&optional buffer)
-  "Is ghci-compilation running?"
-  (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
-  (with-current-buffer buffer ghci-compilation-has-loaded-prompt))
-
-(defun ghci-compilation--require-running-repl (&optional buffer)
-  "Require a repl is running"
-  (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
-  (unless buffer
-    (error "No GHCI buffer exists"))
-  (unless (ghci-compilation--is-running buffer)
-    (error "GHCI is starting up"))
-  )
-
 (defun ghci-compilation--send-string (text &optional buffer)
   "Send `TEXT' to the inferior Haskell REPL process"
-  (unless buffer (setq buffer (ghci-compilation-get-buffer nil)))
-  (ghci-compilation--require-running-repl buffer)
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
+  (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
+    (error "GHCI is starting up"))
   (let ((process (get-buffer-process buffer)))
     (comint-send-string process (concat text "\n"))))
 
-(defun ghci-compilation-revert-buffer (ignore-auto noconfirm)
+(defun ghci-compilation-revert-buffer (_ignore-auto _noconfirm)
   "Revert buffer"
   (if (comint-check-proc (current-buffer))
       (ghci-compilation-reload)
@@ -215,18 +250,23 @@
   ;; (propertize text 'read-only t)
   )
 
+(defun ghci-compilation--is-prompt ()
+  (save-excursion
+    (goto-char (process-mark (get-buffer-process (current-buffer))))
+    (forward-line 0)
+    (looking-at comint-prompt-regexp)))
+
 (defun ghci-compilation-process-output (&optional _)
   "Process output to check if ghci has loaded."
-  (unless ghci-compilation-has-loaded-prompt
-    (let ((start-marker (if (and (markerp comint-last-output-start)
-			         (eq (marker-buffer comint-last-output-start)
-				     (current-buffer))
-			         (marker-position comint-last-output-start))
-			    comint-last-output-start
-			  (point-min-marker)))
-	  (end-marker (process-mark (get-buffer-process (current-buffer)))))
-      (when (string-match "ghci> [\n]*\\'" (buffer-substring-no-properties start-marker end-marker))
-        (setq ghci-compilation-has-loaded-prompt t)))))
+  (when (ghci-compilation--is-prompt)
+    (when-let* ((prompt-marker (if comint-last-prompt (car comint-last-prompt) comint-last-output-start)))
+      (set-marker ghci-compilation-last-prompt-marker prompt-marker))
+    (when ghci-compilation-has-loaded-prompt
+      (run-hooks 'ghci-compilation-last-command-finished-hook))
+    (setq-local ghci-compilation-has-loaded-prompt t)
+    (when (or (not ghci-compilation-last-command-minimum-time)
+              (time-less-p ghci-compilation-last-command-minimum-time (time-subtract (current-time) ghci-compilation-last-command-started-at)))
+      (run-hooks 'ghci-compilation-last-command-finished-hook))))
 
 (defun ghci-compilation-save-files ()
   "Save files in project."
@@ -237,7 +277,8 @@
 (defun ghci-compilation-reload (&optional buffer)
   "Reload ghci."
   (interactive)
-  (unless buffer (setq buffer (ghci-compilation-get-buffer nil)))
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
   (with-current-buffer buffer
     (if ghci-compilation-has-loaded-prompt
         (progn
@@ -251,45 +292,55 @@
 (defun ghci-compilation-send-command-redirect (command &optional buffer)
   "Send command to ghci, outputing as string."
   (interactive)
-  (unless buffer (setq buffer (ghci-compilation-get-buffer nil)))
-  (ghci-compilation--require-running-repl buffer)
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
+  (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
+    (error "GHCI is starting up"))
   (let* ((inhibit-quit t)
          (lines (comint-redirect-results-list-from-process (get-buffer-process buffer) command "^\\(.*\\)$" 1)))
     (mapconcat 'identity lines "\n")))
 
-(defun ghci-compilation-get-last-output (&optional buffer)
-  "Get output of last command."
-  (unless buffer (setq buffer (ghci-compilation-get-buffer nil)))
-  (ghci-compilation--require-running-repl buffer)
+(defun ghci-compilation--is-running-command ()
+  (and ghci-compilation-has-loaded-prompt
+       (and (marker-position ghci-compilation-last-prompt-marker)
+            (< ghci-compilation-last-prompt-marker comint-last-output-start))))
+
+(defun ghci-compilation-get-last-output--marker (&optional buffer)
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
   (with-current-buffer buffer
-    (unless comint-last-prompt
-      (error "currently waiting on response from ghci"))
-    (unless (save-excursion (goto-char (car comint-last-prompt)) (looking-at comint-prompt-regexp))
+    (when ghci-compilation-has-loaded-prompt
       (error "currently waiting on response from ghci"))
     (let* ((end (or (car comint-last-prompt) comint-last-input-start (point-min)))
            (beg (save-excursion (goto-char end) (if (re-search-backward comint-prompt-regexp (point-min) t) (match-beginning 0) (point-min)))))
-      (buffer-substring-no-properties beg end))))
+      (list buffer beg end))))
 
-(defun ghci-get-module-name ()
+(defun ghci-compilation-get-last-output (&optional buffer)
+  "Get output of last command."
+  (let* ((res (ghci-compilation-get-last-output--marker buffer))
+         (buffer (nth 0 res))
+         (beg (nth 1 res))
+         (end (nth 2 res)))
+    (with-current-buffer buffer (buffer-substring-no-properties beg end))))
+
+(defun ghci-compilation-get-module-name ()
   "Get the module name from a filename. Cabal is stupid & can’t tell when these are the same."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward "^module \\([a-zA-Z.]+\\)[( ]" nil t)
     (match-string-no-properties 1)))
 
-(defun ghci-add-file ()
+(defun ghci-compilation-add-file ()
   "Add file to ghci."
   (interactive)
-  (let ((module-name (ghci-get-module-name))
-        (fn (file-relative-name (buffer-file-name) (project-root (project-current)))))
+  (let ((module-name (ghci-compilation-get-module-name)))
     (ghci-compilation-save-files)
     (ghci-compilation--send-string (format ":add %s" module-name))))
 
 (defun ghci-compilation-test-file ()
   "Add file to ghci."
   (interactive)
-  (let ((fn (file-relative-name (buffer-file-name) (project-root (project-current))))
-        (module-name (ghci-compilation-get-module-name))
+  (let ((module-name (ghci-compilation-get-module-name))
         (is-web (save-excursion
                   (goto-char (point-min))
                   (re-search-forward ":: *SpecWeb" nil t))))
@@ -301,9 +352,11 @@
 (defun ghci-compilation-reload-nix (&optional buffer)
   "Reload nix too."
   (interactive)
-  (unless buffer (setq buffer (ghci-compilation-get-buffer nil)))
-  (ghci-compilation--require-running-repl buffer)
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
   (with-current-buffer buffer
+    (unless ghci-compilation-has-loaded-prompt
+      (error "GHCI is starting up"))
     (comint-write-input-ring)
     (let ((proc (get-buffer-process buffer))
           (inhibit-read-only t))
@@ -313,10 +366,7 @@
 (defun ghci-compilation-load-all (&optional buffer)
   "Load all modules."
   (interactive)
-  (unless buffer
-    (setq (ghci-compilation-get-buffer nil)))
-  (ghci-compilation--require-running-repl buffer)
-  (ghci-compilation--send-string ":add Application TestMain\n"))
+  (ghci-compilation--send-string ":add Application TestMain\n" buffer))
 
 (defun ghci-compilation-switch-to-buffer ()
   ""
@@ -348,7 +398,7 @@
       (self-insert-command arg)
     (ghci-compilation-reload)))
 
-(defun ghci-compilation-send-input (&optional no-newline artificial)
+(defun ghci-compilation-send-input (&optional _no-newline _artificial)
   "Send input"
   (interactive nil comint-mode)
   (let ((inhibit-read-only t))
@@ -365,15 +415,19 @@
 
 (defun ghci-compilation--completions (buf prefix)
   "Complete at point using ghci’s :complete command."
-  (let* ((cmd (format ":complete repl 100 \"%s\"" prefix))
-         (lines (let ((inhibit-quit nil)) (comint-redirect-results-list-from-process (get-buffer-process buf) cmd "^\\(.*\\)$" 1)))
-         (header (split-string-and-unquote (nth 0 lines) " "))
-         (num-results (string-to-number (nth 0 header)))
-         (prefix (nth 2 header))
-         (completions nil))
-    (dotimes (i num-results)
-      (push (concat prefix (nth 0 (split-string-and-unquote (nth (+ 1 i) lines) " "))) completions))
-    completions))
+  (if (and comint-redirect-output-buffer (not comint-redirect-completed))
+      (progn
+        (warn "waiting on completion of last command")
+        nil)
+    (let* ((cmd (format ":complete repl 100 \"%s\"" prefix))
+           (lines (let ((inhibit-quit nil)) (comint-redirect-results-list-from-process (get-buffer-process buf) cmd "^\\(.*\\)$" 1)))
+           (header (split-string-and-unquote (nth 0 lines) " "))
+           (num-results (string-to-number (nth 0 header)))
+           (prefix (nth 2 header))
+           (completions nil))
+      (dotimes (i num-results)
+        (push (concat prefix (nth 0 (split-string-and-unquote (nth (+ 1 i) lines) " "))) completions))
+      completions)))
 
 (defun ghci-compilation-complete-at-point ()
   "Complete at point using ghci’s :complete command."
@@ -382,7 +436,9 @@
     (when (> end start)
       (list start end (ghci-compilation--completions (current-buffer) (buffer-substring-no-properties start end)) nil))))
 
-(defun ghci-compilation-haskell-completion-at-point ()
+(defun ghci-compilation-haskell-completion-at-point (&optional buffer)
+  (unless buffer
+    (setq buffer (ghci-compilation-get-buffer nil)))
   (let ((prefix-data (haskell-completions-grab-prefix))
         (is-blank-import (save-excursion
                            (goto-char (line-beginning-position))
@@ -409,18 +465,18 @@
                      haskell-completions-language-extension-prefix))
             (let* ((is-import (eql typ 'haskell-completions-module-name-prefix))
                    (candidates
-                    (when (ghci-compilation--is-running)
-                      (ghci-compilation--completions (ghci-compilation-get-buffer nil) (if is-import
-                                                                                           (concat "import " pfx)
-                                                                                         pfx))
+                    (when ghci-compilation-has-loaded-prompt
+                      (ghci-compilation--completions buffer (if is-import
+                                                                (concat "import " pfx)
+                                                              pfx))
                       )))
               (when is-import
                 (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates)))
               (list beg end candidates))))))
      (is-blank-import ;; special support for just "import " completion (no module name)
       (let ((candidates
-             (when (ghci-compilation--is-running)
-               (ghci-compilation--completions (ghci-compilation-get-buffer nil) "import ")
+             (when ghci-compilation-has-loaded-prompt
+               (ghci-compilation--completions buffer "import ")
                )))
         (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates))
         (list (line-end-position) (line-end-position) candidates))
