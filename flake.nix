@@ -17,7 +17,7 @@
         pkgs = nixpkgsFor.${system};
         evalPkgs = nixpkgsFor.${system};
       in import (evalPkgs.runCommand "README" {
-        buildInputs = with evalPkgs; [ pkgs.emacs git ];
+        buildInputs = with evalPkgs; [ emacs git ];
       } (''
         install -D ${./README.org} $out/README.org
         cd $out
@@ -42,7 +42,7 @@
     devShells = forAllSystems (system: {
       bauer = with nixpkgsFor.${system}; stdenv.mkDerivation {
         name = "bauer";
-        nativeBuildInputs = [ pkgs.emacs git ];
+        nativeBuildInputs = [ ((pkgs.emacsPackagesFor pkgs.emacs).emacsWithPackages (epkgs: [epkgs.nix-mode epkgs.htmlize])) git ];
         shellHook = ''
           echo Run ./update.sh to generate files.
         '';

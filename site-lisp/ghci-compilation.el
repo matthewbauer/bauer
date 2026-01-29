@@ -66,6 +66,19 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (get-buffer (ghci-compilation-buffer-name package))
   )
 
+(defvar ghci-compilation-menu-map
+  (let ((map (make-sparse-keymap "GHCi")))
+    (define-key map [compilation-first-error]
+                '(menu-item "First Error" first-error
+		            :help "Restart at the first error, visit corresponding source code"))
+    (define-key map [compilation-previous-error]
+                '(menu-item "Previous Error" previous-error
+		            :help "Visit previous `next-error' message and corresponding source code"))
+    (define-key map [compilation-next-error]
+                '(menu-item "Next Error" next-error
+		            :help "Visit next `next-error' message and corresponding source code"))
+    map))
+
 (defvar ghci-compilation-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-r" 'ghci-compilation-reload)
@@ -76,6 +89,14 @@ ghci-compilation-loaded-hook. Defaults to 60."
     (define-key map "g" 'ghci-compilation-maybe-refresh)
     (define-key map "\C-m" 'ghci-compilation-send-input)
     (define-key map "\t" 'ghci-compilation-maybe-completion-at-point)
+    (define-key map "\M-\C-m" 'compile-goto-error)
+    (define-key map "\M-\C-n" 'compilation-next-error)
+    (define-key map "\M-\C-p" 'compilation-previous-error)
+    (define-key map "\M-{" 'compilation-previous-file)
+    (define-key map "\M-}" 'compilation-next-file)
+
+    (define-key map [menu-bar ghci-compilation] (cons "GHCi" ghci-compilation-menu-map))
+
     map))
 
 (define-derived-mode ghci-compilation-mode comint-mode "Ghci"
