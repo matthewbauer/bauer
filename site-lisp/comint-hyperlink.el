@@ -156,7 +156,7 @@ This is a good function to put in
 
         ;; search for the possible start of a new escape sequence
         (while (re-search-forward comint-hyperlink-control-seq-regexp-start end-marker t))
-        (set-marker start-marker (when (and (/= (point) start-marker) (= (point) end-marker)) (match-beginning 0))))
+        (set-marker start-marker (when (/= (point) start-marker) (match-beginning 0))))
 
       (set-marker end-marker nil))))
 

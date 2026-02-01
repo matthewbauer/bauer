@@ -119,6 +119,7 @@ Luckily, it’s not very hard to do this. From the terminal, run:
   defaults write emacs NSAppSleepDisabled -bool YES
   defaults write com.apple.Terminal NSAppSleepDisabled -bool YES
   defaults write com.googlecode.iterm2 NSAppSleepDisabled -bool YES
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 #+END_SRC
 
 I’ve seen some of the org.gnu.Emacs form posted online. However, if you start
@@ -1040,7 +1041,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
     ;; Enable automatic preview at point in the *Completions* buffer. This is
     ;; relevant when you use the default completion UI.
-    :hook (completion-list-mode . consult-preview-at-point-mode)
+    :hook (completion-list-mode . consult--default-completion-list-preview-setup)
 
     :custom
     (register-preview-delay 0.5)
@@ -1219,6 +1220,29 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
+    (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
+      (and (fboundp 'long-line-optimizations-p)
+           (long-line-optimizations-p)
+           (prog1 t
+             ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
+             (kill-local-variable 'redisplay-highlight-region-function)
+             (kill-local-variable 'redisplay-unhighlight-region-function)
+             (when magit-show-long-lines-warning
+               (setq magit-show-long-lines-warning nil)
+               (display-warning 'magit (format "\
+    Emacs has enabled redisplay shortcuts
+    in this buffer because there are lines whose length go beyond
+    `long-line-threshold' (%s characters).  As a result, section
+    highlighting and the special appearance of the region has been
+    disabled.
+
+    These shortcuts remain enabled, even once there no longer are
+    any long lines in this buffer.  To disable them again, kill
+    and recreate the buffer.
+
+    This message won't be shown for this session again.  To disable
+    it for all future sessions, set `magit-show-long-lines-warning'
+    to nil." (bound-and-true-p long-line-threshold)) :warning)))))
     ;; :hook ((git-commit-mode . git-commit-save-message)
     ;;      (git-commit-mode . turn-on-auto-fill))
     :custom
@@ -1246,7 +1270,9 @@ line are available in an intuitive Emacs buffer.
            ("C-o" . magit-dired-other-window))
     :init
     (remove-hook 'server-switch-hook #'magit-commit-diff)
-    (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff))
+    (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff)
+    :config
+    (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts))
 #+END_SRC
 
 Magit forge.
@@ -1429,16 +1455,10 @@ Automatically save the scratch buffer.
   (use-package recentf
     :demand
     :custom
-    (recentf-auto-cleanup 'never)
     (recentf-max-saved-items 1000)
     :config
     (recentf-mode 1)
-    (setq recentf-save-file (locate-user-emacs-file "recentf"))
-    ;; I'd rather run cleanup manually, if ever required; running
-    ;; cleanup automatically is a recipe for losing your recentf entries
-    ;; when a disk happens to be unmounted.
-    ;; :hook (kill-emacs . recentf-cleanup)
-    (run-with-idle-timer 10 t #'recentf-save-list))
+    )
 #+END_SRC
 
 **** smart-hungry-delete
@@ -1639,10 +1659,10 @@ Try out packages without installing them.
                (not (string-match-p "\e][^\a]+\a" input)))
       ;; (when (string-match-p "]0;.*\007" input) (message input))
       ;; (require 'mode-line-notify)
-      (let ((buffer (current-buffer)))
+      (let ((buffer (process-buffer process)))
         (mode-line-notify-send
          :title (format "%s Bell" (buffer-name buffer))
-         :action `(lambda () (switch-to-buffer ,buffer)))))
+         :buffer buffer)))
     (funcall orig-fun process input))
 
   :config
@@ -1736,7 +1756,7 @@ Base mode used for shell and terminal modes.
   (use-package comint
     :ensure nil
     :autoload (comint-write-input-ring comint-read-input-ring)
-    :custom (comint-completion-addsuffix . nil)
+    :custom (comint-completion-addsuffix nil)
     :preface
     (defun turn-on-comint-history (history-file)
       (interactive)
@@ -2887,6 +2907,7 @@ didn’t work well enough.
     :bind (("C-x p ." . ghci-compilation)
            ("C-x C-1" . ghci-compilation-transient-menu)
            :map haskell-mode-map
+           ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-z" . ghci-compilation-switch-to-buffer))
     :hook (haskell-mode . (lambda () (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point))))
@@ -3155,7 +3176,7 @@ repositories.
    :args nil)
   (defun claude-ghci-compilation-add (modules)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add %s" modules))))
+      (ghci-compilation--send-string (format ":add %s" (string-join modules " ")))))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-add
    :name "ghci-compilation-add"
@@ -3179,25 +3200,45 @@ repositories.
 
   (defun claude-ghci-compilation-set-env (name value)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":script %s" script))))
+      (ghci-compilation--send-string (format ":env %s %s" name value))))
   (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-tests"
-   :description "Run test suite"
-   :args '((:name "match"
+   :function #'claude-ghci-compilation-set-env
+   :name "ghci-compilation-set-env"
+   :description "Set env"
+   :args '((:name "name"
                   :type string
-                  :description "A pattern matching any tests to run. Separate multiple matches by | (pipe)")))
+                  :description "Name of variable")
+           (:name "value"
+                   :type string
+                   :description "Value of variable")))
 
-  (defun claude-ghci-compilation-run-ghci (script)
+  (defun claude-ghci-compilation-run-ghci-script (script)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":script %s" script))))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-tests"
-   :description "Run test suite"
-   :args '((:name "match"
+   :name "ghci-compilation-run-ghci-script"
+   :description "Run ghci script"
+   :args '((:name "filename"
                   :type string
-                  :description "A pattern matching any tests to run. Separate multiple matches by | (pipe)")))
+                  :description "File name of script")))
+  (defun claude-ghci-compilation-run-test-suite (args)
+    (claude-code-ide-mcp-server-with-session-context nil
+      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args))))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-run-tests
+   :name "ghci-compilation-run-test-suite"
+   :description "Run test suite"
+   :args '((:name "args"
+                  :type string
+                  :description "Args to pass")))
+  (defun claude-ghci-compilation-ensure-buffer ()
+    (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation)))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-run-tests
+   :name "ghci-compilation-ensure-buffer"
+   :description "Ensure ghci buffer exists and is running"
+   :args nil)
   ;; (defun claude-ghci-compilation-send-command (command)
   ;;   (claude-code-ide-mcp-server-with-session-context nil
   ;;     (progn (ghci-compilation--send-string command))))
@@ -3290,8 +3331,23 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell
-    :config (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config))
-    :custom (agent-shell-file-completion-enabled t))
+    :custom
+    (agent-shell-file-completion-enabled t)
+    (agent-shell-mcp-servers
+      '((lambda ()
+          (require 'claude-code-ide-mcp-server)
+          (let* ((project-dir (agent-shell-cwd))
+                 (session-id (format "claude-%s-%s"
+                                     (file-name-nondirectory (directory-file-name project-dir))
+                                     (format-time-string "%Y%m%d-%H%M%S"))))
+            (puthash session-id `(:project-dir ,project-dir) claude-code-ide-mcp-server--sessions)
+            `((name . "emacs")
+              (type . "http")
+              (headers . ())
+              (url . ,(format "http://localhost:%d/mcp/%s"
+                              (claude-code-ide-mcp-server-ensure-server) session-id)))))))
+    :config
+    (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)))
 
   (use-package chatgpt-shell
     :bind (("C-c C-e" . chatgpt-shell-prompt-compose)))
@@ -3630,7 +3686,8 @@ disabled
             haskell-mode
             help-mode
             magit-mode
-            emacs-news-mode) . page-break-lines-mode))
+            emacs-news-mode
+            emacs-lisp-compilation-mode) . page-break-lines-mode))
 #+END_SRC
 
 **** pandoc-mode

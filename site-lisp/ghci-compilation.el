@@ -22,8 +22,7 @@
 
 (defun ghci-compilation-notify ()
   (require 'mode-line-notify)
-  (let ((buffer (current-buffer)))
-    (mode-line-notify-send :title "GHCi Ready" :action `(lambda () (switch-to-buffer ,buffer))))
+  (mode-line-notify-send :title "GHCi Ready" :buffer (current-buffer))
   ;; (require 'notifications)
   ;; (let (buf (current-buffer))
   ;;   (notifications-notify
@@ -61,10 +60,10 @@ ghci-compilation-loaded-hook. Defaults to 60."
               ">*")
     (error "No current project.")))
 
-(defun ghci-compilation-get-buffer (package)
-  "Try to find the ghci-compilation buffer."
-  (get-buffer (ghci-compilation-buffer-name package))
-  )
+(defun ghci-compilation--ensure-buffer (package)
+  (or
+   (get-buffer (ghci-compilation-buffer-name package))
+   (error "no ghci buffer"))  )
 
 (defvar ghci-compilation-menu-map
   (let ((map (make-sparse-keymap "GHCi")))
@@ -236,6 +235,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
         (setq-local jit-lock-defer-time nil)
         (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
 
+        (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
+
         (add-hook 'kill-buffer-hook 'comint-write-input-ring 'local)
 
         (add-hook 'comint-dynamic-complete-functions 'ghci-compilation-complete-at-point nil 'local)
@@ -253,7 +254,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 (defun ghci-compilation--send-string (text &optional buffer)
   "Send `TEXT' to the inferior Haskell REPL process"
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
     (error "GHCI is starting up"))
   (let ((process (get-buffer-process buffer)))
@@ -280,8 +281,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 (defun ghci-compilation-process-output (&optional _)
   "Process output to check if ghci has loaded."
   (when (ghci-compilation--is-prompt)
-    (when-let* ((prompt-marker (if comint-last-prompt (car comint-last-prompt) comint-last-output-start)))
-      (set-marker ghci-compilation-last-prompt-marker prompt-marker))
+    (set-marker ghci-compilation-last-prompt-marker (point))
     (when ghci-compilation-has-loaded-prompt
       (run-hooks 'ghci-compilation-last-command-finished-hook))
     (setq-local ghci-compilation-has-loaded-prompt t)
@@ -299,7 +299,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Reload ghci."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (with-current-buffer buffer
     (if ghci-compilation-has-loaded-prompt
         (progn
@@ -314,7 +314,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Send command to ghci, outputing as string."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
     (error "GHCI is starting up"))
   (let* ((inhibit-quit t)
@@ -328,7 +328,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-get-last-output--marker (&optional buffer)
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (with-current-buffer buffer
     (when (ghci-compilation--is-running-command)
       (error "currently waiting on response from ghci"))
@@ -374,7 +374,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Reload nix too."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (with-current-buffer buffer
     (unless ghci-compilation-has-loaded-prompt
       (error "GHCI is starting up"))
@@ -393,7 +393,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   ""
   (interactive)
 
-  (let ((buffer (ghci-compilation-get-buffer nil)))
+  (let ((buffer (ghci-compilation--ensure-buffer nil)))
     (unless buffer (error "run ghci-compilation first"))
 
     (switch-to-buffer buffer)))
@@ -459,7 +459,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-haskell-completion-at-point (&optional buffer)
   (unless buffer
-    (setq buffer (ghci-compilation-get-buffer nil)))
+    (setq buffer (ghci-compilation--ensure-buffer nil)))
   (let ((prefix-data (haskell-completions-grab-prefix))
         (is-blank-import (save-excursion
                            (goto-char (line-beginning-position))
