@@ -119,7 +119,6 @@ Luckily, it’s not very hard to do this. From the terminal, run:
   defaults write emacs NSAppSleepDisabled -bool YES
   defaults write com.apple.Terminal NSAppSleepDisabled -bool YES
   defaults write com.googlecode.iterm2 NSAppSleepDisabled -bool YES
-  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 #+END_SRC
 
 I’ve seen some of the org.gnu.Emacs form posted online. However, if you start
@@ -2904,11 +2903,14 @@ didn’t work well enough.
   (use-package ghci-compilation
     :ensure nil
     :autoload ghci-compilation-haskell-completion-at-point
+    :preface
+    (defun ghci-compilation-main () (interactive) (ghci-compilation--send-string "main"))
     :bind (("C-x p ." . ghci-compilation)
            ("C-x C-1" . ghci-compilation-transient-menu)
            :map haskell-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
+           ("C-c C-m" . ghci-compilation-main)
            ("C-c C-z" . ghci-compilation-switch-to-buffer))
     :hook (haskell-mode . (lambda () (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point))))
 #+END_SRC
@@ -5435,8 +5437,6 @@ Full listing of packages that will be made available.
     curl zsh cacert file lsof pstree which rsync
     unzip man less silver-searcher ripgrep
     tree gnutls
-
-    direnv
   ] ++ lib.optionals big ([
     git
 
@@ -5451,6 +5451,7 @@ Full listing of packages that will be made available.
     openjdk nodejs gcc gdb
 
     travis v8
+
   ] ++ (lib.optional stdenv.hostPlatform.isDarwin openssh) # use /usr/bin/ ssh
     ++ (with netbsd; [ getent getconf ])
     ++ (with nodePackages; [ tern heroku node2nix ])
@@ -5600,8 +5601,45 @@ Continuous integration is now through GitHub Actions. See
 :CUSTOM_ID: extra
 :END:
 
-These are some extra files that are checked in. They mostly deal with
-maintainence and advanced usage of BAUER.
+This includes some extra files that are checked in, as well as some tips. They
+mostly deal with maintainence and advanced usage of BAUER.
+
+** Helpful tips
+
+On macOS, you may want to disable some shortcuts that override the Emacs ones. I
+believe this will do that for M-s-d
+
+#+BEGIN_SRC sh
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+#+END_SRC
+
+** Optional packages
+
+You might like these packages that I use a lot. They aren’t a requirement to use
+this environment though:
+
+#+BEGIN_SRC sh
+nix profile install nixpkgs#direnv
+nix profile install nixpkgs#opencode
+nix profile install nixpkgs#ghostscript
+nix profile install nixpkgs#gitleaks
+nix profile install nixpkgs#pwgen
+nix profile install nixpkgs#hunspell
+nix profile install nixpkgs#hunspellDicts.en_US
+nix profile install nixpkgs#git
+nix profile install nixpkgs#graphviz
+nix profile install nixpkgs#imagemagick
+nix profile install nixpkgs#python
+nix profile install nixpkgs#openssh
+nix profile install nixpkgs#gcc
+nix profile install nixpkgs#gdb
+nix profile install nixpkgs#ghc
+nix profile install nixpkgs#jq
+nix profile install nixpkgs#cabal-install
+nix profile install nixpkgs#nodejs
+nix profile install nixpkgs#nix-diff
+nix profile install nixpkgs#nethack
+#+END_SRC
 
 ** =update.sh=
 :PROPERTIES:

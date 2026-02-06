@@ -19,6 +19,7 @@
 (defvar-local ghci-compilation-has-loaded-prompt nil)
 (defvar-local ghci-compilation-last-command-started-at nil)
 (defvar-local ghci-compilation-last-prompt-marker nil)
+(defvar-local ghci-compilation-package nil)
 
 (defun ghci-compilation-notify ()
   (require 'mode-line-notify)
@@ -48,11 +49,12 @@ ghci-compilation-loaded-hook. Defaults to 60."
   :type 'hook
   :group 'ghci-compilation)
 
-(defun ghci-compilation-buffer-name (package)
+(defun ghci-compilation-buffer-name (flake-ref package)
   "Generate a name for ghci compilation buffer."
   (if-let (proj (project-current))
       (concat "*"
               "ghci-compilation"
+              (when flake-ref (concat "-" (string-remove-prefix ".#" flake-ref)))
               (when package (concat "-" package))
               "*"
               "<"
@@ -60,10 +62,21 @@ ghci-compilation-loaded-hook. Defaults to 60."
               ">*")
     (error "No current project.")))
 
-(defun ghci-compilation--ensure-buffer (package)
-  (or
-   (get-buffer (ghci-compilation-buffer-name package))
-   (error "no ghci buffer"))  )
+(defun ghci-compilation--find-most-likely-buffer ()
+  (let* ((package-dir (locate-dominating-file default-directory "package.yaml")))
+    (if-let* ((buf1 (seq-find (lambda (buf) (and (equal (buffer-local-value 'major-mode buf) 'ghci-compilation-mode)
+                                                 (equal (project-current nil (buffer-local-value 'default-directory buf)) (project-current nil default-directory))
+                                                 (or (not package-dir)
+                                                     (string-equal (buffer-local-value 'ghci-compilation-package buf)
+                                                                   (file-name-base (directory-file-name package-dir)))))) (buffer-list))))
+        buf1
+      (if-let* ((buf2 (seq-find (lambda (buf) (and (equal (buffer-local-value 'major-mode buf) 'ghci-compilation-mode)
+                                                   (equal (project-current nil (buffer-local-value 'default-directory buf)) (project-current nil default-directory)))) (buffer-list))))
+          buf2
+        (or
+         (get-buffer (ghci-compilation-buffer-name nil nil))
+         (error "no ghci buffer")))
+      )))
 
 (defvar ghci-compilation-menu-map
   (let ((map (make-sparse-keymap "GHCi")))
@@ -164,17 +177,17 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (interactive
    (list
     nil
-    "."
     nil
+    (when current-prefix-arg (read-string "Package name: ")) ;; todo: add some type of completions
     nil))
-  (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name package))))
+  (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name flake-ref package))))
   (unless flake-ref (setq flake-ref (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-                                        ".#exclude.all"
+                                        (concat ".#exclude." (if package (string-remove-suffix "-test" package) "all"))
                                       ".")))
   (unless ghci-repl-command
     (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-                                '("mwb-ghci")
-                              '("cabal" "repl"))))
+                                (append '("mwb-ghci") (when package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) "-test"))) '("-fdev"))
+                              (append '("cabal" "repl") (when package (list package))))))
   (let* ((proc-alive (comint-check-proc buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
          (proj (project-current)))
@@ -193,6 +206,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
         (setq-local bidi-paragraph-direction 'left-to-right)
 
         (setq-local header-line-format (ghci-compilation--make-header))
+
+        (setq-local ghci-compilation-package package)
 
         (setq-local comint-terminfo-terminal "xterm-256color")
         (setq-local comint-prompt-regexp "^ghci> ")
@@ -251,10 +266,12 @@ ghci-compilation-loaded-hook. Defaults to 60."
             (add-to-list 'compilation-search-path (project-root proj))))))
     (pop-to-buffer buffer)))
 
-(defun ghci-compilation--send-string (text &optional buffer)
+(defun ghci-compilation--send-string (text &optional buffer no-display)
   "Send `TEXT' to the inferior Haskell REPL process"
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
+  (when (and (not (get-buffer-window buffer)) (not no-display))
+    (display-buffer buffer))
   (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
     (error "GHCI is starting up"))
   (let ((process (get-buffer-process buffer)))
@@ -299,7 +316,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Reload ghci."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (with-current-buffer buffer
     (if ghci-compilation-has-loaded-prompt
         (progn
@@ -314,7 +331,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Send command to ghci, outputing as string."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (unless (with-current-buffer buffer ghci-compilation-has-loaded-prompt)
     (error "GHCI is starting up"))
   (let* ((inhibit-quit t)
@@ -328,7 +345,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-get-last-output--marker (&optional buffer)
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (with-current-buffer buffer
     (when (ghci-compilation--is-running-command)
       (error "currently waiting on response from ghci"))
@@ -374,7 +391,9 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Reload nix too."
   (interactive)
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
+  (when (and (called-interactively-p 'interactive) (not (get-buffer-window buffer)))
+    (dispaly-buffer buffer))
   (with-current-buffer buffer
     (unless ghci-compilation-has-loaded-prompt
       (error "GHCI is starting up"))
@@ -393,7 +412,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   ""
   (interactive)
 
-  (let ((buffer (ghci-compilation--ensure-buffer nil)))
+  (let ((buffer (ghci-compilation--find-most-likely-buffer)))
     (unless buffer (error "run ghci-compilation first"))
 
     (switch-to-buffer buffer)))
@@ -459,7 +478,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-haskell-completion-at-point (&optional buffer)
   (unless buffer
-    (setq buffer (ghci-compilation--ensure-buffer nil)))
+    (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (let ((prefix-data (haskell-completions-grab-prefix))
         (is-blank-import (save-excursion
                            (goto-char (line-beginning-position))
