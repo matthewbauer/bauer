@@ -2442,8 +2442,7 @@ Optionally, start a server (disabled by default):
 
 **** timeclock
 #+BEGIN_SRC emacs-lisp
-    (use-package timeclock
-  )
+    (use-package timeclock)
 
     (require 'timeclock)
 
@@ -3162,7 +3161,7 @@ repositories.
 (use-package claude-code-ide
   :ensure nil
   :commands (claude-code-ide)
-  :bind ("C-c C-'" . claude-code-ide-menu)
+  ;; :bind ("C-c C-'" . claude-code-ide-menu)
   :custom (claude-code-ide-enable-mcp-server t)
   :config
   (require 'claude-code-ide-mcp-server)
@@ -3333,6 +3332,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell
+    :bind ("C-c C-'" . agent-shell-help-menu)
     :custom
     (agent-shell-file-completion-enabled t)
     (agent-shell-mcp-servers
@@ -3349,7 +3349,12 @@ Most of these are available in MELPA.
               (url . ,(format "http://localhost:%d/mcp/%s"
                               (claude-code-ide-mcp-server-ensure-server) session-id)))))))
     :config
-    (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)))
+    (require 'agent-shell-attention)
+    (agent-shell-attention-mode)
+    )
+
+  (use-package agent-shell-attention
+    :ensure nil)
 
   (use-package chatgpt-shell
     :bind (("C-c C-e" . chatgpt-shell-prompt-compose)))
@@ -5225,6 +5230,9 @@ have the time to do it currently.
     install -D ${ensure ./site-lisp/mode-line-notify.el
                          "site-lisp/mode-line-notify.el"} \
             $out/share/emacs/site-lisp/mode-line-notify.el
+    install -D ${ensure ./site-lisp/agent-shell-attention.el
+                         "site-lisp/agent-shell-attention.el"} \
+            $out/share/emacs/site-lisp/agent-shell-attention.el
   '';
 #+END_SRC
 

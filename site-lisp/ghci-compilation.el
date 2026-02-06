@@ -95,6 +95,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-r" 'ghci-compilation-reload)
     (define-key map "\C-c\C-g" 'ghci-compilation-reload)
+    (define-key map "\C-c\C-m" 'ghci-compilation-main)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map "\M-n" 'ghci-compilation-next)
     (define-key map "\M-p" 'ghci-compilation-previous)
@@ -297,6 +298,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-process-output (&optional _)
   "Process output to check if ghci has loaded."
+  (unless (ghci-compilation--is-prompt)
+    (message (buffer-substring-no-properties (process-mark (get-buffer-process (current-buffer))) (point-max))))
   (when (ghci-compilation--is-prompt)
     (set-marker ghci-compilation-last-prompt-marker (point))
     (when ghci-compilation-has-loaded-prompt
@@ -522,6 +525,10 @@ ghci-compilation-loaded-hook. Defaults to 60."
         (list (line-end-position) (line-end-position) candidates))
       ))))
 
+(defun ghci-compilation-main ()
+  (interactive)
+  (ghci-compilation--send-string "main"))
+
 ;;;###autoload (autoload 'ghci-compilation-transient-menu "ghci-compilation" nil t)
 (transient-define-prefix ghci-compilation-transient-menu ()
   "Emacs helpers for working at Mercury"
@@ -534,6 +541,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
     ("A" "Add file" ghci-compilation-add-file)
     ("L" "Load all" ghci-compilation-load-all)
     ("t" "Test file" ghci-compilation-test-file)
+    ("m" "Run main" ghci-compilation-main)
     ]
    ])
 
