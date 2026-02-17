@@ -2739,7 +2739,9 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package eglot
     :config
     (add-to-list 'eglot-server-programs
-                 `((haskell-mode haskell-ts-mode) . ,(eglot-alternatives '(("static-ls") ("haskell-language-server-wrapper" "--lsp"))))))
+                 `((haskell-mode haskell-ts-mode) . ,(eglot-alternatives
+                                                      '("static-ls" ("haskell-language-server-wrapper" "--lsp")))))
+    )
 #+END_SRC
 
 **** Bazel
@@ -2873,7 +2875,7 @@ didn’t work well enough.
     (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook ((haskell-mode . subword-mode)
-           (haskell-mode . haskell-indentation-mode)
+           (haskell-mode . haskell-indent-mode)
            ;; (haskell-mode . flyspell-prog-mode)
            ;; (haskell-mode . haskell-indentation-mode)
            ;; (haskell-mode . haskell-auto-insert-module-template)
@@ -2907,6 +2909,10 @@ didn’t work well enough.
     :bind (("C-x p ." . ghci-compilation)
            ("C-x C-1" . ghci-compilation-transient-menu)
            :map haskell-mode-map
+           ("C-c C-r" . ghci-compilation-reload)
+           ("C-c C-l" . ghci-compilation-add-file)
+           ("C-c C-m" . ghci-compilation-main)
+           :map haskell-cabal-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-m" . ghci-compilation-main)
@@ -3169,7 +3175,7 @@ repositories.
   (claude-code-ide-emacs-tools-setup)
   (defun claude-ghci-compilation-reload ()
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string ":r")))
+      (ghci-compilation--send-string ":r" t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-reload
    :name "ghci-compilation-reload"
@@ -3177,7 +3183,7 @@ repositories.
    :args nil)
   (defun claude-ghci-compilation-add (modules)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add %s" (string-join modules " ")))))
+      (ghci-compilation--send-string (format ":add %s" (string-join modules " ")) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-add
    :name "ghci-compilation-add"
@@ -3190,7 +3196,7 @@ repositories.
                                 :description "Module name"))))
   (defun claude-ghci-compilation-run-tests (args)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\ntestMain" args))))
+      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\ntestMain" args) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-run-tests
    :name "ghci-compilation-run-tests"
@@ -3201,7 +3207,7 @@ repositories.
 
   (defun claude-ghci-compilation-set-env (name value)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":env %s %s" name value))))
+      (ghci-compilation--send-string (format ":env %s %s" name value) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-set-env
    :name "ghci-compilation-set-env"
@@ -3215,7 +3221,7 @@ repositories.
 
   (defun claude-ghci-compilation-run-ghci-script (script)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":script %s" script))))
+      (ghci-compilation--send-string (format ":script %s" script) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-run-tests
    :name "ghci-compilation-run-ghci-script"
@@ -3225,7 +3231,7 @@ repositories.
                   :description "File name of script")))
   (defun claude-ghci-compilation-run-test-suite (args)
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args))))
+      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-run-tests
    :name "ghci-compilation-run-test-suite"
@@ -3240,6 +3246,15 @@ repositories.
    :name "ghci-compilation-ensure-buffer"
    :description "Ensure ghci buffer exists and is running"
    :args nil)
+
+  (defun claude-ghci-compilation-reload-nix ()
+    (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation-reload-nix nil t)))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-reload-nix
+   :name "ghci-compilation-reload-nix"
+   :description "Reload nix develop shell"
+   :args nil)
+
   ;; (defun claude-ghci-compilation-send-command (command)
   ;;   (claude-code-ide-mcp-server-with-session-context nil
   ;;     (progn (ghci-compilation--send-string command))))
@@ -3269,7 +3284,7 @@ repositories.
 
   (defun claude-ghci-compilation-rerun-last-command ()
     (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (with-current-buffer (ghci-compilation-get-buffer nil) (comint-previous-input-string 0)))))
+      (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-rerun-last-command
    :name "ghci-compilation-rerun-last-command"

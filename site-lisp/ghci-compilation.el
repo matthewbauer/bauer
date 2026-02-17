@@ -188,7 +188,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (unless ghci-repl-command
     (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
                                 (append '("mwb-ghci") (when package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) "-test"))) '("-fdev"))
-                              (append '("cabal" "repl") (when package (list package))))))
+                              (append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
   (let* ((proc-alive (comint-check-proc buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
          (proj (project-current)))
@@ -215,6 +215,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
         (setq-local comint-prompt-read-only t)
         (setq-local comint-use-prompt-regexp t)
         (setq-local comint-process-echoes nil)
+        (setq-local comint-scroll-to-bottom-on-output 'others)
         (setq-local comint-input-sender 'ghci-compilation-input-sender)
         (setq-local process-environment buffer-env)
         (setq-local default-directory (project-root proj))
@@ -269,6 +270,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation--send-string (text &optional buffer no-display)
   "Send `TEXT' to the inferior Haskell REPL process"
+  (interactive)
   (unless buffer
     (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (when (and (not (get-buffer-window buffer)) (not no-display))
@@ -298,10 +300,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-process-output (&optional _)
   "Process output to check if ghci has loaded."
-  (unless (ghci-compilation--is-prompt)
-    (message (buffer-substring-no-properties (process-mark (get-buffer-process (current-buffer))) (point-max))))
   (when (ghci-compilation--is-prompt)
-    (set-marker ghci-compilation-last-prompt-marker (point))
+    (set-marker ghci-compilation-last-prompt-marker (process-mark (get-buffer-process (current-buffer))))
     (when ghci-compilation-has-loaded-prompt
       (run-hooks 'ghci-compilation-last-command-finished-hook))
     (setq-local ghci-compilation-has-loaded-prompt t)
@@ -324,8 +324,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
     (if ghci-compilation-has-loaded-prompt
         (progn
           (when compilation-locs (compilation-forget-errors))
-          (let ((inhibit-read-only t))
-            (erase-buffer))
+          ;; (let ((inhibit-read-only t))
+          ;;   (erase-buffer))
           (ghci-compilation-save-files)
           (ghci-compilation--send-string ":r" buffer))
       (ghci-compilation))))
@@ -390,12 +390,12 @@ ghci-compilation-loaded-hook. Defaults to 60."
                                     (format ":add %s\n" module-name)
                                     (if is-web (format ":import-spec-web\nimport %s\nhspecWithEnv spec\n" module-name) "hspec spec\n")))))
 
-(defun ghci-compilation-reload-nix (&optional buffer)
+(defun ghci-compilation-reload-nix (&optional buffer no-display)
   "Reload nix too."
   (interactive)
   (unless buffer
     (setq buffer (ghci-compilation--find-most-likely-buffer)))
-  (when (and (called-interactively-p 'interactive) (not (get-buffer-window buffer)))
+  (when (and (not (get-buffer-window buffer)) (not no-display))
     (dispaly-buffer buffer))
   (with-current-buffer buffer
     (unless ghci-compilation-has-loaded-prompt
@@ -480,50 +480,51 @@ ghci-compilation-loaded-hook. Defaults to 60."
       (list start end (ghci-compilation--completions (current-buffer) (buffer-substring-no-properties start end)) nil))))
 
 (defun ghci-compilation-haskell-completion-at-point (&optional buffer)
-  (unless buffer
-    (setq buffer (ghci-compilation--find-most-likely-buffer)))
-  (let ((prefix-data (haskell-completions-grab-prefix))
-        (is-blank-import (save-excursion
-                           (goto-char (line-beginning-position))
-                           (re-search-forward
-                            (rx "import"
-                                (? (1+ space) "qualified")
-                                (1+ space)
-                                )
-                            (line-end-position)
-                            t)
-                           )))
-    (cond
-     (prefix-data
-      (cl-destructuring-bind (beg end pfx typ) prefix-data
-        (when (and (not (eql typ 'haskell-completions-general-prefix))
-                   (or haskell-completions-complete-operators
-                       (not (save-excursion
-                              (goto-char (1- end))
-                              (haskell-mode--looking-at-varsym)))))
-          (unless (cl-member
-                   typ
-                   '(haskell-completions-pragma-name-prefix
-                     haskell-completions-ghc-option-prefix
-                     haskell-completions-language-extension-prefix))
-            (let* ((is-import (eql typ 'haskell-completions-module-name-prefix))
-                   (candidates
-                    (when ghci-compilation-has-loaded-prompt
-                      (ghci-compilation--completions buffer (if is-import
-                                                                (concat "import " pfx)
-                                                              pfx))
-                      )))
-              (when is-import
-                (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates)))
-              (list beg end candidates))))))
-     (is-blank-import ;; special support for just "import " completion (no module name)
-      (let ((candidates
-             (when ghci-compilation-has-loaded-prompt
-               (ghci-compilation--completions buffer "import ")
-               )))
-        (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates))
-        (list (line-end-position) (line-end-position) candidates))
-      ))))
+  (ignore-errors
+    (unless buffer
+      (setq buffer (ghci-compilation--find-most-likely-buffer)))
+    (let ((prefix-data (haskell-completions-grab-prefix))
+          (is-blank-import (save-excursion
+                             (goto-char (line-beginning-position))
+                             (re-search-forward
+                              (rx "import"
+                                  (? (1+ space) "qualified")
+                                  (1+ space)
+                                  )
+                              (line-end-position)
+                              t)
+                             )))
+      (cond
+       (prefix-data
+        (cl-destructuring-bind (beg end pfx typ) prefix-data
+          (when (and (not (eql typ 'haskell-completions-general-prefix))
+                     (or haskell-completions-complete-operators
+                         (not (save-excursion
+                                (goto-char (1- end))
+                                (haskell-mode--looking-at-varsym)))))
+            (unless (cl-member
+                     typ
+                     '(haskell-completions-pragma-name-prefix
+                       haskell-completions-ghc-option-prefix
+                       haskell-completions-language-extension-prefix))
+              (let* ((is-import (eql typ 'haskell-completions-module-name-prefix))
+                     (candidates
+                      (when ghci-compilation-has-loaded-prompt
+                        (ghci-compilation--completions buffer (if is-import
+                                                                  (concat "import " pfx)
+                                                                pfx))
+                        )))
+                (when is-import
+                  (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates)))
+                (list beg end candidates))))))
+       (is-blank-import ;; special support for just "import " completion (no module name)
+        (let ((candidates
+               (when ghci-compilation-has-loaded-prompt
+                 (ghci-compilation--completions buffer "import ")
+                 )))
+          (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates))
+          (list (line-end-position) (line-end-position) candidates))
+        )))))
 
 (defun ghci-compilation-main ()
   (interactive)
