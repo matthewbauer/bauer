@@ -2855,13 +2855,15 @@ function.
 Show whitespace
 
 #+BEGIN_SRC emacs-lisp
-  (use-package whitespace
-    :custom
-    (whitespace-line-column 120)
-    (whitespace-action '(cleanup))
-    (whitespace-style '(face trailing lines space-before-tab empty))
-    (whitespace-global-modes '(not erc-mode ses-mode))
-    :hook (prog-mode . whitespace-mode))
+(use-package whitespace
+  :custom
+  (whitespace-line-column 120)
+  (whitespace-action '(cleanup))
+  (whitespace-style '(face trailing lines space-before-tab empty))
+  :hook (prog-mode . (lambda () (and (not noninteractive)
+				     (not (eq (aref (buffer-name) 0) ?\ ))
+				     (not (eq (aref (buffer-name) 0) ?*))
+				     (whitespace-mode)))))
 #+END_SRC
 
 **** project
