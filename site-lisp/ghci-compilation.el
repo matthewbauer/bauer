@@ -365,7 +365,8 @@ ghci-compilation-loaded-hook. Defaults to 60."
     (with-current-buffer buffer (buffer-substring-no-properties beg end))))
 
 (defun ghci-compilation-get-module-name ()
-  "Get the module name from a filename. Cabal is stupid & can’t tell when these are the same."
+  "Get the module name from a filename. Cabal is stupid & can’t tell when
+these are the same."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward "^module \\([a-zA-Z.]+\\)[( ]" nil t)
@@ -396,7 +397,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   (unless buffer
     (setq buffer (ghci-compilation--find-most-likely-buffer)))
   (when (and (not (get-buffer-window buffer)) (not no-display))
-    (dispaly-buffer buffer))
+    (display-buffer buffer))
   (with-current-buffer buffer
     (unless ghci-compilation-has-loaded-prompt
       (error "GHCI is starting up"))
