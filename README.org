@@ -300,6 +300,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | epg-pinentry-mode                      | 'loopback                    |
 | fast-but-imprecise-scrolling           | t                            |
 | frame-inhibit-implied-resize           | t                            |
+| help-enable-autoload                   | nil                          |
+| help-enable-completion-autoload        | nil                          |
+| help-window-select                     | t                            |
 | highlight-nonselected-windows          | t                            |
 | history-delete-duplicates              | t                            |
 | history-length                         | 300                          |
@@ -865,7 +868,6 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 #+BEGIN_SRC emacs-lisp
   (use-package aggressive-indent
     :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
             ielm-mode
             lisp-mode
             inferior-lisp-mode
@@ -1267,7 +1269,8 @@ Multiple cursors give you more cursors. It is bound to =C->= & =C-<=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
-    :functions (mc/create-fake-cursor-at-point mc/maybe-multiple-cursors-mode)
+    :defines (mc--default-cmds-to-run-once)
+    :functions (mc/create-fake-cursor-at-point mc/maybe-multiple-cursors-mode symbol-overlay-get-list)
     :bind
     (("<C-S-down>" . mc/mark-next-like-this)
      ("<C-S-up>" . mc/mark-previous-like-this)
@@ -1412,11 +1415,9 @@ Automatically save the scratch buffer.
 
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
-    :demand
     :custom
     (recentf-max-saved-items 1000)
-    :config
-    (recentf-mode 1)
+    :hook (after-init . recentf-mode)
     )
 #+END_SRC
 
@@ -1478,9 +1479,10 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
     :preface
     (defun apropospriate-change-theme-appearance (&optional appearance)
       (unless appearance
-        (setq appearance (pcase (plist-get (mac-application-state) :appearance)
+        (when (fboundp 'mac-application-state)
+	 (setq appearance (pcase (plist-get (mac-application-state) :appearance)
                            ("NSAppearanceNameAqua" 'light)
-                           ("NSAppearanceNameDarkAqua" 'dark))))
+                           ("NSAppearanceNameDarkAqua" 'dark)))))
       (pcase appearance
         ('light (load-theme 'apropospriate-light t))
         ('dark (load-theme 'apropospriate-dark t))))
@@ -1628,7 +1630,8 @@ Try out packages without installing them.
     (when (and (string-match-p "\a" input)
                ;; Ignore bells in OSC sequences (terminal title updates)
                ;; (not (string-match-p "]0;.*\007" input))
-               (not (string-match-p "\e][^\a]+\a" input)))
+               (not (string-match-p "\e][^\a]+\a" input))
+	       (fboundp 'mode-line-notify-send))
       ;; (when (string-match-p "]0;.*\007" input) (message input))
       ;; (require 'mode-line-notify)
       (let ((buffer (process-buffer process)))
@@ -1659,6 +1662,7 @@ Try out packages without installing them.
   (advice-add 'vterm--filter :around #'vterm-bell-detector))
 
   (use-package vterm-toggle
+    :defines (vterm-toggle-togglable-buffer-functions)
     :bind (:package vterm
                     :map vterm-mode-map
                     ("C-<return>" . vterm-toggle-insert-cd)
@@ -1732,6 +1736,7 @@ configure them.
 #+BEGIN_SRC emacs-lisp
 (use-package minibuffer
   :ensure nil
+  :functions (keyboard-quit@quit-current-context)
   :custom
   (completion-auto-help t)
   (completion-eager-update t) ;; EMACS-31
@@ -1773,7 +1778,9 @@ are defining or executing a macro."
             (lambda () (setq truncate-lines t)))
 
   (minibuffer-depth-indicate-mode 1)
-  (minibuffer-electric-default-mode 1))
+  (minibuffer-electric-default-mode 1)
+  ;; (fido-vertical-mode 1)
+  )
 #+END_SRC
 
 **** autorevert
@@ -1787,7 +1794,8 @@ investigate how to fix this.
     :demand
     :custom
     (auto-revert-avoid-polling t)
-    (global-auto-revert-non-file-buffers t)
+    ;; (global-auto-revert-non-file-buffers t)
+    (global-auto-revert-ignore-modes '(Buffer-menu-mode))
     :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -2040,6 +2048,7 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
 
 #+BEGIN_SRC emacs-lisp
 (use-package eshell
+  :defines (eshell-history-file-name)
   :custom
   (eshell-prompt-function
    (lambda ()
@@ -2261,10 +2270,11 @@ Make scripts executable automatically.
                              ,(expand-file-name "backup/"
                                                 user-emacs-directory))))
   (delete-old-versions t)
-  (version-control t))
+  (version-control t)
+  (find-file-visit-truename t))
 #+END_SRC
 
-**** flyspell
+**** Flyspell
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
@@ -2310,13 +2320,6 @@ Make scripts executable automatically.
        (mark " " (name 16 -1) " " filename)))
     (ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
     :bind ([remap list-buffers] . ibuffer))
-#+END_SRC
-
-**** imenu-list
-
-#+BEGIN_SRC emacs-lisp
-(use-package imenu-list
-  :bind ("s-g i" . imenu-list))
 #+END_SRC
 
 **** isearch
@@ -2480,8 +2483,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
                                              register-alist
                                              mark-ring
                                              global-mark-ring))
-    :demand
-    :config (savehist-mode))
+    :hook (after-init . savehist-mode))
 #+END_SRC
 
 **** saveplace-mode
@@ -2930,7 +2932,8 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
   :preface
   ;; From http://www.reddit.com/r/emacs/comments/25v0eo/you_emacs_tips_and_tricks/chldury
   (defun split-window-below-last-buffer ()
-    "Vertically splitting the screen and open the previous buffer instead of identical buffers.
+    "Vertically splitting the screen and open the previous buffer instead of
+identical buffers.
 
 Use CURRENT-PREFIX-ARG to show an identical buffer."
     (interactive)
@@ -2939,7 +2942,8 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
       (let ((switch-to-prev-buffer-skip 'this)) (switch-to-next-buffer))))
 
   (defun split-window-right-last-buffer ()
-    "Horizontally splitting the screen and open the previous buffer instead of identical buffers.
+    "Horizontally splitting the screen and open the previous buffer instead
+of identical buffers.
 
 Use CURRENT-PREFIX-ARG to show an identical buffer."
     (interactive)
@@ -2977,15 +2981,13 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
+    :functions (eglot-alternatives)
     :custom
-    (eglot-autoshutdown t)
+    (eglot-sync-connect 0)
     (eglot-events-buffer-size 0) ;; EMACS-31 -- do we still need it?
     (eglot-events-buffer-config '(:size 0 :format full))
     (jsonrpc-event-hook nil)
     (eglot-code-action-indications nil) ;; EMACS-31 -- annoying as hell
-
-    :init
-    (fset #'jsonrpc--log-event #'ignore)
 
     :config
 
@@ -3491,6 +3493,7 @@ occasionally block Emacs.
 (use-package emacs-solo-dired-gutter
   :ensure nil
   :no-require t
+  :functions (vc-git-root vc-git--run-command-string dired-get-filename)
   :preface
   (defvar emacs-solo/dired-git-status-overlays nil
     "List of active overlays in Dired for Git status.")
@@ -3533,7 +3536,8 @@ occasionally block Emacs.
       (when (and git-root
                  (not (file-remote-p default-directory)))
         (setq git-root (expand-file-name git-root))
-        (let* ((git-status (vc-git--run-command-string nil "status" "--porcelain" "--ignored" "--untracked-files=normal"))
+        (let* ((git-status (vc-git--run-command-string nil "status" "--porcelain" ;; "--ignored"
+						       "--untracked-files=normal"))
                (status-map (make-hash-table :test 'equal)))
           (mapc #'delete-overlay emacs-solo/dired-git-status-overlays)
           (setq emacs-solo/dired-git-status-overlays nil)
@@ -3792,7 +3796,7 @@ Called by `window-selection-change-functions' on C-x o, etc."
                   (lambda ()
                     (when (and buffer-file-name ; only if it's visiting a file
                                (not (string-match-p "^\\*" (buffer-name)))) ; avoid *scratch*, etc.
-                      (message "[emacs-solo-highlight-keywords-mode]: running on buffer %s" (buffer-name))
+                      ;; (message "[emacs-solo-highlight-keywords-mode]: running on buffer %s" (buffer-name))
                       (run-with-idle-timer 1 nil #'emacs-solo/highlight-keywords-mode-on)))))
 #+END_SRC
 
@@ -3852,6 +3856,7 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package agent-shell
   :bind ("C-c C-'" . agent-shell-help-menu)
+  :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
   :custom
   (agent-shell-file-completion-enabled t)
   (agent-shell-session-strategy 'new)
@@ -3869,92 +3874,29 @@ Most of these are available in MELPA.
            (headers . ())
            (url . ,(format "http://localhost:%d/mcp/%s"
                            (claude-code-ide-mcp-server-ensure-server) session-id)))))))
-  :config
-  (require 'claude-code-ide-mcp-server)
-  (require 'claude-code-ide-emacs-tools)
-  (require 'ghci-compilation)
+  :preface
   (defun claude-ghci-compilation-reload ()
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string ":r" nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-reload
-   :name "ghci-compilation-reload"
-   :description "Compile Haskell code to test that changes work. Perfect after making some change to a Haskell file."
-   :args nil)
   (defun claude-ghci-compilation-add (modules)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":add %s" (string-join modules " ")) nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-add
-   :name "ghci-compilation-add"
-   :description "Add Haskell modules to scope. Run after first making changes to any module."
-   :args '((:name "modules"
-                  :type array
-                  :description "The module names to add to scope"
-                  :items (:name "module"
-                                :type string
-                                :description "Module name"))))
   (defun claude-ghci-compilation-run-tests (args)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":add TestMain\n:set args %s\ntestMain" args) nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-tests"
-   :description "Run test suite"
-   :args '((:name "args"
-                  :type string
-                  :description "Arguments to pass to test suite. Could be something like --match "/My.Module.Name/test group/test name/" --seed 1149949735.")))
-
   (defun claude-ghci-compilation-set-env (name value)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":env %s %s" name value) nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-set-env
-   :name "ghci-compilation-set-env"
-   :description "Set env"
-   :args '((:name "name"
-                  :type string
-                  :description "Name of variable")
-           (:name "value"
-                  :type string
-                  :description "Value of variable")))
-
   (defun claude-ghci-compilation-run-ghci-script (script)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":script %s" script) nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-ghci-script"
-   :description "Run ghci script"
-   :args '((:name "filename"
-                  :type string
-                  :description "File name of script")))
   (defun claude-ghci-compilation-run-test-suite (args)
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args) nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-test-suite"
-   :description "Run test suite"
-   :args '((:name "args"
-                  :type string
-                  :description "Args to pass")))
   (defun claude-ghci-compilation-ensure-buffer ()
     (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-ensure-buffer
-   :name "ghci-compilation-ensure-buffer"
-   :description "Ensure ghci buffer exists and is running"
-   :args nil)
-
   (defun claude-ghci-compilation-reload-nix ()
     (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation-reload-nix nil t)))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-reload-nix
-   :name "ghci-compilation-reload-nix"
-   :description "Reload nix develop shell"
-   :args nil)
-
   ;; (defun claude-ghci-compilation-send-command (command)
   ;;   (claude-code-ide-mcp-server-with-session-context nil
   ;;     (progn (ghci-compilation--send-string command))))
@@ -3976,15 +3918,80 @@ Most of these are available in MELPA.
             (goto-char beg)
             (while (re-search-forward "\[[0-9]+ of [0-9]+\] .*$" end t))
             (buffer-substring-no-properties (point) end))))))
+
+  (defun claude-ghci-compilation-rerun-last-command ()
+    (claude-code-ide-mcp-server-with-session-context nil
+      (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
+  :config
+  (require 'claude-code-ide-mcp-server)
+  ;; (require 'claude-code-ide-emacs-tools)
+  ;; (require 'ghci-compilation)
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-reload
+   :name "ghci-compilation-reload"
+   :description "Compile Haskell code to test that changes work. Perfect after making some change to a Haskell file."
+   :args nil)
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-add
+   :name "ghci-compilation-add"
+   :description "Add Haskell modules to scope. Run after first making changes to any module."
+   :args '((:name "modules"
+                  :type array
+                  :description "The module names to add to scope"
+                  :items (:name "module"
+                                :type string
+                                :description "Module name"))))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-run-tests
+   :name "ghci-compilation-run-tests"
+   :description "Run test suite"
+   :args '((:name "args"
+                  :type string
+                  :description "Arguments to pass to test suite. Could be something like --match "/My.Module.Name/test group/test name/" --seed 1149949735.")))
+
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-set-env
+   :name "ghci-compilation-set-env"
+   :description "Set env"
+   :args '((:name "name"
+                  :type string
+                  :description "Name of variable")
+           (:name "value"
+                  :type string
+                  :description "Value of variable")))
+
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-run-tests
+   :name "ghci-compilation-run-ghci-script"
+   :description "Run ghci script"
+   :args '((:name "filename"
+                  :type string
+                  :description "File name of script")))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-run-tests
+   :name "ghci-compilation-run-test-suite"
+   :description "Run test suite"
+   :args '((:name "args"
+                  :type string
+                  :description "Args to pass")))
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-ensure-buffer
+   :name "ghci-compilation-ensure-buffer"
+   :description "Ensure ghci buffer exists and is running"
+   :args nil)
+
+  (claude-code-ide-make-tool
+   :function #'claude-ghci-compilation-reload-nix
+   :name "ghci-compilation-reload-nix"
+   :description "Reload nix develop shell"
+   :args nil)
+
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-check-output
    :name "ghci-compilation-check-output"
    :description "Get last output from GHCI."
    :args nil)
 
-  (defun claude-ghci-compilation-rerun-last-command ()
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
   (claude-code-ide-make-tool
    :function #'claude-ghci-compilation-rerun-last-command
    :name "ghci-compilation-rerun-last-command"
@@ -3993,7 +4000,7 @@ Most of these are available in MELPA.
   )
 
   (use-package chatgpt-shell
-    :bind (("C-c C-e" . chatgpt-shell-prompt-compose)))
+    :bind (("C-c C-g" . chatgpt-shell-transient)))
 #+END_SRC
 
 **** bats-mode
@@ -4354,7 +4361,6 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
             ielm-mode
             lisp-mode
             inferior-lisp-mode
@@ -4369,7 +4375,6 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-mode
     :hook ((emacs-lisp-mode
-            inferior-emacs-lisp-mode
             ielm-mode
             lisp-mode
             inferior-lisp-mode
@@ -4456,8 +4461,7 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package mode-line-notify
     :ensure nil
-    :demand
-    :config (mode-line-notify))
+    :hook (after-init . mode-line-notify))
 #+END_SRC
 
 ** END
@@ -5552,6 +5556,7 @@ graphical version of Emacs.
       ;;
   esac
 #+END_SRC
+
 * Building
 :PROPERTIES:
 :CUSTOM_ID: build
@@ -5684,7 +5689,8 @@ JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
 
 #+BEGIN_SRC nix
   customEmacsPackages = let
-    emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
+    # emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
+    emacsBinary = pkgs'.emacs-unstable;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
@@ -6234,6 +6240,7 @@ We can build it with =nix-build=.
 nix-build
 ./result/bin/run
 #+END_SRC
+
 * Continuous integration
 :PROPERTIES:
 :CUSTOM_ID: ci
@@ -6848,6 +6855,7 @@ allow overriding your current =$HOME= files.
 
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
+
 * COMMENT Footer
 # Local Variables:
 # mode: org
