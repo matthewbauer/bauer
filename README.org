@@ -683,22 +683,27 @@ better navigations.
 Some bauer-specific custom keybindings.
 
 #+BEGIN_SRC emacs-lisp
-  (bind-keys
-    ([f12] . next-error)
-    ([f11] . previous-error)
-    ([shift f12] . previous-error)
-    ([mouse-9] . next-buffer)
-    ([mouse-8] . previous-buffer))
+(bind-keys
+ ([f12] . next-error)
+ ([f11] . previous-error)
+ ([shift f12] . previous-error)
+ ([mouse-9] . next-buffer)
+ ([mouse-8] . previous-buffer))
 
-  (bind-keys
-   ("C-c I"   . bauer-find-config)
+(bind-keys
+ ("C-c I"   . bauer-find-config)
 
-   :prefix-map bauer-help
-   :prefix "s-h"
-   ("k" . describe-personal-keybindings)
-   ("p" . ffap)
-   ("m" . man)
-   ("w" . woman))
+ :prefix-map bauer-help
+ :prefix "s-h"
+ ("k" . describe-personal-keybindings)
+ ("p" . ffap)
+ ("m" . man)
+ ("w" . woman)
+ ("h" . (lambda ()
+	  (interactive)
+	  (let ((def (haskell-ident-at-point)))
+	    (if (and def (symbolp def)) (setq def (symbol-name def)))
+	    (haskell-hoogle def)))))
 #+END_SRC
 
 Terminal mode key bindings follow. Scrolling in the term with the mouse should
@@ -1166,9 +1171,6 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package transient
-    :custom (transient-display-buffer-action '(display-buffer-below-selected (dedicated . t) (inhibit-same-window . t))))
-
   (use-package magit
     :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
     :preface
@@ -3006,8 +3008,10 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 **** Bazel
 
 #+BEGIN_SRC emacs-lisp
-  (use-package bazel
-    :mode ((rx ?/ (or "BUILD" "BUILD.bazel") eos) . bazel-build-mode))
+(use-package bazel
+  :mode
+  (((rx ?/ (or "BUILD" "BUILD.bazel") eos) . bazel-build-mode)
+   ("/BUCK\\'" . bazel-build-mode)))
 #+END_SRC
 
 **** CMake
@@ -3924,6 +3928,11 @@ Most of these are available in MELPA.
       (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
   :config
   (require 'claude-code-ide-mcp-server)
+  (require 'agent-shell-worktree)
+
+  (transient-append-suffix 'agent-shell-help-menu "N"
+    '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
+
   ;; (require 'claude-code-ide-emacs-tools)
   ;; (require 'ghci-compilation)
   (claude-code-ide-make-tool
@@ -5689,13 +5698,17 @@ JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
 
 #+BEGIN_SRC nix
   customEmacsPackages = let
+    # I’ve switched over the years between macport and non-macport. latest non-macport seems pretty good recently.
     # emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
     emacsBinary = pkgs'.emacs-unstable;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
-  in pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + "-Os -march=native -mtune=native"; }; }));
+    # use native tuning for better performance
+    customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + "-Os -march=native -mtune=native"; }; }));
+  in # override elpaPacakges so elpaDevelPackages is picked up
+     customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
 #+END_SRC
 
 Tex live provides some LaTeX commads for us.
@@ -5891,8 +5904,6 @@ requiredPackages is a function that takes two arguments.
 requiredPackages = epkgs: map (x:
   if builtins.hasAttr x epkgs
     then builtins.getAttr x epkgs
-  else if builtins.hasAttr x pkgs.emacsPackages
-    then builtins.getAttr x pkgs.emacsPackages
   else abort "no attribute found for use-package: ${x}");
 #+END_SRC
 
@@ -6266,7 +6277,7 @@ believe this will do that for M-s-d
   defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 #+END_SRC
 
-** SSH
+*** SSH
 
 You can generate a new key with:
 
@@ -6278,6 +6289,36 @@ Then add it to macOS keychain with:
 
 #+BEGIN_SRC sh
 ssh-add --apple-use-keychain
+#+END_SRC
+
+Note: only ssh keys with passphrases can be added to the keychain. You can
+temporarily add a password with `ssh-keygen -p -f`.
+
+*** Git
+
+*** General
+
+Useful settings:
+
+#+BEGIN_SRC sh
+git config --global merge.conflictStyle diff3
+git config --global pull.rebase true
+git config --global rerere.enabled true
+git config --global rerere.autoUpdate true
+git config --global push.default simple
+git config --global push.autoSetupRemote true
+#+END_SRC
+
+*** Mono-repos performance
+
+There are a few useful things to help manage large mono-repos. Unfortunately,
+they need to be enabled per-repo:
+
+#+BEGIN_SRC sh
+git config features.manyFiles true
+git config core.fsmonitor true
+git fsmonitor--daemon start
+git maintenance start
 #+END_SRC
 
 
@@ -6308,6 +6349,7 @@ nix profile install nixpkgs#nodejs
 nix profile install nixpkgs#nix-diff
 nix profile install nixpkgs#nethack
 #+END_SRC
+
 
 ** =update.sh=
 :PROPERTIES:
@@ -6629,7 +6671,7 @@ up GitHub SSH run:
 $ ssh-keygen
 #+END_SRC
 
-Then, add =$HOME/.ssh/id_rsa=.pub through GitHub’s Web UI. Invoke the script
+Then, add =$HOME/.ssh/id_ed25519=.pub through GitHub’s Web UI. Invoke the script
 with:
 
 #+BEGIN_SRC shell :tangle no
@@ -6743,9 +6785,9 @@ allow overriding your current =$HOME= files.
 
   ssh -T git@github.com 2> /dev/null
   if [ $? -eq 255 ]; then
-      if ! [ -f "$HOME/.ssh/id_rsa" ]; then
+      if ! [ -f "$HOME/.ssh/id_ed25519" ]; then
           echo No ssh key is available. Generating it and adding it to GitHub to continue.
-          ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
+          ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519"
       fi
 
       if [ -z "$USER" ] && [ -t 1 ]; then
@@ -6759,7 +6801,7 @@ allow overriding your current =$HOME= files.
       if [ -n "$TOKEN" ]; then
           auth="$auth:$TOKEN"
       fi
-      curl -u "$auth" -d "$(printf '{"title": "%s", "key": "%s"}' "${HOST-$(hostname)}" "$(cat $HOME/.ssh/id_rsa.pub)")" https://api.github.com/user/keys > /dev/null
+      curl -u "$auth" -d "$(printf '{"title": "%s", "key": "%s"}' "${HOST-$(hostname)}" "$(cat $HOME/.ssh/id_ed25519.pub)")" https://api.github.com/user/keys > /dev/null
   fi
 
   gistdir="$(mktemp -d)"
