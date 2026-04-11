@@ -345,6 +345,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | woman-imenu                            | t                            |
 | word-wrap                              | t                            |
 | x-stretch-cursor                       | t                            |
+| reb-re-syntax                          | 'string                      |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply #'set-defaults
@@ -888,12 +889,12 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
-    :disabled
     :custom
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles partial-completion))))
     (completion-category-defaults '((eglot (styles orderless))
-                                    (eglot-capf (styles orderless)))))
+                                    (eglot-capf (styles orderless))))
+    (completion-pcm-leading-wildcard t))
 
   (use-package vertico
     :commands (vertico-mode)
@@ -934,6 +935,15 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
     :init
     (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
     )
+
+  (use-package marginalia
+    :demand
+    :bind (:map minibuffer-local-map
+           ("M-A" . marginalia-cycle)
+	   :map completion-list-mode-map
+           ("M-A" . marginalia-cycle))
+    :config
+    (marginalia-mode))
 
   (use-package consult
     :autoload (consult-register-window)
@@ -1071,6 +1081,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
 
 #+BEGIN_SRC emacs-lisp
   (use-package dired-subtree
+    :custom (dired-subtree-use-backgrounds nil)
     :bind (:package dired
                     :map dired-mode-map
                     ("<tab>" . dired-subtree-toggle)
@@ -1132,26 +1143,6 @@ disabled
   ("S-M-<left>" . er/contract-region))
 #+END_SRC
 
-
-**** GCMH
-
-[[https://github.com/emacsmirror/gcmh][GitHub]]
-
-Intelligently adjust Emacs garbage collection size.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gcmh
-    :delight
-    :demand
-    :commands (gcmh-mode)
-    :config
-    (gcmh-mode)
-    :custom
-    (gcmh-idle-delay 'auto)
-    (gcmh-auto-idle-delay-factor 10))
-#+END_SRC
-
-
 **** Gnus
 
 [[http://www.gnus.org][Website]]
@@ -1171,22 +1162,25 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package magit
-    :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
-    :preface
-    (defun magit-dired-other-window ()
-      (interactive)
-      (dired-other-window (magit-toplevel)))
-    (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
-      (and (fboundp 'long-line-optimizations-p)
-           (long-line-optimizations-p)
-           (prog1 t
-             ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
-             (kill-local-variable 'redisplay-highlight-region-function)
-             (kill-local-variable 'redisplay-unhighlight-region-function)
-             (when magit-show-long-lines-warning
-               (setq magit-show-long-lines-warning nil)
-               (display-warning 'magit (format "\
+(use-package transient
+  :custom (transient-display-buffer-action '(display-buffer-below-selected (dedicated . t) (inhibit-same-window . t))))
+
+(use-package magit
+  :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
+  :preface
+  (defun magit-dired-other-window ()
+    (interactive)
+    (dired-other-window (magit-toplevel)))
+  (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
+    (and (fboundp 'long-line-optimizations-p)
+         (long-line-optimizations-p)
+         (prog1 t
+           ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
+           (kill-local-variable 'redisplay-highlight-region-function)
+           (kill-local-variable 'redisplay-unhighlight-region-function)
+           (when magit-show-long-lines-warning
+             (setq magit-show-long-lines-warning nil)
+             (display-warning 'magit (format "\
     Emacs has enabled redisplay shortcuts
     in this buffer because there are lines whose length go beyond
     `long-line-threshold' (%s characters).  As a result, section
@@ -1200,40 +1194,43 @@ line are available in an intuitive Emacs buffer.
     This message won't be shown for this session again.  To disable
     it for all future sessions, set `magit-show-long-lines-warning'
     to nil." (bound-and-true-p long-line-threshold)) :warning)))))
-    ;; :hook ((git-commit-mode . git-commit-save-message)
-    ;;      (git-commit-mode . turn-on-auto-fill))
-    :custom
-    (magit-commit-show-diff nil)
-    (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-    (magit-process-find-password-functions '(magit-process-password-auth-source))
-    (magit-process-password-prompt-regexps '(
-                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                             "Please enter the passphrase for the ssh key"
-                                             "Please enter the passphrase to unlock the OpenPGP secret key"
-                                             "^.*'s password: ?$"
-                                             "^Yubikey for .*: ?$"
-                                             "^Enter PIN for .*: ?$"
-                                             "^\\[sudo\\] password for .*: ?$"))
-    (magit-save-repository-buffers 'dontask)
-    (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
-    (magit-clone-set-remote.pushDefault t)
-    :if (locate-file "git" exec-path)
-    :bind (("C-x g" . magit-status)
-           ("C-x p v" . magit-status)
-           ("C-x p m" . magit-status)
-           ("C-x G" . magit-dispatch)
-           :package magit
-           :map magit-mode-map
-           ("C-o" . magit-dired-other-window)
-           :map magit-blame-read-only-mode-map
-           ("RET" . magit-show-commit)
-           ("C-o" . magit-show-commit))
-    :init
-    (remove-hook 'server-switch-hook #'magit-commit-diff)
-    (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff)
-    :config
-    (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts))
+  ;; :hook ((git-commit-mode . git-commit-save-message)
+  ;;      (git-commit-mode . turn-on-auto-fill))
+  :custom
+  (magit-commit-show-diff nil)
+  (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+  (magit-process-find-password-functions '(magit-process-password-auth-source))
+  (magit-process-password-prompt-regexps '(
+                                           "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                           "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                           "Please enter the passphrase for the ssh key"
+                                           "Please enter the passphrase to unlock the OpenPGP secret key"
+                                           "^.*'s password: ?$"
+                                           "^Yubikey for .*: ?$"
+                                           "^Enter PIN for .*: ?$"
+                                           "^\\[sudo\\] password for .*: ?$"))
+  (magit-save-repository-buffers 'dontask)
+  (magit-remote-add-set-remote.pushDefault "origin")
+  (magit-list-refs-sortby "-creatordate")
+  (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
+  (magit-clone-always-transient t)
+  (magit-clone-set-remote.pushDefault t)
+  :if (locate-file "git" exec-path)
+  :bind (("C-x g" . magit-status)
+         ("C-x p v" . magit-status)
+         ("C-x p m" . magit-status)
+         ("C-x G" . magit-dispatch)
+         :package magit
+         :map magit-mode-map
+         ("C-o" . magit-dired-other-window)
+         :map magit-blame-read-only-mode-map
+         ("RET" . magit-show-commit)
+         ("C-o" . magit-show-commit))
+  :init
+  (remove-hook 'server-switch-hook #'magit-commit-diff)
+  (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff)
+  :config
+  (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts))
 #+END_SRC
 
 Magit forge.
@@ -1380,6 +1377,7 @@ outliner but also much much more.
     (org-support-shift-select t)
     (org-pretty-entities t)
     (org-indent-mode t)
+    (org-src-preserve-indentation t)
     :functions pcomplete-completions-at-point
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
@@ -1682,6 +1680,17 @@ Try out packages without installing them.
 (use-package wgrep)
 #+END_SRC
 
+**** diff-hl
+
+#+BEGIN_SRC emacs-lisp
+(use-package diff-hl
+  :demand
+  :custom (diff-hl-disable-on-remote t)
+  :hook (dired-mode . diff-hl-dired-mode-unless-remote)
+  :config (global-diff-hl-mode))
+#+END_SRC
+
+
 *** Built-ins
 
 These are available automatically, so these =use-package= blocks just
@@ -1733,18 +1742,53 @@ configure them.
 )
 #+END_SRC
 
+**** icomplete
+#+BEGIN_SRC emacs-lisp
+(use-package icomplete
+  :disabled
+  :bind (:map icomplete-minibuffer-map
+              ("C-n" . icomplete-forward-completions)
+              ("C-p" . icomplete-backward-completions)
+              ("C-v" . icomplete-vertical-toggle)
+              ("RET" . icomplete-force-complete-and-exit)
+              ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
+  :hook
+  (after-init-hook . (lambda ()
+                       (fido-mode -1)
+                       (icomplete-vertical-mode 1)))
+  :custom
+  ;; (icomplete-delay-completions-threshold 0)
+  ;; (icomplete-compute-delay 0)
+  (icomplete-show-matches-on-no-input t)
+  (icomplete-hide-common-prefix nil)
+  (icomplete-prospects-height 10)
+  (icomplete-in-buffer t)
+  ;; (icomplete-max-delay-chars 0)
+  (icomplete-scroll t)
+  ;; (icomplete-vertical-in-buffer-adjust-list t)
+  ;; (icomplete-vertical-render-prefix-indicator t)
+  :config
+  (if icomplete-in-buffer
+      (advice-add 'completion-at-point
+                  :after #'minibuffer-hide-completions))
+  )
+#+END_SRC
+
 **** minibuffer
 
 #+BEGIN_SRC emacs-lisp
 (use-package minibuffer
   :ensure nil
-  :functions (keyboard-quit@quit-current-context)
   :custom
   (completion-auto-help t)
   (completion-eager-update t) ;; EMACS-31
+  (completion-eager-display t) ;; EMACS-31
   (completions-detailed t)
+  (completions-group t)
+  (minibuffer-visible-completions 'up-down)
   (completions-cycle-threshold t)
   (completions-format 'one-column)
+  (completions-max-height 40)
   (completions-sort 'historical)
   (completion-styles '(basic partial-completion emacs22 substring flex))
   (minibuffer-prompt-properties
@@ -1757,31 +1801,30 @@ configure them.
   (minibuffer-setup . cursor-intangible-mode)
 
   :config
-  ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
-  (define-advice keyboard-quit
-      (:around (quit) quit-current-context)
-    "Quit the current context.
+  (keymap-unset minibuffer-local-completion-map "SPC")
 
-When there is an active minibuffer and we are not inside it close
-it.  When we are inside the minibuffer use the regular
-`minibuffer-keyboard-quit' which quits any active region before
-exiting.  When there is no minibuffer `keyboard-quit' unless we
-are defining or executing a macro."
-    (if (active-minibuffer-window)
-        (if (minibufferp)
-            (minibuffer-keyboard-quit)
-          (abort-recursive-edit))
-      (unless (or defining-kbd-macro
-                  executing-kbd-macro)
-        (funcall-interactively quit))))
+  ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
+  ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
+  ;;     "Quit the current context.
+  ;; 
+  ;; When there is an active minibuffer and we are not inside it close
+  ;; it.  When we are inside the minibuffer use the regular
+  ;; `minibuffer-keyboard-quit' which quits any active region before
+  ;; exiting.  When there is no minibuffer `keyboard-quit' unless we
+  ;; are defining or executing a macro."
+  ;;     (if (active-minibuffer-window)
+  ;;         (if (minibufferp)
+  ;;             (minibuffer-keyboard-quit)
+  ;;           (abort-recursive-edit))
+  ;;       (unless (or defining-kbd-macro
+  ;;                   executing-kbd-macro)
+  ;;         (funcall-interactively quit))))
 
   ;; Keep minibuffer lines unwrapped, long lines like on M-S-y will be truncated
-  (add-hook 'minibuffer-setup-hook
-            (lambda () (setq truncate-lines t)))
+  (add-hook 'minibuffer-setup-hook (lambda () (setq truncate-lines t)))
 
   (minibuffer-depth-indicate-mode 1)
   (minibuffer-electric-default-mode 1)
-  ;; (fido-vertical-mode 1)
   )
 #+END_SRC
 
@@ -2206,6 +2249,9 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ffap
+    :custom
+    (ffap-machine-p-known 'reject)
+    (ffap-url-unwrap-local nil)
     :bind (([S-mouse-3] . ffap-at-mouse)
            ([C-S-mouse-3] . ffap-menu)
 
@@ -2457,14 +2503,11 @@ With prefix arg REGEXP-P, perform a regular expression search."
 #+BEGIN_SRC emacs-lisp
   (use-package repeat
     :demand
+    :bind (:repeat-map frame-repeat-map
+           ("o" . other-frame)
+           ("n" . make-frame)
+           ("d" . delete-frame))
     :config
-    (defvar-keymap frame-repeat-map
-      :repeat t
-      "o" #'other-frame
-      "n" #'make-frame
-      "d" #'delete-frame)
-    (put 'other-frame 'repeat-map 'frame-repeat-map)
-
     (repeat-mode)
     :custom
     (repeat-exit-timeout 0.8))
@@ -2970,7 +3013,19 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
 #+BEGIN_SRC emacs-lisp
   (use-package winner
     :demand
-    :config (winner-mode))
+    :bind (("C-x 1" . toggle-delete-other-windows)
+	   :repeat-map toggle-delete-other-windows-map
+	   ("1" . toggle-delete-other-windows))
+    :config
+    (winner-mode)
+    :preface
+    (defun toggle-delete-other-windows ()
+      "Delete other windows in frame if any, or restore previous window config."
+      (interactive)
+      (if (and winner-mode
+               (equal (selected-window) (next-window)))
+          (winner-undo)
+        (delete-other-windows))))
 #+END_SRC
 
 *** Programming languages
@@ -3363,7 +3418,7 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package sh-script
     :if (treesit-language-available-p 'bash)
-    :mode "\\.\\(sh\\|bash\\)\\'"
+    :mode ("\\.\\(sh\\|bash\\)\\'" . bash-ts-mode)
     )
 #+END_SRC
 
@@ -3379,6 +3434,14 @@ disabled
   (use-package toml-ts-mode
     :if (treesit-language-available-p 'toml)
     :mode "\\.toml\\'")
+#+END_SRC
+
+**** Html
+
+#+BEGIN_SRC emacs-lisp
+(use-package sgml-mode
+  :bind (:map html-mode-map
+              ("M-o" . nil)))
 #+END_SRC
 
 **** Scala
@@ -3492,260 +3555,6 @@ occasionally block Emacs.
 
 **** set-defaults
 **** use-package-list
-**** emacs-solo-dired-gutter
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-solo-dired-gutter
-  :ensure nil
-  :no-require t
-  :functions (vc-git-root vc-git--run-command-string dired-get-filename)
-  :preface
-  (defvar emacs-solo/dired-git-status-overlays nil
-    "List of active overlays in Dired for Git status.")
-
-  (defun emacs-solo/dired--git-status-face (code)
-    "Return a cons cell (STATUS . FACE) for a given Git porcelain CODE."
-    (let* ((git-status-untracked "??")
-           (git-status-modified " M")
-           (git-status-modified-alt "M ")
-           (git-status-deleted "D ")
-           (git-status-added "A ")
-           (git-status-renamed "R ")
-           (git-status-copied "C ")
-           (git-status-ignored "!!")
-           (status (cond
-                    ((string-match-p "\\?\\?" code) git-status-untracked)
-                    ((string-match-p "^ M" code) git-status-modified)
-                    ((string-match-p "^M " code) git-status-modified-alt)
-                    ((string-match-p "^D" code) git-status-deleted)
-                    ((string-match-p "^A" code) git-status-added)
-                    ((string-match-p "^R" code) git-status-renamed)
-                    ((string-match-p "^C" code) git-status-copied)
-                    ((string-match-p "\\!\\!" code) git-status-ignored)
-                    (t "  ")))
-           (face (cond
-                  ((string= status git-status-ignored) 'shadow)
-                  ((string= status git-status-untracked) 'warning)
-                  ((string= status git-status-modified) 'font-lock-function-name-face)
-                  ((string= status git-status-modified-alt) 'font-lock-function-name-face)
-                  ((string= status git-status-deleted) 'error)
-                  ((string= status git-status-added) 'success)
-                  (t 'font-lock-keyword-face))))
-      (cons status face)))
-
-  (defun emacs-solo/dired-git-status-overlay ()
-    "Overlay Git status indicators on the first column in Dired."
-    (interactive)
-    (require 'vc-git)
-    (let ((git-root (ignore-errors (vc-git-root default-directory))))
-      (when (and git-root
-                 (not (file-remote-p default-directory)))
-        (setq git-root (expand-file-name git-root))
-        (let* ((git-status (vc-git--run-command-string nil "status" "--porcelain" ;; "--ignored"
-						       "--untracked-files=normal"))
-               (status-map (make-hash-table :test 'equal)))
-          (mapc #'delete-overlay emacs-solo/dired-git-status-overlays)
-          (setq emacs-solo/dired-git-status-overlays nil)
-
-          (when git-status
-            (dolist (line (split-string git-status "\n" t))
-              (when (string-match "^\\(..\\) \\(.+\\)$" line)
-                (let* ((code (match-string 1 line))
-                       (file (match-string 2 line))
-                       (fullpath (expand-file-name file git-root))
-                       (status-face (emacs-solo/dired--git-status-face code)))
-                  (puthash fullpath status-face status-map)))))
-
-          (save-excursion
-            (goto-char (point-min))
-            (while (not (eobp))
-              (let* ((file (ignore-errors (expand-file-name (dired-get-filename nil t)))))
-                (when file
-                  (setq file (if (file-directory-p file) (concat file "/") file))
-                  (let* ((status-face (gethash file status-map (cons "  " 'font-lock-keyword-face)))
-                         (status (car status-face))
-                         (face (cdr status-face))
-                         (status-str (propertize (format " %s " status) 'face face))
-                         (ov (make-overlay (line-beginning-position) (1+ (line-beginning-position)))))
-                    (overlay-put ov 'before-string status-str)
-                    (push ov emacs-solo/dired-git-status-overlays))))
-              (forward-line 1)))))))
-
-  :hook (dired-after-readin . emacs-solo/dired-git-status-overlay))
-#+END_SRC
-
-**** emacs-solo-gutter
-#+BEGIN_SRC emacs-lisp
-(use-package emacs-solo-gutter
-  :ensure nil
-  :no-require t
-  :preface
-  (defvar git-gutter-diff-info)
-  (defun emacs-solo/goto-next-hunk ()
-    "Jump cursor to the closest next hunk."
-    (interactive)
-    (let* ((current-line (line-number-at-pos))
-           (line-numbers (mapcar #'car git-gutter-diff-info))
-           (sorted-line-numbers (sort line-numbers '<))
-           (next-line-number
-            (if (not (member current-line sorted-line-numbers))
-                ;; If the current line is not in the list, find the next closest line number
-                (cl-find-if (lambda (line) (> line current-line)) sorted-line-numbers)
-              ;; If the current line is in the list, find the next line number that is not consecutive
-              (let ((last-line nil))
-                (cl-loop for line in sorted-line-numbers
-                         when (and (> line current-line)
-                                   (or (not last-line)
-                                       (/= line (1+ last-line))))
-                         return line
-                         do (setq last-line line))))))
-
-      (when next-line-number
-        (goto-char (point-min))
-        (forward-line (1- next-line-number)))))
-
-  (defun emacs-solo/goto-previous-hunk ()
-    "Jump cursor to the closest previous hunk."
-    (interactive)
-    (let* ((current-line (line-number-at-pos))
-           (line-numbers (mapcar #'car git-gutter-diff-info))
-           (sorted-line-numbers (sort line-numbers '<))
-           (previous-line-number
-            (if (not (member current-line sorted-line-numbers))
-                ;; If the current line is not in the list, find the previous closest line number
-                (cl-find-if (lambda (line) (< line current-line)) (reverse sorted-line-numbers))
-              ;; If the current line is in the list, find the previous line number that has no direct predecessor
-              (let ((previous-line nil))
-                (dolist (line sorted-line-numbers)
-                  (when (and (< line current-line)
-                             (not (member (1- line) line-numbers)))
-                    (setq previous-line line)))
-                previous-line))))
-
-      (when previous-line-number
-        (goto-char (point-min))
-        (forward-line (1- previous-line-number)))))
-
-
-  (defun emacs-solo/git-gutter-process-git-diff ()
-    "Process git diff for adds/mods/removals.
-Marks lines as added, deleted, or changed."
-    (interactive)
-    (let* ((result '())
-           (file-path (buffer-file-name))
-           (grep-command "rg -Po")                         ; for rgrep
-           ;; (grep-command (if (eq system-type 'darwin)   ; for grep / ggrep
-           ;;                   "ggrep -Po"
-           ;;                 "grep -Po"))
-           (output (shell-command-to-string
-                    (format
-                     "git diff --unified=0 %s | %s '^@@ -[0-9]+(,[0-9]+)? \\+\\K[0-9]+(,[0-9]+)?(?= @@)'"
-                     (shell-quote-argument file-path)
-                     grep-command)))
-           (lines (split-string output "\n")))
-      (dolist (line lines)
-        (if (string-match "\\(^[0-9]+\\),\\([0-9]+\\)\\(?:,0\\)?$" line)
-            (let ((num (string-to-number (match-string 1 line)))
-                  (count (string-to-number (match-string 2 line))))
-              (if (= count 0)
-                  (push (cons (+ 1 num) "deleted") result)
-                (dotimes (i count)
-                  (push (cons (+ num i) "changed") result))))
-          (if (string-match "\\(^[0-9]+\\)$" line)
-              (push (cons (string-to-number line) "added") result))))
-      (setq-local git-gutter-diff-info result)
-      result))
-
-
-  (defun emacs-solo/git-gutter-add-mark (&rest _args)
-    "Add symbols to the left margin based on Git diff statuses.
-- '+' for added lines (uses `success` face)
-- '~' for changed lines (uses `warning` face)
-- '-' for deleted lines (uses `error` face)."
-    (interactive)
-    (remove-overlays (point-min) (point-max) 'emacs-solo--git-gutter-overlay t)
-    (let ((lines-status (or (emacs-solo/git-gutter-process-git-diff) '())))
-      (save-excursion
-        (dolist (line-status lines-status)
-          (let* ((line-num (car line-status))
-                 (status (cdr line-status))
-                 (symbol (cond                                ;; Alternatives:
-                          ((string= status "added")   "┃")    ;; +  │ ▏┃
-                          ((string= status "changed") "┃")    ;; ~  │ ▏┃
-                          ((string= status "deleted") "┃")))  ;; _  _‾ x
-                 (face (cond
-                        ((string= status "added")   'success)
-                        ((string= status "changed") 'warning)
-                        ((string= status "deleted") 'error))))
-            (when (and line-num status)
-              (goto-char (point-min))
-              (forward-line (1- line-num))
-              (let ((overlay (make-overlay (line-beginning-position) (line-beginning-position))))
-                (overlay-put overlay 'emacs-solo--git-gutter-overlay t)
-                (overlay-put overlay 'before-string
-                             (propertize " "
-                                         'display
-                                         `((margin left-margin)
-                                           ,(propertize symbol 'face face)))))))))))
-
-  (defun emacs-solo/timed-git-gutter-on ()
-    (let ((buf (current-buffer)))
-      (run-at-time 0.1 nil `(lambda ()
-                              (when (buffer-live-p ,buf)
-                                (with-current-buffer ,buf
-                                  (emacs-solo/git-gutter-add-mark)))))))
-
-  (defun emacs-solo/git-gutter-off ()
-    "Remove all `emacs-solo--git-gutter-overlay' marks and other overlays."
-    (interactive)
-    (remove-overlays (point-min) (point-max) 'emacs-solo--git-gutter-overlay t)
-    (remove-hook 'find-file-hook #'emacs-solo/timed-git-gutter-on)
-    (remove-hook 'after-save-hook #'emacs-solo/git-gutter-add-mark)
-    (remove-hook 'after-revert-hook #'emacs-solo/timed-git-gutter-on)
-    (remove-function after-focus-change-function #'emacs-solo/git-gutter-refresh-visible)
-    (remove-hook 'window-selection-change-functions #'emacs-solo/git-gutter-on-window-switch))
-
-  (defun emacs-solo/git-gutter-on ()
-    (interactive)
-    (add-hook 'find-file-hook #'emacs-solo/timed-git-gutter-on)
-    (add-hook 'after-save-hook #'emacs-solo/git-gutter-add-mark)
-    (add-hook 'after-revert-hook #'emacs-solo/timed-git-gutter-on)
-    (add-function :after after-focus-change-function #'emacs-solo/git-gutter-refresh-visible)
-    (add-hook 'window-selection-change-functions #'emacs-solo/git-gutter-on-window-switch)
-    (when (not (string-match-p "^\\*" (buffer-name))) ; avoid *scratch*, etc.
-      (emacs-solo/git-gutter-add-mark)))
-
-  (defun emacs-solo/git-gutter-refresh-visible ()
-    "Refresh gutter marks in all visible file-visiting buffers.
-Runs after Emacs regains focus (e.g. switching back from terminal
-after git add/commit, or after an external tool modifies files)."
-    (when (frame-focus-state)
-      (dolist (win (window-list))
-        (let ((buf (window-buffer win)))
-          (when (and (buffer-file-name buf)
-                     (not (string-match-p "^\\*" (buffer-name buf)))
-                     (vc-git-root (buffer-file-name buf)))
-            (with-current-buffer buf
-              (emacs-solo/timed-git-gutter-on)))))))
-
-  (defun emacs-solo/git-gutter-on-window-switch (_frame)
-    "Refresh gutter marks in the newly selected window's buffer.
-Called by `window-selection-change-functions' on C-x o, etc."
-    (let ((buf (window-buffer (selected-window))))
-      (when (and (buffer-file-name buf)
-                 (not (string-match-p "^\\*" (buffer-name buf)))
-                 (vc-git-root (buffer-file-name buf)))
-        (with-current-buffer buf
-          (emacs-solo/timed-git-gutter-on)))))
-
-  :bind
-  ("C-c g p" . emacs-solo/goto-previous-hunk)
-  ("C-c g r" . emacs-solo/git-gutter-off)
-  ("C-c g g" . emacs-solo/git-gutter-on)
-  ("C-c g n" . emacs-solo/goto-next-hunk)
-
-  :hook (after-init . emacs-solo/git-gutter-on))
-#+END_SRC
-
 **** emacs-solo-highlight-keywords-mode
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-solo-highlight-keywords-mode
@@ -3861,6 +3670,25 @@ Most of these are available in MELPA.
 (use-package agent-shell
   :bind ("C-c C-'" . agent-shell-help-menu)
   :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
+  :hook (agent-shell-mode . (lambda ()
+			      (let ((buffer (current-buffer)))
+				(agent-shell-subscribe-to
+				 :shell-buffer buffer
+				 :event 'turn-complete
+				 :on-event `(lambda (_event)
+					      (when (buffer-live-p ,buffer)
+						(mode-line-notify-send
+						 :title (format "%s Agent Shell Turn Complete" (buffer-name ,buffer))
+						 :buffer ,buffer))))
+				(agent-shell-subscribe-to
+				 :shell-buffer buffer
+				 :event 'permission-request
+				 :on-event `(lambda (_event)
+					      (when (buffer-live-p ,buffer)
+						(mode-line-notify-send
+						 :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
+						 :buffer ,buffer)))))
+			      ))
   :custom
   (agent-shell-file-completion-enabled t)
   (agent-shell-session-strategy 'new)
@@ -4473,6 +4301,25 @@ disabled
     :hook (after-init . mode-line-notify))
 #+END_SRC
 
+**** copilot
+
+#+BEGIN_SRC emacs-lisp
+(use-package copilot
+  :hook ((text-mode prog-mode) . copilot-mode)
+  :custom
+  (copilot-indent-offset-warning-disable t)
+  (copilot-max-char-warning-disable t)
+  :bind (:map copilot-completion-map
+              ("<tab>" . copilot-accept-completion)
+              ("TAB" . copilot-accept-completion)
+              ("C-<tab>" . copilot-accept-completion-by-word)
+              ("C-TAB" . copilot-accept-completion-by-word)
+              ("C-n" . copilot-next-completion)
+              ("C-p" . copilot-previous-completion))
+  :config
+  (add-to-list 'copilot-indentation-alist '(org-mode 2)))
+#+END_SRC
+
 ** END
 
 #+BEGIN_SRC emacs-lisp
@@ -4621,9 +4468,9 @@ just in case.
             .....='../../../..' \
             ......='../../../../..'
 
-      # if command -v direnv > /dev/null; then
-      #   eval "$(direnv hook bash)"
-      # fi
+      if command -v direnv > /dev/null; then
+        eval "$(direnv hook bash)"
+      fi
 
       HISTFILE="$HOME/.bash_history"
   fi
@@ -5039,9 +4886,9 @@ fi
 direnv
 
 #+BEGIN_SRC shell
-  # if command -v direnv > /dev/null; then
-  #   eval "$(direnv hook zsh)"
-  # fi
+  if command -v direnv > /dev/null; then
+    eval "$(direnv hook zsh)"
+  fi
 #+END_SRC
 
 ** =etc-profile.sh=
@@ -6579,7 +6426,7 @@ in {
     outputs = { self, nixpkgs, emacs-overlay }: let
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; config.allowUnfree = true; });
     in {
       packages = forAllSystems (system: {
         bauer = let

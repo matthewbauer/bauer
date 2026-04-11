@@ -10,7 +10,7 @@
   outputs = { self, nixpkgs, emacs-overlay }: let
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
     forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
-    nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+    nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; config.allowUnfree = true; });
   in {
     packages = forAllSystems (system: {
       bauer = let

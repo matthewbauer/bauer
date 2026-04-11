@@ -25,15 +25,19 @@ Each notification is a plist with :message and :buffer.")
 (defun mode-line-notify-send (&rest params)
   "Send a notification to the mode line."
   (interactive)
-  (unless (or (equal (current-buffer) (plist-get params :buffer))
-              (seq-find (lambda (data)
-                          (equal (plist-get data :title) (plist-get params :title)))
-                        mode-line-notify--data))
+  ;; ignore already displayed windows
+  (unless (or
+	   (and (plist-get params :buffer) (get-buffer-window (plist-get params :buffer) 'visible))
+           (seq-find (lambda (data)
+                       (equal (plist-get data :title) (plist-get params :title)))
+                     mode-line-notify--data))
     (setq mode-line-notify--data (append mode-line-notify--data (list params)))
     (force-mode-line-update t)))
 
 (defun mode-line-buffer-change (_frame)
-  (seq-remove (lambda (data) (equal (plist-get data :buffer) (current-buffer))) mode-line-notify--data))
+  (setq mode-line-notify--data
+	(seq-remove (lambda (data) (and (plist-get data :buffer)
+					(get-buffer-window (plist-get data :buffer) 'visible))) mode-line-notify--data)))
 
 (define-minor-mode mode-line-notify
   "Display notification indicator in the mode line."

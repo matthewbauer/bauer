@@ -187,7 +187,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 				      ".")))
   (unless ghci-repl-command
     (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-                                (append '("mwb-ghci") (when package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking")) "-test")))) '("-fdev"))
+                                (append '("_cabal_repl") (if package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking" "mercury-ledger")) "-test"))) '("lib:mwb")) '("-fdev"))
                               (append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
   (let* ((proc-alive (comint-check-proc buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
@@ -369,7 +369,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 these are the same."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "^module \\([a-zA-Z.]+\\)[( ]" nil t)
+    (re-search-forward "^module \\([a-zA-Z.]+\\)[( \n]" nil t)
     (match-string-no-properties 1)))
 
 (defun ghci-compilation-add-file ()
