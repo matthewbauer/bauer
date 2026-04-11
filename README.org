@@ -156,7 +156,7 @@ every time Emacs is started.
 
 Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
 what point Emacs should invoke its garbage collector Some people set it to a
-really larger number permanently. This works well until the garbage is actually
+really large number permanently. This works well until the garbage is actually
 collected (then you have to wait a long time). I’ve decided to just set it
 temporarily to a large number so we only garbage collect once on startup. After
 that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for more info on
@@ -207,7 +207,7 @@ COLORFGBG method.
     (xterm-mouse-mode)
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
-                (lambda ()
+                (lambda (_frame)
                    ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
                    (xterm--init-modify-other-keys)
 
@@ -337,7 +337,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | undo-limit                             | 67108864                     |
 | undo-outer-limit                       | 100663296                    |
 | undo-strong-limit                      | 1006632960                   |
-| uniquify-after-kill-buffer-flag        | t                            |
 | uniquify-after-kill-buffer-p           | t                            |
 | uniquify-buffer-name-style             | 'post-forward-angle-brackets |
 | use-package-always-defer               | t                            |
@@ -877,7 +876,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
             ielm-mode
             lisp-mode
             inferior-lisp-mode
-            isp-interaction-mode
+            lisp-interaction-mode
             slime-repl-mode) . aggressive-indent-mode))
 #+END_SRC
 
@@ -885,7 +884,7 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 
 [[https://github.com/minad/consult][GitHub]]
 
-A better version of ‘completing-read’ that is isn’t as heavy duty as company.
+A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
@@ -1047,7 +1046,7 @@ A better version of ‘completing-read’ that is isn’t as heavy duty as compa
   (dired-hide-details-hide-symlink-targets nil)
   (dired-omit-verbose nil)
   (dired-omit-files "^\\.\\|^#.*#$")
-  (dired-listing-switches "-alhv --group-directories-first")
+  (dired-listing-switches "-alhv")
   (dired-create-destination-dirs 'ask)
   (dired-hide-details-hide-absolute-location t)
   :bind (("C-c J" . dired-double-jump)
@@ -1376,7 +1375,6 @@ outliner but also much much more.
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
     (org-pretty-entities t)
-    (org-indent-mode t)
     (org-src-preserve-indentation t)
     :functions pcomplete-completions-at-point
     :hook ((org-mode . (lambda ()
@@ -2399,7 +2397,6 @@ With prefix arg REGEXP-P, perform a regular expression search."
   (define-key isearch-mode-map (kbd "M-w") 'isearch-copy-selected-word)
 
   :custom
-  (isearch-allow-scroll 'unlimited)
   (isearch-lazy-count t)
   (isearch-allow-scroll 'shift))
 #+END_SRC
@@ -2550,6 +2547,7 @@ Optionally, start a server (disabled by default):
     :disabled
     :demand
     :config (unless (server-running-p) (server-start)))
+#+END_SRC
 
 **** proced
 
@@ -2805,7 +2803,7 @@ Optionally, start a server (disabled by default):
 
     (defface timeclock-font-uncleared-face
       `((t :inherit warning))
-      "Uncleared face fortimeclock"
+      "Uncleared face for timeclock"
       :group 'timeclock-faces)
 
     (defface timeclock-font-cleared-face
@@ -3748,7 +3746,7 @@ Most of these are available in MELPA.
         (with-current-buffer buffer
           (save-excursion
             (goto-char beg)
-            (while (re-search-forward "\[[0-9]+ of [0-9]+\] .*$" end t))
+            (while (re-search-forward "\\[[0-9]+ of [0-9]+\\] .*$" end t))
             (buffer-substring-no-properties (point) end))))))
 
   (defun claude-ghci-compilation-rerun-last-command ()
@@ -3798,14 +3796,14 @@ Most of these are available in MELPA.
                   :description "Value of variable")))
 
   (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
+   :function #'claude-ghci-compilation-run-ghci-script
    :name "ghci-compilation-run-ghci-script"
    :description "Run ghci script"
    :args '((:name "filename"
                   :type string
                   :description "File name of script")))
   (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
+   :function #'claude-ghci-compilation-run-test-suite
    :name "ghci-compilation-run-test-suite"
    :description "Run test suite"
    :args '((:name "args"
@@ -4049,7 +4047,7 @@ disabled
          :description "GPT-4 snapshot from June 2023 with improved function calling support"
          :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
          :capabilities (media url)
-         :context-window 8.192
+         :context-window 8192
          :input-cost 30
          :output-cost 60
          :cutoff-date "2023-11")
@@ -4286,8 +4284,6 @@ disabled
 #+END_SRC
 
 **** visual-regexp
-
-[[https://github.com/rmuslimov/browse-at-remote][GitHub]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package visual-regexp)
@@ -4572,7 +4568,7 @@ fi
 
 ** =.zshrc=
 :PROPERTIES:
-:header-args: :tangle zshrc.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env bash"
+:header-args: :tangle zshrc.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env zsh"
 :CUSTOM_ID: zshrc
 :END:
 
@@ -5425,7 +5421,7 @@ high level goals that should be verified:
 - Don’t assume users’ language, locales, time zone, etc.
 - Don’t hard code any personal information
 - Everything should run on Linux, and macOS.
-- Nix usage is optional (see Withou Nix above).
+- Nix usage is optional (see Without Nix above).
 
 The editor and environment should be general purpose and portable
 
@@ -5541,7 +5537,7 @@ Emacs packages defined in Nixpkgs.
 We also define our Emacs version to use. Mitsuharo’s Emacs package is much
 better for MacOS so we use that when we’re on Darwin systems (now taken over by
 JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
-(Nixpkgs-unstable has version 26.1 currently).
+(Nixpkgs-unstable has version 30.2 currently).
 
 #+BEGIN_SRC nix
   customEmacsPackages = let
@@ -5554,11 +5550,11 @@ JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
     };
     # use native tuning for better performance
     customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + "-Os -march=native -mtune=native"; }; }));
-  in # override elpaPacakges so elpaDevelPackages is picked up
+  in # override elpaPackages so elpaDevelPackages is picked up
      customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
 #+END_SRC
 
-Tex live provides some LaTeX commads for us.
+Tex live provides some LaTeX commands for us.
 
 #+BEGIN_SRC nix
     myTex = pkgs.texlive.combine {
@@ -5888,7 +5884,7 @@ version of executables.
   };
 #+END_SRC
 
-Setup the system headers path. This is delibirately light to avoid huge
+Setup the system headers path. This is deliberately light to avoid huge
 closures. Right now, only =libc= and =libcxx= are included by default.
 
 #+BEGIN_SRC nix
@@ -5904,7 +5900,7 @@ closures. Right now, only =libc= and =libcxx= are included by default.
 #+END_SRC
 
 Also setup the Apple framework paths. These are a mix between lib directory and
-include directory. This is oinly useful on macOS/Darwin machines.
+include directory. This is only useful on macOS/Darwin machines.
 
 #+BEGIN_SRC nix
   apple_sdk = "${pkgs.darwin.xcode}/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
@@ -6066,7 +6062,6 @@ have been configured to use the paths above.
       MANPATH = makeSearchPath "share/man" [manpages];
       INFOPATH = makeSearchPath "share/info" [infopages];
       XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
-      TERMINFO_DIRS = makeSearchPath "share/terminfo" [terminfo];
       emacs = myEmacs;
       emacsConfig = default;
       inherit myTex rEnv;
