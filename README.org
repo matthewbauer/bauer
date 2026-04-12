@@ -887,140 +887,188 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package orderless
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles partial-completion))))
-    (completion-category-defaults '((eglot (styles orderless))
-                                    (eglot-capf (styles orderless))))
-    (completion-pcm-leading-wildcard t))
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion))))
+  (completion-category-defaults '((eglot (styles orderless))
+                                  (eglot-capf (styles orderless))))
+  (completion-pcm-leading-wildcard t))
 
-  (use-package vertico
-    :commands (vertico-mode)
-    :demand
-    :config
-    (vertico-mode))
+(use-package vertico
+  :commands (vertico-mode)
+  :demand
+  :custom (vertico-preselect 'prompt)
+  :config
+  (vertico-mode))
 
-  (use-package vertico-multiform
-    :ensure nil
-    :after vertico
-    :custom
-    (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
-    :config
-    (vertico-multiform-mode))
+(use-package vertico-multiform
+  :ensure nil
+  :after vertico
+  :custom
+  (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
+  :config
+  (advice-add 'vertico-multiform--setup :override (lambda ()
+						    (let ((cat (compat-call completion-metadata-get
+									    (completion-metadata (buffer-substring-no-properties
+												  (minibuffer-prompt-end)
+												  (max (minibuffer-prompt-end) (point)))
+												 minibuffer-completion-table
+												 minibuffer-completion-predicate)
+									    'category))
+							  (exit (make-symbol "vertico-multiform--exit"))
+							  (depth (recursion-depth))
+							  (kmaps nil)
+							  (modes nil))
+						      (fset exit `(lambda ()
+						                    (when (= ,depth (recursion-depth))
+						                      (remove-hook 'minibuffer-exit-hook exit)
+						                      (vertico-multiform--toggle -1)
+						                      (pop vertico-multiform--stack))))
+						      (add-hook 'minibuffer-exit-hook exit)
+						      (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
+						      (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
+									  (vertico-multiform--lookup cat vertico-multiform-categories))))
+							(pcase x
+							  (`(:keymap . ,key)
+							   (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
+							  (`(:not . ,fs)
+							   (dolist (f fs)
+							     (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
+								    (mode (if (and sym (fboundp sym)) sym f)))
+							       (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
+								 (push (cons :not mode) modes)))))
+							  ((or (pred functionp) (pred symbolp))
+							   (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
+								  (mode (if (and sym (fboundp sym)) sym x)))
+							     (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
+							       (push mode modes))))
+							  (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
+							  (_ (error "Invalid multiform setting %S" x))))
+						      (push modes vertico-multiform--stack)
+						      (vertico-multiform--toggle 1)
+						      (vertico--setup)
+						      (when kmaps
+							(use-local-map (make-composed-keymap kmaps (current-local-map)))))))
+  (vertico-multiform-mode))
 
-  (use-package corfu
-    :demand
-    :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
-    :custom
-    (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
-    (corfu-preselect 'prompt) ;; Always preselect the prompt
-    :bind
-    (:map corfu-map
-          ("TAB" . corfu-next)
-          ([tab] . corfu-next)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous))
+(use-package corfu
+  :demand
+  :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
+  :custom
+  (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
+  (corfu-preselect 'prompt) ;; Always preselect the prompt
+  :bind
+  (:map corfu-map
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous))
 
-    :config
-    (global-corfu-mode t)
-    (corfu-history-mode t)
-    (corfu-popupinfo-mode t))
+  :config
+  (global-corfu-mode t)
+  (corfu-history-mode t)
+  (corfu-popupinfo-mode t))
 
-  (use-package cape
-    :demand
-    :autoload (cape-wrap-buster)
-    :after corfu
-    :hook ((completion-at-point-functions . cape-dabbrev)
-           (completion-at-point-functions . cape-dict)
-           (completion-at-point-functions . cape-file)
-           (completion-at-point-functions . cape-elisp-block)
-           (completion-at-point-functions . cape-history)
-           (completion-at-point-functions . cape-keyword))
-    :preface
-    (autoload #'eglot-completion-at-point "eglot")
-    :init
-    (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
-    )
+(use-package cape
+  :demand
+  :autoload (cape-wrap-buster)
+  :after corfu
+  :hook ((completion-at-point-functions . cape-dabbrev)
+         (completion-at-point-functions . cape-dict)
+         (completion-at-point-functions . cape-file)
+         (completion-at-point-functions . cape-elisp-block)
+         (completion-at-point-functions . cape-history)
+         (completion-at-point-functions . cape-keyword))
+  :preface
+  (autoload #'eglot-completion-at-point "eglot")
+  :init
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
+  )
 
-  (use-package marginalia
-    :demand
-    :bind (:map minibuffer-local-map
-           ("M-A" . marginalia-cycle)
-	   :map completion-list-mode-map
-           ("M-A" . marginalia-cycle))
-    :config
-    (marginalia-mode))
+(use-package marginalia
+  :demand
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle)
+	      :map completion-list-mode-map
+              ("M-A" . marginalia-cycle))
+  :config
+  (marginalia-mode))
 
-  (use-package consult
-    :autoload (consult-register-window)
-    ;; Replace bindings. Lazily loaded due by `use-package'.
-    :bind (;; C-c bindings (mode-specific-map)
-           ("C-c M-x" . consult-mode-command)
-           ("C-c h" . consult-history)
-           ("C-c k" . consult-kmacro)
-           ;; ("C-c m" . consult-man)
-           ("C-c i" . consult-info)
-           ([remap Info-search] . consult-info)
-           ;; C-x bindings (ctl-x-map)
-           ([remap repeat-complex-command] . consult-complex-command)
-           ([remap switch-to-buffer] . consult-buffer)
-           ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
-           ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-           ([remap bookmark-jump] . consult-bookmark)
-           ([remap project-switch-to-buffer] . consult-project-buffer)
-           ;; Custom M-# bindings for fast register access
-           ("M-#" . consult-register-load)
-           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-           ("C-M-#" . consult-register)
-           ;; Other custom bindings
-           ([remap yank-pop] . consult-yank-pop)
-           ;; M-g bindings (goto-map)
-           ("M-g e" . consult-compile-error)
-           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-           ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
-           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-           ("M-g m" . consult-mark)
-           ("M-g k" . consult-global-mark)
-           ("M-g i" . consult-imenu)
-           ("M-g I" . consult-imenu-multi)
-           ;; M-s bindings (search-map)
-           ("M-s d" . consult-find)
-           ("M-s D" . consult-locate)
-           ("M-s g" . consult-grep)
-           ("M-s G" . consult-git-grep)
-           ("M-s r" . consult-ripgrep)
-           ("M-s l" . consult-line)
-           ("M-s L" . consult-line-multi)
-           ("M-s k" . consult-keep-lines)
-           ("M-s u" . consult-focus-lines)
-           ;; Isearch integration
-           ("M-s e" . consult-isearch-history)
-           :map isearch-mode-map
-           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-           ;; Minibuffer history
-           :map minibuffer-local-map
-           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-           ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+(use-package jinx
+  :demand
+  :config
+  (global-jinx-mode))
 
-    ;; Enable automatic preview at point in the *Completions* buffer. This is
-    ;; relevant when you use the default completion UI.
-    :hook (completion-list-mode . consult--default-completion-list-preview-setup)
+(use-package consult
+  :autoload (consult-register-window)
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (;; C-c bindings (mode-specific-map)
+         ("C-c M-x" . consult-mode-command)
+         ("C-c h" . consult-history)
+         ("C-c k" . consult-kmacro)
+         ;; ("C-c m" . consult-man)
+         ("C-c i" . consult-info)
+         ([remap Info-search] . consult-info)
+         ;; C-x bindings (ctl-x-map)
+         ([remap repeat-complex-command] . consult-complex-command)
+         ([remap switch-to-buffer] . consult-buffer)
+         ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+         ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+         ([remap bookmark-jump] . consult-bookmark)
+         ([remap project-switch-to-buffer] . consult-project-buffer)
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ([remap yank-pop] . consult-yank-pop)
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         ("M-s d" . consult-find)
+         ("M-s D" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-    :custom
-    (register-preview-delay 0.5)
-    (register-preview-function #'consult-register-format)
-    ;; (xref-show-definitions-function #'consult-xref)
-    ;; (xref-show-xrefs-function #'consult-xref)
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult--default-completion-list-preview-setup)
 
-    ;; The :init configuration is always executed (Not lazy)
-    :init
+  :custom
+  (register-preview-delay 0.5)
+  (register-preview-function #'consult-register-format)
+  ;; (xref-show-definitions-function #'consult-xref)
+  ;; (xref-show-xrefs-function #'consult-xref)
 
-    (advice-add #'register-preview :override #'consult-register-window))
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
 **** flymake
@@ -1875,8 +1923,6 @@ Base mode used for shell and terminal modes.
     :autoload (comint-write-input-ring comint-read-input-ring)
     :custom (comint-completion-addsuffix nil)
     :preface
-    (defvar comint-input-ring-prefix)
-
     (defun turn-on-comint-history (history-file)
       (interactive)
       (setq comint-input-ring-file-name history-file)
@@ -1886,6 +1932,18 @@ Base mode used for shell and terminal modes.
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (comint-write-input-ring))))
+    (defun comint-bell-detector (input)
+      (when (and (string-match-p "\a" input)
+                 ;; Ignore bells in OSC sequences (terminal title updates)
+                 ;; (not (string-match-p "]0;.*\007" input))
+                 (not (string-match-p "\e][^\a]+\a" input))
+                 (fboundp 'mode-line-notify-send))
+        ;; (when (string-match-p "]0;.*\007" input) (message input))
+        ;; (require 'mode-line-notify)
+        (let ((buffer (current-buffer)))
+          (mode-line-notify-send
+           :title (format "%s Bell" (buffer-name buffer))
+           :buffer buffer))))
     :config
     (advice-add #'comint-read-input-ring
                 :override (lambda (&optional silent)
@@ -2604,6 +2662,7 @@ Optionally, start a server (disabled by default):
          ;;            (turn-on-comint-history (expand-file-name "sh-history"
          ;;            user-emacs-directory))))
          (shell-mode . (lambda () (setq-local truncate-lines nil)))
+         (shell-mode . (lambda () (add-to-list 'comint-output-filter-functions 'comint-bell-detector)))
          )
   :config
   (advice-add #'shell
