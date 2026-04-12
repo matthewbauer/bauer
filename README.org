@@ -901,6 +901,14 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :config
     (vertico-mode))
 
+  (use-package vertico-multiform
+    :ensure nil
+    :after vertico
+    :custom
+    (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
+    :config
+    (vertico-multiform-mode))
+
   (use-package corfu
     :demand
     :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
@@ -1210,7 +1218,6 @@ line are available in an intuitive Emacs buffer.
   (magit-remote-add-set-remote.pushDefault "origin")
   (magit-list-refs-sortby "-creatordate")
   (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
-  (magit-clone-always-transient t)
   (magit-clone-set-remote.pushDefault t)
   :if (locate-file "git" exec-path)
   :bind (("C-x g" . magit-status)
@@ -1227,7 +1234,10 @@ line are available in an intuitive Emacs buffer.
   (remove-hook 'server-switch-hook #'magit-commit-diff)
   (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff)
   :config
-  (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts))
+  (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts)
+
+  ;; don’t add git-commit--dabbrev-capf since it’s broken with completion-preview-mode
+  (advice-add #'git-commit-setup-capf :override (lambda ())))
 #+END_SRC
 
 Magit forge.
