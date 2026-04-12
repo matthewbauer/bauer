@@ -1473,6 +1473,7 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
 
 #+BEGIN_SRC emacs-lisp
   (use-package apropospriate-theme
+    :ensure nil
     :if window-system
     :preface
     (defun apropospriate-change-theme-appearance (&optional appearance)
@@ -1482,20 +1483,22 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
                            ("NSAppearanceNameAqua" 'light)
                            ("NSAppearanceNameDarkAqua" 'dark)))))
       (pcase appearance
-        ('light (load-theme 'apropospriate-light t))
-        ('dark (load-theme 'apropospriate-dark t))))
+        ('light (enable-theme 'apropospriate-light))
+        ('dark (enable-theme 'apropospriate-dark))))
+    (deftheme apropospriate-dark "The dark variant of the Apropospriate color theme")
+    (deftheme apropospriate-light "The light variant of the Apropospriate color theme")
     ;; :hook ((mac-effective-appearance-change . apropospriate-change-theme-appearance)
     ;;        (ns-system-appearance-change-functions . apropospriate-change-theme-appearance))
     :demand
     :config
-    (add-to-list 'custom-theme-load-path
-                 (file-name-directory
-                  (locate-library "apropospriate-theme")))
-
+    (create-apropospriate-theme 'dark 'apropospriate-dark)
+    (provide-theme 'apropospriate-dark)
+    (create-apropospriate-theme 'light 'apropospriate-light)
+    (provide-theme 'apropospriate-light)
     ;; (if (eq (frame-parameter nil 'background-mode) 'light)
-    ;;     (load-theme 'apropospriate-light t)
-    ;;   (load-theme 'apropospriate-dark t))
-    (load-theme 'apropospriate-dark t)
+    ;;     (enable-theme 'apropospriate-light)
+    ;;   (enable-theme 'apropospriate-dark))
+    (enable-theme 'apropospriate-dark)
     )
 #+END_SRC
 
@@ -1685,7 +1688,9 @@ Try out packages without installing them.
   :demand
   :custom (diff-hl-disable-on-remote t)
   :hook (dired-mode . diff-hl-dired-mode-unless-remote)
-  :config (global-diff-hl-mode))
+  :config
+  (global-diff-hl-mode)
+  (diff-hl-margin-mode))
 #+END_SRC
 
 
@@ -5724,6 +5729,9 @@ have the time to do it currently.
     install -D ${ensure ./site-lisp/mode-line-notify.el
                          "site-lisp/mode-line-notify.el"} \
             $out/share/emacs/site-lisp/mode-line-notify.el
+    install -D ${ensure ./site-lisp/apropospriate-theme.el
+                         "site-lisp/apropospriate-theme.el"} \
+            $out/share/emacs/site-lisp/apropospriate-theme.el
   '';
 #+END_SRC
 
