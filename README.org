@@ -997,6 +997,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 (use-package jinx
   :demand
+  :disabled
   :config
   (global-jinx-mode))
 
@@ -1923,6 +1924,9 @@ Base mode used for shell and terminal modes.
     :autoload (comint-write-input-ring comint-read-input-ring)
     :custom (comint-completion-addsuffix nil)
     :preface
+    (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
+      "Possible prefix that may come before history elements. In
+        Zshell with extended_history, this is useful.")
     (defun turn-on-comint-history (history-file)
       (interactive)
       (setq comint-input-ring-file-name history-file)
@@ -3084,7 +3088,8 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
       "Delete other windows in frame if any, or restore previous window config."
       (interactive)
       (if (and winner-mode
-               (equal (selected-window) (next-window)))
+               (equal (selected-window) (next-window))
+	       (= (count-windows) 1))
           (winner-undo)
         (delete-other-windows))))
 #+END_SRC
