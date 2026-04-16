@@ -326,6 +326,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | nxml-sexp-element-flag                 | t                            |
 | nxml-slash-auto-complete-flag          | t                            |
 | read-buffer-completion-ignore-case     | t                            |
+| reb-re-syntax                          | 'string                      |
 | redisplay-skip-fontification-on-input  | t                            |
 | register-use-preview                   | t                            |
 | ruby-insert-encoding-magic-comment     | nil                          |
@@ -344,7 +345,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | woman-imenu                            | t                            |
 | word-wrap                              | t                            |
 | x-stretch-cursor                       | t                            |
-| reb-re-syntax                          | 'string                      |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply #'set-defaults
@@ -898,7 +898,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 (use-package vertico
   :commands (vertico-mode)
   :demand
-  :custom (vertico-preselect 'prompt)
+  :custom (vertico-preselect 'directory)
   :config
   (vertico-mode))
 
@@ -1756,6 +1756,13 @@ Try out packages without installing them.
 These are available automatically, so these =use-package= blocks just
 configure them.
 
+**** editorconfig
+#+BEGIN_SRC emacs-lisp
+(use-package editorconfig
+  :delight
+  :ensure nil
+  :hook (prog-mode . editorconfig-mode))
+#+END_SRC
 **** xref
 
 #+BEGIN_SRC emacs-lisp
@@ -1850,7 +1857,7 @@ configure them.
   (completions-format 'one-column)
   (completions-max-height 40)
   (completions-sort 'historical)
-  (completion-styles '(basic partial-completion emacs22 substring flex))
+  ;; (completion-styles '(basic partial-completion substring flex))
   (minibuffer-prompt-properties
      '(read-only t
        cursor-intangible t
@@ -3730,6 +3737,20 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
+**** avy
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :bind (("C-:" . avy-goto-char)
+	 :map isearch-mode-map
+	 ("C-'" . avy-isearch)))
+#+END_SRC
+**** indent-bars
+
+#+BEGIN_SRC emacs-lisp
+(use-package indent-bars
+  :hook ((python-mode yaml-mode haskell-mode) . indent-bars-mode))
+#+END_SRC
+
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
@@ -4369,7 +4390,10 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
 (use-package copilot
-  :hook ((text-mode prog-mode) . copilot-mode)
+  :delight
+  :hook
+  (((text-mode prog-mode) . copilot-mode)
+   ((prog-mode) . copilot-nes-mode))
   :custom
   (copilot-indent-offset-warning-disable t)
   (copilot-max-char-warning-disable t)
