@@ -786,7 +786,6 @@ Set to `1.0' or nil to prevent font size manipulation."
 
 (provide 'apropospriate-theme)
 ;; Local Variables:
-;; no-byte-compile: t
 ;; eval: (when (require 'rainbow-mode nil t) (rainbow-mode 1))
 ;; fill-column: 105
 ;; End:

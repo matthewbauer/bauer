@@ -700,10 +700,10 @@ Some bauer-specific custom keybindings.
  ("m" . man)
  ("w" . woman)
  ("h" . (lambda ()
-	  (interactive)
-	  (let ((def (haskell-ident-at-point)))
-	    (if (and def (symbolp def)) (setq def (symbol-name def)))
-	    (haskell-hoogle def)))))
+          (interactive)
+          (let ((def (haskell-ident-at-point)))
+            (if (and def (symbolp def)) (setq def (symbol-name def)))
+            (haskell-hoogle def)))))
 #+END_SRC
 
 Terminal mode key bindings follow. Scrolling in the term with the mouse should
@@ -909,47 +909,47 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
   :config
   (advice-add 'vertico-multiform--setup :override (lambda ()
-						    (let ((cat (compat-call completion-metadata-get
-									    (completion-metadata (buffer-substring-no-properties
-												  (minibuffer-prompt-end)
-												  (max (minibuffer-prompt-end) (point)))
-												 minibuffer-completion-table
-												 minibuffer-completion-predicate)
-									    'category))
-							  (exit (make-symbol "vertico-multiform--exit"))
-							  (depth (recursion-depth))
-							  (kmaps nil)
-							  (modes nil))
-						      (fset exit `(lambda ()
-						                    (when (= ,depth (recursion-depth))
-						                      (remove-hook 'minibuffer-exit-hook exit)
-						                      (vertico-multiform--toggle -1)
-						                      (pop vertico-multiform--stack))))
-						      (add-hook 'minibuffer-exit-hook exit)
-						      (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
-						      (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
-									  (vertico-multiform--lookup cat vertico-multiform-categories))))
-							(pcase x
-							  (`(:keymap . ,key)
-							   (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
-							  (`(:not . ,fs)
-							   (dolist (f fs)
-							     (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
-								    (mode (if (and sym (fboundp sym)) sym f)))
-							       (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
-								 (push (cons :not mode) modes)))))
-							  ((or (pred functionp) (pred symbolp))
-							   (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
-								  (mode (if (and sym (fboundp sym)) sym x)))
-							     (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
-							       (push mode modes))))
-							  (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
-							  (_ (error "Invalid multiform setting %S" x))))
-						      (push modes vertico-multiform--stack)
-						      (vertico-multiform--toggle 1)
-						      (vertico--setup)
-						      (when kmaps
-							(use-local-map (make-composed-keymap kmaps (current-local-map)))))))
+                                                    (let ((cat (compat-call completion-metadata-get
+                                                                            (completion-metadata (buffer-substring-no-properties
+                                                                                                  (minibuffer-prompt-end)
+                                                                                                  (max (minibuffer-prompt-end) (point)))
+                                                                                                 minibuffer-completion-table
+                                                                                                 minibuffer-completion-predicate)
+                                                                            'category))
+                                                          (exit (make-symbol "vertico-multiform--exit"))
+                                                          (depth (recursion-depth))
+                                                          (kmaps nil)
+                                                          (modes nil))
+                                                      (fset exit `(lambda ()
+                                                                    (when (= ,depth (recursion-depth))
+                                                                      (remove-hook 'minibuffer-exit-hook exit)
+                                                                      (vertico-multiform--toggle -1)
+                                                                      (pop vertico-multiform--stack))))
+                                                      (add-hook 'minibuffer-exit-hook exit)
+                                                      (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
+                                                      (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
+                                                                          (vertico-multiform--lookup cat vertico-multiform-categories))))
+                                                        (pcase x
+                                                          (`(:keymap . ,key)
+                                                           (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
+                                                          (`(:not . ,fs)
+                                                           (dolist (f fs)
+                                                             (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
+                                                                    (mode (if (and sym (fboundp sym)) sym f)))
+                                                               (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
+                                                                 (push (cons :not mode) modes)))))
+                                                          ((or (pred functionp) (pred symbolp))
+                                                           (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
+                                                                  (mode (if (and sym (fboundp sym)) sym x)))
+                                                             (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
+                                                               (push mode modes))))
+                                                          (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
+                                                          (_ (error "Invalid multiform setting %S" x))))
+                                                      (push modes vertico-multiform--stack)
+                                                      (vertico-multiform--toggle 1)
+                                                      (vertico--setup)
+                                                      (when kmaps
+                                                        (use-local-map (make-composed-keymap kmaps (current-local-map)))))))
   (vertico-multiform-mode))
 
 (use-package corfu
@@ -990,7 +990,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   :demand
   :bind (:map minibuffer-local-map
               ("M-A" . marginalia-cycle)
-	      :map completion-list-mode-map
+              :map completion-list-mode-map
               ("M-A" . marginalia-cycle))
   :config
   (marginalia-mode))
@@ -1536,7 +1536,7 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
     (defun apropospriate-change-theme-appearance (&optional appearance)
       (unless appearance
         (when (fboundp 'mac-application-state)
-	 (setq appearance (pcase (plist-get (mac-application-state) :appearance)
+         (setq appearance (pcase (plist-get (mac-application-state) :appearance)
                            ("NSAppearanceNameAqua" 'light)
                            ("NSAppearanceNameDarkAqua" 'dark)))))
       (pcase appearance
@@ -1689,7 +1689,7 @@ Try out packages without installing them.
                ;; Ignore bells in OSC sequences (terminal title updates)
                ;; (not (string-match-p "]0;.*\007" input))
                (not (string-match-p "\e][^\a]+\a" input))
-	       (fboundp 'mode-line-notify-send))
+               (fboundp 'mode-line-notify-send))
       ;; (when (string-match-p "]0;.*\007" input) (message input))
       ;; (require 'mode-line-notify)
       (let ((buffer (process-buffer process)))
@@ -1857,7 +1857,6 @@ configure them.
   (completions-format 'one-column)
   (completions-max-height 40)
   (completions-sort 'historical)
-  ;; (completion-styles '(basic partial-completion substring flex))
   (minibuffer-prompt-properties
      '(read-only t
        cursor-intangible t
@@ -2801,24 +2800,24 @@ Optionally, start a server (disabled by default):
     (timeclock-reread-log)
     (let ((cur-buf (current-buffer)))
       (when (get-buffer timeclock-report-buffer-name)
-	(with-silent-modifications
+        (with-silent-modifications
           (erase-buffer)
           (timeclock-report-mode)
           (timeclock-generate-report)
           (newline))
-	(pop-to-buffer cur-buf))))
+        (pop-to-buffer cur-buf))))
 
   (defun timeclock-report ()
     "Timeclock report."
     (interactive)
     (timeclock-reread-log)
     (with-current-buffer
-	(pop-to-buffer (get-buffer-create timeclock-report-buffer-name) #'display-buffer-pop-up-window)
+        (pop-to-buffer (get-buffer-create timeclock-report-buffer-name) #'display-buffer-pop-up-window)
       (with-silent-modifications
-	(erase-buffer)
-	(timeclock-report-mode)
-	(timeclock-generate-report)
-	(newline))))
+        (erase-buffer)
+        (timeclock-report-mode)
+        (timeclock-generate-report)
+        (newline))))
 
   (defvar ledger-binary-path)
 
@@ -2832,7 +2831,7 @@ Optionally, start a server (disabled by default):
                                (shell-quote-argument timeclock-file))))
       (with-current-buffer
           (pop-to-buffer (get-buffer-create buffer-name))
-	(with-silent-modifications
+        (with-silent-modifications
           (erase-buffer)
           (ledger-report-mode)
           (set (make-local-variable 'ledger-report-cmd) report-cmd)
@@ -2904,16 +2903,16 @@ Optionally, start a server (disabled by default):
     Return CLEARED if the character specifies a cleared transaction,
     UNCLEARED otherwise."
     (if (member (match-string num) '("I" "O"))
-	(nth 0 faces)
+        (nth 0 faces)
       (nth 1 faces)))
 
   (defvar timeclock-font-lock-keywords
     `((,(concat "^\\([IiOo]\\)"
-		"\\(?:[[:blank:]]+\\([^[:blank:]\n]+"
-		"\\(?:[[:blank:]]+[^[:blank:]\n]+\\)?\\)"
-		"\\(?:[[:blank:]]+\\(.*?\\)"
-		"\\(?:\t\\|[ \t]\\{2,\\}\\(.*?\\)"
-		"\\(?:\t\\|[ \t]\\{2,\\}\\(;.*\\)\\)?\\)?\\)?\\)?$")
+                "\\(?:[[:blank:]]+\\([^[:blank:]\n]+"
+                "\\(?:[[:blank:]]+[^[:blank:]\n]+\\)?\\)"
+                "\\(?:[[:blank:]]+\\(.*?\\)"
+                "\\(?:\t\\|[ \t]\\{2,\\}\\(.*?\\)"
+                "\\(?:\t\\|[ \t]\\{2,\\}\\(;.*\\)\\)?\\)?\\)?\\)?$")
        (1 'timeclock-font-directive-face)
        (2 'timeclock-font-date-face nil :lax)
        (3 (timeclock-font-face-by-state 1 '(timeclock-font-cleared-face
@@ -2980,9 +2979,9 @@ Show whitespace
   (whitespace-action '(cleanup))
   (whitespace-style '(face trailing lines space-before-tab empty))
   :hook (prog-mode . (lambda () (and (not noninteractive)
-				     (not (eq (aref (buffer-name) 0) ?\ ))
-				     (not (eq (aref (buffer-name) 0) ?*))
-				     (whitespace-mode)))))
+                                     (not (eq (aref (buffer-name) 0) ?\ ))
+                                     (not (eq (aref (buffer-name) 0) ?*))
+                                     (whitespace-mode)))))
 #+END_SRC
 
 **** project
@@ -3086,8 +3085,8 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
   (use-package winner
     :demand
     :bind (("C-x 1" . toggle-delete-other-windows)
-	   :repeat-map toggle-delete-other-windows-map
-	   ("1" . toggle-delete-other-windows))
+           :repeat-map toggle-delete-other-windows-map
+           ("1" . toggle-delete-other-windows))
     :config
     (winner-mode)
     :preface
@@ -3096,7 +3095,7 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
       (interactive)
       (if (and winner-mode
                (equal (selected-window) (next-window))
-	       (= (count-windows) 1))
+               (= (count-windows) 1))
           (winner-undo)
         (delete-other-windows))))
 #+END_SRC
@@ -3741,16 +3740,9 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :bind (("C-:" . avy-goto-char)
-	 :map isearch-mode-map
-	 ("C-'" . avy-isearch)))
+         :map isearch-mode-map
+         ("C-'" . avy-isearch)))
 #+END_SRC
-**** indent-bars
-
-#+BEGIN_SRC emacs-lisp
-(use-package indent-bars
-  :hook ((python-mode yaml-mode haskell-mode) . indent-bars-mode))
-#+END_SRC
-
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
@@ -3758,24 +3750,24 @@ Most of these are available in MELPA.
   :bind ("C-c C-'" . agent-shell-help-menu)
   :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
   :hook (agent-shell-mode . (lambda ()
-			      (let ((buffer (current-buffer)))
-				(agent-shell-subscribe-to
-				 :shell-buffer buffer
-				 :event 'turn-complete
-				 :on-event `(lambda (_event)
-					      (when (buffer-live-p ,buffer)
-						(mode-line-notify-send
-						 :title (format "%s Agent Shell Turn Complete" (buffer-name ,buffer))
-						 :buffer ,buffer))))
-				(agent-shell-subscribe-to
-				 :shell-buffer buffer
-				 :event 'permission-request
-				 :on-event `(lambda (_event)
-					      (when (buffer-live-p ,buffer)
-						(mode-line-notify-send
-						 :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
-						 :buffer ,buffer)))))
-			      ))
+                              (let ((buffer (current-buffer)))
+                                (agent-shell-subscribe-to
+                                 :shell-buffer buffer
+                                 :event 'turn-complete
+                                 :on-event `(lambda (_event)
+                                              (when (buffer-live-p ,buffer)
+                                                (mode-line-notify-send
+                                                 :title (format "%s Agent Shell Turn Complete" (buffer-name ,buffer))
+                                                 :buffer ,buffer))))
+                                (agent-shell-subscribe-to
+                                 :shell-buffer buffer
+                                 :event 'permission-request
+                                 :on-event `(lambda (_event)
+                                              (when (buffer-live-p ,buffer)
+                                                (mode-line-notify-send
+                                                 :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
+                                                 :buffer ,buffer)))))
+                              ))
   :custom
   (agent-shell-file-completion-enabled t)
   (agent-shell-session-strategy 'new)
@@ -4390,7 +4382,6 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
 (use-package copilot
-  :delight
   :hook
   (((text-mode prog-mode) . copilot-mode)
    ((prog-mode) . copilot-nes-mode))

@@ -20,6 +20,7 @@
 (defvar-local ghci-compilation-last-command-started-at nil)
 (defvar-local ghci-compilation-last-prompt-marker nil)
 (defvar-local ghci-compilation-package nil)
+(defvar-local ghci-compilation-flake-ref nil)
 
 (defun ghci-compilation-notify ()
   (require 'mode-line-notify)
@@ -209,6 +210,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
         (setq-local header-line-format (ghci-compilation--make-header))
 
         (setq-local ghci-compilation-package package)
+        (setq-local ghci-compilation-flake-ref flake-ref)
 
         (setq-local comint-terminfo-terminal "xterm-256color")
         (setq-local comint-prompt-regexp "^ghci> ")
@@ -284,7 +286,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Revert buffer"
   (if (comint-check-proc (current-buffer))
       (ghci-compilation-reload)
-    (ghci-compilation (current-buffer))))
+    (ghci-compilation (current-buffer) buffer ghci-compilation-flake-ref ghci-compilation-package)))
 
 (defun ghci-compilation-preoutput-filter (text)
   "Make output read only."
@@ -405,7 +407,7 @@ these are the same."
     (let ((proc (get-buffer-process buffer))
           (inhibit-read-only t))
       (and proc (delete-process proc)))
-    (ghci-compilation buffer)))
+    (ghci-compilation buffer ghci-compilation-flake-ref ghci-compilation-package)))
 
 (defun ghci-compilation-load-all (&optional buffer)
   "Load all modules."
