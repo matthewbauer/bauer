@@ -37,9 +37,6 @@
   (add-to-list 'magic-mode-alist '("\xCE\xFA\xED\xFE" . macho-mode))
   (add-to-list 'magic-mode-alist '("\xCF\xFA\xED\xFE" . macho-mode)))
 
-(defvar macho-mode-command "objdump -D \"%s\""
-  "The shell command to use for `macho-mode'.")
-
 ;;;###autoload
 (defun macho-mode ()
   "Read Mach-O executable symbols."
@@ -52,8 +49,7 @@
           (setq macho-mode nil))
       (setq macho-mode t)
       (erase-buffer)
-      (insert (shell-command-to-string
-               (format macho-mode-command (buffer-file-name)))))
+      (call-process "objdump" nil t nil "-D" (buffer-file-name)))
     (set-buffer-modified-p nil)
     (read-only-mode 1)))
 

@@ -11,8 +11,7 @@
              (expand-file-name "site-lisp" bauer-dir))
 (add-to-list 'native-comp-eln-load-path
              (expand-file-name "native-lisp" bauer-dir))
-(unless (file-exists-p
-          (expand-file-name "README.el" bauer-dir))
+(when (file-newer-than-file-p bauer-org (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
     (autoload 'org-babel-tangle-file "ob-tangle")
     (org-babel-tangle-file bauer-org

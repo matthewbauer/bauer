@@ -7,7 +7,7 @@
     "unpacking sources"
     "configuring"
     "installing"
-    "post-intallation fixup"))
+    "post-installation fixup"))
 
 (defvar nix-font-lock-keywords
   (append

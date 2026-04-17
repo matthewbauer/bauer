@@ -1,4 +1,4 @@
-;;; package --- A major mode for editing yesod persistent templates -*- lexical-binding: t; -*-
+;;; persistent-mode --- A major mode for editing yesod persistent templates -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -30,7 +30,7 @@
     ("default=" . 'font-lock-keyword-face)
     )                ;; faces
   '("\\.persistentmodels$")
-  (list (lambda () (setq comment-start "--")))                ;; extra functions to call
+  nil
   "A mode for yesod persistent schema files"
   )
 

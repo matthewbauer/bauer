@@ -59,7 +59,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
               (when package (concat "-" package))
               "*"
               "<"
-              (project-root (project-current))
+              (project-root proj)
               ">*")
     (error "No current project.")))
 

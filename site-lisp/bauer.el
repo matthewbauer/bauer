@@ -1,6 +1,5 @@
 ;;; bauer.el --- Helper functions for use with Bauer IDE -*- lexical-binding: t; -*-
 
-
 ;;; Commentary:
 ;; Some helper functions that are not in any other packages go here.
 ;; Eventually this should be published on MELPA as it’s own package.
@@ -15,17 +14,29 @@
 (defgroup bauer nil "Options for Bauer IDE."
   :group 'emacs)
 
-(defun update-font-spec-size (spec n &optional increment)
-  "Update font SPEC to N. If INCREMENT is non-nil then increase by N."
-  (string-join
-   (-update-at 7 (lambda (i) (number-to-string
-                         (if increment (+ (string-to-number i) n) n)))
-               (split-string spec "-")) "-"))
-
 (defun update-font-size (n &optional increment)
   "Update font size to N. If INCREMENT is non-nil then increase by N."
   (set-frame-font
-   (update-font-spec-size (frame-parameter nil 'font) n increment)))
+   (let ((spec (frame-parameter nil 'font))
+         (resize (lambda (current)
+                   (number-to-string
+                    (if increment (+ (string-to-number (or current "0")) n) n)))))
+     (cond
+      ;; XLFD: leading "-" and 15 dash-separated fields; pixelsize is index 7.
+      ((and (string-prefix-p "-" spec)
+            (let ((fields (split-string spec "-")))
+              (when (>= (length fields) 15)
+                (setf (nth 7 fields) (funcall resize (nth 7 fields)))
+                (string-join fields "-")))))
+      ;; Fontconfig with explicit size attribute: "Family:size=12" (or mixed with other attrs).
+      ((string-match "\\(:size=\\)\\([0-9]+\\(?:\\.[0-9]+\\)?\\)" spec)
+       (replace-match (concat (match-string 1 spec) (funcall resize (match-string 2 spec)))
+                      t t spec))
+      ;; Fontconfig shorthand: "Family-Size" (size is trailing numeric token).
+      ((string-match "\\`\\(.+\\)-\\([0-9]+\\(?:\\.[0-9]+\\)?\\)\\'" spec)
+       (concat (match-string 1 spec) "-" (funcall resize (match-string 2 spec))))
+      ;; No size found; append as fontconfig shorthand.
+      (t (concat spec "-" (funcall resize nil)))))))
 
 (defcustom user-symbols '(org-agenda-files
                           org-default-notes-file
@@ -37,7 +48,17 @@
                           smtpmail-smtp-service
                           smtpmail-smtp-user
                           user-full-name user-mail-address
-                          gnus-secondary-select-methods)
+                          gnus-select-method gnus-secondary-select-methods
+                          display-buffer-alist
+                          initial-major-mode
+                          message-send-mail-function
+                          ring-bell-function
+                          send-mail-function
+                          visible-bell
+                          zoneinfo-style-world-list
+                          webjump-sites
+                          browse-url-browser-function
+                          )
   "Symbols that the user should customize for themselves."
   :type '(repeat symbol)
   :group 'bauer)
@@ -61,31 +82,6 @@ Run this to input your personal settings."
            fill-column)))
     (call-interactively #'fill-paragraph)))
 
-(defun increment-number-at-point (&optional num)
-  "Increment number at point by 1.
-Works with numerical arguments, too.
-With a negative argument (just M--), uses -1.
-With a universal argument (just C-u), ask by how much."
-  (interactive "P")
-  (save-excursion
-    (when (zerop (skip-chars-backward "-0123456789."))
-      (skip-syntax-forward "-"))
-    (or (looking-at "-?[0123456789.]+")
-	(error "No number at point"))
-    (cond ((null num)
-	   (setq num 1))
-	  ((eq num '-)
-	   (setq num -1))
-	  ((listp num)
-	   (setq num (read-number "Increment by how much? " 1))))
-    (replace-match (number-to-string (+ num (string-to-number (match-string 0)))))))
-
-(defun increment-numbers-in-region (start end)
-  (interactive "r")
-  (goto-char start)
-  (while (re-search-forward "" end t)
-    (replace-match (number-to-string (1+ (string-to-number (match-string 0)))))))
-
 (defcustom bauer-dir (expand-file-name ".local/share/bauer" (getenv "HOME"))
   "Directory of installation."
   :group 'bauer
@@ -101,10 +97,6 @@ With a universal argument (just C-u), ask by how much."
   "Edit README.org"
   (interactive)
   (find-file bauer-org))
-
-(defun autofun (sym file)
-  (autoload sym file)
-  sym)
 
 (provide 'bauer)
 

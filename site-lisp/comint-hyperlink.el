@@ -115,8 +115,6 @@ Asks for confirmation with ‘yes-or-no-p’"
   'action (lambda (x) (funcall comint-hyperlink-action
                                (button-get x 'comint-hyperlink-url))))
 
-(defvar comint-last-output-start)
-
 (defvar-local comint-hyperlink-context-region nil)
 
 ;;;###autoload

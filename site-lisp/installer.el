@@ -58,13 +58,6 @@
 
 (defvar installer-running-process nil)
 
-(defun is-exec (command)
-  "Return true if `COMMAND' is an executable on the system search path."
-  (file-executable-p
-   (string-trim
-    (shell-command-to-string
-     (format "which %s" command)))))
-
 (defun nix-emacs-path ()
   "Get relative path to Emacs."
   (pcase system-type
@@ -84,7 +77,7 @@
     (unless (string= old-emacs-binary emacs-binary)
       (advice-add 'restart-emacs--get-emacs-binary
                   :override (lambda () emacs-binary))
-      (shell-command (format "nix-env -i %s" installer-out-path) buffer)
+      (shell-command (format "nix-env -i %s" (shell-quote-argument installer-out-path)) buffer)
       (when installer-auto-restart
         (restart-emacs)))
     (with-current-buffer buffer
@@ -99,7 +92,7 @@
 
 (defun nix-install (&rest _)
   "Install Nix."
-  (unless (is-exec "nix-build")
+  (unless (executable-find "nix-build")
     (let ((nix-file (expand-file-name "nix.sh" temporary-file-directory)))
       (url-copy-file installer-nix-url nix-file t)
       (let ((current-mode (file-modes nix-file))
@@ -120,7 +113,7 @@
               `(,shell-file-name
                 ,shell-command-switch
                 ,(format "cd %s && git pull --no-rebase origin master"
-                         installer-repo-dir))
+                         (shell-quote-argument installer-repo-dir)))
             `("git" "clone" ,installer-repo-url ,installer-repo-dir))))
     (make-process :name "repo-update"
                   :command command)))
@@ -208,7 +201,7 @@ BUFFER to show output in."
 
   (when (not buffer) (setq buffer (get-buffer-create "*upgrade*")))
   (when (and (not (process-live-p installer-running-process))
-             (is-exec "nix-build"))
+             (executable-find "nix-build"))
     (with-current-buffer buffer
       (erase-buffer)
       (comint-mode)

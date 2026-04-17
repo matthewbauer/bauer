@@ -905,6 +905,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 (use-package vertico-multiform
   :ensure nil
   :after vertico
+  :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
   :custom
   (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
   :config
@@ -1432,7 +1433,6 @@ outliner but also much much more.
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
     (org-pretty-entities t)
-    (org-src-preserve-indentation t)
     :functions pcomplete-completions-at-point
     :hook ((org-mode . (lambda ()
                          (add-hook 'completion-at-point-functions
@@ -1844,54 +1844,51 @@ configure them.
 **** minibuffer
 
 #+BEGIN_SRC emacs-lisp
-(use-package minibuffer
-  :ensure nil
-  :custom
-  (completion-auto-help t)
-  (completion-eager-update t) ;; EMACS-31
-  (completion-eager-display t) ;; EMACS-31
-  (completions-detailed t)
-  (completions-group t)
-  (minibuffer-visible-completions 'up-down)
-  (completions-cycle-threshold t)
-  (completions-format 'one-column)
-  (completions-max-height 40)
-  (completions-sort 'historical)
-  (minibuffer-prompt-properties
-     '(read-only t
-       cursor-intangible t
-       point-entered minibuffer-avoid-prompt
-       face minibuffer-prompt))
-  (read-file-name-completion-ignore-case t)
-  :hook
-  (minibuffer-setup . cursor-intangible-mode)
+  (use-package minibuffer
+    :ensure nil
+    :custom
+    (completion-auto-help t)
+    (completion-eager-update t) ;; EMACS-31
+    (completion-eager-display t) ;; EMACS-31
+    (completions-detailed t)
+    (completions-group t)
+    (minibuffer-visible-completions 'up-down)
+    (completions-cycle-threshold t)
+    (completions-format 'one-column)
+    (completions-max-height 40)
+    (completions-sort 'historical)
+    (minibuffer-prompt-properties
+       '(read-only t
+         cursor-intangible t
+         point-entered minibuffer-avoid-prompt
+         face minibuffer-prompt))
+    (read-file-name-completion-ignore-case t)
+    :hook
+    (minibuffer-setup . cursor-intangible-mode)
+    (minibuffer-setup . (lambda () (setq truncate-lines t)))
+    :config
+    (keymap-unset minibuffer-local-completion-map "SPC")
 
-  :config
-  (keymap-unset minibuffer-local-completion-map "SPC")
+    ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
+    ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
+    ;;     "Quit the current context.
+    ;; 
+    ;; When there is an active minibuffer and we are not inside it close
+    ;; it.  When we are inside the minibuffer use the regular
+    ;; `minibuffer-keyboard-quit' which quits any active region before
+    ;; exiting.  When there is no minibuffer `keyboard-quit' unless we
+    ;; are defining or executing a macro."
+    ;;     (if (active-minibuffer-window)
+    ;;         (if (minibufferp)
+    ;;             (minibuffer-keyboard-quit)
+    ;;           (abort-recursive-edit))
+    ;;       (unless (or defining-kbd-macro
+    ;;                   executing-kbd-macro)
+    ;;         (funcall-interactively quit))))
 
-  ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
-  ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
-  ;;     "Quit the current context.
-  ;; 
-  ;; When there is an active minibuffer and we are not inside it close
-  ;; it.  When we are inside the minibuffer use the regular
-  ;; `minibuffer-keyboard-quit' which quits any active region before
-  ;; exiting.  When there is no minibuffer `keyboard-quit' unless we
-  ;; are defining or executing a macro."
-  ;;     (if (active-minibuffer-window)
-  ;;         (if (minibufferp)
-  ;;             (minibuffer-keyboard-quit)
-  ;;           (abort-recursive-edit))
-  ;;       (unless (or defining-kbd-macro
-  ;;                   executing-kbd-macro)
-  ;;         (funcall-interactively quit))))
-
-  ;; Keep minibuffer lines unwrapped, long lines like on M-S-y will be truncated
-  (add-hook 'minibuffer-setup-hook (lambda () (setq truncate-lines t)))
-
-  (minibuffer-depth-indicate-mode 1)
-  (minibuffer-electric-default-mode 1)
-  )
+    (minibuffer-depth-indicate-mode 1)
+    (minibuffer-electric-default-mode 1)
+    )
 #+END_SRC
 
 **** autorevert
@@ -1933,9 +1930,9 @@ Base mode used for shell and terminal modes.
     (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
       "Possible prefix that may come before history elements. In
         Zshell with extended_history, this is useful.")
-    (defun turn-on-comint-history (history-file)
+    (defun turn-on-comint-history (file)
       (interactive)
-      (setq comint-input-ring-file-name history-file)
+      (setq comint-input-ring-file-name file)
       (comint-read-input-ring 'silent))
     (defun save-history ()
       (interactive)
@@ -2632,6 +2629,7 @@ Optionally, start a server (disabled by default):
 
 #+BEGIN_SRC emacs-lisp
 (use-package proced
+  :functions (proced-toggle-auto-update)
   :custom
   (proced-enable-color-flag t)
   (proced-tree-flag t)
@@ -2766,6 +2764,7 @@ Optionally, start a server (disabled by default):
 #+BEGIN_SRC emacs-lisp
 (use-package timeclock
   :mode ("timelog\\'" . timeclock-mode)
+  :functions (timeclock-generate-report timeclock-update-mode-line)
   :preface
   (defvar timeclock-report-mode-map
     (let ((map (make-sparse-keymap)))
@@ -3766,8 +3765,7 @@ Most of these are available in MELPA.
                                               (when (buffer-live-p ,buffer)
                                                 (mode-line-notify-send
                                                  :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
-                                                 :buffer ,buffer)))))
-                              ))
+                                                 :buffer ,buffer)))))))
   :custom
   (agent-shell-file-completion-enabled t)
   (agent-shell-session-strategy 'new)
@@ -5366,7 +5364,7 @@ Install Nix if it isn’t already.
         *) curl -L -s https://nixos.org/nix/install | sh -s ;;
       esac
       [ -f $HOME/.profile ] && . $HOME/.profile
-      PATH="$HOME/.nix-profile/bin${PATH-+:$PATH}" # in case above didn't work
+      PATH="$HOME/.nix-profile/bin${PATH:+:$PATH}" # in case above didn't work
   fi
 #+END_SRC
 
@@ -5399,13 +5397,13 @@ If we can’t find default.nix then we’ll clone from GitHub. This will be stor
 #+BEGIN_SRC shell
 if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
-    mkdir -p $(dirname $repo_dir)
-    if ! [ -d $repo_dir/.git ]; then
-      git clone https://github.com/matthewbauer/bauer $repo_dir
+    mkdir -p $(dirname "$repo_dir")
+    if ! [ -d "$repo_dir"/.git ]; then
+      git clone https://github.com/matthewbauer/bauer "$repo_dir"
     else
-      git -C $repo_dir pull
+      git -C "$repo_dir" pull
     fi
-    cd $repo_dir
+    cd "$repo_dir"
 fi
 #+END_SRC
 
@@ -6388,8 +6386,7 @@ You can use this as part of [[~/.emacs.d/init.el][your Emacs init file]]:
              (expand-file-name "site-lisp" bauer-dir))
 (add-to-list 'native-comp-eln-load-path
              (expand-file-name "native-lisp" bauer-dir))
-(unless (file-exists-p
-          (expand-file-name "README.el" bauer-dir))
+(when (file-newer-than-file-p bauer-org (expand-file-name "README.el" bauer-dir))
   (let ((default-directory bauer-dir))
     (autoload 'org-babel-tangle-file "ob-tangle")
     (org-babel-tangle-file bauer-org
@@ -6565,6 +6562,8 @@ gh-pages and then runs ORG mode tangle and export. Unfortunately, merge
 conflicts are not handled, and must be dealt with manually.
 
 #+BEGIN_SRC shell
+  set -e
+
   setup() {
     git stash push
     git checkout gh-pages
@@ -6633,7 +6632,7 @@ allow overriding your current =$HOME= files.
 
   FORCE=
   GIST_ID=
-  USER=
+  GH_USER=
   TOKEN=
   URL=
   while [ $# -gt 0 ]; do
@@ -6644,12 +6643,12 @@ allow overriding your current =$HOME= files.
               shift
               ;;
           -u|--user)
-              if [ -n "$USER" ]; then
+              if [ -n "$GH_USER" ]; then
                   echo Multiple users passed! >&2
                   exit 1
               fi
               shift
-              USER="$1"
+              GH_USER="$1"
               shift
               ;;
           -t|--token)
@@ -6670,7 +6669,7 @@ allow overriding your current =$HOME= files.
               GIST_ID="$1"
               shift
               ;;
-          -u|--url)
+          --url)
               if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
                   echo Multiple URLs or Gist ids passed! >&2
                   exit 1
@@ -6709,7 +6708,7 @@ allow overriding your current =$HOME= files.
   fi
 
   mkdir -p $HOME/.ssh
-  echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==" >> $HOME/.ssh/known_hosts
+  echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> "$HOME/.ssh/known_hosts"
 
   ssh -T git@github.com 2> /dev/null
   if [ $? -eq 255 ]; then
@@ -6718,14 +6717,14 @@ allow overriding your current =$HOME= files.
           ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519"
       fi
 
-      if [ -z "$USER" ] && [ -t 1 ]; then
-          echo -n "GitHub Username: "; read USER
+      if [ -z "$GH_USER" ] && [ -t 1 ]; then
+          echo -n "GitHub Username: "; read GH_USER
       fi
-      if [ -z "$USER" ]; then
+      if [ -z "$GH_USER" ]; then
           echo Username cannot be empty. Pass -u with your username to continue.
           exit 1
       fi
-      auth="$USER"
+      auth="$GH_USER"
       if [ -n "$TOKEN" ]; then
           auth="$auth:$TOKEN"
       fi

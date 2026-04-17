@@ -86,9 +86,9 @@ echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6Tb
 
 ssh -T git@github.com 2> /dev/null
 if [ $? -eq 255 ]; then
-    if ! [ -f "$HOME/.ssh/id_rsa" ]; then
+    if ! [ -f "$HOME/.ssh/id_ed25519" ]; then
         echo No ssh key is available. Generating it and adding it to GitHub to continue.
-        ssh-keygen -t rsa -N "" -f "$HOME/.ssh/id_rsa"
+        ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519"
     fi
 
     if [ -z "$USER" ] && [ -t 1 ]; then
@@ -102,7 +102,7 @@ if [ $? -eq 255 ]; then
     if [ -n "$TOKEN" ]; then
         auth="$auth:$TOKEN"
     fi
-    curl -u "$auth" -d "$(printf '{"title": "%s", "key": "%s"}' "${HOST-$(hostname)}" "$(cat $HOME/.ssh/id_rsa.pub)")" https://api.github.com/user/keys > /dev/null
+    curl -u "$auth" -d "$(printf '{"title": "%s", "key": "%s"}' "${HOST-$(hostname)}" "$(cat $HOME/.ssh/id_ed25519.pub)")" https://api.github.com/user/keys > /dev/null
 fi
 
 gistdir="$(mktemp -d)"

@@ -7,7 +7,7 @@ Each notification is a plist with :message and :buffer.")
 (defvar mode-line-notify-indicator
   '(:eval (when mode-line-notify--data
             (propertize (format " %s! " (length mode-line-notify--data))
-                        'face '(:foreground "red" :weight bold)
+                        'face 'error
                         'mouse-face 'mode-line-highlight
                         'help-echo (plist-get (car mode-line-notify--data) :title)
                         'local-map (let ((map (make-sparse-keymap)))
