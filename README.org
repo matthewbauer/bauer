@@ -255,7 +255,7 @@ COLORFGBG method.
 
 ** Custom config
 
-[[./lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
+[[./site-lisp/set-defaults.el][set-defaults]] provides an easy way to override the default custom files. This
 means that when you customize a variable it will appear as ‘standard’ even
 though it’s not what the package originally defined as the default. This is
 useful for an Emacs distribution to provide /better defaults/ while still
@@ -405,7 +405,7 @@ exists before setting it.
 
 *** Set environment
 
-=set-envs= is provided by [[./lisp/set-defaults.el][set-defaults]]. We can use it like
+=set-envs= is provided by [[./site-lisp/set-defaults.el][set-defaults]]. We can use it like
 =custom-set-variables=, just it calls =setenv= instead of =setq=. All of
 these entries correspond to environment variables that we want to always be
 set in the Emacs process.
@@ -839,7 +839,7 @@ Copy current buffer
 
 Installer provides installation & upgrading functionality. You can upgrade the
 IDE at any time by typing =M-x upgrade= from within Emacs. You may have to
-restart Emacs for the upgrade to take place. See [[./lisp/installer.el][installer.el]] for documentation.
+restart Emacs for the upgrade to take place. See [[./site-lisp/installer.el][installer.el]] for documentation.
 
 #+BEGIN_SRC emacs-lisp
   ;; (require 'installer nil t)
@@ -3335,7 +3335,6 @@ didn’t work well enough.
 
 Auctex provides some helpful tools for working with LaTeX.
 
-****** tex-mode
 #+BEGIN_SRC emacs-lisp
   (use-package tex-mode
     :custom
@@ -3484,16 +3483,6 @@ disabled
     :if (not needs-package-init))
 #+END_SRC
 
-**** Bash
-
-#+BEGIN_SRC emacs-lisp
-  (use-package sh-script
-    :if (treesit-language-available-p 'bash)
-    :mode ("\\.\\(sh\\|bash\\)\\'" . bash-ts-mode)
-    )
-#+END_SRC
-
-
 **** Rust
 
 #+BEGIN_SRC emacs-lisp
@@ -3527,10 +3516,15 @@ disabled
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package sh-script
-  :mode (("\\.*shellrc$" . sh-mode)
-         ("\\.*shell_profile" . sh-mode)
-         ("\\.zsh\\'" . sh-mode)))
+  (use-package sh-script
+    :if (treesit-language-available-p 'bash)
+    :mode ("\\.\\(sh\\|bash\\)\\'" . bash-ts-mode)
+    )
+
+  (use-package sh-script
+    :mode (("\\.*shellrc$" . sh-mode)
+           ("\\.*shell_profile" . sh-mode)
+           ("\\.zsh\\'" . sh-mode)))
 #+END_SRC
 
 **** systemd
@@ -3585,8 +3579,9 @@ repositories.
 **** dired-column
 **** em-dired
 **** envrc
-[[https://github.com/purcell/envrc][
-GitHub]]
+
+[[https://github.com/purcell/envrc][GitHub]]
+
 
 Envrc is able to execute a project’s .envrc file for you automatically.
 Unfortunately, it doesn’t support asynchronous updates yet, so this can
@@ -3734,6 +3729,15 @@ These should correspond to minor modes or helper functions. Some of them are
 more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
+
+**** dape
+#+BEGIN_SRC emacs-lisp
+  (use-package dape
+    :demand
+
+    :custom
+    (dape-breakpoint-global-mode +1))
+#+END_SRC
 
 **** avy
 #+BEGIN_SRC emacs-lisp
