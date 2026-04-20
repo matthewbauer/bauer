@@ -1100,7 +1100,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
    `(("\\.\\(png\\|jpe?g\\|tiff\\)" ,(if (eq system-type 'darwin) "open" "xdg-open"))
      ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
      (".*" ,(if (eq system-type 'darwin) "open" "xdg-open"))))
-  (dired-kill-when-opening-new-dired-buffer t)
   (dired-hide-details-hide-symlink-targets nil)
   (dired-omit-verbose nil)
   (dired-omit-files "^\\.\\|^#.*#$")
@@ -1756,13 +1755,30 @@ Try out packages without installing them.
 These are available automatically, so these =use-package= blocks just
 configure them.
 
+
+**** tab-bar
+#+BEGIN_SRC emacs-lisp
+  (use-package tab-bar
+    :demand
+    :custom
+    (tab-bar-show 1)
+    :config
+    (tab-bar-mode 1)
+    (tab-bar-history-mode 1)
+    :bind (:repeat-map tab-bar-history-mode-map
+           ("<left>" . tab-bar-history-back)
+           ("<right>" . tab-bar-history-forward)
+  	 ))
+#+END_SRC
+
+
 **** editorconfig
 #+BEGIN_SRC emacs-lisp
 (use-package editorconfig
   :delight
-  :ensure nil
   :hook (prog-mode . editorconfig-mode))
 #+END_SRC
+
 **** xref
 
 #+BEGIN_SRC emacs-lisp
@@ -3078,27 +3094,6 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
   )
 #+END_SRC
 
-**** winner-mode
-
-#+BEGIN_SRC emacs-lisp
-  (use-package winner
-    :demand
-    :bind (("C-x 1" . toggle-delete-other-windows)
-           :repeat-map toggle-delete-other-windows-map
-           ("1" . toggle-delete-other-windows))
-    :config
-    (winner-mode)
-    :preface
-    (defun toggle-delete-other-windows ()
-      "Delete other windows in frame if any, or restore previous window config."
-      (interactive)
-      (if (and winner-mode
-               (equal (selected-window) (next-window))
-               (= (count-windows) 1))
-          (winner-undo)
-        (delete-other-windows))))
-#+END_SRC
-
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
@@ -3733,10 +3728,7 @@ Most of these are available in MELPA.
 **** dape
 #+BEGIN_SRC emacs-lisp
   (use-package dape
-    :demand
-
-    :custom
-    (dape-breakpoint-global-mode +1))
+    :hook (prog-mode . dape-breakpoint-mode))
 #+END_SRC
 
 **** avy
@@ -4380,25 +4372,49 @@ disabled
     :hook (after-init . mode-line-notify))
 #+END_SRC
 
+**** activities
+
+#+BEGIN_SRC emacs-lisp
+  (use-package activities
+    :demand
+    :config
+    (activities-mode)
+    (activities-tabs-mode)
+    ;; Prevent `edebug' default bindings from interfering.
+    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+    :bind
+    (("C-x C-a C-n" . activities-new)
+     ("C-x C-a C-d" . activities-define)
+     ("C-x C-a C-a" . activities-resume)
+     ("C-x C-a C-s" . activities-suspend)
+     ("C-x C-a C-k" . activities-kill)
+     ("C-x C-a RET" . activities-switch)
+     ("C-x C-a b" . activities-switch-buffer)
+     ("C-x C-a g" . activities-revert)
+     ("C-x C-a l" . activities-list)))
+#+END_SRC
+
+
 **** copilot
 
 #+BEGIN_SRC emacs-lisp
-(use-package copilot
-  :hook
-  (((text-mode prog-mode) . copilot-mode)
-   ((prog-mode) . copilot-nes-mode))
-  :custom
-  (copilot-indent-offset-warning-disable t)
-  (copilot-max-char-warning-disable t)
-  :bind (:map copilot-completion-map
-              ("<tab>" . copilot-accept-completion)
-              ("TAB" . copilot-accept-completion)
-              ("C-<tab>" . copilot-accept-completion-by-word)
-              ("C-TAB" . copilot-accept-completion-by-word)
-              ("C-n" . copilot-next-completion)
-              ("C-p" . copilot-previous-completion))
-  :config
-  (add-to-list 'copilot-indentation-alist '(org-mode 2)))
+  (use-package copilot
+    :hook
+    (((text-mode prog-mode) . copilot-mode)
+     ;; ((prog-mode) . copilot-nes-mode)
+     )
+    :custom
+    (copilot-indent-offset-warning-disable t)
+    (copilot-max-char-warning-disable t)
+    :bind (:map copilot-completion-map
+                ("<tab>" . copilot-accept-completion)
+                ("TAB" . copilot-accept-completion)
+                ("C-<tab>" . copilot-accept-completion-by-word)
+                ("C-TAB" . copilot-accept-completion-by-word)
+                ("C-n" . copilot-next-completion)
+                ("C-p" . copilot-previous-completion))
+    :config
+    (add-to-list 'copilot-indentation-alist '(org-mode 2)))
 #+END_SRC
 
 ** END
@@ -5335,6 +5351,7 @@ Set some defaults that depend on the path variables below,
               "schema/schemas.xml" data-directory)))
    )
 
+  ;; (setopt grep-command "rg -nS --no-heading ")
   ;; (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 86))
   ;; (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
   ;; (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
