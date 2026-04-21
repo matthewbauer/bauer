@@ -1216,9 +1216,6 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-(use-package transient
-  :custom (transient-display-buffer-action '(display-buffer-below-selected (dedicated . t) (inhibit-same-window . t))))
-
 (use-package magit
   :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
   :preface
@@ -3728,6 +3725,7 @@ Most of these are available in MELPA.
 **** dape
 #+BEGIN_SRC emacs-lisp
   (use-package dape
+    :disabled
     :hook (prog-mode . dape-breakpoint-mode))
 #+END_SRC
 
@@ -4382,6 +4380,14 @@ disabled
     (activities-tabs-mode)
     ;; Prevent `edebug' default bindings from interfering.
     (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+    :preface
+    (defun activities-switch-to-buffer ()
+      (interactive)
+      (if (activities-current)
+  	(call-interactively 'activities-switch-buffer)
+        (if (fboundp 'consult-buffer)
+  	  (call-interactively 'consult-buffer)
+  	(call-interactively 'switch-to-buffer))))
     :bind
     (("C-x C-a C-n" . activities-new)
      ("C-x C-a C-d" . activities-define)
@@ -4391,7 +4397,11 @@ disabled
      ("C-x C-a RET" . activities-switch)
      ("C-x C-a b" . activities-switch-buffer)
      ("C-x C-a g" . activities-revert)
-     ("C-x C-a l" . activities-list)))
+     ("C-x C-a l" . activities-list)
+     ([remap switch-to-buffer] . activities-switch-to-buffer)
+     ;; ([remap switch-to-buffer-other-window] . activities-switch-to-buffer-other-window)
+     ;; ([remap switch-to-buffer-other-frame] . activities-switch-to-buffer-other-frame)
+     ))
 #+END_SRC
 
 

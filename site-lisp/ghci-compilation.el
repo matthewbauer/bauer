@@ -183,13 +183,16 @@ ghci-compilation-loaded-hook. Defaults to 60."
     (when current-prefix-arg (read-string "Package name: ")) ;; todo: add some type of completions
     nil))
   (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name flake-ref package))))
-  (unless flake-ref (setq flake-ref (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+  (unless flake-ref (setq flake-ref (if (or (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+					    (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current)))))
                                         (if package (concat ".#exclude." (string-remove-suffix "-test" package)) ".")
 				      ".")))
   (unless ghci-repl-command
-    (setq ghci-repl-command (if (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-                                (append '("_cabal_repl") (if package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking" "mercury-ledger")) "-test"))) '("lib:mwb")) '("-fdev"))
-                              (append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
+    (setq ghci-repl-command (if (or
+				 (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+				 (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current)))))
+				(append '("_cabal_repl") (if package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking" "mercury-ledger")) "-test"))) '("lib:mwb")) '("-fdev"))
+			      (append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
   (let* ((proc-alive (comint-check-proc buffer))
          (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
          (proj (project-current)))
@@ -330,7 +333,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
           ;;   (erase-buffer))
           (ghci-compilation-save-files)
           (ghci-compilation--send-string ":r" buffer))
-      (ghci-compilation))))
+      (ghci-compilation buffer ghci-compilation-flake-ref ghci-compilation-package))))
 
 (defun ghci-compilation-send-command-redirect (command &optional buffer)
   "Send command to ghci, outputing as string."
