@@ -374,7 +374,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 these are the same."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "^module \\([a-zA-Z.]+\\)[( \n]" nil t)
+    (re-search-forward "^module \\([a-zA-Z0-9.]+\\)[( \n]" nil t)
     (match-string-no-properties 1)))
 
 (defun ghci-compilation-add-file ()
