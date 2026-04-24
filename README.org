@@ -1073,6 +1073,15 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
+**** breadcrumb
+
+#+BEGIN_SRC emacs-lisp
+  (use-package breadcrumb
+    :demand
+    :config (breadcrumb-mode)
+    )
+#+END_SRC
+
 **** diff-hl
 
 #+BEGIN_SRC emacs-lisp
@@ -1145,7 +1154,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 #+BEGIN_SRC emacs-lisp
   (use-package dired-x
     :ensure nil
-    :hook ((dired-mode . dired-omit-mode))
+    :hook (dired-mode . dired-omit-mode)
     :bind (("s-\\" . dired-jump-other-window)
            :package dired
            :map dired-mode-map
@@ -1168,19 +1177,31 @@ disabled
     :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
+**** org-modern
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-modern
+    :hook
+    (org-mode . org-modern-mode)
+    (org-agenda-finalize . org-modern-agenda))
+#+END_SRC
+
+
 **** embark
 
 #+BEGIN_SRC emacs-lisp
-(use-package embark
-  :bind (("C-c a" . embark-act)
-         ("C-h B" . embark-bindings))
-  :custom (prefix-help-command #'embark-prefix-help-command))
+  (use-package embark
+    :bind (("C-." . embark-act)
+  	 ("C-;" . embark-dwim)
+           ("C-h B" . embark-bindings))
+    :custom
+    (prefix-help-command #'embark-prefix-help-command))
 
-(use-package embark-consult
-  ;; comes bundled with Embark; no `:ensure t' necessary
-  :after (embark consult)
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  (use-package embark-consult
+    ;; comes bundled with Embark; no `:ensure t' necessary
+    :after (embark consult)
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
 #+END_SRC
 
 **** expand-region
@@ -1217,7 +1238,7 @@ Gnus is an infamous email client & news reader.
 
 #+BEGIN_SRC emacs-lisp
   (use-package gnus
-    :hook ((dired-mode . turn-on-gnus-dired-mode)))
+    :hook (dired-mode . turn-on-gnus-dired-mode))
 #+END_SRC
 
 **** Magit
@@ -1383,6 +1404,20 @@ outliner but also much much more.
     :bind (("C-c l" . org-store-link))
     :ensure org-contrib
     :custom
+    (org-agenda-tags-column 0)
+    (org-auto-align-tags nil)
+    (org-confirm-babel-evaluate nil)
+    (org-ellipsis "…")
+    (org-export-with-toc nil)
+    (org-fold-catch-invisible-edits 'smart)
+    (org-hide-emphasis-markers t)
+    (org-html-htmlize-output-type 'css)
+    (org-insert-heading-respect-content t)
+    (org-log-done 'time)
+    (org-pretty-entities t)
+    (org-special-ctrl-a/e t)
+    (org-support-shift-select t)
+    (org-tags-column 0)
     (org-latex-listings-langs
      '((emacs-lisp "Lisp")
        (lisp "Lisp")
@@ -1433,26 +1468,18 @@ outliner but also much much more.
        ("" "alltt" nil nil)
        ("" "upquote" nil nil)
        ("" "listings" nil nil)))
-    (org-catch-invisible-edits 'smart)
-    (org-confirm-babel-evaluate nil)
-    (org-export-with-toc nil)
-    (org-html-htmlize-output-type 'css)
-    (org-log-done 'time)
-    (org-special-ctrl-a/e t)
-    (org-support-shift-select t)
-    (org-pretty-entities t)
     :functions pcomplete-completions-at-point
-    :hook ((org-mode . (lambda ()
-                         (add-hook 'completion-at-point-functions
-                                   #'pcomplete-completions-at-point nil t)))
-           (org-mode . (lambda () (visual-line-mode -1)))
-           (org-mode . (lambda () (setq-local scroll-margin 3)))
-           (message-mode . turn-on-orgtbl)
-           ;; (org-mode . (lambda ()
-           ;;               (autoload 'org-eldoc-documentation-function "org-eldoc")
-           ;;               (setq-local eldoc-documentation-function
-           ;;                           #'org-eldoc-documentation-function)))
-           )
+    :hook
+    (org-mode . (lambda ()
+  		(add-hook 'completion-at-point-functions
+                            #'pcomplete-completions-at-point nil t)))
+    (org-mode . (lambda () (visual-line-mode -1)))
+    (org-mode . (lambda () (setq-local scroll-margin 3)))
+    (message-mode . turn-on-orgtbl)
+    ;; (org-mode . (lambda ()
+    ;;               (autoload 'org-eldoc-documentation-function "org-eldoc")
+    ;;               (setq-local eldoc-documentation-function
+    ;;                           #'org-eldoc-documentation-function)))
     ;;:config
     ;; (org-babel-do-load-languages 'org-babel-load-languages
     ;;                              '((sql . t)
@@ -1498,12 +1525,10 @@ Smart hungry delete automatically delete lots of whitespace in a row.
                  smart-hungry-delete-backward-char)
                 ("C-d" .
                  smart-hungry-delete-forward-char))
-    :hook ((prog-mode .
-                      smart-hungry-delete-default-prog-mode-hook)
-           ((c-mode-common python-mode) .
-                          smart-hungry-delete-default-c-mode-common-hook)
-           (text-mode .
-                      smart-hungry-delete-default-text-mode-hook)))
+    :hook
+    (prog-mode . smart-hungry-delete-default-prog-mode-hook)
+    ((c-mode-common python-mode) . smart-hungry-delete-default-c-mode-common-hook)
+    (text-mode . smart-hungry-delete-default-text-mode-hook))
 #+END_SRC
 
 **** sudo-edit
@@ -1523,7 +1548,7 @@ achieve this).
 #+BEGIN_SRC emacs-lisp
   (use-package symbol-overlay
     :delight
-    :hook ((prog-mode . symbol-overlay-mode))
+    :hook (prog-mode . symbol-overlay-mode)
     :bind (:map symbol-overlay-mode-map
            (("M-n" . symbol-overlay-jump-next)
             ("M-p" . symbol-overlay-jump-prev))))
@@ -1552,8 +1577,8 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
         ('dark (enable-theme 'apropospriate-dark))))
     (deftheme apropospriate-dark "The dark variant of the Apropospriate color theme")
     (deftheme apropospriate-light "The light variant of the Apropospriate color theme")
-    ;; :hook ((mac-effective-appearance-change . apropospriate-change-theme-appearance)
-    ;;        (ns-system-appearance-change-functions . apropospriate-change-theme-appearance))
+    ;; :hook (mac-effective-appearance-change . apropospriate-change-theme-appearance)
+    ;;       (ns-system-appearance-change-functions . apropospriate-change-theme-appearance)
     :demand
     :config
     (create-apropospriate-theme 'dark 'apropospriate-dark)
@@ -1620,24 +1645,11 @@ instance spacemacs-theme can be enabled:
 #+BEGIN_SRC emacs-lisp
   (use-package treesit-fold
     :hook
-    ((treesit-fold-mode . treesit-fold-indicators-mode)
-     (c-ts-mode . treesit-fold-mode)
-     (c++-ts-mode . treesit-fold-mode)
-     (java-ts-mode . treesit-fold-mode)
-     (rust-ts-mode . treesit-fold-mode)
-     (go-ts-mode . treesit-fold-mode)
-     (ruby-ts-mode . treesit-fold-mode)
-     (js-ts-mode . treesit-fold-mode)
-     (typescript-ts-mode . treesit-fold-mode)
-     (tsx-ts-mode . treesit-fold-mode)
-     (css-ts-mode . treesit-fold-mode)
-     (html-ts-mode . treesit-fold-mode)
-     (bash-ts-mode . treesit-fold-mode)
-     (cmake-ts-mode . treesit-fold-mode)
-     (dockerfile-ts-mode . treesit-fold-mode)
-     (json-ts-mode . treesit-fold-mode)
-     (toml-ts-mode . treesit-fold-mode)
-     (yaml-ts-mode . treesit-fold-mode)))
+    ((treesit-fold-mode c-ts-mode c++-ts-mode java-ts-mode
+      go-ts-mode ruby-ts-mode js-ts-mode typescript-ts-mode
+      tsx-ts-mode css-ts-mode html-ts-mode bash-ts-mode
+      cmake-ts-mode dockerfile-ts-mode json-ts-mode
+      toml-ts-mode yaml-ts-mode) . treesit-fold-indicators-mode))
 #+END_SRC
 
 **** try
@@ -1798,7 +1810,7 @@ Provides links to bugs listed in source code.
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
     :custom (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-    :hook (((prog-mode text-mode) . bug-reference-prog-mode)))
+    :hook ((prog-mode text-mode) . bug-reference-prog-mode))
 #+END_SRC
 
 **** comint
@@ -1946,7 +1958,7 @@ Base mode used for shell and terminal modes.
   (use-package completion-preview
     :if (>= emacs-major-version 30)
     :delight
-    :hook (((prog-mode text-mode comint-mode) . completion-preview-mode))
+    :hook ((prog-mode text-mode comint-mode) . completion-preview-mode)
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
                 ("M-p" . completion-preview-prev-candidate)
@@ -1989,7 +2001,7 @@ Base mode used for shell and terminal modes.
 #+BEGIN_SRC emacs-lisp
   (use-package display-line-numbers
     :if (>= emacs-major-version 26)
-    :hook (((prog-mode conf-mode) . display-line-numbers-mode)))
+    :hook ((prog-mode conf-mode) . display-line-numbers-mode))
 #+END_SRC
 
 **** editorconfig
@@ -2005,14 +2017,14 @@ Provides some info for the thing at the point.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eldoc
-    :hook (((emacs-lisp-mode
+    :hook ((emacs-lisp-mode
              eval-expression-minibuffer-setup
              lisp-mode-interactive-mode
              typescript-mode
              haskell-mode
              python-mode
              eshell-mode
-             org-mode) . eldoc-mode))
+             org-mode) . eldoc-mode)
     :custom
     (eldoc-idle-delay 0.4)
     (eldoc-help-at-pt t) ;; EMACS-31
@@ -2032,10 +2044,11 @@ Setup these modes:
 #+BEGIN_SRC emacs-lisp
   (use-package electric
     :if (>= emacs-major-version 25)
-    :hook (((prog-mode text-mode org-mode message-mode) . electric-quote-local-mode)
-           (prog-mode . electric-indent-local-mode)
-           (prog-mode . electric-layout-mode)
-           ((haskell-mode nix-mode) . (lambda () (electric-indent-local-mode -1)))))
+    :hook
+    ((prog-mode text-mode org-mode message-mode) . electric-quote-local-mode)
+    (prog-mode . electric-indent-local-mode)
+    (prog-mode . electric-layout-mode)
+    ((haskell-mode nix-mode) . (lambda () (electric-indent-local-mode -1))))
 #+END_SRC
 
 ***** elec-pair
@@ -2047,9 +2060,8 @@ setup.
   (use-package elec-pair
     :if (>= emacs-major-version 25)
     :hook
-    (((prog-mode eval-expression-minibuffer-setup) . electric-pair-local-mode)
-     (smartparens-mode . (lambda ()
-                           (electric-pair-local-mode -1)))))
+    ((prog-mode eval-expression-minibuffer-setup) . electric-pair-local-mode)
+    (smartparens-mode . (lambda () (electric-pair-local-mode -1))))
 #+END_SRC
 
 **** Emacs shell
@@ -2057,90 +2069,91 @@ setup.
 Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =M-x eshell=.
 
 #+BEGIN_SRC emacs-lisp
-(use-package eshell
-  :defines (eshell-history-file-name)
-  :custom
-  (eshell-prompt-function
-   (lambda ()
-     (concat (when (tramp-tramp-file-p default-directory)
-               (concat
-                (tramp-file-name-user
-                 (tramp-dissect-file-name default-directory))
-                "@"
-                (tramp-file-name-host
-                 (tramp-dissect-file-name default-directory))
-                " "))
-             (let ((dir (eshell/pwd)))
-               (if (string= dir (getenv "HOME")) "~"
-                 (let ((dirname (file-name-nondirectory dir)))
-                   (if (string= dirname "") "/" dirname))))
-             (if (= (user-uid) 0) " # " " $ "))))
-  (eshell-visual-commands
-   '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
-     "trn" "elm" "ssh" "mutt" "tmux" "htop"
-     "alsamixer" "watch" "elinks" "links" "nethack" "vim"
-     "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
-     "telnet" "rlogin"))
-  (eshell-visual-subcommands '(("vagrant" "ssh")))
-  (eshell-history-size 100000)
-  :bind (("C-c M-t" . eshell)
-         ("C-c x" . eshell)
-         ("C-c e" . eshell))
-  :hook (;; (eshell-first-time-mode . eshell-read-history)
-         (eshell-first-time-mode . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command)))
-         (kill-emacs . emacs-solo/eshell--save-merged-history)
-         (eshell-mode . (lambda () (eshell-read-history))))
-  :preface
-  (autoload #'eshell-isearch-return "em-hist")
-  (autoload #'eshell-isearch-repeat-backward "em-hist")
-  (autoload #'eshell-isearch-repeat-forward "em-hist")
-  (autoload #'eshell-isearch-abort "em-hist")
-  (autoload #'eshell-isearch-delete-char "em-hist")
-  (autoload #'eshell-read-history "eshell-read-history")
-  (defvar eshell-isearch-map
-    (let ((map (copy-keymap isearch-mode-map)))
-      (define-key map [(control ?m)] #'eshell-isearch-return)
-      (define-key map [return]       #'eshell-isearch-return)
-      (define-key map [(control ?r)] #'eshell-isearch-repeat-backward)
-      (define-key map [(control ?s)] #'eshell-isearch-repeat-forward)
-      (define-key map [(control ?g)] #'eshell-isearch-abort)
-      (define-key map [backspace]    #'eshell-isearch-delete-char)
-      (define-key map [delete]       #'eshell-isearch-delete-char)
-      map)
-    "Keymap used in isearch in Eshell.")
-  (defun eshell-spawn-external-command (beg end)
-    "Parse and expand any history references in current input."
-    (save-excursion
-      (goto-char end)
-      (when (looking-back "&!" beg)
-        (delete-region (match-beginning 0) (match-end 0))
-        (goto-char beg)
-        (insert "spawn "))))
-  :preface
+  (use-package eshell
+    :defines (eshell-history-file-name)
+    :custom
+    (eshell-prompt-function
+     (lambda ()
+       (concat (when (tramp-tramp-file-p default-directory)
+                 (concat
+                  (tramp-file-name-user
+                   (tramp-dissect-file-name default-directory))
+                  "@"
+                  (tramp-file-name-host
+                   (tramp-dissect-file-name default-directory))
+                  " "))
+               (let ((dir (eshell/pwd)))
+                 (if (string= dir (getenv "HOME")) "~"
+                   (let ((dirname (file-name-nondirectory dir)))
+                     (if (string= dirname "") "/" dirname))))
+               (if (= (user-uid) 0) " # " " $ "))))
+    (eshell-visual-commands
+     '("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin"
+       "trn" "elm" "ssh" "mutt" "tmux" "htop"
+       "alsamixer" "watch" "elinks" "links" "nethack" "vim"
+       "cmus" "nmtui" "nmtui-connect" "nmtui-edit" "ncdu"
+       "telnet" "rlogin"))
+    (eshell-visual-subcommands '(("vagrant" "ssh")))
+    (eshell-history-size 100000)
+    :bind (("C-c M-t" . eshell)
+           ("C-c x" . eshell)
+           ("C-c e" . eshell))
+    :hook
+    ;; (eshell-first-time-mode . eshell-read-history)
+    (eshell-first-time-mode . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command)))
+    (kill-emacs . emacs-solo/eshell--save-merged-history)
+    (eshell-mode . (lambda () (eshell-read-history)))
+    :preface
+    (autoload #'eshell-isearch-return "em-hist")
+    (autoload #'eshell-isearch-repeat-backward "em-hist")
+    (autoload #'eshell-isearch-repeat-forward "em-hist")
+    (autoload #'eshell-isearch-abort "em-hist")
+    (autoload #'eshell-isearch-delete-char "em-hist")
+    (autoload #'eshell-read-history "eshell-read-history")
+    (defvar eshell-isearch-map
+      (let ((map (copy-keymap isearch-mode-map)))
+        (define-key map [(control ?m)] #'eshell-isearch-return)
+        (define-key map [return]       #'eshell-isearch-return)
+        (define-key map [(control ?r)] #'eshell-isearch-repeat-backward)
+        (define-key map [(control ?s)] #'eshell-isearch-repeat-forward)
+        (define-key map [(control ?g)] #'eshell-isearch-abort)
+        (define-key map [backspace]    #'eshell-isearch-delete-char)
+        (define-key map [delete]       #'eshell-isearch-delete-char)
+        map)
+      "Keymap used in isearch in Eshell.")
+    (defun eshell-spawn-external-command (beg end)
+      "Parse and expand any history references in current input."
+      (save-excursion
+        (goto-char end)
+        (when (looking-back "&!" beg)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char beg)
+          (insert "spawn "))))
+    :preface
 
-  ;; MAKE ALL INSTANCES OF ESHELL SHARE/MERGE ITS COMMAND HISTORY
-  ;;
-  (defun emacs-solo/eshell--collect-all-history ()
-    "Return a list of all eshell history entries from all buffers and disk."
-    (let ((history-from-buffers
-           (cl-loop for buf in (buffer-list)
-                    when (with-current-buffer buf (derived-mode-p 'eshell-mode))
-                    append (with-current-buffer buf
-                             (when (boundp 'eshell-history-ring)
-                               (ring-elements eshell-history-ring)))))
-          (history-from-file
-           (when (file-exists-p eshell-history-file-name)
-             (with-temp-buffer
-               (insert-file-contents eshell-history-file-name)
-               (split-string (buffer-string) "\n" t)))))
-      (seq-uniq (append history-from-buffers history-from-file))))
+    ;; MAKE ALL INSTANCES OF ESHELL SHARE/MERGE ITS COMMAND HISTORY
+    ;;
+    (defun emacs-solo/eshell--collect-all-history ()
+      "Return a list of all eshell history entries from all buffers and disk."
+      (let ((history-from-buffers
+             (cl-loop for buf in (buffer-list)
+                      when (with-current-buffer buf (derived-mode-p 'eshell-mode))
+                      append (with-current-buffer buf
+                               (when (boundp 'eshell-history-ring)
+                                 (ring-elements eshell-history-ring)))))
+            (history-from-file
+             (when (file-exists-p eshell-history-file-name)
+               (with-temp-buffer
+                 (insert-file-contents eshell-history-file-name)
+                 (split-string (buffer-string) "\n" t)))))
+        (seq-uniq (append history-from-buffers history-from-file))))
 
-  (defun emacs-solo/eshell--save-merged-history ()
-    "Save all eshell buffer histories merged into `eshell-history-file-name`."
-    (when (boundp 'eshell-history-file-name)
-      (let ((all-history (emacs-solo/eshell--collect-all-history)))
-        (with-temp-file eshell-history-file-name
-          (insert (mapconcat #'identity all-history "\n")))))))
+    (defun emacs-solo/eshell--save-merged-history ()
+      "Save all eshell buffer histories merged into `eshell-history-file-name`."
+      (when (boundp 'eshell-history-file-name)
+        (let ((all-history (emacs-solo/eshell--collect-all-history)))
+          (with-temp-file eshell-history-file-name
+            (insert (mapconcat #'identity all-history "\n")))))))
 #+END_SRC
 
 ***** esh-help
@@ -2206,8 +2219,7 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package executable
     :hook
-    ((after-save .
-                 executable-make-buffer-file-executable-if-script-p)))
+    (after-save . executable-make-buffer-file-executable-if-script-p))
 #+END_SRC
 
 **** ffap
@@ -2234,8 +2246,9 @@ Make scripts executable automatically.
            ([remap dired-other-frame] . ffap-dired-other-frame)
 
            ([remap list-directory] . ffap-list-directory))
-    :hook (((gnus-summary-mode gnus-article-mode) . ffap-gnus-hook)
-           ((vm-mode rmail-mode) . ffap-ro-mode-hook)))
+    :hook
+    ((gnus-summary-mode gnus-article-mode) . ffap-gnus-hook)
+    ((vm-mode rmail-mode) . ffap-ro-mode-hook))
 #+END_SRC
 **** files
 
@@ -2298,8 +2311,9 @@ Make scripts executable automatically.
          (if (boundp 'ispell-program-name)
              ispell-program-name "aspell")
          exec-path)
-    :hook (((org-mode text-mode git-commit-mode) . flyspell-mode)
-           (prog-mode . flyspell-prog-mode))
+    :hook
+    ((org-mode text-mode git-commit-mode) . flyspell-mode)
+    (prog-mode . flyspell-prog-mode)
     :bind (:map flyspell-mode-map
                 ("C-M-i" . nil)))
 #+END_SRC
@@ -2308,14 +2322,15 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package goto-addr
-    :hook (((prog-mode conf-mode) . goto-address-prog-mode)
-           ((help-mode org-mode text-mode git-commit-mode shell-mode) . goto-address-mode)))
+    :hook
+    ((prog-mode conf-mode) . goto-address-prog-mode)
+    ((help-mode org-mode text-mode git-commit-mode shell-mode) . goto-address-mode))
 #+END_SRC
 
 **** hl-line
 #+BEGIN_SRC emacs-lisp
   (use-package hl-line
-    :hook (((prog-mode org-mode dired-mode) . hl-line-mode)))
+    :hook ((prog-mode org-mode dired-mode) . hl-line-mode))
 #+END_SRC
 **** ibuffer
 
@@ -2455,7 +2470,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
 #+BEGIN_SRC emacs-lisp
 (use-package mouse
   :ensure nil
-  :hook (((text-mode prog-mode) . context-menu-mode))
+  :hook ((text-mode prog-mode) . context-menu-mode)
   :custom
   (context-menu-functions
    '(context-menu-ffap
@@ -2474,8 +2489,9 @@ With prefix arg REGEXP-P, perform a regular expression search."
 
 #+BEGIN_SRC emacs-lisp
   (use-package paren
-    :hook ((prog-mode . show-paren-mode)
-           (smartparens-mode . (lambda () (show-paren-mode -1)))))
+    :hook
+    (prog-mode . show-paren-mode)
+    (smartparens-mode . (lambda () (show-paren-mode -1))))
 #+END_SRC
 
 **** persistent-mode
@@ -2521,12 +2537,12 @@ With prefix arg REGEXP-P, perform a regular expression search."
 #+BEGIN_SRC emacs-lisp
   (use-package prog-mode
     :ensure nil
-    :hook (;; (prog-mode . prettify-symbols-mode)
+    :hook ;; (prog-mode . prettify-symbols-mode)
            ;; (lisp-mode . prettify-symbols-lisp)
            ;; (c-mode . prettify-symbols-c)
            ;; (c++-mode . prettify-symbols-c++)
            ;; ((js-mode js2-mode) . prettify-symbols-js)
-           (prog-mode . (lambda () (setq-local scroll-margin 3))))
+    (prog-mode . (lambda () (setq-local scroll-margin 3)))
     :preface
     (defun prettify-symbols-prog ()
       (push '("<=" . ?≤) prettify-symbols-alist)
@@ -2652,35 +2668,35 @@ Optionally, start a server (disabled by default):
 **** Shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package shell
-  :custom
-  (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
-  (shell-completion-execonly nil)
-  (shell-input-autoexpand nil)
-  :bind (("C-c C-s" . shell)
-         ("H-s" . shell)
-         ;; ("M-@" . shell)
-         )
-  :hook ((shell-mode . dirtrack-mode)
-         (shell-mode . (lambda () (setq-local comint-prompt-read-only t)))
-         (shell-mode . (lambda () (setq-local comint-input-ignoredups t)))
-         (shell-mode . (lambda () (setq-local comint-process-echoes t)))
-         ;; (shell-mode . (lambda ()
-         ;;            (turn-on-comint-history (expand-file-name "sh-history"
-         ;;            user-emacs-directory))))
-         (shell-mode . (lambda () (setq-local truncate-lines nil)))
-         (shell-mode . (lambda () (add-to-list 'comint-output-filter-functions 'comint-bell-detector)))
-         )
-  :config
-  (advice-add #'shell
-              :around (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
-                        (when (file-remote-p default-directory)
-                          (if (file-exists-p (concat (file-remote-p default-directory) shell-file-name))
-                              (set (make-local-variable 'explicit-shell-file-name) shell-file-name)
-                            (if (and (boundp 'tramp-default-remote-shell)
-                                     (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell)))
-                                (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
-                        (apply orig-fun args))))
+  (use-package shell
+    :custom
+    (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
+    (shell-completion-execonly nil)
+    (shell-input-autoexpand nil)
+    :bind (("C-c C-s" . shell)
+           ("H-s" . shell)
+           ;; ("M-@" . shell)
+           )
+    :hook
+    (shell-mode . dirtrack-mode)
+    (shell-mode . (lambda () (setq-local comint-prompt-read-only t)))
+    (shell-mode . (lambda () (setq-local comint-input-ignoredups t)))
+    (shell-mode . (lambda () (setq-local comint-process-echoes t)))
+    ;; (shell-mode . (lambda ()
+    ;;            (turn-on-comint-history (expand-file-name "sh-history"
+    ;;            user-emacs-directory))))
+    (shell-mode . (lambda () (setq-local truncate-lines nil)))
+    (shell-mode . (lambda () (add-to-list 'comint-output-filter-functions 'comint-bell-detector)))
+    :config
+    (advice-add #'shell
+                :around (defun shell-set-remote-shell-path-maybe (orig-fun &rest args)
+                          (when (file-remote-p default-directory)
+                            (if (file-exists-p (concat (file-remote-p default-directory) shell-file-name))
+                                (set (make-local-variable 'explicit-shell-file-name) shell-file-name)
+                              (if (and (boundp 'tramp-default-remote-shell)
+                                       (file-exists-p (concat (file-remote-p default-directory) tramp-default-remote-shell)))
+                                  (set (make-local-variable 'explicit-shell-file-name) tramp-default-remote-shell))))
+                          (apply orig-fun args))))
 #+END_SRC
 
 **** simple
@@ -2697,8 +2713,9 @@ Optionally, start a server (disabled by default):
      ("<escape>"         . abort-recursive-edit)
      ("M-TAB"    . previous-complete-history-element)
      ("<M-S-tab>" . next-complete-history-element))
-    :hook ((text-mode . visual-line-mode)
-           (text-mode . auto-fill-mode))
+    :hook
+    (text-mode . visual-line-mode)
+    (text-mode . auto-fill-mode)
     :config (column-number-mode)
     :custom
     (completion-auto-select t)
@@ -3168,11 +3185,11 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package csv-mode
-    :hook ((csv-mode . (lambda () (visual-line-mode -1)))
-           (csv-mode . (lambda () (auto-fill-mode -1)))
-           (csv-mode . (lambda () (setq-local truncate-lines nil)))
-           ;; (csv-mode . csv-align-mode)
-           )
+    :hook
+    (csv-mode . (lambda () (visual-line-mode -1)))
+    (csv-mode . (lambda () (auto-fill-mode -1)))
+    (csv-mode . (lambda () (setq-local truncate-lines nil)))
+    ;; (csv-mode . csv-align-mode)
     :bind (:map csv-mode-map
                 ("<tab>" . csv-forward-field)
                 ("<backtab>" . csv-backward-field)))
@@ -3277,21 +3294,22 @@ didn’t work well enough.
     (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
     (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
-    :hook ((haskell-mode . subword-mode)
-           ;; (haskell-mode . haskell-indent-mode)
-           ;; (haskell-mode . flyspell-prog-mode)
-           (haskell-mode . haskell-indentation-mode)
-           ;; (haskell-mode . haskell-auto-insert-module-template)
-           ;; (haskell-mode . haskell-decl-scan-mode)
-           ;; (haskell-mode . turn-on-haskell-indent)
-           ;; (haskell-mode . imenu-add-menubar-index)
-           ;; (haskell-mode .
-           ;;          (lambda ()
-           ;;            (autoload 'haskell-doc-current-info
-           ;;              "haskell-doc")
-           ;;            (setq-local eldoc-documentation-function
-           ;;                        'haskell-doc-current-info)))
-           (haskell-mode . (lambda () (whitespace-mode -1))))
+    :hook
+    (haskell-mode . subword-mode)
+    ;; (haskell-mode . haskell-indent-mode)
+    ;; (haskell-mode . flyspell-prog-mode)
+    (haskell-mode . haskell-indentation-mode)
+    ;; (haskell-mode . haskell-auto-insert-module-template)
+    ;; (haskell-mode . haskell-decl-scan-mode)
+    ;; (haskell-mode . turn-on-haskell-indent)
+    ;; (haskell-mode . imenu-add-menubar-index)
+    ;; (haskell-mode .
+    ;;          (lambda ()
+    ;;            (autoload 'haskell-doc-current-info
+    ;;              "haskell-doc")
+    ;;            (setq-local eldoc-documentation-function
+    ;;                        'haskell-doc-current-info)))
+    (haskell-mode . (lambda () (whitespace-mode -1)))
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
     ;; (require 'haskell-compile)
@@ -3685,12 +3703,7 @@ repositories.
           (set-window-margins nil margin-width margin-width)))))
 
   :hook
-  (org-mode . emacs-solo/center-document-mode)
-  (gnus-group-mode . emacs-solo/center-document-mode)
-  (gnus-summary-mode . emacs-solo/center-document-mode)
-  (gnus-article-mode . emacs-solo/center-document-mode)
-  (gnus-server-mode . emacs-solo/center-document-mode)
-  (gnus-browse-mode . emacs-solo/center-document-mode)
+  ((org-mode gnus-group-mode gnus-summary-mode gnus-article-mode gnus-server-mode gnus-browse-mode) . emacs-solo/center-document-mode)
   )
 #+END_SRC
 
@@ -3883,7 +3896,7 @@ Always prompts for agent selection, even if existing shells are available."
   (transient-append-suffix 'agent-shell-help-menu "N"
     '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
 
-  (transient-append-suffix 'agent-shell-help-menu "C-n"
+  (transient-append-suffix 'agent-shell-help-menu "N"
     '("C-n" "New shell (choose agent)" agent-shell-new-shell-choose-agent))
 
   ;; (require 'claude-code-ide-emacs-tools)
@@ -4015,9 +4028,8 @@ Always prompts for agent selection, even if existing shells are available."
 #+BEGIN_SRC emacs-lisp
   (use-package copilot
     :hook
-    (((text-mode prog-mode) . copilot-mode)
-     ;; ((prog-mode) . copilot-nes-mode)
-     )
+    ((text-mode prog-mode) . copilot-mode)
+    ;; ((prog-mode) . copilot-nes-mode)
     :custom
     (copilot-indent-offset-warning-disable t)
     (copilot-max-char-warning-disable t)
@@ -4357,8 +4369,9 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package pandoc-mode
-    :hook ((markdown-mode . pandoc-mode)
-           (pandoc-mode . pandoc-load-default-settings)))
+    :hook
+    (markdown-mode . pandoc-mode)
+    (pandoc-mode . pandoc-load-default-settings))
 #+END_SRC
 
 **** rainbow-delimiters
@@ -5395,11 +5408,11 @@ Set some defaults that depend on the path variables below,
               "schema/schemas.xml" data-directory)))
    )
 
-  ;; (setopt grep-command "rg -nS --no-heading ")
-  ;; (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 86))
-  ;; (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
-  ;; (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
-  ;; (setopt grep-use-null-device nil) ;; since ripgrep supports and is configured to use --with-filename
+  (setopt grep-command (concat ripgrep-executable " -nS --no-heading "))
+  (setopt grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 86))
+  (setopt grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>"))
+  (setopt grep-template (concat ripgrep-executable " --line-number --with-filename --no-heading --regexp <R> -- <F>"))
+  (setopt grep-use-null-device nil) ;; since ripgrep supports and is configured to use --with-filename
 #+END_SRC
 
 ** =bootstrap.sh=
