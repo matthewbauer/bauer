@@ -335,9 +335,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | sentence-end-double-space              | nil                          |
 | tab-always-indent                      | 'complete                    |
 | truncate-partial-width-windows         | nil                          |
-| undo-limit                             | 67108864                     |
-| undo-outer-limit                       | 100663296                    |
-| undo-strong-limit                      | 1006632960                   |
+| undo-limit                             | 256000                       |
+| undo-strong-limit                      | 2000000                      |
+| undo-outer-limit                       | 36000000                     |
 | uniquify-after-kill-buffer-p           | t                            |
 | uniquify-buffer-name-style             | 'post-forward-angle-brackets |
 | use-package-always-defer               | t                            |
@@ -1073,19 +1073,16 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
-**** flymake
+**** diff-hl
 
 #+BEGIN_SRC emacs-lisp
-(use-package flymake
-  :custom
-  (flymake-show-diagnostics-at-end-of-line nil)
-  ;; (flymake-show-diagnostics-at-end-of-line 'short)
-  (flymake-indicator-type 'margins)
-  (flymake-margin-indicators-string
-   `((error "!" compilation-error)      ;; Alternatives: », E, W, i, !, ?, ⚠️)
-     (warning "?" compilation-warning)
-     (note "i" compilation-info)))
-  )
+(use-package diff-hl
+  :demand
+  :custom (diff-hl-disable-on-remote t)
+  :hook (dired-mode . diff-hl-dired-mode-unless-remote)
+  :config
+  (global-diff-hl-mode)
+  (diff-hl-margin-mode))
 #+END_SRC
 
 **** dired
@@ -1195,6 +1192,21 @@ disabled
   :bind
   ("S-M-<right>" . er/expand-region)
   ("S-M-<left>" . er/contract-region))
+#+END_SRC
+
+**** flymake
+
+#+BEGIN_SRC emacs-lisp
+(use-package flymake
+  :custom
+  (flymake-show-diagnostics-at-end-of-line nil)
+  ;; (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-indicator-type 'margins)
+  (flymake-margin-indicators-string
+   `((error "!" compilation-error)      ;; Alternatives: », E, W, i, !, ?, ⚠️)
+     (warning "?" compilation-warning)
+     (note "i" compilation-info)))
+  )
 #+END_SRC
 
 **** Gnus
@@ -1603,6 +1615,31 @@ instance spacemacs-theme can be enabled:
   (treemacs-indent-guide-mode))
 #+END_SRC
 
+**** treesit-fold
+
+#+BEGIN_SRC emacs-lisp
+  (use-package treesit-fold
+    :hook
+    ((treesit-fold-mode . treesit-fold-indicators-mode)
+     (c-ts-mode . treesit-fold-mode)
+     (c++-ts-mode . treesit-fold-mode)
+     (java-ts-mode . treesit-fold-mode)
+     (rust-ts-mode . treesit-fold-mode)
+     (go-ts-mode . treesit-fold-mode)
+     (ruby-ts-mode . treesit-fold-mode)
+     (js-ts-mode . treesit-fold-mode)
+     (typescript-ts-mode . treesit-fold-mode)
+     (tsx-ts-mode . treesit-fold-mode)
+     (css-ts-mode . treesit-fold-mode)
+     (html-ts-mode . treesit-fold-mode)
+     (bash-ts-mode . treesit-fold-mode)
+     (cmake-ts-mode . treesit-fold-mode)
+     (dockerfile-ts-mode . treesit-fold-mode)
+     (json-ts-mode . treesit-fold-mode)
+     (toml-ts-mode . treesit-fold-mode)
+     (yaml-ts-mode . treesit-fold-mode)))
+#+END_SRC
+
 **** try
 
 [[https://github.com/larstvei/Try][GitHub]]
@@ -1625,7 +1662,6 @@ Try out packages without installing them.
     (undo-tree-mode-lighter "")
     (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
     (undo-tree-enable-undo-in-region t)
-    (undo-tree-limit 800000)
     :config (global-undo-tree-mode))
 #+END_SRC
 
@@ -1734,175 +1770,10 @@ Try out packages without installing them.
 (use-package wgrep)
 #+END_SRC
 
-**** diff-hl
-
-#+BEGIN_SRC emacs-lisp
-(use-package diff-hl
-  :demand
-  :custom (diff-hl-disable-on-remote t)
-  :hook (dired-mode . diff-hl-dired-mode-unless-remote)
-  :config
-  (global-diff-hl-mode)
-  (diff-hl-margin-mode))
-#+END_SRC
-
-
 *** Built-ins
 
 These are available automatically, so these =use-package= blocks just
 configure them.
-
-
-**** tab-bar
-#+BEGIN_SRC emacs-lisp
-  (use-package tab-bar
-    :demand
-    :custom
-    (tab-bar-show 1)
-    :config
-    (tab-bar-mode 1)
-    (tab-bar-history-mode 1)
-    :bind (:repeat-map tab-bar-history-repeat-map
-           ("<left>" . tab-bar-history-back)
-           ("<right>" . tab-bar-history-forward)
-  	 ))
-#+END_SRC
-
-
-**** editorconfig
-#+BEGIN_SRC emacs-lisp
-(use-package editorconfig
-  :delight
-  :hook (prog-mode . editorconfig-mode))
-#+END_SRC
-
-**** xref
-
-#+BEGIN_SRC emacs-lisp
-(use-package xref
-  :preface
-  (defun emacs-solo/xref-to-grep-compilation ()
-    "Export the current Xref results to a grep-like buffer (Emacs 30+)."
-    (interactive)
-    (unless (derived-mode-p 'xref--xref-buffer-mode)
-      (user-error "Not in an Xref buffer"))
-
-    (let* ((items (and (boundp 'xref--fetcher)
-                       (funcall xref--fetcher)))
-           (buf-name "*xref→grep*")
-           (grep-buf (get-buffer-create buf-name)))
-      (unless items
-        (user-error "No xref items found"))
-
-      (with-current-buffer grep-buf
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (insert (format "-*- mode: grep; default-directory: %S -*-\n\n"
-                          default-directory))
-          (dolist (item items)
-            (let* ((loc (xref-item-location item))
-                   (file (xref-file-location-file loc))
-                   (line (xref-file-location-line loc))
-                   (summary (xref-item-summary item)))
-              (insert (format "%s:%d:%s\n" file line summary)))))
-        (grep-mode))
-      (pop-to-buffer grep-buf)))
-  (defun xref-goto-xref-same-window (&optional quit)
-    (interactive "P")
-    (same-window-prefix)
-    (xref-goto-xref quit))
-  :bind (
-         :map xref--xref-buffer-mode-map
-         ("E" . emacs-solo/xref-to-grep-compilation)
-         ("RET" . xref-goto-xref-same-window)
-         )
-  :custom
-  (xref-search-program 'ripgrep)
-  (xref-show-definitions-function #'xref-show-definitions-completing-read)
-)
-#+END_SRC
-
-**** icomplete
-#+BEGIN_SRC emacs-lisp
-(use-package icomplete
-  :disabled
-  :bind (:map icomplete-minibuffer-map
-              ("C-n" . icomplete-forward-completions)
-              ("C-p" . icomplete-backward-completions)
-              ("C-v" . icomplete-vertical-toggle)
-              ("RET" . icomplete-force-complete-and-exit)
-              ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
-  :hook
-  (after-init-hook . (lambda ()
-                       (fido-mode -1)
-                       (icomplete-vertical-mode 1)))
-  :custom
-  ;; (icomplete-delay-completions-threshold 0)
-  ;; (icomplete-compute-delay 0)
-  (icomplete-show-matches-on-no-input t)
-  (icomplete-hide-common-prefix nil)
-  (icomplete-prospects-height 10)
-  (icomplete-in-buffer t)
-  ;; (icomplete-max-delay-chars 0)
-  (icomplete-scroll t)
-  ;; (icomplete-vertical-in-buffer-adjust-list t)
-  ;; (icomplete-vertical-render-prefix-indicator t)
-  :config
-  (if icomplete-in-buffer
-      (advice-add 'completion-at-point
-                  :after #'minibuffer-hide-completions))
-  )
-#+END_SRC
-
-**** minibuffer
-
-#+BEGIN_SRC emacs-lisp
-  (use-package minibuffer
-    :ensure nil
-    :custom
-    (completion-auto-help t)
-    (completion-eager-update t) ;; EMACS-31
-    (completion-eager-display t) ;; EMACS-31
-    (completions-detailed t)
-    (completions-group t)
-    (minibuffer-visible-completions 'up-down)
-    (completions-cycle-threshold t)
-    (completions-format 'one-column)
-    (completions-max-height 40)
-    (completions-sort 'historical)
-    (minibuffer-prompt-properties
-       '(read-only t
-         cursor-intangible t
-         point-entered minibuffer-avoid-prompt
-         face minibuffer-prompt))
-    (read-file-name-completion-ignore-case t)
-    :hook
-    (minibuffer-setup . cursor-intangible-mode)
-    (minibuffer-setup . (lambda () (setq truncate-lines t)))
-    :config
-    (keymap-unset minibuffer-local-completion-map "SPC")
-
-    ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
-    ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
-    ;;     "Quit the current context.
-    ;; 
-    ;; When there is an active minibuffer and we are not inside it close
-    ;; it.  When we are inside the minibuffer use the regular
-    ;; `minibuffer-keyboard-quit' which quits any active region before
-    ;; exiting.  When there is no minibuffer `keyboard-quit' unless we
-    ;; are defining or executing a macro."
-    ;;     (if (active-minibuffer-window)
-    ;;         (if (minibufferp)
-    ;;             (minibuffer-keyboard-quit)
-    ;;           (abort-recursive-edit))
-    ;;       (unless (or defining-kbd-macro
-    ;;                   executing-kbd-macro)
-    ;;         (funcall-interactively quit))))
-
-    (minibuffer-depth-indicate-mode 1)
-    (minibuffer-electric-default-mode 1)
-    )
-#+END_SRC
 
 **** autorevert
 
@@ -2102,14 +1973,6 @@ Base mode used for shell and terminal modes.
     :config (delete-selection-mode t))
 #+END_SRC
 
-**** display-line-numbers
-
-#+BEGIN_SRC emacs-lisp
-  (use-package display-line-numbers
-    :if (>= emacs-major-version 26)
-    :hook (((prog-mode conf-mode) . display-line-numbers-mode)))
-#+END_SRC
-
 **** diff-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2119,6 +1982,21 @@ Base mode used for shell and terminal modes.
   :custom
   (diff-default-read-only t)
   (diff-font-lock-syntax 'hunk-also))
+#+END_SRC
+
+**** display-line-numbers
+
+#+BEGIN_SRC emacs-lisp
+  (use-package display-line-numbers
+    :if (>= emacs-major-version 26)
+    :hook (((prog-mode conf-mode) . display-line-numbers-mode)))
+#+END_SRC
+
+**** editorconfig
+#+BEGIN_SRC emacs-lisp
+(use-package editorconfig
+  :delight
+  :hook (prog-mode . editorconfig-mode))
 #+END_SRC
 
 **** eldoc
@@ -2457,6 +2335,38 @@ Make scripts executable automatically.
     :bind ([remap list-buffers] . ibuffer))
 #+END_SRC
 
+**** icomplete
+#+BEGIN_SRC emacs-lisp
+(use-package icomplete
+  :disabled
+  :bind (:map icomplete-minibuffer-map
+              ("C-n" . icomplete-forward-completions)
+              ("C-p" . icomplete-backward-completions)
+              ("C-v" . icomplete-vertical-toggle)
+              ("RET" . icomplete-force-complete-and-exit)
+              ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
+  :hook
+  (after-init-hook . (lambda ()
+                       (fido-mode -1)
+                       (icomplete-vertical-mode 1)))
+  :custom
+  ;; (icomplete-delay-completions-threshold 0)
+  ;; (icomplete-compute-delay 0)
+  (icomplete-show-matches-on-no-input t)
+  (icomplete-hide-common-prefix nil)
+  (icomplete-prospects-height 10)
+  (icomplete-in-buffer t)
+  ;; (icomplete-max-delay-chars 0)
+  (icomplete-scroll t)
+  ;; (icomplete-vertical-in-buffer-adjust-list t)
+  ;; (icomplete-vertical-render-prefix-indicator t)
+  :config
+  (if icomplete-in-buffer
+      (advice-add 'completion-at-point
+                  :after #'minibuffer-hide-completions))
+  )
+#+END_SRC
+
 **** isearch
 
 #+BEGIN_SRC emacs-lisp
@@ -2488,6 +2398,56 @@ With prefix arg REGEXP-P, perform a regular expression search."
   :custom
   (isearch-lazy-count t)
   (isearch-allow-scroll 'shift))
+#+END_SRC
+
+**** minibuffer
+
+#+BEGIN_SRC emacs-lisp
+  (use-package minibuffer
+    :ensure nil
+    :custom
+    (completion-auto-help t)
+    (completion-eager-update t) ;; EMACS-31
+    (completion-eager-display t) ;; EMACS-31
+    (completions-detailed t)
+    (completions-group t)
+    (minibuffer-visible-completions 'up-down)
+    (completions-cycle-threshold t)
+    (completions-format 'one-column)
+    (completions-max-height 40)
+    (completions-sort 'historical)
+    (minibuffer-prompt-properties
+       '(read-only t
+         cursor-intangible t
+         point-entered minibuffer-avoid-prompt
+         face minibuffer-prompt))
+    (read-file-name-completion-ignore-case t)
+    :hook
+    (minibuffer-setup . cursor-intangible-mode)
+    (minibuffer-setup . (lambda () (setq truncate-lines t)))
+    :config
+    (keymap-unset minibuffer-local-completion-map "SPC")
+
+    ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
+    ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
+    ;;     "Quit the current context.
+    ;; 
+    ;; When there is an active minibuffer and we are not inside it close
+    ;; it.  When we are inside the minibuffer use the regular
+    ;; `minibuffer-keyboard-quit' which quits any active region before
+    ;; exiting.  When there is no minibuffer `keyboard-quit' unless we
+    ;; are defining or executing a macro."
+    ;;     (if (active-minibuffer-window)
+    ;;         (if (minibufferp)
+    ;;             (minibuffer-keyboard-quit)
+    ;;           (abort-recursive-edit))
+    ;;       (unless (or defining-kbd-macro
+    ;;                   executing-kbd-macro)
+    ;;         (funcall-interactively quit))))
+
+    (minibuffer-depth-indicate-mode 1)
+    (minibuffer-electric-default-mode 1)
+    )
 #+END_SRC
 
 **** mouse
@@ -2541,6 +2501,21 @@ With prefix arg REGEXP-P, perform a regular expression search."
                   #'pp-eval-last-sexp)))
 #+END_SRC
 
+**** proced
+
+#+BEGIN_SRC emacs-lisp
+(use-package proced
+  :functions (proced-toggle-auto-update)
+  :custom
+  (proced-enable-color-flag t)
+  (proced-tree-flag t)
+  (proced-auto-update-flag 'visible)
+  (proced-auto-update-interval 1)
+  (proced-descent t)
+  (proced-filter 'user) ;; We can change interactively with `s'
+  :hook (proced-mode . (lambda () (proced-toggle-auto-update 1))))
+#+END_SRC
+
 **** prog-mode
 
 #+BEGIN_SRC emacs-lisp
@@ -2582,6 +2557,42 @@ With prefix arg REGEXP-P, perform a regular expression search."
     (defun prettify-symbols-js ()
       (push '("function" . ?λ) prettify-symbols-alist)
       (push '("=>" . ?⇒) prettify-symbols-alist)))
+#+END_SRC
+
+**** project
+
+#+BEGIN_SRC emacs-lisp
+  (use-package project
+    :custom
+    (project-mode-line t)
+    (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
+    (project-switch-commands 'magit-project-status)
+    :config
+    (advice-add #'project-or-external-find-regexp
+                :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
+    (defun emacs-solo/filtered-project-buffer-completer (project files-only)
+      "A function that filters special buffers and uses `completing-read`."
+      (let* ((project-buffers (project-buffers project))
+             (filtered-buffers
+              (cl-remove-if
+               (lambda (buffer)
+                 (let* ((name (buffer-name buffer))
+                        (trimmed-name (string-trim name)))
+                   (or
+                    (and (> (length trimmed-name) 1)
+                         (string-prefix-p "*" trimmed-name)
+                         (string-suffix-p "*" trimmed-name))
+                    (and files-only (not (buffer-file-name buffer))))))
+               project-buffers)))
+
+        (if filtered-buffers
+            (let* ((buffer-names (mapcar #'buffer-name filtered-buffers))
+                   (selection (completing-read "Switch to project buffer: " buffer-names nil t)))
+              (when selection
+                (switch-to-buffer selection)))
+          (message "No suitable project buffers to switch to."))))
+    ;; Tell project.el filter out *special buffers* on `C-x p C-b'
+    (setq project-buffers-viewer 'emacs-solo/filtered-project-buffer-completer))
 #+END_SRC
 
 **** repeat-mode
@@ -2636,31 +2647,6 @@ Optionally, start a server (disabled by default):
     :disabled
     :demand
     :config (unless (server-running-p) (server-start)))
-#+END_SRC
-
-**** proced
-
-#+BEGIN_SRC emacs-lisp
-(use-package proced
-  :functions (proced-toggle-auto-update)
-  :custom
-  (proced-enable-color-flag t)
-  (proced-tree-flag t)
-  (proced-auto-update-flag 'visible)
-  (proced-auto-update-interval 1)
-  (proced-descent t)
-  (proced-filter 'user) ;; We can change interactively with `s'
-  :hook (proced-mode . (lambda () (proced-toggle-auto-update 1))))
-#+END_SRC
-
-**** Time
-
-#+BEGIN_SRC emacs-lisp
-(use-package time
-  :custom
-  (world-clock-time-format "%A %d %B %r %Z")
-  (world-clock-sort-order "%FT%T") ; EMACS-31
-  (display-time-day-and-date t))
 #+END_SRC
 
 **** Shell
@@ -2745,6 +2731,21 @@ Optionally, start a server (disabled by default):
     :hook (java-mode . subword-mode))
 #+END_SRC
 
+**** tab-bar
+#+BEGIN_SRC emacs-lisp
+  (use-package tab-bar
+    :demand
+    :custom
+    (tab-bar-show 1)
+    :config
+    (tab-bar-mode 1)
+    (tab-bar-history-mode 1)
+    :bind (:repeat-map tab-bar-history-repeat-map
+           ("<left>" . tab-bar-history-back)
+           ("<right>" . tab-bar-history-forward)
+  	 ))
+#+END_SRC
+
 **** term
 
 #+BEGIN_SRC emacs-lisp
@@ -2771,6 +2772,16 @@ Optionally, start a server (disabled by default):
     :no-require
     :ensure nil
     :hook (text-mode . turn-on-auto-fill))
+#+END_SRC
+
+**** Time
+
+#+BEGIN_SRC emacs-lisp
+(use-package time
+  :custom
+  (world-clock-time-format "%A %d %B %r %Z")
+  (world-clock-sort-order "%FT%T") ; EMACS-31
+  (display-time-day-and-date t))
 #+END_SRC
 
 **** timeclock
@@ -2996,41 +3007,6 @@ Show whitespace
                                      (whitespace-mode)))))
 #+END_SRC
 
-**** project
-
-#+BEGIN_SRC emacs-lisp
-(use-package project
-  :custom
-  (project-mode-line t)
-  (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
-  :config
-  (advice-add #'project-or-external-find-regexp
-              :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
-  (defun emacs-solo/filtered-project-buffer-completer (project files-only)
-    "A function that filters special buffers and uses `completing-read`."
-    (let* ((project-buffers (project-buffers project))
-           (filtered-buffers
-            (cl-remove-if
-             (lambda (buffer)
-               (let* ((name (buffer-name buffer))
-                      (trimmed-name (string-trim name)))
-                 (or
-                  (and (> (length trimmed-name) 1)
-                       (string-prefix-p "*" trimmed-name)
-                       (string-suffix-p "*" trimmed-name))
-                  (and files-only (not (buffer-file-name buffer))))))
-             project-buffers)))
-
-      (if filtered-buffers
-          (let* ((buffer-names (mapcar #'buffer-name filtered-buffers))
-                 (selection (completing-read "Switch to project buffer: " buffer-names nil t)))
-            (when selection
-              (switch-to-buffer selection)))
-        (message "No suitable project buffers to switch to."))))
-  ;; Tell project.el filter out *special buffers* on `C-x p C-b'
-  (setq project-buffers-viewer 'emacs-solo/filtered-project-buffer-completer))
-#+END_SRC
-
 **** window
 
 #+BEGIN_SRC emacs-lisp
@@ -3089,6 +3065,52 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
   (switch-to-buffer-in-dedicated-window 'pop)
   (switch-to-buffer-obey-display-actions t)
   )
+#+END_SRC
+
+**** xref
+
+#+BEGIN_SRC emacs-lisp
+(use-package xref
+  :preface
+  (defun emacs-solo/xref-to-grep-compilation ()
+    "Export the current Xref results to a grep-like buffer (Emacs 30+)."
+    (interactive)
+    (unless (derived-mode-p 'xref--xref-buffer-mode)
+      (user-error "Not in an Xref buffer"))
+
+    (let* ((items (and (boundp 'xref--fetcher)
+                       (funcall xref--fetcher)))
+           (buf-name "*xref→grep*")
+           (grep-buf (get-buffer-create buf-name)))
+      (unless items
+        (user-error "No xref items found"))
+
+      (with-current-buffer grep-buf
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert (format "-*- mode: grep; default-directory: %S -*-\n\n"
+                          default-directory))
+          (dolist (item items)
+            (let* ((loc (xref-item-location item))
+                   (file (xref-file-location-file loc))
+                   (line (xref-file-location-line loc))
+                   (summary (xref-item-summary item)))
+              (insert (format "%s:%d:%s\n" file line summary)))))
+        (grep-mode))
+      (pop-to-buffer grep-buf)))
+  (defun xref-goto-xref-same-window (&optional quit)
+    (interactive "P")
+    (same-window-prefix)
+    (xref-goto-xref quit))
+  :bind (
+         :map xref--xref-buffer-mode-map
+         ("E" . emacs-solo/xref-to-grep-compilation)
+         ("RET" . xref-goto-xref-same-window)
+         )
+  :custom
+  (xref-search-program 'ripgrep)
+  (xref-show-definitions-function #'xref-show-definitions-completing-read)
+)
 #+END_SRC
 
 *** Programming languages
@@ -3301,6 +3323,14 @@ didn’t work well enough.
     :hook (haskell-mode . (lambda () (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point))))
 #+END_SRC
 
+**** Html
+
+#+BEGIN_SRC emacs-lisp
+(use-package sgml-mode
+  :bind (:map html-mode-map
+              ("M-o" . nil)))
+#+END_SRC
+
 **** JavaScript
 
 #+BEGIN_SRC emacs-lisp
@@ -3488,14 +3518,6 @@ disabled
     :mode "\\.toml\\'")
 #+END_SRC
 
-**** Html
-
-#+BEGIN_SRC emacs-lisp
-(use-package sgml-mode
-  :bind (:map html-mode-map
-              ("M-o" . nil)))
-#+END_SRC
-
 **** Scala
 
 [[https://github.com/hvesalai/emacs-scala-mode][GitHub]]
@@ -3570,49 +3592,6 @@ repositories.
 
 **** dired-column
 **** em-dired
-**** envrc
-
-[[https://github.com/purcell/envrc][GitHub]]
-
-
-Envrc is able to execute a project’s .envrc file for you automatically.
-Unfortunately, it doesn’t support asynchronous updates yet, so this can
-occasionally block Emacs.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package inheritenv)
-
-  ;; envrc must come late in the init.el file so add-hook adds it first
-  ;; in `find-file-hook'.
-  (use-package envrc
-    :ensure nil
-    :bind (:package project
-                    :map project-prefix-map
-                    ("," . envrc-reload))
-    :commands (envrc-global-mode)
-    :hook (after-init . envrc-global-mode))
-#+END_SRC
-
-**** installer
-**** macho-mode
-**** nethack
-
-#+BEGIN_SRC emacs-lisp
-  (use-package nethack
-    :commands (nethack)
-    :ensure nil)
-#+END_SRC
-
-**** nix-fontify
-**** pcomplete-extra
-
-#+BEGIN_SRC emacs-lisp
-(use-package pcomplete-extra
-  :ensure nil)
-#+END_SRC
-
-**** set-defaults
-**** use-package-list
 **** emacs-solo-highlight-keywords-mode
 #+BEGIN_SRC emacs-lisp
 (use-package emacs-solo-highlight-keywords-mode
@@ -3715,6 +3694,49 @@ occasionally block Emacs.
   )
 #+END_SRC
 
+**** envrc
+
+[[https://github.com/purcell/envrc][GitHub]]
+
+
+Envrc is able to execute a project’s .envrc file for you automatically.
+Unfortunately, it doesn’t support asynchronous updates yet, so this can
+occasionally block Emacs.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package inheritenv)
+
+  ;; envrc must come late in the init.el file so add-hook adds it first
+  ;; in `find-file-hook'.
+  (use-package envrc
+    :ensure nil
+    :bind (:package project
+                    :map project-prefix-map
+                    ("," . envrc-reload))
+    :commands (envrc-global-mode)
+    :hook (after-init . envrc-global-mode))
+#+END_SRC
+
+**** installer
+**** macho-mode
+**** nethack
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nethack
+    :commands (nethack)
+    :ensure nil)
+#+END_SRC
+
+**** nix-fontify
+**** pcomplete-extra
+
+#+BEGIN_SRC emacs-lisp
+(use-package pcomplete-extra
+  :ensure nil)
+#+END_SRC
+
+**** set-defaults
+**** use-package-list
 *** Other
 
 These should correspond to minor modes or helper functions. Some of them are
@@ -3722,20 +3744,41 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
-**** dape
+**** activities
+
 #+BEGIN_SRC emacs-lisp
-  (use-package dape
-    :disabled
-    :hook (prog-mode . dape-breakpoint-mode))
+  (use-package activities
+    :demand
+    :config
+    (activities-mode)
+    (activities-tabs-mode)
+    ;; Prevent `edebug' default bindings from interfering.
+    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+    :preface
+    (defun activities-switch-to-buffer ()
+      (interactive)
+      (if (activities-current)
+  	(call-interactively 'activities-switch-buffer)
+        (if (fboundp 'consult-buffer)
+  	  (call-interactively 'consult-buffer)
+  	(call-interactively 'switch-to-buffer))))
+    :bind
+    (("C-x C-a C-n" . activities-new)
+     ("C-x C-a C-d" . activities-define)
+     ("C-x C-a C-a" . activities-resume)
+     ("C-x C-a C-s" . activities-suspend)
+     ("C-x C-a C-k" . activities-kill)
+     ("C-x C-a RET" . activities-switch)
+     ("C-x C-a b" . activities-switch-buffer)
+     ("C-x C-a g" . activities-revert)
+     ("C-x C-a l" . activities-list)
+     ([remap switch-to-buffer] . activities-switch-to-buffer)
+     ;; ([remap switch-to-buffer-other-window] . activities-switch-to-buffer-other-window)
+     ;; ([remap switch-to-buffer-other-frame] . activities-switch-to-buffer-other-frame)
+     ))
 #+END_SRC
 
-**** avy
-#+BEGIN_SRC emacs-lisp
-(use-package avy
-  :bind (("C-:" . avy-goto-char)
-         :map isearch-mode-map
-         ("C-'" . avy-isearch)))
-#+END_SRC
+
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
@@ -3825,12 +3868,23 @@ Most of these are available in MELPA.
   (defun claude-ghci-compilation-rerun-last-command ()
     (claude-code-ide-mcp-server-with-session-context nil
       (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
+
+  (defun agent-shell-new-shell-choose-agent ()
+  "Start a new agent shell.
+
+Always prompts for agent selection, even if existing shells are available."
+  (interactive)
+  (let ((agent-shell-preferred-agent-config nil))
+    (agent-shell '(4))))
   :config
   (require 'claude-code-ide-mcp-server)
   (require 'agent-shell-worktree)
 
   (transient-append-suffix 'agent-shell-help-menu "N"
     '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
+
+  (transient-append-suffix 'agent-shell-help-menu "C-n"
+    '("C-n" "New shell (choose agent)" agent-shell-new-shell-choose-agent))
 
   ;; (require 'claude-code-ide-emacs-tools)
   ;; (require 'ghci-compilation)
@@ -3911,6 +3965,13 @@ Most of these are available in MELPA.
     :bind (("C-c C-g" . chatgpt-shell-transient)))
 #+END_SRC
 
+**** avy
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :bind (("C-:" . avy-goto-char)
+         :map isearch-mode-map
+         ("C-'" . avy-isearch)))
+#+END_SRC
 **** bats-mode
 
 [[https://github.com/dougm/bats-mode][GitHub]]
@@ -3949,6 +4010,29 @@ Most of these are available in MELPA.
      ("<M-S-right>" . buf-move-right)))
 #+END_SRC
 
+**** copilot
+
+#+BEGIN_SRC emacs-lisp
+  (use-package copilot
+    :hook
+    (((text-mode prog-mode) . copilot-mode)
+     ;; ((prog-mode) . copilot-nes-mode)
+     )
+    :custom
+    (copilot-indent-offset-warning-disable t)
+    (copilot-max-char-warning-disable t)
+    (copilot-idle-delay 0.1)
+    :bind (:map copilot-completion-map
+                ("<tab>" . copilot-accept-completion)
+                ("TAB" . copilot-accept-completion)
+                ("C-<tab>" . copilot-accept-completion-by-word)
+                ("C-TAB" . copilot-accept-completion-by-word)
+                ("C-n" . copilot-next-completion)
+                ("C-p" . copilot-previous-completion))
+    :config
+    (add-to-list 'copilot-indentation-alist '(org-mode 2)))
+#+END_SRC
+
 **** copy-as-format
 
 [[https://github.com/sshaw/copy-as-format][GitHub]]
@@ -3965,6 +4049,13 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
+#+END_SRC
+
+**** dape
+#+BEGIN_SRC emacs-lisp
+  (use-package dape
+    :disabled
+    :hook (prog-mode . dape-breakpoint-mode))
 #+END_SRC
 
 **** delight
@@ -4214,6 +4305,14 @@ disabled
     :commands (ledger-report-mode)
     :mode "\\.journal\\'")
 #+END_SRC
+**** mode-line-notify
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mode-line-notify
+    :ensure nil
+    :hook (after-init . mode-line-notify))
+#+END_SRC
+
 **** mwim
 
 [[https://github.com/alezost/mwim.el][GitHub]]
@@ -4360,71 +4459,6 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package visual-regexp)
-#+END_SRC
-
-**** mode-line-notify
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mode-line-notify
-    :ensure nil
-    :hook (after-init . mode-line-notify))
-#+END_SRC
-
-**** activities
-
-#+BEGIN_SRC emacs-lisp
-  (use-package activities
-    :demand
-    :config
-    (activities-mode)
-    (activities-tabs-mode)
-    ;; Prevent `edebug' default bindings from interfering.
-    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
-    :preface
-    (defun activities-switch-to-buffer ()
-      (interactive)
-      (if (activities-current)
-  	(call-interactively 'activities-switch-buffer)
-        (if (fboundp 'consult-buffer)
-  	  (call-interactively 'consult-buffer)
-  	(call-interactively 'switch-to-buffer))))
-    :bind
-    (("C-x C-a C-n" . activities-new)
-     ("C-x C-a C-d" . activities-define)
-     ("C-x C-a C-a" . activities-resume)
-     ("C-x C-a C-s" . activities-suspend)
-     ("C-x C-a C-k" . activities-kill)
-     ("C-x C-a RET" . activities-switch)
-     ("C-x C-a b" . activities-switch-buffer)
-     ("C-x C-a g" . activities-revert)
-     ("C-x C-a l" . activities-list)
-     ([remap switch-to-buffer] . activities-switch-to-buffer)
-     ;; ([remap switch-to-buffer-other-window] . activities-switch-to-buffer-other-window)
-     ;; ([remap switch-to-buffer-other-frame] . activities-switch-to-buffer-other-frame)
-     ))
-#+END_SRC
-
-
-**** copilot
-
-#+BEGIN_SRC emacs-lisp
-  (use-package copilot
-    :hook
-    (((text-mode prog-mode) . copilot-mode)
-     ;; ((prog-mode) . copilot-nes-mode)
-     )
-    :custom
-    (copilot-indent-offset-warning-disable t)
-    (copilot-max-char-warning-disable t)
-    :bind (:map copilot-completion-map
-                ("<tab>" . copilot-accept-completion)
-                ("TAB" . copilot-accept-completion)
-                ("C-<tab>" . copilot-accept-completion-by-word)
-                ("C-TAB" . copilot-accept-completion-by-word)
-                ("C-n" . copilot-next-completion)
-                ("C-p" . copilot-previous-completion))
-    :config
-    (add-to-list 'copilot-indentation-alist '(org-mode 2)))
 #+END_SRC
 
 ** END
