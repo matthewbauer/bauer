@@ -303,6 +303,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | help-enable-autoload                   | nil                          |
 | help-enable-completion-autoload        | nil                          |
 | help-window-select                     | t                            |
+| help-window-keep-selected              | t                            |
 | highlight-nonselected-windows          | t                            |
 | history-delete-duplicates              | t                            |
 | history-length                         | 300                          |
@@ -1078,7 +1079,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 #+BEGIN_SRC emacs-lisp
   (use-package breadcrumb
     :demand
-    :config (breadcrumb-mode)
+    :hook ((text-mode prog-mode) . breadcrumb-local-mode)
     )
 #+END_SRC
 
@@ -1183,7 +1184,8 @@ disabled
   (use-package org-modern
     :hook
     (org-mode . org-modern-mode)
-    (org-agenda-finalize . org-modern-agenda))
+    (org-agenda-finalize . org-modern-agenda)
+    :custom (org-modern-star 'replace))
 #+END_SRC
 
 
@@ -1409,7 +1411,6 @@ outliner but also much much more.
     (org-confirm-babel-evaluate nil)
     (org-ellipsis "…")
     (org-export-with-toc nil)
-    (org-fold-catch-invisible-edits 'smart)
     (org-hide-emphasis-markers t)
     (org-html-htmlize-output-type 'css)
     (org-insert-heading-respect-content t)
@@ -1670,8 +1671,8 @@ Try out packages without installing them.
   (use-package undo-tree
     :demand
     :commands (global-undo-tree-mode)
+    :delight
     :custom
-    (undo-tree-mode-lighter "")
     (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
     (undo-tree-enable-undo-in-region t)
     :config (global-undo-tree-mode))
@@ -2981,14 +2982,6 @@ Optionally, start a server (disabled by default):
     :hook (view-mode . (lambda () (whitespace-mode -1))))
 #+END_SRC
 
-**** which-func
-
-#+BEGIN_SRC emacs-lisp
-  (use-package which-func
-    :demand
-    :config (which-function-mode))
-#+END_SRC
-
 **** which-key
 
 [[https://github.com/justbur/emacs-which-key][GitHub]]
@@ -3001,8 +2994,8 @@ function.
   (use-package which-key
     :if (>= emacs-major-version 30)
     :demand
+    :delight
     :custom
-    (which-key-lighter "")
     (which-key-idle-delay 0.4)
     (which-key-idle-secondary-delay 0.4)
     :config (which-key-mode))
@@ -4027,8 +4020,10 @@ Always prompts for agent selection, even if existing shells are available."
 
 #+BEGIN_SRC emacs-lisp
   (use-package copilot
+    :delight
     :hook
     ((text-mode prog-mode) . copilot-mode)
+    (org-mode . (lambda () (copilot-mode -1)))
     ;; ((prog-mode) . copilot-nes-mode)
     :custom
     (copilot-indent-offset-warning-disable t)
@@ -4351,7 +4346,7 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package page-break-lines
-    :custom (page-break-lines-lighter "")
+    :delight
     :hook ((doc-mode
             emacs-lisp-mode
             outline-mode
@@ -5702,7 +5697,7 @@ JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
   customEmacsPackages = let
     # I’ve switched over the years between macport and non-macport. latest non-macport seems pretty good recently.
     # emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
-    emacsBinary = pkgs'.emacs-unstable;
+    emacsBinary = pkgs'.emacs-git;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];

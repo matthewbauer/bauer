@@ -727,7 +727,8 @@ Set to `1.0' or nil to prevent font size manipulation."
 				       `(vr/group-1 ((,class (:foreground ,orange :bold t))))
 				       `(vr/group-2 ((,class (:foreground ,green :bold t))))
 				       `(vr/match-separator-face ((,class (:foreground ,red :bold t))))
-				       `(yafolding-ellipsis-face ((,class (:inherit font-lock-comment-face)))))
+				       `(yafolding-ellipsis-face ((,class (:inherit font-lock-comment-face))))
+				       `(which-func ((,class (:foreground ,base03)))))
 
 				      (custom-theme-set-variables
 				       theme-name

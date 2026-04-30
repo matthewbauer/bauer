@@ -180,8 +180,9 @@ ghci-compilation-loaded-hook. Defaults to 60."
    (list
     nil
     nil
-    (when current-prefix-arg (read-string "Package name: ")) ;; todo: add some type of completions
+    (when current-prefix-arg (read-from-minibuffer "Package name: " nil nil nil 'ghci-compilation-package-history)) ;; todo: add some type of completions
     nil))
+  (when (string-empty-p package) (setq package nil))
   (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name flake-ref package))))
   (unless flake-ref (setq flake-ref (if (or (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
 					    (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current)))))

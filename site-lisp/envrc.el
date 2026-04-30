@@ -120,7 +120,7 @@ Experienced users can set this to a nil value and then include the
 (defun envrc--indicator ()
   ""
   (unless (member envrc--status envrc-hidden-statuses)
-    '(" envrc[" (:eval (envrc--status)) "]")))
+    '(" envrc[" (:eval (envrc--status)) "] ")))
 
 (defcustom envrc-indicator '(:eval (envrc--indicator))
   "The mode line lighter for `envrc-mode'.
