@@ -205,44 +205,46 @@ COLORFGBG method.
     (autoload #'xterm--init-modify-other-keys "term/xterm"))
   (unless (display-graphic-p)
     (xterm-mouse-mode)
+    (when (fboundp 'tty-tip-mode) (tty-tip-mode))
+
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
       (add-hook 'after-make-frame-functions
                 (lambda (_frame)
-                   ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
-                   (xterm--init-modify-other-keys)
+                  ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
+                  (xterm--init-modify-other-keys)
 
-                   ;; Courtesy https://emacs.stackexchange.com/a/13957, modified per
-                   ;; https://gitlab.com/gnachman/iterm2/-/issues/8382#note_365264207
-                   (defun character-apply-modifiers (c &rest modifiers)
-                     "Apply modifiers to the character C.
-  MODIFIERS must be a list of symbols amongst (meta control shift).
-  Return an event vector."
-                     (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
-                                                               (logand c ?\x1f)
-                                                             (logior (ash 1 26) c))))
-                     (if (memq 'meta modifiers) (setq c (logior (ash 1 27) c)))
-                     (if (memq 'shift modifiers) (setq c (logior (ash 1 25) c)))
-                     (vector c))
-                   (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
-                     (let ((c 32))
-                       (while (<= c 126)
-                         (mapc (lambda (x)
-                                 (define-key xterm-function-map (format (car x) c)
-                                   (apply 'character-apply-modifiers c (cdr x))))
-                               '(;; with ?.VT100.formatOtherKeys: 0
-                                 ("\e\[27;3;%d~" meta)
-                                 ("\e\[27;5;%d~" control)
-                                 ("\e\[27;6;%d~" control shift)
-                                 ("\e\[27;7;%d~" control meta)
-                                 ("\e\[27;8;%d~" control meta shift)
-                                 ;; with ?.VT100.formatOtherKeys: 1
-                                 ("\e\[%d;3u" meta)
-                                 ("\e\[%d;5u" control)
-                                 ("\e\[%d;6u" control shift)
-                                 ("\e\[%d;7u" control meta)
-                                 ("\e\[%d;8u" control meta shift)))
-                         (setq c (1+ c)))))
-                   ))
+                  ;; Courtesy https://emacs.stackexchange.com/a/13957, modified per
+                  ;; https://gitlab.com/gnachman/iterm2/-/issues/8382#note_365264207
+                  (defun character-apply-modifiers (c &rest modifiers)
+                    "Apply modifiers to the character C.
+    MODIFIERS must be a list of symbols amongst (meta control shift).
+    Return an event vector."
+                    (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
+                                                              (logand c ?\x1f)
+                                                            (logior (ash 1 26) c))))
+                    (if (memq 'meta modifiers) (setq c (logior (ash 1 27) c)))
+                    (if (memq 'shift modifiers) (setq c (logior (ash 1 25) c)))
+                    (vector c))
+                  (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
+                    (let ((c 32))
+                      (while (<= c 126)
+                        (mapc (lambda (x)
+                                (define-key xterm-function-map (format (car x) c)
+  					  (apply 'character-apply-modifiers c (cdr x))))
+                              '(;; with ?.VT100.formatOtherKeys: 0
+                                ("\e\[27;3;%d~" meta)
+                                ("\e\[27;5;%d~" control)
+                                ("\e\[27;6;%d~" control shift)
+                                ("\e\[27;7;%d~" control meta)
+                                ("\e\[27;8;%d~" control meta shift)
+                                ;; with ?.VT100.formatOtherKeys: 1
+                                ("\e\[%d;3u" meta)
+                                ("\e\[%d;5u" control)
+                                ("\e\[%d;6u" control shift)
+                                ("\e\[%d;7u" control meta)
+                                ("\e\[%d;8u" control meta shift)))
+                        (setq c (1+ c)))))
+                  ))
 
       ;; ;; xterm--report-background-handler init fails, but we can still
       ;; ;; use COLORFGBG
@@ -346,6 +348,13 @@ The format of arguments to =set-defaults= is identical to the one used by
 | woman-imenu                            | t                            |
 | word-wrap                              | t                            |
 | x-stretch-cursor                       | t                            |
+| ibuffer-human-readable-size            | t                            |
+| kill-region-dwim                       | 'emacs-word                  |
+| view-lossage-auto-refresh              | t                            |
+| zone-all-frames                        | t                            |
+| zone-all-windows-in-frame              | t                            |
+| dictionary-tooltip-mode                | t                            |
+| undelete-frame-mode                    | t                            |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply #'set-defaults
@@ -888,197 +897,201 @@ Automatically indent code as you type. Only enabled for Lisp currently.
 A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles partial-completion))))
-  (completion-category-defaults '((eglot (styles orderless))
-                                  (eglot-capf (styles orderless))))
-  (completion-pcm-leading-wildcard t))
+  (use-package orderless
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles partial-completion))))
+    (completion-category-defaults '((eglot (styles orderless))
+                                    (eglot-capf (styles orderless))))
+    (completion-pcm-leading-wildcard t))
 
-(use-package vertico
-  :commands (vertico-mode)
-  :demand
-  :custom (vertico-preselect 'directory)
-  :config
-  (vertico-mode))
+  (use-package vertico
+    :commands (vertico-mode)
+    :demand
+    :custom (vertico-preselect 'directory)
+    :config
+    (vertico-mode))
 
-(use-package vertico-multiform
-  :ensure nil
-  :after vertico
-  :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
-  :custom
-  (vertico-multiform-commands '((magit-clone (vertico-preselect . prompt))))
-  :config
-  (advice-add 'vertico-multiform--setup :override (lambda ()
-                                                    (let ((cat (compat-call completion-metadata-get
-                                                                            (completion-metadata (buffer-substring-no-properties
-                                                                                                  (minibuffer-prompt-end)
-                                                                                                  (max (minibuffer-prompt-end) (point)))
-                                                                                                 minibuffer-completion-table
-                                                                                                 minibuffer-completion-predicate)
-                                                                            'category))
-                                                          (exit (make-symbol "vertico-multiform--exit"))
-                                                          (depth (recursion-depth))
-                                                          (kmaps nil)
-                                                          (modes nil))
-                                                      (fset exit `(lambda ()
-                                                                    (when (= ,depth (recursion-depth))
-                                                                      (remove-hook 'minibuffer-exit-hook exit)
-                                                                      (vertico-multiform--toggle -1)
-                                                                      (pop vertico-multiform--stack))))
-                                                      (add-hook 'minibuffer-exit-hook exit)
-                                                      (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
-                                                      (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
-                                                                          (vertico-multiform--lookup cat vertico-multiform-categories))))
-                                                        (pcase x
-                                                          (`(:keymap . ,key)
-                                                           (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
-                                                          (`(:not . ,fs)
-                                                           (dolist (f fs)
-                                                             (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
-                                                                    (mode (if (and sym (fboundp sym)) sym f)))
-                                                               (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
-                                                                 (push (cons :not mode) modes)))))
-                                                          ((or (pred functionp) (pred symbolp))
-                                                           (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
-                                                                  (mode (if (and sym (fboundp sym)) sym x)))
-                                                             (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
-                                                               (push mode modes))))
-                                                          (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
-                                                          (_ (error "Invalid multiform setting %S" x))))
-                                                      (push modes vertico-multiform--stack)
-                                                      (vertico-multiform--toggle 1)
-                                                      (vertico--setup)
-                                                      (when kmaps
-                                                        (use-local-map (make-composed-keymap kmaps (current-local-map)))))))
-  (vertico-multiform-mode))
+  (use-package vertico-multiform
+    :ensure nil
+    :after vertico
+    :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
+    :config
+    (advice-add 'vertico-multiform--setup :override (lambda ()
+                                                      (let ((cat (compat-call completion-metadata-get
+                                                                              (completion-metadata (buffer-substring-no-properties
+                                                                                                    (minibuffer-prompt-end)
+                                                                                                    (max (minibuffer-prompt-end) (point)))
+                                                                                                   minibuffer-completion-table
+                                                                                                   minibuffer-completion-predicate)
+                                                                              'category))
+                                                            (exit (make-symbol "vertico-multiform--exit"))
+                                                            (depth (recursion-depth))
+                                                            (kmaps nil)
+                                                            (modes nil))
+                                                        (fset exit `(lambda ()
+                                                                      (when (= ,depth (recursion-depth))
+                                                                        (remove-hook 'minibuffer-exit-hook exit)
+                                                                        (vertico-multiform--toggle -1)
+                                                                        (pop vertico-multiform--stack))))
+                                                        (add-hook 'minibuffer-exit-hook exit)
+                                                        (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
+                                                        (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
+                                                                            (vertico-multiform--lookup cat vertico-multiform-categories))))
+                                                          (pcase x
+                                                            (`(:keymap . ,key)
+                                                             (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
+                                                            (`(:not . ,fs)
+                                                             (dolist (f fs)
+                                                               (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
+                                                                      (mode (if (and sym (fboundp sym)) sym f)))
+                                                                 (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
+                                                                   (push (cons :not mode) modes)))))
+                                                            ((or (pred functionp) (pred symbolp))
+                                                             (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
+                                                                    (mode (if (and sym (fboundp sym)) sym x)))
+                                                               (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
+                                                                 (push mode modes))))
+                                                            (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
+                                                            (_ (error "Invalid multiform setting %S" x))))
+                                                        (push modes vertico-multiform--stack)
+                                                        (vertico-multiform--toggle 1)
+                                                        (vertico--setup)
+                                                        (when kmaps
+                                                          (use-local-map (make-composed-keymap kmaps (current-local-map)))))))
+    (vertico-multiform-mode))
 
-(use-package corfu
-  :demand
-  :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
-  :custom
-  (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
-  (corfu-preselect 'prompt) ;; Always preselect the prompt
-  :bind
-  (:map corfu-map
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
+  (use-package corfu
+    :demand
+    :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
+    :custom
+    (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
+    (corfu-preselect 'prompt) ;; Always preselect the prompt
+    :bind
+    (:map corfu-map
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous))
 
-  :config
-  (global-corfu-mode t)
-  (corfu-history-mode t)
-  (corfu-popupinfo-mode t))
+    :config
+    (global-corfu-mode t)
+    (corfu-history-mode t)
+    (corfu-popupinfo-mode t))
 
-(use-package cape
-  :demand
-  :autoload (cape-wrap-buster)
-  :after corfu
-  :hook ((completion-at-point-functions . cape-dabbrev)
-         (completion-at-point-functions . cape-dict)
-         (completion-at-point-functions . cape-file)
-         (completion-at-point-functions . cape-elisp-block)
-         (completion-at-point-functions . cape-history)
-         (completion-at-point-functions . cape-keyword))
-  :preface
-  (autoload #'eglot-completion-at-point "eglot")
-  :init
-  (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
-  )
+  (use-package cape
+    :demand
+    :autoload (cape-wrap-buster)
+    :after corfu
+    :hook ((completion-at-point-functions . cape-dabbrev)
+           (completion-at-point-functions . cape-dict)
+           (completion-at-point-functions . cape-file)
+           (completion-at-point-functions . cape-elisp-block)
+           (completion-at-point-functions . cape-history)
+           (completion-at-point-functions . cape-keyword))
+    :preface
+    (autoload #'eglot-completion-at-point "eglot")
+    :init
+    (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
+    )
 
-(use-package marginalia
-  :demand
-  :bind (:map minibuffer-local-map
-              ("M-A" . marginalia-cycle)
-              :map completion-list-mode-map
-              ("M-A" . marginalia-cycle))
-  :config
-  (marginalia-mode))
+  (use-package marginalia
+    :demand
+    :bind (:map minibuffer-local-map
+                ("M-A" . marginalia-cycle)
+                :map completion-list-mode-map
+                ("M-A" . marginalia-cycle))
+    :config
+    (marginalia-mode))
 
-(use-package jinx
-  :demand
-  :disabled
-  :config
-  (global-jinx-mode))
+  (use-package jinx
+    :demand
+    :disabled
+    :config
+    (global-jinx-mode))
 
-(use-package consult
-  :autoload (consult-register-window)
-  ;; Replace bindings. Lazily loaded due by `use-package'.
-  :bind (;; C-c bindings (mode-specific-map)
-         ("C-c M-x" . consult-mode-command)
-         ("C-c h" . consult-history)
-         ("C-c k" . consult-kmacro)
-         ;; ("C-c m" . consult-man)
-         ("C-c i" . consult-info)
-         ([remap Info-search] . consult-info)
-         ;; C-x bindings (ctl-x-map)
-         ([remap repeat-complex-command] . consult-complex-command)
-         ([remap switch-to-buffer] . consult-buffer)
-         ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
-         ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
-         ([remap bookmark-jump] . consult-bookmark)
-         ([remap project-switch-to-buffer] . consult-project-buffer)
-         ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
-         ;; Other custom bindings
-         ([remap yank-pop] . consult-yank-pop)
-         ;; M-g bindings (goto-map)
-         ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ;; M-s bindings (search-map)
-         ("M-s d" . consult-find)
-         ("M-s D" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
-         ("M-s e" . consult-isearch-history)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-         ;; Minibuffer history
-         :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+  (use-package consult
+    :autoload (consult-register-window)
+    :preface
+    (defun maybe-project-buffer ()
+      (interactive)
+      (if (project-current)
+  	(consult-project-buffer)
+        (consult-buffer)))
+    ;; Replace bindings. Lazily loaded due by `use-package'.
+    :bind (;; C-c bindings (mode-specific-map)
+           ("C-c M-x" . consult-mode-command)
+           ("C-c h" . consult-history)
+           ("C-c k" . consult-kmacro)
+           ;; ("C-c m" . consult-man)
+           ("C-c i" . consult-info)
+           ([remap Info-search] . consult-info)
+           ;; C-x bindings (ctl-x-map)
+           ([remap repeat-complex-command] . consult-complex-command)
+           ([remap switch-to-buffer] . maybe-project-buffer)
+           ([remap switch-to-buffer-other-window] . consult-buffer-other-window)
+           ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
+           ([remap bookmark-jump] . consult-bookmark)
+           ([remap project-switch-to-buffer] . consult-project-buffer)
+           ;; Custom M-# bindings for fast register access
+           ("M-#" . consult-register-load)
+           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+           ("C-M-#" . consult-register)
+           ;; Other custom bindings
+           ([remap yank-pop] . consult-yank-pop)
+           ;; M-g bindings (goto-map)
+           ("M-g e" . consult-compile-error)
+           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+           ([remap goto-line] . consult-goto-line)             ;; orig. goto-line
+           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g i" . consult-imenu)
+           ("M-g I" . consult-imenu-multi)
+           ;; M-s bindings (search-map)
+           ("M-s d" . consult-find)
+           ("M-s D" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+           ;; Minibuffer history
+           :map minibuffer-local-map
+           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+           ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
-  ;; Enable automatic preview at point in the *Completions* buffer. This is
-  ;; relevant when you use the default completion UI.
-  :hook (completion-list-mode . consult--default-completion-list-preview-setup)
+    ;; Enable automatic preview at point in the *Completions* buffer. This is
+    ;; relevant when you use the default completion UI.
+    :hook (completion-list-mode . consult--default-completion-list-preview-setup)
 
-  :custom
-  (register-preview-delay 0.5)
-  (register-preview-function #'consult-register-format)
-  ;; (xref-show-definitions-function #'consult-xref)
-  ;; (xref-show-xrefs-function #'consult-xref)
+    :custom
+    (register-preview-delay 0.5)
+    (register-preview-function #'consult-register-format)
+    ;; (xref-show-definitions-function #'consult-xref)
+    ;; (xref-show-xrefs-function #'consult-xref)
 
-  ;; The :init configuration is always executed (Not lazy)
-  :init
+    ;; The :init configuration is always executed (Not lazy)
+    :init
 
-  (advice-add #'register-preview :override #'consult-register-window))
+    (advice-add #'register-preview :override #'consult-register-window))
 #+END_SRC
 
 **** breadcrumb
 
 #+BEGIN_SRC emacs-lisp
   (use-package breadcrumb
-    :demand
+    :disabled
     :hook ((text-mode prog-mode) . breadcrumb-local-mode)
     )
 #+END_SRC
@@ -1086,13 +1099,14 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 **** diff-hl
 
 #+BEGIN_SRC emacs-lisp
-(use-package diff-hl
-  :demand
-  :custom (diff-hl-disable-on-remote t)
-  :hook (dired-mode . diff-hl-dired-mode-unless-remote)
-  :config
-  (global-diff-hl-mode)
-  (diff-hl-margin-mode))
+  (use-package diff-hl
+    :disabled
+    :demand
+    :custom (diff-hl-disable-on-remote t)
+    ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
+    :config
+    (global-diff-hl-mode)
+    (diff-hl-margin-mode))
 #+END_SRC
 
 **** dired
@@ -1182,6 +1196,7 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-modern
+    :disabled
     :hook
     (org-mode . org-modern-mode)
     (org-agenda-finalize . org-modern-agenda)
@@ -1311,21 +1326,43 @@ line are available in an intuitive Emacs buffer.
          :map magit-blame-read-only-mode-map
          ("RET" . magit-show-commit)
          ("C-o" . magit-show-commit))
-  :init
-  (remove-hook 'server-switch-hook #'magit-commit-diff)
-  (remove-hook 'with-editor-filter-visit-hook #'magit-commit-diff)
   :config
   (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts)
 
   ;; don’t add git-commit--dabbrev-capf since it’s broken with completion-preview-mode
-  (advice-add #'git-commit-setup-capf :override (lambda ())))
+  (advice-add #'git-commit-setup-capf :override (lambda ()))
+
+  (advice-add 'magit-branch--read-name :override
+    (defun my-magit-branch--read-name (prompt &optional start-point)
+      (let ((taken (magit-list-local-branch-names))
+            (choices magit-branch-name-suggestions))
+        (when (and start-point
+                   (magit-remote-branch-p start-point)
+                   (string-match "/" start-point))
+          (cl-pushnew (substring start-point (match-end 0))
+                      choices :test #'equal))
+        (magit-completing-read
+         prompt (unless (= (length choices) 1) (seq-difference choices taken)) nil
+         (lambda (choice)
+           (cond
+             ((member choice taken)
+              (run-with-timer
+               0 nil (##minibuffer-message "conflicts with existing branch"))
+              nil)
+             ((not (magit-git-success "check-ref-format" "--branch" choice))
+              (run-with-timer
+               0 nil (##minibuffer-message "not a valid branch name"))
+              nil)
+             (t)))
+             (when (= (length choices) 1) (car choices)))))))
 #+END_SRC
 
 Magit forge.
 
 #+BEGIN_SRC emacs-lisp
   (use-package forge
-    :after magit)
+    :after magit
+    :bind ("C-c g g" . forge-browse))
 #+END_SRC
 
 ***** git-timemachine
@@ -1532,18 +1569,6 @@ Smart hungry delete automatically delete lots of whitespace in a row.
     (text-mode . smart-hungry-delete-default-text-mode-hook))
 #+END_SRC
 
-**** sudo-edit
-
-[[https://github.com/nflath/sudo-edit][GitHub]]
-
-Sudo-edit lets you open a file using sudo (it actually goes through TRAMP to
-achieve this).
-
-#+BEGIN_SRC emacs-lisp
-  (use-package sudo-edit
-    :bind (("C-c C-r" . sudo-edit)))
-#+END_SRC
-
 **** symbol-overlay
 
 #+BEGIN_SRC emacs-lisp
@@ -1686,7 +1711,6 @@ Try out packages without installing them.
   :commands (vterm-reset-cursor-point vterm--self-insert-meta)
   :autoload (vterm--get-color)
   :bind (("M-@" . vterm)
-
          :map vterm-mode-map
          ("s-f" . vterm--self-insert-meta)
          ("s-b" . vterm--self-insert-meta)
@@ -1704,6 +1728,11 @@ Try out packages without installing them.
   :custom
   (vterm-max-scrollback 10000)
   (vterm-copy-mode-remove-fake-newlines t)
+  (shell-pop-shell-type '("vterm" "*vterm*"
+                                   (lambda ()
+                                     (when (fboundp 'vterm)
+                                       (let ((vterm-shell shell-pop-term-shell))
+                                         (vterm))))))
   :preface
   ;; (defvar-local vterm-cursor-type-saved nil)
   ;; (defun old-version-of-vterm--get-color (index &rest _args)
@@ -1775,6 +1804,32 @@ Try out packages without installing them.
     (add-to-list 'vterm-toggle-togglable-buffer-functions
                  (lambda (buf)
                    (not (string-prefix-p "*claude" (buffer-name buf))))))
+
+  (use-package shell-pop
+    ;; :bind automatically sets up the keybinding AND tells Emacs to lazy-load the
+    ;; package the moment the key is pressed.
+    :bind (("C-c t" . shell-pop))
+    :custom
+    ;; The key sequence used to toggle the shell window.
+    (shell-pop-universal-key "C-c t")
+
+    ;; Sets the screen position where the shell popup appears.
+    ;; You can choose "bottom", "top", "right", "left", or "full".
+    (shell-pop-window-position "bottom")
+
+    ;; If non-nil, the window stretches across the entire frame width.
+    (shell-pop-full-span nil)
+
+    ;; The path to the shell executable used by the terminal emulator
+    ;; (e.g., "/usr/bin/env bash").
+    (shell-pop-term-shell shell-file-name)
+
+    ;; The height or width of the window as a percentage of the frame.
+    (shell-pop-window-size 30)
+
+    ;; Setting this to non-nil sends commands to the shell. This is not always
+    ;; desirable, as it can send commands to any prompt.
+    (shell-pop-autocd-to-working-dir nil))
 #+END_SRC
 
 **** wgrep
@@ -1926,19 +1981,12 @@ Base mode used for shell and terminal modes.
     (compilation-context-lines t)
     (compilation-scroll-output 'first-error)
     (compilation-skip-threshold 1)
-    (compilation-error-regexp-alist '(absoft ada aix ant bash borland python-tracebacks-and-caml cmake cmake-info comma msft edg-1 edg-2
-                                             epc ftnchek gradle-kotlin gradle-android iar ibm irix java javac jikes-file maven jikes-line
-                                             clang-include gcc-include ruby-Test::Unit gmake gnu lcc makepp mips-1 mips-2 omake oracle perl
-                                             php rxp shellcheck sparc-pascal-file sparc-pascal-line sparc-pascal-example sun sun-ada watcom
-                                             4bsd gcov-file gcov-header gcov-nomark gcov-called-line gcov-never-called perl--Pod::Checker perl--Test
-                                             perl--Test2 perl--Test::Harness weblint guile-file guile-line typescript-tsc-plain typescript-tsc-pretty
-                                             ("^\\(?1:\\(?:[^\11\12 0-9]\\|[0-9]+[^\0120-9]\\)\\(?:[^\12 :]\\| [^\12/-]\\|:[^\12 ]\\)*?\\):(\\(?2:[0-9]+\\),\\(?3:[0-9]+\\))-(\\(?4:[0-9]+\\),\\(?5:[0-9]+\\))" 1 (2 . 4) (3 . 5))
-                                             ("^  \\([^:\n\t]+\\):\\([0-9]+\\):\\([0-9]+\\): $" 1 2 3 0)))
     (compilation-save-buffers-predicate
      (lambda ()
        (let ((proj (project-current)))
          (and proj
               (memq (current-buffer) (project-buffers proj))))))
+    (compilation-skip-to-next-location nil)
     :preface
     (defun show-compilation ()
       (interactive)
@@ -1975,7 +2023,9 @@ Base mode used for shell and terminal modes.
            ("_log\\'" . conf-mode)
            ("\\.env\\..*\\'" . conf-mode)
            ("\\.env\\'" . conf-mode)
-           ("/git-rebase-todo\\'" . conf-mode))
+  	 ("\\.buckconfig\\'" . conf-mode)
+  	 ("\\.buckconfig\\..*\\'" . conf-mode)
+  	 ("/\\.buckconfig\\.d/" . conf-mode))
     )
 #+END_SRC
 **** delsel
@@ -2018,6 +2068,7 @@ Provides some info for the thing at the point.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eldoc
+    :delight
     :hook ((emacs-lisp-mode
              eval-expression-minibuffer-setup
              lisp-mode-interactive-mode
@@ -2650,7 +2701,6 @@ With prefix arg REGEXP-P, perform a regular expression search."
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :if (>= emacs-major-version 25)
-    :demand
     :hook (after-init . save-place-mode)
     :custom (save-place-limit 600))
 #+END_SRC
@@ -2717,6 +2767,7 @@ Optionally, start a server (disabled by default):
     :hook
     (text-mode . visual-line-mode)
     (text-mode . auto-fill-mode)
+    ;; (text-mode . refill-mode)
     :config (column-number-mode)
     :custom
     (completion-auto-select t)
@@ -2729,7 +2780,6 @@ Optionally, start a server (disabled by default):
     (read-extended-command-predicate #'command-completion-default-include-p)
     (kill-do-not-save-duplicates t)
     (kill-whole-line t)
-    (indent-tabs-mode t)
     (backward-delete-char-untabify-method 'hungry))
 #+END_SRC
 
@@ -2798,7 +2848,7 @@ Optionally, start a server (disabled by default):
 (use-package time
   :custom
   (world-clock-time-format "%A %d %B %r %Z")
-  (world-clock-sort-order "%FT%T") ; EMACS-31
+  (world-clock-sort-order "%FT%T")
   (display-time-day-and-date t))
 #+END_SRC
 
@@ -3142,7 +3192,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     (eglot-code-action-indications nil) ;; EMACS-31 -- annoying as hell
 
     :config
-
     (add-to-list 'eglot-server-programs
                  `((haskell-mode haskell-ts-mode) . ,(eglot-alternatives
                                                       '("static-ls" ("haskell-language-server-wrapper" "--lsp")))))
@@ -3204,6 +3253,13 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+BEGIN_SRC emacs-lisp
   (use-package elf-mode
     :magic ("ELF" . elf-mode))
+#+END_SRC
+
+**** Swift
+
+#+BEGIN_SRC emacs-lisp
+  (use-package swift-ts-mode
+    :mode (("\\.swift\\'" . swift-ts-mode)))
 #+END_SRC
 
 **** Elixir
@@ -3737,8 +3793,9 @@ occasionally block Emacs.
 **** pcomplete-extra
 
 #+BEGIN_SRC emacs-lisp
-(use-package pcomplete-extra
-  :ensure nil)
+  (use-package pcomplete-extra
+    :ensure nil
+    :autoload (pcomplete/cabal pcomplete/ghc pcomplete/buck2 pcomplete/buck))
 #+END_SRC
 
 **** set-defaults
@@ -3754,6 +3811,7 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package activities
+    :disabled
     :demand
     :config
     (activities-mode)
@@ -3788,187 +3846,187 @@ Most of these are available in MELPA.
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
-(use-package agent-shell
-  :bind ("C-c C-'" . agent-shell-help-menu)
-  :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
-  :hook (agent-shell-mode . (lambda ()
-                              (let ((buffer (current-buffer)))
-                                (agent-shell-subscribe-to
-                                 :shell-buffer buffer
-                                 :event 'turn-complete
-                                 :on-event `(lambda (_event)
-                                              (when (buffer-live-p ,buffer)
-                                                (mode-line-notify-send
-                                                 :title (format "%s Agent Shell Turn Complete" (buffer-name ,buffer))
-                                                 :buffer ,buffer))))
-                                (agent-shell-subscribe-to
-                                 :shell-buffer buffer
-                                 :event 'permission-request
-                                 :on-event `(lambda (_event)
-                                              (when (buffer-live-p ,buffer)
-                                                (mode-line-notify-send
-                                                 :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
-                                                 :buffer ,buffer)))))))
-  :custom
-  (agent-shell-file-completion-enabled t)
-  (agent-shell-session-strategy 'new)
-  (agent-shell-buffer-name-format 'kebab-case)
-  (agent-shell-mcp-servers
-   '((lambda ()
-       (require 'claude-code-ide-mcp-server)
-       (let* ((project-dir (agent-shell-cwd))
-              (session-id (format "claude-%s-%s"
-                                  (file-name-nondirectory (directory-file-name project-dir))
-                                  (format-time-string "%Y%m%d-%H%M%S"))))
-         (puthash session-id `(:project-dir ,project-dir) claude-code-ide-mcp-server--sessions)
-         `((name . "emacs")
-           (type . "http")
-           (headers . ())
-           (url . ,(format "http://localhost:%d/mcp/%s"
-                           (claude-code-ide-mcp-server-ensure-server) session-id)))))))
-  :preface
-  (defun claude-ghci-compilation-reload ()
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string ":r" nil t)))
-  (defun claude-ghci-compilation-add (modules)
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add %s" (string-join modules " ")) nil t)))
-  (defun claude-ghci-compilation-run-tests (args)
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\ntestMain" args) nil t)))
-  (defun claude-ghci-compilation-set-env (name value)
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":env %s %s" name value) nil t)))
-  (defun claude-ghci-compilation-run-ghci-script (script)
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":script %s" script) nil t)))
-  (defun claude-ghci-compilation-run-test-suite (args)
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args) nil t)))
-  (defun claude-ghci-compilation-ensure-buffer ()
-    (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation)))
-  (defun claude-ghci-compilation-reload-nix ()
-    (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation-reload-nix nil t)))
-  ;; (defun claude-ghci-compilation-send-command (command)
-  ;;   (claude-code-ide-mcp-server-with-session-context nil
-  ;;     (progn (ghci-compilation--send-string command))))
-  ;; (claude-code-ide-make-tool
-  ;;  :function #'claude-ghci-compilation-send-command
-  ;;  :name "ghci-compilation-send-command"
-  ;;  :description "Send a GHCI command to the running process."
-  ;;  :args '((:name "command"
-  ;;                 :type string
-  ;;                 :description "The command to run in GHCI.")))
-  (defun claude-ghci-compilation-check-output ()
-    (claude-code-ide-mcp-server-with-session-context nil
-      (let* ((res (ghci-compilation-get-last-output--marker))
-             (buffer (nth 0 res))
-             (beg (nth 1 res))
-             (end (nth 2 res)))
-        (with-current-buffer buffer
-          (save-excursion
-            (goto-char beg)
-            (while (re-search-forward "\\[[0-9]+ of [0-9]+\\] .*$" end t))
-            (buffer-substring-no-properties (point) end))))))
+  (use-package agent-shell
+    :bind ("C-c C-'" . agent-shell-help-menu)
+    :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
+    :hook (agent-shell-mode . (lambda ()
+                                (let ((buffer (current-buffer)))
+                                  (agent-shell-subscribe-to
+                                   :shell-buffer buffer
+                                   :event 'turn-complete
+                                   :on-event `(lambda (_event)
+                                                (when (buffer-live-p ,buffer)
+                                                  (mode-line-notify-send
+                                                   :title (format "%s Agent Shell Turn Complete" (buffer-name ,buffer))
+                                                   :buffer ,buffer))))
+                                  (agent-shell-subscribe-to
+                                   :shell-buffer buffer
+                                   :event 'permission-request
+                                   :on-event `(lambda (_event)
+                                                (when (buffer-live-p ,buffer)
+                                                  (mode-line-notify-send
+                                                   :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
+                                                   :buffer ,buffer)))))))
+    :custom
+    (agent-shell-file-completion-enabled t)
+    (agent-shell-session-strategy 'new)
+    (agent-shell-buffer-name-format 'kebab-case)
+    (agent-shell-mcp-servers
+     '((lambda ()
+         (require 'claude-code-ide-mcp-server)
+         (let* ((project-dir (agent-shell-cwd))
+                (session-id (format "claude-%s-%s"
+                                    (file-name-nondirectory (directory-file-name project-dir))
+                                    (format-time-string "%Y%m%d-%H%M%S"))))
+           (puthash session-id `(:project-dir ,project-dir) claude-code-ide-mcp-server--sessions)
+           `((name . "emacs")
+             (type . "http")
+             (headers . ())
+             (url . ,(format "http://localhost:%d/mcp/%s"
+                             (claude-code-ide-mcp-server-ensure-server) session-id)))))))
+    :preface
+    (defun claude-ghci-compilation-reload ()
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string ":r" nil t)))
+    (defun claude-ghci-compilation-add (modules)
+      (claude-code-ide-mcp-server-with-session-context nil
+         (ghci-compilation--send-string (format ":add %s" (string-join modules " ")) nil t)))
+    ;; (defun claude-ghci-compilation-run-tests (args)
+    ;;   (claude-code-ide-mcp-server-with-session-context nil
+    ;;     (ghci-compilation--send-string (format ":add TestMain\n:set args %s\ntestMain" args) nil t)))
+    (defun claude-ghci-compilation-set-env (name value)
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string (format ":env %s %s" name value) nil t)))
+    (defun claude-ghci-compilation-run-ghci-script (script)
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string (format ":script %s" script) nil t)))
+    ;; (defun claude-ghci-compilation-run-test-suite (args)
+    ;;   (claude-code-ide-mcp-server-with-session-context nil
+    ;;     (ghci-compilation--send-string (format ":add TestMain\n:set args %s\nmain" args) nil t)))
+    (defun claude-ghci-compilation-ensure-buffer ()
+      (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation)))
+    (defun claude-ghci-compilation-reload-nix ()
+      (claude-code-ide-mcp-server-with-session-context nil (ghci-compilation-reload-nix nil t)))
+    ;; (defun claude-ghci-compilation-send-command (command)
+    ;;   (claude-code-ide-mcp-server-with-session-context nil
+    ;;     (progn (ghci-compilation--send-string command))))
+    ;; (claude-code-ide-make-tool
+    ;;  :function #'claude-ghci-compilation-send-command
+    ;;  :name "ghci-compilation-send-command"
+    ;;  :description "Send a GHCI command to the running process."
+    ;;  :args '((:name "command"
+    ;;                 :type string
+    ;;                 :description "The command to run in GHCI.")))
+    (defun claude-ghci-compilation-check-output ()
+      (claude-code-ide-mcp-server-with-session-context nil
+        (let* ((res (ghci-compilation-get-last-output--marker))
+               (buffer (nth 0 res))
+               (beg (nth 1 res))
+               (end (nth 2 res)))
+          (with-current-buffer buffer
+            (save-excursion
+              (goto-char beg)
+              (while (re-search-forward "\\[[0-9]+ of [0-9]+\\] .*$" end t))
+              (buffer-substring-no-properties (point) end))))))
 
-  (defun claude-ghci-compilation-rerun-last-command ()
-    (claude-code-ide-mcp-server-with-session-context nil
-      (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
+    (defun claude-ghci-compilation-rerun-last-command ()
+      (claude-code-ide-mcp-server-with-session-context nil
+        (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
 
-  (defun agent-shell-new-shell-choose-agent ()
-  "Start a new agent shell.
+    (defun agent-shell-new-shell-choose-agent ()
+    "Start a new agent shell.
 
-Always prompts for agent selection, even if existing shells are available."
-  (interactive)
-  (let ((agent-shell-preferred-agent-config nil))
-    (agent-shell '(4))))
-  :config
-  (require 'claude-code-ide-mcp-server)
-  (require 'agent-shell-worktree)
+  Always prompts for agent selection, even if existing shells are available."
+    (interactive)
+    (let ((agent-shell-preferred-agent-config nil))
+      (agent-shell '(4))))
+    :config
+    (require 'claude-code-ide-mcp-server)
+    (require 'agent-shell-worktree)
 
-  (transient-append-suffix 'agent-shell-help-menu "N"
-    '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
+    (transient-append-suffix 'agent-shell-help-menu "N"
+      '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
 
-  (transient-append-suffix 'agent-shell-help-menu "N"
-    '("C-n" "New shell (choose agent)" agent-shell-new-shell-choose-agent))
+    (transient-append-suffix 'agent-shell-help-menu "N"
+      '("C-n" "New shell (choose agent)" agent-shell-new-shell-choose-agent))
 
-  ;; (require 'claude-code-ide-emacs-tools)
-  ;; (require 'ghci-compilation)
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-reload
-   :name "ghci-compilation-reload"
-   :description "Compile Haskell code to test that changes work. Perfect after making some change to a Haskell file."
-   :args nil)
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-add
-   :name "ghci-compilation-add"
-   :description "Add Haskell modules to scope. Run after first making changes to any module."
-   :args '((:name "modules"
-                  :type array
-                  :description "The module names to add to scope"
-                  :items (:name "module"
-                                :type string
-                                :description "Module name"))))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-tests
-   :name "ghci-compilation-run-tests"
-   :description "Run test suite"
-   :args '((:name "args"
-                  :type string
-                  :description "Arguments to pass to test suite. Could be something like --match "/My.Module.Name/test group/test name/" --seed 1149949735.")))
+    ;; (require 'claude-code-ide-emacs-tools)
+    ;; (require 'ghci-compilation)
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-reload
+     :name "ghci-compilation-reload"
+     :description "Compile Haskell code to test that changes work. Perfect after making some change to a Haskell file."
+     :args nil)
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-add
+     :name "ghci-compilation-add"
+     :description "Add Haskell modules to scope. Run after first making changes to any module."
+     :args '((:name "modules"
+                    :type array
+                    :description "The module names to add to scope"
+                    :items (:name "module"
+                                  :type string
+                                  :description "Module name"))))
+    ;; (claude-code-ide-make-tool
+    ;;  :function #'claude-ghci-compilation-run-tests
+    ;;  :name "ghci-compilation-run-tests"
+    ;;  :description "Run test suite"
+    ;;  :args '((:name "args"
+    ;;                 :type string
+    ;;                 :description "Arguments to pass to test suite. Could be something like --match "/My.Module.Name/test group/test name/" --seed 1149949735.")))
 
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-set-env
-   :name "ghci-compilation-set-env"
-   :description "Set env"
-   :args '((:name "name"
-                  :type string
-                  :description "Name of variable")
-           (:name "value"
-                  :type string
-                  :description "Value of variable")))
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-set-env
+     :name "ghci-compilation-set-env"
+     :description "Set env"
+     :args '((:name "name"
+                    :type string
+                    :description "Name of variable")
+             (:name "value"
+                    :type string
+                    :description "Value of variable")))
 
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-ghci-script
-   :name "ghci-compilation-run-ghci-script"
-   :description "Run ghci script"
-   :args '((:name "filename"
-                  :type string
-                  :description "File name of script")))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-run-test-suite
-   :name "ghci-compilation-run-test-suite"
-   :description "Run test suite"
-   :args '((:name "args"
-                  :type string
-                  :description "Args to pass")))
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-ensure-buffer
-   :name "ghci-compilation-ensure-buffer"
-   :description "Ensure ghci buffer exists and is running"
-   :args nil)
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-run-ghci-script
+     :name "ghci-compilation-run-ghci-script"
+     :description "Run ghci script"
+     :args '((:name "filename"
+                    :type string
+                    :description "File name of script")))
+    ;; (claude-code-ide-make-tool
+    ;;  :function #'claude-ghci-compilation-run-test-suite
+    ;;  :name "ghci-compilation-run-test-suite"
+    ;;  :description "Run test suite"
+    ;;  :args '((:name "args"
+    ;;                 :type string
+    ;;                 :description "Args to pass")))
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-ensure-buffer
+     :name "ghci-compilation-ensure-buffer"
+     :description "Ensure ghci buffer exists and is running"
+     :args nil)
 
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-reload-nix
-   :name "ghci-compilation-reload-nix"
-   :description "Reload nix develop shell"
-   :args nil)
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-reload-nix
+     :name "ghci-compilation-reload-nix"
+     :description "Reload nix develop shell"
+     :args nil)
 
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-check-output
-   :name "ghci-compilation-check-output"
-   :description "Get last output from GHCI."
-   :args nil)
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-check-output
+     :name "ghci-compilation-check-output"
+     :description "Get last output from GHCI."
+     :args nil)
 
-  (claude-code-ide-make-tool
-   :function #'claude-ghci-compilation-rerun-last-command
-   :name "ghci-compilation-rerun-last-command"
-   :description "Rerun last command from GHCI."
-   :args nil)
-  )
+    (claude-code-ide-make-tool
+     :function #'claude-ghci-compilation-rerun-last-command
+     :name "ghci-compilation-rerun-last-command"
+     :description "Rerun last command from GHCI."
+     :args nil)
+    )
 
-  (use-package chatgpt-shell
-    :bind (("C-c C-g" . chatgpt-shell-transient)))
+    (use-package chatgpt-shell
+      :bind (("C-c C-g" . chatgpt-shell-transient)))
 #+END_SRC
 
 **** avy
@@ -3984,15 +4042,6 @@ Always prompts for agent selection, even if existing shells are available."
 
 #+BEGIN_SRC emacs-lisp
   (use-package bats-mode)
-#+END_SRC
-
-**** browse-at-remote
-
-[[https://github.com/rmuslimov/browse-at-remote][GitHub]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package browse-at-remote
-    :bind ("C-c g g" . browse-at-remote))
 #+END_SRC
 
 **** browse-kill-ring
@@ -4469,6 +4518,13 @@ disabled
   (use-package visual-regexp)
 #+END_SRC
 
+**** backup-walker
+
+#+BEGIN_SRC emacs-lisp
+  (use-package backup-walker
+    :commands (backup-walker-start))
+#+END_SRC
+
 ** END
 
 #+BEGIN_SRC emacs-lisp
@@ -4624,9 +4680,9 @@ just in case.
       HISTFILE="$HOME/.bash_history"
   fi
 
-  if command -v npm > /dev/null; then
-    npm config set prefix $HOME/.local/share/node_modules
-  fi
+  # if command -v npm > /dev/null; then
+  #   npm config set prefix $HOME/.local/share/node_modules
+  # fi
 #+END_SRC
 
 Dircolors
@@ -5245,7 +5301,6 @@ Set paths provided by Nix,
    '(dvips-command "@texlive@/bin/dvips")
    '(dvipng-command "@texlive@/bin/dvipng")
    '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
-   '(ag-executable "@silver-searcher@/bin/ag")
    '(gud-gdb-command-name "@gdb@/bin/gdb")
    '(coq-prog-name "@coq@/bin/coqtop")
    '(coq-dependency-analyzer "@coq@/bin/coqdep")
@@ -5703,7 +5758,7 @@ JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
     # use native tuning for better performance
-    customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + "-Os -march=native -mtune=native"; }; }));
+    customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + " -Os -march=native -mtune=native"; }; }));
   in # override elpaPackages so elpaDevelPackages is picked up
      customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
 #+END_SRC
@@ -5733,7 +5788,7 @@ substitution of all the attributes set.
 
 #+BEGIN_SRC nix
     site-paths = runCommand "site-paths.el" (with pkgs; ({
-      inherit ripgrep silver-searcher coreutils;
+      inherit ripgrep coreutils;
       inherit manpages sysheaders sysframeworks
               schemas bins infopages;
       inherit MANPATH PATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
@@ -6098,7 +6153,7 @@ Full listing of packages that will be made available.
 
     # Helpful core tools
     curl zsh cacert file lsof pstree which rsync
-    unzip man less silver-searcher ripgrep
+    unzip man less ripgrep
     tree gnutls
   ] ++ lib.optionals big ([
     git

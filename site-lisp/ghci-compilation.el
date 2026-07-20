@@ -52,7 +52,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation-buffer-name (flake-ref package)
   "Generate a name for ghci compilation buffer."
-  (if-let (proj (project-current))
+  (if-let* ((proj (project-current)))
       (concat "*"
               "ghci-compilation"
               (when flake-ref (concat "-" (string-remove-prefix ".#" flake-ref)))
@@ -184,95 +184,100 @@ ghci-compilation-loaded-hook. Defaults to 60."
     nil))
   (when (string-empty-p package) (setq package nil))
   (unless buffer (setq buffer (get-buffer-create (ghci-compilation-buffer-name flake-ref package))))
-  (unless flake-ref (setq flake-ref (if (or (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-					    (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current)))))
-                                        (if package (concat ".#exclude." (string-remove-suffix "-test" package)) ".")
-				      ".")))
-  (unless ghci-repl-command
-    (setq ghci-repl-command (if (or
-				 (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
-				 (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current)))))
-				(append '("_cabal_repl") (if package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking" "mercury-ledger")) "-test"))) '("lib:mwb")) '("-fdev"))
-			      (append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
-  (let* ((proc-alive (comint-check-proc buffer))
-         (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
-         (proj (project-current)))
-    (unless proc-alive
-      (setq-local ghci-compilation-process-start t)
+  (let ((is-mwb (or (string-suffix-p "mercury-web-backend/" (project-root (project-current)))
+		    (string-suffix-p "mercury-web-backend-worktrees/" (file-name-parent-directory (project-root (project-current))))
+		    (string-prefix-p "mercury-web-backend_" (file-name-base (directory-file-name (project-root (project-current)))))))
+	(attr-ref (if package (concat "exclude." (string-remove-suffix "-test" package)) "default")))
+    (unless flake-ref (setq flake-ref (if is-mwb
+                                          (if package (concat ".#exclude." (string-remove-suffix "-test" package)) ".")
+					".")))
+    (unless ghci-repl-command
+      (setq ghci-repl-command (if is-mwb
+				  (append '("mwb-cabal-repl") (if package (list (concat (string-remove-suffix "-test" package) ":" (string-remove-suffix "-test" package) (if (member (string-remove-suffix "-test" package) '("mercury-banking" "mercury-ledger")) "-test"))) '("lib:mwb")) '("-fdev"))
+				(append '("cabal" "repl" "--enable-multi-repl" "all") (when package (list package))))))
+    (let* ((proc-alive (comint-check-proc buffer))
+           (buffer-env (append (list "PAGER=" (format "INSIDE_EMACS=%s,ghci-compilation" emacs-version)) (copy-sequence process-environment)))
+           (proj (project-current)))
+      (unless proc-alive
+	(setq-local ghci-compilation-process-start t)
 
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (erase-buffer))
+	(with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (erase-buffer))
 
-        (ghci-compilation-mode)
+          (ghci-compilation-mode)
 
-        ;; performance
-        (show-paren-mode -1)
-        (setq-local bidi-inhibit-bpa nil)
-        (setq-local bidi-paragraph-direction 'left-to-right)
+          ;; performance
+          (show-paren-mode -1)
+          (setq-local bidi-inhibit-bpa nil)
+          (setq-local bidi-paragraph-direction 'left-to-right)
 
-        (setq-local header-line-format (ghci-compilation--make-header))
+          (setq-local header-line-format (ghci-compilation--make-header))
 
-        (setq-local ghci-compilation-package package)
-        (setq-local ghci-compilation-flake-ref flake-ref)
+          (setq-local ghci-compilation-package package)
+          (setq-local ghci-compilation-flake-ref flake-ref)
 
-        (setq-local comint-terminfo-terminal "xterm-256color")
-        (setq-local comint-prompt-regexp "^ghci> ")
-        (setq-local comint-prompt-read-only t)
-        (setq-local comint-use-prompt-regexp t)
-        (setq-local comint-process-echoes nil)
-        (setq-local comint-scroll-to-bottom-on-output 'others)
-        (setq-local comint-input-sender 'ghci-compilation-input-sender)
-        (setq-local process-environment buffer-env)
-        (setq-local default-directory (project-root proj))
+          (setq-local comint-terminfo-terminal "xterm-256color")
+          (setq-local comint-prompt-regexp "^ghci> ")
+          (setq-local comint-prompt-read-only t)
+          (setq-local comint-use-prompt-regexp t)
+          (setq-local comint-process-echoes nil)
+          (setq-local comint-scroll-to-bottom-on-output 'others)
+          (setq-local comint-input-sender 'ghci-compilation-input-sender)
+          (setq-local process-environment buffer-env)
+          (setq-local default-directory (project-root proj))
 
-        (setq-local ghci-compilation-has-loaded-prompt nil)
-        (setq-local ghci-compilation-last-prompt-marker (make-marker))
+          (setq-local ghci-compilation-has-loaded-prompt nil)
+          (setq-local ghci-compilation-last-prompt-marker (make-marker))
 
-        (setq-local comint-input-ring-file-name (expand-file-name "ghci-compilation-history" user-emacs-directory))
+          (setq-local comint-input-ring-file-name (expand-file-name "ghci-compilation-history" user-emacs-directory))
 
-        (make-local-variable 'mode-line-misc-info)
-        (add-to-list 'mode-line-misc-info '(:eval (ghci-compilation--indicator)))
+          (make-local-variable 'mode-line-misc-info)
+          (add-to-list 'mode-line-misc-info '(:eval (ghci-compilation--indicator)))
 
-        (apply 'make-comint-in-buffer "ghci-compilation" buffer "nix" nil "develop" flake-ref "-c" ghci-repl-command)
+	  (if is-mwb
+	      (progn
+		(apply 'make-comint-in-buffer "ghci-compilation" buffer "nix-shell" nil "-A" attr-ref "--run" (combine-and-quote-strings ghci-repl-command) nil))
+	    (apply 'make-comint-in-buffer "ghci-compilation" buffer "nix" nil "develop" flake-ref "-c" ghci-repl-command))
 
-        (comint-read-input-ring 'silent)
+	  (comint-read-input-ring 'silent)
 
-        (compilation-setup t)
+	  (compilation-setup t)
 
-        (setq-local compilation-error-regexp-alist `((,(concat
-                                                        "^ *\\([^\n\r\t>]*\s*> \\)?" ;; if using multi-package stack project, remove the package name that is prepended
-                                                        "\\(?1:[^\t\r\n]+?\\):"
-                                                        "\\(?:"
-                                                        "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
-                                                        "\\|"
-                                                        "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
-                                                        "\\)"
-                                                        ":\\(?6:\n?[ \t]+[Ww]arning:\\)?")
-                                                      1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
+	  (setq-local compilation-error-regexp-alist `((,(concat
+							  "^ *\\([^\n\r\t>]*\s*> \\)?" ;; if using multi-package stack project, remove the package name that is prepended
+							  "\\(?1:[^\t\r\n]+?\\):"
+							  "\\(?:"
+							  "\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)\\(?:-\\(?5:[0-9]+\\)\\)?" ;; "121:1" & "12:3-5"
+							  "\\|"
+							  "(\\(?2:[0-9]+\\),\\(?4:[0-9]+\\))-(\\(?3:[0-9]+\\),\\(?5:[0-9]+\\))" ;; "(289,5)-(291,36)"
+							  "\\)"
+							  ":\\(?6:\n?[ \t]+[Ww]arning:\\)?")
+							1 (2 . 3) (4 . 5) (6 . nil)) ;; error/warning locus
 
-                                                     ;; multiple declarations
-                                                     ("^    \\(?:Declared at:\\|            \\) \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
-                                                      1 2 4 0) ;; info locus
-                                                     ))
-        (setq-local jit-lock-defer-time nil)
-        (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
+						       ;; multiple declarations
+						       ("^    \\(?:Declared at:\\|            \\) \\(?1:[^ \t\r\n]+\\):\\(?2:[0-9]+\\):\\(?4:[0-9]+\\)$"
+							1 2 4 0) ;; info locus
+						       ))
+	  (setq-local jit-lock-defer-time nil)
+	  (setq-local revert-buffer-function 'ghci-compilation-revert-buffer)
 
-        (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
+	  (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)
 
-        (add-hook 'kill-buffer-hook 'comint-write-input-ring 'local)
+	  (add-hook 'kill-buffer-hook 'comint-write-input-ring 'local)
 
-        (add-hook 'comint-dynamic-complete-functions 'ghci-compilation-complete-at-point nil 'local)
-        (setq-local comint-dynamic-complete-functions (delete 'comint-filename-completion comint-dynamic-complete-functions))
-        (add-hook 'comint-output-filter-functions 'ghci-compilation-process-output nil 'local)
-        (add-hook 'comint-output-filter-functions 'comint-hyperlink-process-output nil 'local)
-        (add-hook 'comint-preoutput-filter-functions 'ghci-compilation-preoutput-filter nil 'local)
+	  (add-hook 'comint-dynamic-complete-functions 'ghci-compilation-complete-at-point nil 'local)
+	  (setq-local comint-dynamic-complete-functions (delete 'comint-filename-completion comint-dynamic-complete-functions))
+	  (add-hook 'comint-output-filter-functions 'ghci-compilation-process-output nil 'local)
+	  (add-hook 'comint-output-filter-functions 'comint-hyperlink-process-output nil 'local)
+	  (add-hook 'comint-preoutput-filter-functions 'ghci-compilation-preoutput-filter nil 'local)
 
-        (let ((pkgdir (concat (project-root proj) "/local-packages/" package)))
-          (if (file-directory-p pkgdir)
-              (add-to-list 'compilation-search-path pkgdir)
-            (add-to-list 'compilation-search-path (project-root proj))))))
-    (pop-to-buffer buffer)))
+	  (let ((pkgdir (concat (project-root proj) "/local-packages/" package)))
+            (if (file-directory-p pkgdir)
+		(add-to-list 'compilation-search-path pkgdir)
+	      (add-to-list 'compilation-search-path (project-root proj))))))
+      (pop-to-buffer buffer)))
+  )
 
 (defun ghci-compilation--send-string (text &optional buffer no-display)
   "Send `TEXT' to the inferior Haskell REPL process"
@@ -290,7 +295,7 @@ ghci-compilation-loaded-hook. Defaults to 60."
   "Revert buffer"
   (if (comint-check-proc (current-buffer))
       (ghci-compilation-reload)
-    (ghci-compilation (current-buffer) buffer ghci-compilation-flake-ref ghci-compilation-package)))
+    (ghci-compilation (current-buffer) nil ghci-compilation-flake-ref ghci-compilation-package)))
 
 (defun ghci-compilation-preoutput-filter (text)
   "Make output read only."
@@ -349,6 +354,9 @@ ghci-compilation-loaded-hook. Defaults to 60."
 
 (defun ghci-compilation--is-running-command ()
   (and ghci-compilation-has-loaded-prompt
+       (let ((proc (get-buffer-process (current-buffer))))
+         (and proc (process-live-p proc)))   ; dead proc ≠ running
+       (not (ghci-compilation--is-prompt))   ; re-check the buffer right now
        (and (marker-position ghci-compilation-last-prompt-marker)
             (< ghci-compilation-last-prompt-marker comint-last-output-start))))
 
