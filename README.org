@@ -1013,10 +1013,10 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (use-package consult
     :autoload (consult-register-window)
     :preface
-    (defun maybe-project-buffer ()
-      (interactive)
-      (if (project-current)
-  	(consult-project-buffer)
+    (defun maybe-project-buffer (&optional all)
+      (interactive "P")
+      (if (and (not all) (project-current))
+          (consult-project-buffer)
         (consult-buffer)))
     ;; Replace bindings. Lazily loaded due by `use-package'.
     :bind (;; C-c bindings (mode-specific-map)
