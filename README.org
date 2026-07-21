@@ -1100,7 +1100,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
   (use-package diff-hl
-    :disabled
     :demand
     :custom (diff-hl-disable-on-remote t)
     ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
@@ -1192,18 +1191,6 @@ disabled
     :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
-**** org-modern
-
-#+BEGIN_SRC emacs-lisp
-  (use-package org-modern
-    :disabled
-    :hook
-    (org-mode . org-modern-mode)
-    (org-agenda-finalize . org-modern-agenda)
-    :custom (org-modern-star 'replace))
-#+END_SRC
-
-
 **** embark
 
 #+BEGIN_SRC emacs-lisp
@@ -1219,17 +1206,6 @@ disabled
     :after (embark consult)
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
-#+END_SRC
-
-**** expand-region
-
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :disabled
-  ;; "Multi-cursor and selection"
-  :bind
-  ("S-M-<right>" . er/expand-region)
-  ("S-M-<left>" . er/contract-region))
 #+END_SRC
 
 **** flymake
@@ -1631,39 +1607,6 @@ instance spacemacs-theme can be enabled:
                  (file-name-directory
                   (locate-library "spacemacs-theme-pkg")))
     (load-theme 'spacemacs-dark t))
-#+END_SRC
-
-**** treemacs
-
-#+BEGIN_SRC emacs-lisp
-(use-package treemacs
-  :disabled
-  :demand
-  :preface
-  (defun idemacs-treemacs ()
-    "Initialise Treemacs, or toggle focus to it."
-    (interactive)
-    (pcase (treemacs-current-visibility)
-      ((or 'exists 'visible) (treemacs-select-window))
-      ('none (treemacs--init))))
-  (defun idemacs-treemacs-init ()
-    "Show Treemacs if not visible."
-    (let ((w (selected-window)))
-      (save-excursion (treemacs--init default-directory))
-      (select-window w)))
-  :bind
-  ("C-k C-o" . treemacs-select-directory)
-  ;; In VSCode, this keybinding -
-  ;; 1. (if explorer was closed) opens the explorer
-  ;; 2. (if explorer is open) switches focus between explorer and code
-  ("C-S-e" . idemacs-treemacs)
-  (:map treemacs-mode-map
-        ([mouse-1] . #'treemacs-single-click-expand-action))
-  :config
-  (add-hook 'after-init-hook #'idemacs-treemacs-init 90)
-  (treemacs-project-follow-mode)
-  (setq treemacs--project-follow-delay 0.5)
-  (treemacs-indent-guide-mode))
 #+END_SRC
 
 **** treesit-fold
@@ -3751,42 +3694,6 @@ more helpful than others but none are /essential/.
 
 Most of these are available in MELPA.
 
-**** activities
-
-#+BEGIN_SRC emacs-lisp
-  (use-package activities
-    :disabled
-    :demand
-    :config
-    (activities-mode)
-    (activities-tabs-mode)
-    ;; Prevent `edebug' default bindings from interfering.
-    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
-    :preface
-    (defun activities-switch-to-buffer ()
-      (interactive)
-      (if (activities-current)
-  	(call-interactively 'activities-switch-buffer)
-        (if (fboundp 'consult-buffer)
-  	  (call-interactively 'consult-buffer)
-  	(call-interactively 'switch-to-buffer))))
-    :bind
-    (("C-x C-a C-n" . activities-new)
-     ("C-x C-a C-d" . activities-define)
-     ("C-x C-a C-a" . activities-resume)
-     ("C-x C-a C-s" . activities-suspend)
-     ("C-x C-a C-k" . activities-kill)
-     ("C-x C-a RET" . activities-switch)
-     ("C-x C-a b" . activities-switch-buffer)
-     ("C-x C-a g" . activities-revert)
-     ("C-x C-a l" . activities-list)
-     ([remap switch-to-buffer] . activities-switch-to-buffer)
-     ;; ([remap switch-to-buffer-other-window] . activities-switch-to-buffer-other-window)
-     ;; ([remap switch-to-buffer-other-frame] . activities-switch-to-buffer-other-frame)
-     ))
-#+END_SRC
-
-
 **** agent-shell
 
 #+BEGIN_SRC emacs-lisp
@@ -4051,13 +3958,6 @@ Most of these are available in MELPA.
   (use-package daemons)
 #+END_SRC
 
-**** dape
-#+BEGIN_SRC emacs-lisp
-  (use-package dape
-    :disabled
-    :hook (prog-mode . dape-breakpoint-mode))
-#+END_SRC
-
 **** delight
 
 [[https://elpa.gnu.org/packages/delight.html][ELPA]]
@@ -4147,122 +4047,6 @@ Miscellaneous games
   (use-package git-attr-linguist
     :ensure git-attr
     :hook (find-file . git-attr-linguist))
-#+END_SRC
-
-**** gptel
-
-disabled
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gptel
-    :disabled
-    :bind (("C-x C-g" . gptel-menu))
-    :config
-    (setq gptel--known-backends nil)
-    (defconst openrouter-api-models
-      '((openai/gpt-4o
-         :description "Advanced model for complex tasks; cheaper & faster than GPT-Turbo"
-         :capabilities (media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 128
-         :input-cost 2.50
-         :output-cost 10
-         :cutoff-date "2023-10")
-        (openai/gpt-4o-mini
-         :description "Cheap model for fast tasks; cheaper & more capable than GPT-3.5 Turbo"
-         :capabilities (media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 128
-         :input-cost 0.15
-         :output-cost 0.60
-         :cutoff-date "2023-10")
-        (openai/gpt-4.1
-         :description "Flagship model for complex tasks"
-         :capabilities (media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 1024
-         :input-cost 2.0
-         :output-cost 8.0
-         :cutoff-date "2024-05")
-        (openai/gpt-4.1-mini
-         :description "Balance between intelligence, speed and cost"
-         :capabilities (media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 1024
-         :input-cost 0.4
-         :output-cost 1.6)
-        (openai/gpt-4.1-nano
-         :description "Fastest, most cost-effective GPT-4.1 model"
-         :capabilities (media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 1024
-         :input-cost 0.10
-         :output-cost 0.40
-         :cutoff-date "2024-05")
-        (openai/gpt-4-turbo
-         :description "Previous high-intelligence model"
-         :capabilities (media tool-use url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 128
-         :input-cost 10
-         :output-cost 30
-         :cutoff-date "2023-11")
-        (openai/gpt-4
-         :description "GPT-4 snapshot from June 2023 with improved function calling support"
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :capabilities (media url)
-         :context-window 8192
-         :input-cost 30
-         :output-cost 60
-         :cutoff-date "2023-11")
-        (openai/o4-mini
-         :description "Fast, effective reasoning with efficient performance in coding and visual tasks"
-         :capabilities (reasoning media tool-use json url)
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :context-window 200
-         :input-cost 1.10
-         :output-cost 4.40
-         :cutoff-date "2024-05")
-        (anthropic/claude-opus-4
-         :description "World’s leading coding model at release, excelling in complex, long-running tasks and agent workflows."
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :capabilities (media url)
-         :context-window 200000
-         :input-cost 15
-         :output-cost 75
-         :cutoff-date "2024-04")
-        (anthropic/claude-sonnet-4
-         :description "Enhanced successor to Sonnet 3.7, excelling in coding and reasoning tasks with improved precision."
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :capabilities (media url)
-         :context-window 200000
-         :input-cost 3
-         :output-cost 15
-         :cutoff-date "2024-04")
-        (meta-llama/llama-4-maverick
-         :description "High-capacity multimodal language model built on a mixture-of-experts architecture, delivering advanced capabilities."
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :capabilities (media url)
-         :context-window 128000
-         :input-cost 0.16
-         :output-cost 0.60
-         :cutoff-date "2023-12")
-        (meta-llama/llama-4-scout
-         :description "Mixture-of-experts language model developed by Meta, activating a significant number of parameters for diverse tasks."
-         :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp")
-         :capabilities (media url)
-         :context-window 128000
-         :input-cost 0.08
-         :output-cost 0.30
-         :cutoff-date "2024-04")))
-    (setq gptel-backend
-          (gptel-make-openai "OpenRouter"
-            :host "openrouter.ai"
-            :endpoint "/api/v1/chat/completions"
-            :stream t
-            :key 'gptel-api-key-from-auth-source
-            :models openrouter-api-models))
-    )
 #+END_SRC
 
 **** htmlize
