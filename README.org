@@ -1885,7 +1885,38 @@ Base mode used for shell and terminal modes.
                      (throw 'found buf))))))
         (if compile-buf
             (switch-to-buffer-other-window compile-buf)
-          (call-interactively #'compile)))))
+          (call-interactively #'compile))))
+    :config
+    (defconst buck2-compilation-error-regexp-alist-alist
+      `(;; GHC "file:line:col[-endcol]: error|warning:" inside buck2 Stderr dumps.
+        ;; The first stderr line gets a "gRPC client error: " prefix from the
+        ;; local worker, the rest are at bol.
+        (buck2-ghc
+         ,(concat "^\\(?:gRPC client error: \\)?"
+                  "\\([^ \t\n]+?\\):"
+                  "\\([0-9]+\\):\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?"
+                  ": \\(?:\\(warning\\)\\|error\\):")
+         1 2 (3 . 4) (5))
+        ;; GHC "file:(l,c)-(l,c): error|warning:" multi-line spans
+        (buck2-ghc-span
+         ,(concat "^\\(?:gRPC client error: \\)?"
+                  "\\([^ \t\n]+?\\):"
+                  "(\\([0-9]+\\),\\([0-9]+\\))-(\\([0-9]+\\),\\([0-9]+\\))"
+                  ": \\(?:\\(warning\\)\\|error\\):")
+         1 (2 . 4) (3 . 5) (6))
+        ;; Secondary spans quoted inside a GHC message body ("  src/Foo.hs:19:1-15") -> info
+        (buck2-ghc-note
+         "^ +\\([^ \t\n]+\\.l?hsc?\\(?:-boot\\)?\\):\\([0-9]+\\):\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?$"
+         1 2 (3 . 4) 0)
+        ;; Starlark/BUCK evaluation errors: "  --> src/Data/BUCK:10:1"
+        (buck2-starlark
+         "^ *--> \\([^ \t\n]+\\):\\([0-9]+\\):\\([0-9]+\\)"
+         1 2 3))
+      "`compilation-error-regexp-alist-alist' entries for buck2 build output.")
+
+    (dolist (entry buck2-compilation-error-regexp-alist-alist)
+      (setf (alist-get (car entry) compilation-error-regexp-alist-alist) (cdr entry))
+      (add-to-list 'compilation-error-regexp-alist (car entry))))
 #+END_SRC
 
 **** completion-preview-mode
