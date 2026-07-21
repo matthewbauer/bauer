@@ -713,7 +713,19 @@ Some bauer-specific custom keybindings.
           (interactive)
           (let ((def (haskell-ident-at-point)))
             (if (and def (symbolp def)) (setq def (symbol-name def)))
-            (haskell-hoogle def)))))
+            (haskell-hoogle def))))
+ ("s" . (lambda ()
+          (interactive)
+          (require 'webjump)
+          (browse-url
+           (webjump-url-fix
+            (concat "duckduckgo.com/?q="
+                    (webjump-url-encode
+                     (cond ((use-region-p)
+                            (buffer-substring-no-properties
+                             (region-beginning) (region-end)))
+                           ((thing-at-point 'symbol t))
+                           (t (read-string "DuckDuckGo: "))))))))))
 #+END_SRC
 
 Terminal mode key bindings follow. Scrolling in the term with the mouse should
