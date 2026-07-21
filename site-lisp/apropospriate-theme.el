@@ -652,6 +652,18 @@ Set to `1.0' or nil to prevent font size manipulation."
 				       `(ansi-color-bright-cyan ((,class (:foreground ,cyan-1))))
 				       `(ansi-color-white ((,class (:foreground ,base03))))
 				       `(ansi-color-bright-white ((,class (:foreground ,base03))))
+				       ;; Real palette values for ghostel/vterm: unlike the ansi-color
+				       ;; faces above (where black/white are mapped to the default
+				       ;; foreground so text stays readable), these seed an actual
+				       ;; terminal palette, so black must be black and white white.
+				       `(ghostel-color-black ((,class (:foreground ,(if (eq variant 'light) "#263238" "#212121")))))
+				       `(ghostel-color-bright-black ((,class (:foreground ,(if (eq variant 'light) "#546E7A" "#757575")))))
+				       `(ghostel-color-white ((,class (:foreground ,(if (eq variant 'light) "#CFD8DC" "#E0E0E0")))))
+				       `(ghostel-color-bright-white ((,class (:foreground ,(if (eq variant 'light) "#FFFFFF" "#FAFAFA")))))
+				       `(vterm-color-black ((,class (:foreground ,(if (eq variant 'light) "#263238" "#212121")))))
+				       `(vterm-color-bright-black ((,class (:foreground ,(if (eq variant 'light) "#546E7A" "#757575")))))
+				       `(vterm-color-white ((,class (:foreground ,(if (eq variant 'light) "#CFD8DC" "#E0E0E0")))))
+				       `(vterm-color-bright-white ((,class (:foreground ,(if (eq variant 'light) "#FFFFFF" "#FAFAFA")))))
 				       `(term ((,class (:foreground ,base03))))
 				       `(term-color-black ((,class (:foreground ,base03))))
 				       `(term-color-bright-black ((,class (:foreground ,base03))))
