@@ -204,7 +204,6 @@ COLORFGBG method.
   (eval-and-compile
     (autoload #'xterm--init-modify-other-keys "term/xterm"))
   (unless (display-graphic-p)
-    (xterm-mouse-mode)
     (when (fboundp 'tty-tip-mode) (tty-tip-mode))
 
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
@@ -294,6 +293,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | cursor-in-non-selected-windows         | nil                          |
 | custom-search-field                    | nil                          |
 | delete-by-moving-to-trash              | t                            |
+| delete-pair-push-mark                  | t                            |
 | ediff-keep-variants                    | nil                          |
 | ediff-show-clashes-only                | t                            |
 | ediff-split-window-function            | #'split-window-horizontally  |
@@ -338,9 +338,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | sentence-end-double-space              | nil                          |
 | tab-always-indent                      | 'complete                    |
 | truncate-partial-width-windows         | nil                          |
-| undo-limit                             | 256000                       |
-| undo-strong-limit                      | 2000000                      |
-| undo-outer-limit                       | 36000000                     |
+| undo-limit                             | 67108864                     |
+| undo-strong-limit                      | 100663296                    |
+| undo-outer-limit                       | 1006632960                   |
 | uniquify-after-kill-buffer-p           | t                            |
 | uniquify-buffer-name-style             | 'post-forward-angle-brackets |
 | use-package-always-defer               | t                            |
@@ -370,7 +370,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
   (when (file-exists-p user-emacs-directory)
     (make-directory (expand-file-name "auto-save/" user-emacs-directory) t)
     (make-directory (expand-file-name "backup/" user-emacs-directory) t)
-    (make-directory (expand-file-name "undo-tree/" user-emacs-directory) t))
+    (make-directory (expand-file-name "undo-fu-session/" user-emacs-directory) t))
 
   (set-defaults
    '(custom-file (expand-file-name "settings.el" user-emacs-directory))
@@ -384,7 +384,6 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
-       ("org" . "https://orgmode.org/elpa/")
        ("gnu" . "https://elpa.gnu.org/packages/")
        ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
    '(tramp-default-proxies-alist
@@ -929,48 +928,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :after vertico
     :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
     :config
-    (advice-add 'vertico-multiform--setup :override (lambda ()
-                                                      (let ((cat (compat-call completion-metadata-get
-                                                                              (completion-metadata (buffer-substring-no-properties
-                                                                                                    (minibuffer-prompt-end)
-                                                                                                    (max (minibuffer-prompt-end) (point)))
-                                                                                                   minibuffer-completion-table
-                                                                                                   minibuffer-completion-predicate)
-                                                                              'category))
-                                                            (exit (make-symbol "vertico-multiform--exit"))
-                                                            (depth (recursion-depth))
-                                                            (kmaps nil)
-                                                            (modes nil))
-                                                        (fset exit `(lambda ()
-                                                                      (when (= ,depth (recursion-depth))
-                                                                        (remove-hook 'minibuffer-exit-hook exit)
-                                                                        (vertico-multiform--toggle -1)
-                                                                        (pop vertico-multiform--stack))))
-                                                        (add-hook 'minibuffer-exit-hook exit)
-                                                        (add-hook 'context-menu-functions #'vertico-multiform--display-menu nil t)
-                                                        (dolist (x (cdr (or (vertico-multiform--lookup current-minibuffer-command vertico-multiform-commands)
-                                                                            (vertico-multiform--lookup cat vertico-multiform-categories))))
-                                                          (pcase x
-                                                            (`(:keymap . ,key)
-                                                             (push (if (keymapp key) key (apply #'define-keymap key)) kmaps))
-                                                            (`(:not . ,fs)
-                                                             (dolist (f fs)
-                                                               (let* ((sym (and (symbolp f) (intern-soft (format "vertico-%s-mode" f))))
-                                                                      (mode (if (and sym (fboundp sym)) sym f)))
-                                                                 (when (or (not (symbolp mode)) (not (boundp mode)) (symbol-value mode))
-                                                                   (push (cons :not mode) modes)))))
-                                                            ((or (pred functionp) (pred symbolp))
-                                                             (let* ((sym (and (symbolp x) (intern-soft (format "vertico-%s-mode" x))))
-                                                                    (mode (if (and sym (fboundp sym)) sym x)))
-                                                               (when (or (not (symbolp mode)) (not (boundp mode)) (not (symbol-value mode)))
-                                                                 (push mode modes))))
-                                                            (`(,k . ,v) (progn (message "%s" k) (set (make-local-variable k) v)))
-                                                            (_ (error "Invalid multiform setting %S" x))))
-                                                        (push modes vertico-multiform--stack)
-                                                        (vertico-multiform--toggle 1)
-                                                        (vertico--setup)
-                                                        (when kmaps
-                                                          (use-local-map (make-composed-keymap kmaps (current-local-map)))))))
     (vertico-multiform-mode))
 
   (use-package corfu
@@ -1045,6 +1002,8 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
            ([remap switch-to-buffer-other-frame] . consult-buffer-other-frame)
            ([remap bookmark-jump] . consult-bookmark)
            ([remap project-switch-to-buffer] . consult-project-buffer)
+           ([remap project-find-regexp] . consult-ripgrep)
+           ([remap project-or-external-find-regexp] . consult-ripgrep)
            ;; Custom M-# bindings for fast register access
            ("M-#" . consult-register-load)
            ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
@@ -1096,7 +1055,63 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     ;; The :init configuration is always executed (Not lazy)
     :init
 
-    (advice-add #'register-preview :override #'consult-register-window))
+    (advice-add #'register-preview :override #'consult-register-window)
+
+    :config
+
+    (defvar consult-source-non-project-buffer
+      `( :name     "Other Buffer"
+         :narrow   ?o
+         :category buffer
+         :face     consult-buffer
+         :history  buffer-name-history
+         :state    ,#'consult--buffer-state
+         :items
+         ,(lambda ()
+            (when-let* ((root (consult--project-root)))
+              (let ((proj-bufs (consult--buffer-query :directory root
+                                                      :as #'buffer-name)))
+                (seq-remove (lambda (cand) (member (car cand) proj-bufs))
+                            (consult--buffer-query :sort 'visibility
+                                                   :as #'consult--buffer-pair))))))
+      "Buffers outside the current project, for `consult-project-buffer'.")
+
+    (defvar consult-source-non-project-recent-file
+      `( :name     "Other File"
+         :narrow   ?F
+         :category file
+         :face     consult-file
+         :history  file-name-history
+         :state    ,#'consult--file-state
+         :new      ,#'consult--file-action
+         :enabled  ,(lambda () recentf-mode)
+         :items
+         ,(lambda ()
+            (when-let* ((root (consult--project-root)))
+              (let ((ht (consult--buffer-file-hash))
+                    items)
+                (dolist (file (bound-and-true-p recentf-list) (nreverse items))
+                  (unless (eq (aref file 0) ?/)
+                    (let (file-name-handler-alist)
+                      (setq file (expand-file-name file))))
+                  (unless (or (gethash file ht) (string-prefix-p root file))
+                    (push (consult--fast-abbreviate-file-name file) items)))))))
+      "Recent files outside the current project, for `consult-project-buffer'.")
+
+    (setq consult-project-buffer-sources
+          '(consult-source-project-buffer
+            consult-source-project-recent-file
+            consult-source-non-project-buffer
+            consult-source-non-project-recent-file
+            consult-source-project-root))
+
+    (consult-customize
+     consult-ripgrep
+     :initial (when-let* ((s (if (use-region-p)
+                                 (buffer-substring-no-properties
+                                  (region-beginning) (region-end))
+                               (thing-at-point 'symbol t))))
+                (regexp-quote s))))
 #+END_SRC
 
 **** breadcrumb
@@ -1254,95 +1269,96 @@ Magit is a Git porcelain for Emacs. All of the features from the Git command
 line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
-(use-package magit
-  :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
-  :preface
-  (defun magit-dired-other-window ()
-    (interactive)
-    (dired-other-window (magit-toplevel)))
-  (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
-    (and (fboundp 'long-line-optimizations-p)
-         (long-line-optimizations-p)
-         (prog1 t
-           ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
-           (kill-local-variable 'redisplay-highlight-region-function)
-           (kill-local-variable 'redisplay-unhighlight-region-function)
-           (when magit-show-long-lines-warning
-             (setq magit-show-long-lines-warning nil)
-             (display-warning 'magit (format "\
-    Emacs has enabled redisplay shortcuts
-    in this buffer because there are lines whose length go beyond
-    `long-line-threshold' (%s characters).  As a result, section
-    highlighting and the special appearance of the region has been
-    disabled.
+  (use-package magit
+    :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
+    :preface
+    (defun magit-dired-other-window ()
+      (interactive)
+      (dired-other-window (magit-toplevel)))
+    ;; (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
+    ;;   (and (fboundp 'long-line-optimizations-p)
+    ;;        (long-line-optimizations-p)
+    ;;        (prog1 t
+    ;;          ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
+    ;;          (kill-local-variable 'redisplay-highlight-region-function)
+    ;;          (kill-local-variable 'redisplay-unhighlight-region-function)
+    ;;          (when magit-show-long-lines-warning
+    ;;            (setq magit-show-long-lines-warning nil)
+    ;;            (display-warning 'magit (format "\
+    ;;   Emacs has enabled redisplay shortcuts
+    ;;   in this buffer because there are lines whose length go beyond
+    ;;   `long-line-threshold' (%s characters).  As a result, section
+    ;;   highlighting and the special appearance of the region has been
+    ;;   disabled.
+    ;; 
+    ;;   These shortcuts remain enabled, even once there no longer are
+    ;;   any long lines in this buffer.  To disable them again, kill
+    ;;   and recreate the buffer.
+    ;; 
+    ;;   This message won't be shown for this session again.  To disable
+    ;;   it for all future sessions, set `magit-show-long-lines-warning'
+    ;;   to nil." (bound-and-true-p long-line-threshold)) :warning)))))
+    ;; :hook ((git-commit-mode . git-commit-save-message)
+    ;;      (git-commit-mode . turn-on-auto-fill))
+    :custom
+    (magit-commit-show-diff nil)
+    (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
+    (magit-process-find-password-functions '(magit-process-password-auth-source))
+    (magit-process-password-prompt-regexps '(
+                                             "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
+                                             "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
+                                             "Please enter the passphrase for the ssh key"
+                                             "Please enter the passphrase to unlock the OpenPGP secret key"
+                                             "^.*'s password: ?$"
+                                             "^Yubikey for .*: ?$"
+                                             "^Enter PIN for .*: ?$"
+                                             "^\\[sudo\\] password for .*: ?$"))
+    (magit-save-repository-buffers 'dontask)
+    (magit-remote-add-set-remote.pushDefault "origin")
+    (magit-list-refs-sortby "-creatordate")
+    (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
+    (magit-clone-set-remote.pushDefault t)
+    :if (locate-file "git" exec-path)
+    :bind (("C-x g" . magit-status)
+           ("C-x p v" . magit-status)
+           ("C-x p m" . magit-status)
+           ("C-x G" . magit-dispatch)
+           :package magit
+           :map magit-mode-map
+           ("C-o" . magit-dired-other-window)
+           :map magit-blame-read-only-mode-map
+           ("RET" . magit-show-commit)
+           ("C-o" . magit-show-commit))
+    :config
+    ;; (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts)
 
-    These shortcuts remain enabled, even once there no longer are
-    any long lines in this buffer.  To disable them again, kill
-    and recreate the buffer.
-
-    This message won't be shown for this session again.  To disable
-    it for all future sessions, set `magit-show-long-lines-warning'
-    to nil." (bound-and-true-p long-line-threshold)) :warning)))))
-  ;; :hook ((git-commit-mode . git-commit-save-message)
-  ;;      (git-commit-mode . turn-on-auto-fill))
-  :custom
-  (magit-commit-show-diff nil)
-  (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
-  (magit-process-find-password-functions '(magit-process-password-auth-source))
-  (magit-process-password-prompt-regexps '(
-                                           "^\\(Enter \\)?[Pp]assphrase\\( for \\(RSA \\)?key '.*'\\)?: ?$"
-                                           "^\\(Enter \\)?[Pp]assword\\( for '?\\(https?://\\)?\\(?99:[^']*\\)'?\\)?: ?$"
-                                           "Please enter the passphrase for the ssh key"
-                                           "Please enter the passphrase to unlock the OpenPGP secret key"
-                                           "^.*'s password: ?$"
-                                           "^Yubikey for .*: ?$"
-                                           "^Enter PIN for .*: ?$"
-                                           "^\\[sudo\\] password for .*: ?$"))
-  (magit-save-repository-buffers 'dontask)
-  (magit-remote-add-set-remote.pushDefault "origin")
-  (magit-list-refs-sortby "-creatordate")
-  (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
-  (magit-clone-set-remote.pushDefault t)
-  :if (locate-file "git" exec-path)
-  :bind (("C-x g" . magit-status)
-         ("C-x p v" . magit-status)
-         ("C-x p m" . magit-status)
-         ("C-x G" . magit-dispatch)
-         :package magit
-         :map magit-mode-map
-         ("C-o" . magit-dired-other-window)
-         :map magit-blame-read-only-mode-map
-         ("RET" . magit-show-commit)
-         ("C-o" . magit-show-commit))
-  :config
-  (advice-add #'magit-section--maybe-enable-long-lines-shortcuts :override #'my-magit-section--maybe-enable-long-lines-shortcuts)
-
-  ;; don’t add git-commit--dabbrev-capf since it’s broken with completion-preview-mode
-  (advice-add #'git-commit-setup-capf :override (lambda ()))
-
-  (advice-add 'magit-branch--read-name :override
-    (defun my-magit-branch--read-name (prompt &optional start-point)
-      (let ((taken (magit-list-local-branch-names))
-            (choices magit-branch-name-suggestions))
-        (when (and start-point
-                   (magit-remote-branch-p start-point)
-                   (string-match "/" start-point))
-          (cl-pushnew (substring start-point (match-end 0))
-                      choices :test #'equal))
-        (magit-completing-read
-         prompt (unless (= (length choices) 1) (seq-difference choices taken)) nil
-         (lambda (choice)
-           (cond
-             ((member choice taken)
-              (run-with-timer
-               0 nil (##minibuffer-message "conflicts with existing branch"))
-              nil)
-             ((not (magit-git-success "check-ref-format" "--branch" choice))
-              (run-with-timer
-               0 nil (##minibuffer-message "not a valid branch name"))
-              nil)
-             (t)))
-             (when (= (length choices) 1) (car choices)))))))
+    ;; don’t add git-commit--da;; bbrev-capf since it’s broken with completion-preview-mode
+    ;; (advice-add #'git-commit-setup-capf :override (lambda ()))
+    ;; 
+    ;; (advice-add 'magit-branch--read-name :override
+    ;;   (defun my-magit-branch--read-name (prompt &optional start-point)
+    ;;     (let ((taken (magit-list-local-branch-names))
+    ;;           (choices magit-branch-name-suggestions))
+    ;;       (when (and start-point
+    ;;                  (magit-remote-branch-p start-point)
+    ;;                  (string-match "/" start-point))
+    ;;         (cl-pushnew (substring start-point (match-end 0))
+    ;;                     choices :test #'equal))
+    ;;       (magit-completing-read
+    ;;        prompt (unless (= (length choices) 1) (seq-difference choices taken)) nil
+    ;;        (lambda (choice)
+    ;;          (cond
+    ;;            ((member choice taken)
+    ;;             (run-with-timer
+    ;;              0 nil (##minibuffer-message "conflicts with existing branch"))
+    ;;             nil)
+    ;;            ((not (magit-git-success "check-ref-format" "--branch" choice))
+    ;;             (run-with-timer
+    ;;              0 nil (##minibuffer-message "not a valid branch name"))
+    ;;             nil)
+    ;;            (t)))
+    ;;            (when (= (length choices) 1) (car choices))))))
+    )
 #+END_SRC
 
 Magit forge.
@@ -1499,7 +1515,8 @@ outliner but also much much more.
     (org-mode . (lambda ()
   		(add-hook 'completion-at-point-functions
                             #'pcomplete-completions-at-point nil t)))
-    (org-mode . (lambda () (visual-line-mode -1)))
+    ;; (org-mode . (lambda () (visual-line-mode -1)))
+    (org-mode . visual-wrap-prefix-mode)
     (org-mode . (lambda () (setq-local scroll-margin 3)))
     (message-mode . turn-on-orgtbl)
     ;; (org-mode . (lambda ()
@@ -1643,28 +1660,64 @@ Try out packages without installing them.
   (use-package try)
 #+END_SRC
 
-**** undo-tree
+**** undo-fu
 
-[[https://elpa.gnu.org/packages/undo-tree.html][ELPA]]
+[[https://codeberg.org/ideasman42/emacs-undo-fu][Codeberg]]
+
+Simple undo/redo on top of Emacs’ built-in undo.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package undo-tree
-    :demand
-    :commands (global-undo-tree-mode)
-    :delight
+  (use-package undo-fu
     :custom
-    (undo-tree-history-directory-alist `((".*" . ,(expand-file-name "undo-tree/" user-emacs-directory))))
-    (undo-tree-enable-undo-in-region t)
-    :config (global-undo-tree-mode))
+    (undo-fu-allow-undo-in-region t)
+    :bind (([remap undo] . undo-fu-only-undo)
+           ([remap undo-redo] . undo-fu-only-redo)
+           ("C-?" . undo-fu-only-redo)
+           ("M-_" . undo-fu-only-redo)))
+#+END_SRC
+
+**** undo-fu-session
+
+[[https://codeberg.org/ideasman42/emacs-undo-fu-session][Codeberg]]
+
+Persist undo history across sessions.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package undo-fu-session
+    :demand
+    :custom
+    (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-emacs-directory))
+    :config (undo-fu-session-global-mode))
+#+END_SRC
+
+**** vundo
+
+[[https://elpa.gnu.org/packages/vundo.html][ELPA]]
+
+Visualize the undo tree.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package vundo
+    :bind (("C-x u" . vundo)
+           :map vundo-mode-map
+           ("C-f" . vundo-forward)
+           ("C-b" . vundo-backward)
+  	 ("C-n" . vundo-next)
+           ("C-p" . vundo-previous))
+    :config
+    (setq vundo-glyph-alist vundo-unicode-symbols)
+    ;; Show the tree right below the current window, not in a
+    ;; bottom side window spanning the whole frame.
+    (add-to-list 'display-buffer-alist
+                 '("\\` \\*vundo tree\\*\\'"
+                   (display-buffer-below-selected))))
 #+END_SRC
 
 **** ghostel
 
-Trying out [[https://github.com/dakra/ghostel][ghostel]], a terminal emulator powered by libghostty (Ghostty's
-VT engine). Configured to mirror the vterm setup below; bound to =M-~=
-while evaluating it against vterm on =M-@=. The native module is built
-from source by nix and bundled in the package, so no download is
-needed on first use.
+Trying out [[https://github.com/dakra/ghostel][ghostel]], a terminal emulator powered by libghostty (Ghostty's VT
+engine). The native module is built from source by nix and bundled in the
+package, so no download is needed on first use.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghostel
@@ -1689,7 +1742,9 @@ needed on first use.
     :preface
     (defun maybe-project-ghostel (&optional arg)
       "Switch to a ghostel buffer in the current project, if one exists.
-          Otherwise (or with prefix ARG) fall back to plain `ghostel'."
+       If in a project but none exists (or with prefix ARG), create a new
+       one in the project root via `ghostel-project'. Outside a project,
+       fall back to plain `ghostel'."
       (interactive "P")
       (let* ((proj (project-current))
              (buf (and proj
@@ -1699,9 +1754,9 @@ needed on first use.
                                             'ghostel-mode)
                                         (not (string-prefix-p "*claude" (buffer-name b)))))
                                  (project-buffers proj)))))
-        (if buf
-            (switch-to-buffer buf)
-          (ghostel arg))))
+        (cond (buf (switch-to-buffer buf))
+              (proj (ghostel-project arg))
+              (t (ghostel arg)))))
     (defun my-ghostel-self-insert-meta ()
       "Send the pressed key with meta, like `vterm--self-insert-meta'."
       (interactive)
@@ -1729,12 +1784,6 @@ needed on first use.
     (add-to-list 'ghostel-toggle-togglable-buffer-functions
                  (lambda (buf)
                    (not (string-prefix-p "*claude" (buffer-name buf))))))
-#+END_SRC
-
-**** wgrep
-
-#+BEGIN_SRC emacs-lisp
-(use-package wgrep)
 #+END_SRC
 
 *** Built-ins
@@ -2001,7 +2050,7 @@ Provides some info for the thing at the point.
     :delight
     :hook ((emacs-lisp-mode
              eval-expression-minibuffer-setup
-             lisp-mode-interactive-mode
+             lisp-interactive-mode
              typescript-mode
              haskell-mode
              python-mode
@@ -2696,6 +2745,7 @@ Optionally, start a server (disabled by default):
      ("<M-S-tab>" . next-complete-history-element))
     :hook
     (text-mode . visual-line-mode)
+    (text-mode . visual-wrap-prefix-mode)
     (text-mode . auto-fill-mode)
     ;; (text-mode . refill-mode)
     :config (column-number-mode)
@@ -2733,9 +2783,29 @@ Optionally, start a server (disabled by default):
 #+BEGIN_SRC emacs-lisp
   (use-package tab-bar
     :demand
+    :preface
+    (defun my/tab-bar-tab-name ()
+      "Tab name: project directory if in a project, else current buffer."
+      (if-let* ((project (project-current)))
+          (project-name project)
+        (tab-bar-tab-name-current)))
+    (defun my/project-switch-project-tab (orig-fun dir)
+      "Switch to an existing tab named after the project at DIR, if any.
+    Otherwise fall back to ORIG-FUN (`project-switch-project')."
+      (let* ((project (and dir (project-current nil dir)))
+             (name (and project (project-name project)))
+             (tab (and name tab-bar-mode
+                       (seq-find (lambda (tab)
+                                   (equal name (alist-get 'name tab)))
+                                 (funcall tab-bar-tabs-function)))))
+        (if tab
+            (tab-bar-switch-to-tab name)
+          (funcall orig-fun dir))))
     :custom
     (tab-bar-show 1)
+    (tab-bar-tab-name-function #'my/tab-bar-tab-name)
     :config
+    (advice-add #'project-switch-project :around #'my/project-switch-project-tab)
     (tab-bar-mode 1)
     (tab-bar-history-mode 1)
     :bind (:repeat-map tab-bar-history-repeat-map
@@ -3011,7 +3081,7 @@ Show whitespace
 
 Use CURRENT-PREFIX-ARG to show an identical buffer."
                 (if (one-window-p)
-                    (when-let ((window (split-window-sensibly)))
+                    (when-let* ((window (split-window-sensibly)))
                       (select-window window)
                       (unless current-prefix-arg
                         (let ((switch-to-prev-buffer-skip (unless prefix-arg 'this))) (switch-to-next-buffer))))
@@ -3765,6 +3835,7 @@ Most of these are available in MELPA.
     (agent-shell-file-completion-enabled t)
     (agent-shell-session-strategy 'new)
     (agent-shell-buffer-name-format 'kebab-case)
+    (agent-shell-context-sources '(files region error))
     (agent-shell-mcp-servers
      '((lambda ()
          (require 'claude-code-ide-mcp-server)
@@ -4248,6 +4319,23 @@ Miscellaneous games
 #+BEGIN_SRC emacs-lisp
 (use-package time-zones
   :commands time-zones)
+#+END_SRC
+
+**** ultra-scroll
+
+[[https://github.com/jdtsmith/ultra-scroll][GitHub]]
+
+Smooth, pixel-precise trackpad and mouse-wheel scrolling. Recommended
+settings are =scroll-conservatively 101= (already set above) and a
+=scroll-margin= of 0 (the default; some mode hooks above set it locally
+to 3, which ultra-scroll tolerates).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ultra-scroll
+    :if window-system
+    :demand
+    :config
+    (ultra-scroll-mode 1))
 #+END_SRC
 
 **** unfill
