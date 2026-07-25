@@ -338,9 +338,9 @@ The format of arguments to =set-defaults= is identical to the one used by
 | sentence-end-double-space              | nil                          |
 | tab-always-indent                      | 'complete                    |
 | truncate-partial-width-windows         | nil                          |
-| undo-limit                             | 67108864                     |
-| undo-strong-limit                      | 100663296                    |
-| undo-outer-limit                       | 1006632960                   |
+| undo-limit                             | 1000000                      |
+| undo-strong-limit                      | 1500000                      |
+| undo-outer-limit                       | 24000000                     |
 | uniquify-after-kill-buffer-p           | t                            |
 | uniquify-buffer-name-style             | 'post-forward-angle-brackets |
 | use-package-always-defer               | t                            |
@@ -642,8 +642,8 @@ better navigations.
 | C-c m n         | eval-print-last-sexp            |
 | C-c m r         | eval-region                     |
 | C-c C-u         | rename-uniquely                 |
-| C-c C-o         | browse-url-at-point             |
-| H-l             | browse-url-at-point             |
+| C-c C-o         | bauer-browse-url-at-point       |
+| H-l             | bauer-browse-url-at-point       |
 | H-c             | compile                         |
 | s-c             | compile                         |
 | s-r             | revert-buffer                   |
@@ -653,7 +653,6 @@ better navigations.
 | C-x r q         | save-buffers-kill-terminal      |
 | C-c C-<return>  | delete-blank-lines              |
 | C-<f10>         | menu-bar-mode                   |
-| C-x M-g         | browse-url-at-point             |
 | M-s f           | find-name-dired                 |
 | s-SPC           | cycle-spacing                   |
 | C-c w w         | whitespace-mode                 |
@@ -692,6 +691,18 @@ better navigations.
 Some bauer-specific custom keybindings.
 
 #+BEGIN_SRC emacs-lisp
+(defun bauer-browse-url-at-point (&optional arg)
+  "Like `browse-url-at-point', but open local files as file:/// URLs."
+  (interactive "P")
+  (require 'browse-url)
+  (let ((file (thing-at-point 'filename t)))
+    (if (and file
+             (not (thing-at-point 'url t))
+             (file-exists-p (expand-file-name file)))
+        (browse-url-default-browser
+         (browse-url-file-url (expand-file-name file)))
+      (browse-url-at-point arg))))
+
 (bind-keys
  ([f12] . next-error)
  ([f11] . previous-error)
@@ -802,6 +813,8 @@ More keys that have custom functions. TODO: move these above
 
 #+BEGIN_SRC emacs-lisp
   (bind-keys
+   ("s-n" . nil)
+   ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x 4 C-x ~" . (lambda () (interactive) (find-file-other-window "~")))
@@ -927,6 +940,14 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :ensure nil
     :after vertico
     :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
+    :custom
+    ;; Show xref results in a window below the current one instead of
+    ;; the frame-wide minibuffer.
+    (vertico-multiform-commands
+     '((consult-xref buffer
+                     (vertico-buffer-display-action
+                      . (display-buffer-below-selected
+                         (window-height . 0.3))))))
     :config
     (vertico-multiform-mode))
 
@@ -1049,8 +1070,8 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :custom
     (register-preview-delay 0.5)
     (register-preview-function #'consult-register-format)
-    ;; (xref-show-definitions-function #'consult-xref)
-    ;; (xref-show-xrefs-function #'consult-xref)
+    (xref-show-definitions-function #'consult-xref)
+    (xref-show-xrefs-function #'consult-xref)
 
     ;; The :init configuration is always executed (Not lazy)
     :init
@@ -1107,10 +1128,9 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
     (consult-customize
      consult-ripgrep
-     :initial (when-let* ((s (if (use-region-p)
+     :initial (when-let* ((s (when (use-region-p)
                                  (buffer-substring-no-properties
-                                  (region-beginning) (region-end))
-                               (thing-at-point 'symbol t))))
+                                  (region-beginning) (region-end)))))
                 (regexp-quote s))))
 #+END_SRC
 
@@ -1562,6 +1582,7 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 
 #+BEGIN_SRC emacs-lisp
   (use-package smart-hungry-delete
+    :disabled
     :if (>= emacs-major-version 25)
     :bind (:map prog-mode-map
                 ("<backspace>" .
@@ -1728,6 +1749,7 @@ package, so no download is needed on first use.
            ("s-d" . my-ghostel-self-insert-meta)
            ("s-<backspace>" . my-ghostel-self-insert-meta)
   	 ("M-o" . nil)
+  	 ("C-v" . nil)
 
            :package dired
            :map dired-mode-map
@@ -2520,9 +2542,11 @@ With prefix arg REGEXP-P, perform a regular expression search."
 
 #+BEGIN_SRC emacs-lisp
   (use-package paren
+    :config
+    (show-paren-mode -1)
     :hook
-    (prog-mode . show-paren-mode)
-    (smartparens-mode . (lambda () (show-paren-mode -1))))
+    (prog-mode . show-paren-local-mode)
+    (smartparens-mode . (lambda () (show-paren-local-mode -1))))
 #+END_SRC
 
 **** persistent-mode

@@ -207,7 +207,7 @@ ghci-compilation-last-command-finished-hook. Defaults to 60."
 
           ;; performance
           (show-paren-mode -1)
-          (setq-local bidi-inhibit-bpa nil)
+          (setq-local bidi-inhibit-bpa t)
           (setq-local bidi-paragraph-direction 'left-to-right)
 
           (setq-local header-line-format (ghci-compilation--make-header))
