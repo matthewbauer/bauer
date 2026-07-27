@@ -2861,7 +2861,9 @@ Optionally, start a server (disabled by default):
   (use-package text-mode
     :no-require
     :ensure nil
-    :hook (text-mode . turn-on-auto-fill))
+    :hooks
+    (text-mode . turn-on-auto-fill)
+    (text-mode . (lambda () (setq-local scroll-margin 3))))
 #+END_SRC
 
 **** Time
