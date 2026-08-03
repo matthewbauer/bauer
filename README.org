@@ -372,6 +372,7 @@ Misc. defaults that don’t fit above. TODO: move these above.
     (make-directory (expand-file-name "undo-fu-session/" user-emacs-directory) t))
 
   (set-defaults
+   '(crm-prompt "%p")
    '(custom-file (expand-file-name "settings.el" user-emacs-directory))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
@@ -720,6 +721,7 @@ Some bauer-specific custom keybindings.
  ("w" . woman)
  ("h" . (lambda ()
           (interactive)
+          (require 'haskell-hoogle)
           (let ((def (haskell-ident-at-point)))
             (if (and def (symbolp def)) (setq def (symbol-name def)))
             (haskell-hoogle def))))
@@ -813,6 +815,7 @@ More keys that have custom functions. TODO: move these above
 #+BEGIN_SRC emacs-lisp
   (bind-keys
    ("s-n" . nil)
+   ("s-p" . nil)
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
    ("C-x /" . (lambda () (interactive) (find-file "/")))
@@ -821,18 +824,7 @@ More keys that have custom functions. TODO: move these above
 
    ("C-x M-p" . (lambda () (interactive)
                   (save-excursion (other-window 1)
-                                  (quit-window))))
-
-   ("C-M--" . text-scale-decrease)
-   ("C-M-=" . text-scale-increase)
-   ("C-M-0" . (lambda () (interactive) (text-scale-set 0)))
-
-   ("M-s--" . (lambda () (interactive)
-                (update-font-size -1 t)))
-   ("M-s-=" . (lambda () (interactive)
-                (update-font-size 1 t)))
-   ("M-s-0" . (lambda () (interactive)
-                (update-font-size 12 nil))))
+                                  (quit-window)))))
 
 #+END_SRC
 
@@ -934,21 +926,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :custom (vertico-preselect 'directory)
     :config
     (vertico-mode))
-
-  (use-package vertico-multiform
-    :ensure nil
-    :after vertico
-    :functions (vertico-multiform--toggle vertico-multiform--lookup vertico-multiform--display-menu)
-    :custom
-    ;; Show xref results in a window below the current one instead of
-    ;; the frame-wide minibuffer.
-    (vertico-multiform-commands
-     '((consult-xref buffer
-                     (vertico-buffer-display-action
-                      . (display-buffer-below-selected
-                         (window-height . 0.3))))))
-    :config
-    (vertico-multiform-mode))
 
   (use-package corfu
     :demand
@@ -1071,6 +1048,9 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     (register-preview-function #'consult-register-format)
     (xref-show-definitions-function #'consult-xref)
     (xref-show-xrefs-function #'consult-xref)
+    (consult-ripgrep-args
+   "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number")
+    (consult-preview-excluded-buffers '(or (major-mode . ghostel-mode) (major-mode . vterm-mode)))
 
     ;; The :init configuration is always executed (Not lazy)
     :init
@@ -1079,13 +1059,53 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
     :config
 
+    (defun my/consult--other-tab-for-dir (dir)
+      "Name of a tab other than the current one for the project containing DIR."
+      (when-let* ((_ tab-bar-mode)
+                  (_ (and dir (not (file-remote-p dir))))
+                  (project (project-current nil dir))
+                  (name (project-name project))
+                  (tab (seq-find (lambda (tab)
+                                   (equal name (alist-get 'name tab)))
+                                 (funcall tab-bar-tabs-function))))
+        (and (not (eq (car tab) 'current-tab)) name)))
+
+    (defun my/consult--state-with-tab (state cand-dir)
+      "Wrap state function STATE to respect project tabs.
+    CAND-DIR extracts a directory from a candidate.  Candidates whose
+    project lives in another tab are not previewed, since they will
+    not open in the current tab; selecting one switches to its tab
+    before displaying it."
+      (lambda (action cand)
+        (let ((tab (and cand (memq action '(preview return))
+                        (my/consult--other-tab-for-dir (funcall cand-dir cand)))))
+          (pcase action
+            ('preview (funcall state action (and (not tab) cand)))
+            ('return (when tab (tab-bar-switch-to-tab tab))
+                     (funcall state action cand))
+            (_ (funcall state action cand))))))
+
+    (defun my/consult--buffer-state-with-tab ()
+      "Like `consult--buffer-state', but respect project tabs."
+      (my/consult--state-with-tab
+       (consult--buffer-state)
+       (lambda (cand)
+         (when-let* ((buf (get-buffer cand)))
+           (buffer-local-value 'default-directory buf)))))
+
+    (defun my/consult--file-state-with-tab ()
+      "Like `consult--file-state', but respect project tabs."
+      (my/consult--state-with-tab
+       (consult--file-state)
+       (lambda (cand) (file-name-directory (expand-file-name cand)))))
+
     (defvar consult-source-non-project-buffer
       `( :name     "Other Buffer"
          :narrow   ?o
          :category buffer
          :face     consult-buffer
          :history  buffer-name-history
-         :state    ,#'consult--buffer-state
+         :state    ,#'my/consult--buffer-state-with-tab
          :items
          ,(lambda ()
             (when-let* ((root (consult--project-root)))
@@ -1102,7 +1122,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
          :category file
          :face     consult-file
          :history  file-name-history
-         :state    ,#'consult--file-state
+         :state    ,#'my/consult--file-state-with-tab
          :new      ,#'consult--file-action
          :enabled  ,(lambda () recentf-mode)
          :items
@@ -1151,7 +1171,9 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
     :config
     (global-diff-hl-mode)
-    (diff-hl-margin-mode))
+    (require 'diff-hl-margin)
+    (diff-hl-margin-mode)
+    )
 #+END_SRC
 
 **** dired
@@ -1581,7 +1603,6 @@ Smart hungry delete automatically delete lots of whitespace in a row.
 
 #+BEGIN_SRC emacs-lisp
   (use-package smart-hungry-delete
-    :disabled
     :if (>= emacs-major-version 25)
     :bind (:map prog-mode-map
                 ("<backspace>" .
@@ -1724,6 +1745,7 @@ Visualize the undo tree.
            ("C-b" . vundo-backward)
   	 ("C-n" . vundo-next)
            ("C-p" . vundo-previous))
+    :custom (vundo-roll-back-on-quit nil)
     :config
     (setq vundo-glyph-alist vundo-unicode-symbols)
     ;; Show the tree right below the current window, not in a
@@ -2011,7 +2033,15 @@ Base mode used for shell and terminal modes.
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
                 ("M-p" . completion-preview-prev-candidate)
-                ("M-i" . completion-preview-insert)))
+                ("M-i" . completion-preview-insert))
+    :config
+    ;; Claude:
+    ;; Re-running a major mode kills the buffer-local
+    ;; `completion-preview--overlay' without deleting the overlay itself,
+    ;; stranding its ghost text in the buffer (e.g. agent-shell viewport
+    ;; buffers re-run their edit mode on every view/edit toggle).  Hide
+    ;; the preview while the variable still points at the overlay.
+    (add-hook 'change-major-mode-hook #'completion-preview-hide))
 #+END_SRC
 
 **** conf-mode
@@ -2079,7 +2109,7 @@ Provides some info for the thing at the point.
              org-mode) . eldoc-mode)
     :custom
     (eldoc-idle-delay 0.4)
-    (eldoc-help-at-pt t) ;; EMACS-31
+    (eldoc-help-at-pt t)
     (eldoc-echo-area-use-multiline-p nil)
     (eldoc-echo-area-prefer-doc-buffer t)
     (eldoc-documentation-strategy 'eldoc-documentation-compose))
@@ -2399,7 +2429,9 @@ Make scripts executable automatically.
              (size 6 -1 :right) " " (mode 16 16) " " filename)
        (mark " " (name 16 -1) " " filename)))
     (ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
-    :bind ([remap list-buffers] . ibuffer))
+    :bind (([remap list-buffers] . ibuffer)
+           :map ibuffer-mode-map
+           ("M-o" . nil)))
 #+END_SRC
 
 **** icomplete
@@ -2474,14 +2506,14 @@ With prefix arg REGEXP-P, perform a regular expression search."
     :ensure nil
     :custom
     (completion-auto-help t)
-    (completion-eager-update t) ;; EMACS-31
-    (completion-eager-display t) ;; EMACS-31
+    (completion-eager-update t)
+    (completion-eager-display t)
     (completions-detailed t)
     (completions-group t)
     (minibuffer-visible-completions 'up-down)
     (completions-cycle-threshold t)
     (completions-format 'one-column)
-    (completions-max-height 40)
+    (completions-max-height 15)
     (completions-sort 'historical)
     (minibuffer-prompt-properties
        '(read-only t
@@ -2491,7 +2523,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
     (read-file-name-completion-ignore-case t)
     :hook
     (minibuffer-setup . cursor-intangible-mode)
-    (minibuffer-setup . (lambda () (setq truncate-lines t)))
+    ;; (minibuffer-setup . (lambda () (setq truncate-lines t)))
     :config
     (keymap-unset minibuffer-local-completion-map "SPC")
 
@@ -2534,6 +2566,24 @@ With prefix arg REGEXP-P, perform a regular expression search."
      occur-context-menu
      Man-context-menu
      context-menu-buffers)))
+#+END_SRC
+
+**** mwheel
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mwheel
+    :ensure nil
+    :custom
+    (mouse-wheel-tilt-scroll t)
+    :config
+    (define-advice mwheel-scroll
+        (:around (fn event &optional arg) tilt-only-when-truncated)
+      "Allow tilt/horizontal scrolling only where lines are truncated."
+      (let ((mouse-wheel-tilt-scroll
+             (and mouse-wheel-tilt-scroll
+                  (buffer-local-value 'truncate-lines
+                                      (window-buffer (mwheel-event-window event))))))
+        (funcall fn event arg))))
 #+END_SRC
 
 **** paren
@@ -3694,8 +3744,7 @@ repositories.
       ("FIXME" . error)
       ("HACK" . warning)
       ("NOTE" . warning)
-      ("HERE" . compilation-info)
-      ("EMACS-31" . compilation-info))
+      ("HERE" . compilation-info))
     "Alist of keywords to highlight and their face."
     :group '+highlight-keywords
     :type '(alist :key-type (string :tag "Keyword")
@@ -3873,6 +3922,7 @@ Most of these are available in MELPA.
              (headers . ())
              (url . ,(format "http://localhost:%d/mcp/%s"
                              (claude-code-ide-mcp-server-ensure-server) session-id)))))))
+    (agent-shell-viewport-dismiss-on-send t)
     :preface
     (defun claude-ghci-compilation-reload ()
       (claude-code-ide-mcp-server-with-session-context nil
@@ -4208,6 +4258,19 @@ Miscellaneous games
                           (ibuffer-do-sort-by-alphabetic)))))
 #+END_SRC
 
+**** indent-bars
+
+[[https://github.com/jdtsmith/indent-bars][GitHub]]
+
+Fast, configurable indentation guide-bars.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package indent-bars
+    :hook ((python-base-mode yaml-ts-mode) . indent-bars-mode)
+    :custom
+    (indent-bars-treesit-support t))
+#+END_SRC
+
 **** keycast
 
 [[https://github.com/tarsius/keycast][GitHub]]
@@ -4343,23 +4406,6 @@ Miscellaneous games
 #+BEGIN_SRC emacs-lisp
 (use-package time-zones
   :commands time-zones)
-#+END_SRC
-
-**** ultra-scroll
-
-[[https://github.com/jdtsmith/ultra-scroll][GitHub]]
-
-Smooth, pixel-precise trackpad and mouse-wheel scrolling. Recommended
-settings are =scroll-conservatively 101= (already set above) and a
-=scroll-margin= of 0 (the default; some mode hooks above set it locally
-to 3, which ultra-scroll tolerates).
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ultra-scroll
-    :if window-system
-    :demand
-    :config
-    (ultra-scroll-mode 1))
 #+END_SRC
 
 **** unfill
@@ -5626,22 +5672,25 @@ so let's start with that.
 Here we define our package set. This will just give us access to all of the
 Emacs packages defined in Nixpkgs.
 
-We also define our Emacs version to use. Mitsuharo’s Emacs package is much
-better for MacOS so we use that when we’re on Darwin systems (now taken over by
-JD Smith). Otherwise, just default to ‘emacs’ which should be the latest
-(Nixpkgs-unstable has version 30.2 currently).
-
 #+BEGIN_SRC nix
   customEmacsPackages = let
-    # I’ve switched over the years between macport and non-macport. latest non-macport seems pretty good recently.
+    # I’ve switched over the years between macport and non-macport. latest non-macport seems pretty good recently, and doesn’t require external maintainers.
     # emacsBinary = if hostPlatform.isDarwin then pkgs'.emacs-macport else pkgs'.emacs;
     emacsBinary = pkgs'.emacs-git;
     pkgs' = import pkgs.path {
       inherit crossSystem system config;
       overlays = overlays ++ [ emacs-overlay.overlay ];
     };
+    # path I’m testing out that may improve macos performance
+    nsColorCachePatch = pkgs.fetchurl {
+      url = "https://lists.gnu.org/archive/html/emacs-devel/2026-06/txtZC8mEgiOFH.txt";
+      sha256 = "08vl90x38y5b4hpxi2nrj9qdjvxsyr9a4ibfsj7rsxqi5l1b2nqi";
+    };
     # use native tuning for better performance
-    customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: { env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + " -Os -march=native -mtune=native"; }; }));
+    customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: {
+      env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + " -Os -march=native -mtune=native"; };
+      patches = (o.patches or []) ++ lib.optional hostPlatform.isDarwin nsColorCachePatch;
+    }));
   in # override elpaPackages so elpaDevelPackages is picked up
      customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
 #+END_SRC
