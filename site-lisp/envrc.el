@@ -292,7 +292,8 @@ ENV-DIR is the directory where to update the status"
                     (let ((win-buf (window-buffer win)))
                       (unless (minibufferp win-buf)
                         (with-current-buffer win-buf
-                          (when (member (envrc--find-env-dir) keys)
+                          (when (and envrc-mode
+                                     (member (envrc--find-env-dir) keys))
                             (envrc--status-update-buf win-buf)))))))))
 
 (defun envrc-status-start ()

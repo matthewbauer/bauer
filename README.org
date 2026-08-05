@@ -302,6 +302,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | epg-pinentry-mode                      | 'loopback                    |
 | fast-but-imprecise-scrolling           | t                            |
 | frame-inhibit-implied-resize           | t                            |
+| frame-resize-pixelwise                 | t                            |
 | help-enable-autoload                   | nil                          |
 | help-enable-completion-autoload        | nil                          |
 | help-window-select                     | t                            |
@@ -1179,34 +1180,35 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 **** dired
 
 #+BEGIN_SRC emacs-lisp
-(use-package dired
-  :ensure nil
-  :custom
-  (dired-auto-revert-buffer t)
-  (dired-dwim-target t)
-  (dired-guess-shell-alist-user
-   `(("\\.\\(png\\|jpe?g\\|tiff\\)" ,(if (eq system-type 'darwin) "open" "xdg-open"))
-     ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
-     (".*" ,(if (eq system-type 'darwin) "open" "xdg-open"))))
-  (dired-hide-details-hide-symlink-targets nil)
-  (dired-omit-verbose nil)
-  (dired-omit-files "^\\.\\|^#.*#$")
-  (dired-listing-switches "-alhv")
-  (dired-create-destination-dirs 'ask)
-  (dired-hide-details-hide-absolute-location t)
-  :bind (("C-c J" . dired-double-jump)
-         :map dired-mode-map
-         ("C-c C-c" . compile)
-         ("M-@" . shell)
-         ("M-*" . eshell)
-         ("W" . browse-url-of-dired-file))
-  )
+  (use-package dired
+    :ensure nil
+    :custom
+    (dired-auto-revert-buffer t)
+    (dired-dwim-target t)
+    (dired-guess-shell-alist-user
+     `(("\\.\\(png\\|jpe?g\\|tiff\\)" ,(if (eq system-type 'darwin) "open" "xdg-open"))
+       ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
+       (".*" ,(if (eq system-type 'darwin) "open" "xdg-open"))))
+    (dired-hide-details-hide-symlink-targets nil)
+    (dired-omit-verbose nil)
+    (dired-omit-files "^\\.\\|^#.*#$")
+    (dired-listing-switches "-alhv")
+    (dired-create-destination-dirs 'ask)
+    (dired-hide-details-hide-absolute-location t)
+    (dired-mouse-drag-files t)
+    :bind (("C-c J" . dired-double-jump)
+           :map dired-mode-map
+           ("C-c C-c" . compile)
+           ("M-@" . shell)
+           ("M-*" . eshell)
+           ("W" . browse-url-of-dired-file))
+    )
 
-(use-package wdired
-  :commands (wdired-change-to-wdired-mode)
-  :custom
-  (wdired-allow-to-change-permissions t)
-  (wdired-create-parent-directories t))
+  (use-package wdired
+    :commands (wdired-change-to-wdired-mode)
+    :custom
+    (wdired-allow-to-change-permissions t)
+    (wdired-create-parent-directories t))
 #+END_SRC
 
 ***** dired-column

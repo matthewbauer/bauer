@@ -506,21 +506,33 @@ Falls back to the directory's base name when outside any project."
 ;;
 
 (defun ghostel-toggle--exit-hook ()
-  "Clean up windows when a managed Ghostel buffer is killed."
+  "Clean up windows when a managed Ghostel buffer is killed.
+When another managed terminal remains, its window switches to the next
+terminal in cycling order; only the last terminal's exit tears the
+window down."
   (when (ghostel-toggle-togglable-buffer-p (current-buffer))
-    (setq ghostel-toggle--buffer-list
-          (delq (current-buffer) ghostel-toggle--buffer-list))
-    (if (eq ghostel-toggle-reset-window-configuration-after-exit 'kill-window-only)
+    (let* ((index (cl-position (current-buffer) ghostel-toggle--buffer-list))
+           (rest (delq (current-buffer) ghostel-toggle--buffer-list))
+           (next (and rest (nth (mod (or index 0) (length rest)) rest)))
+           (window (get-buffer-window (current-buffer))))
+      (setq ghostel-toggle--buffer-list rest)
+      (cond
+       ((and next window)
+        (let ((dedicated (window-dedicated-p window)))
+          (set-window-dedicated-p window nil)
+          (set-window-buffer window next)
+          (set-window-dedicated-p window dedicated)))
+       ((eq ghostel-toggle-reset-window-configuration-after-exit 'kill-window-only)
         (cond
          ((eq (window-deletable-p) 'frame)
           (delete-frame))
          ((eq (window-deletable-p) t)
           (delete-window))
          (t
-          (quit-window)))
-      (when (and ghostel-toggle-reset-window-configuration-after-exit
-                 ghostel-toggle--window-configuration)
-        (set-window-configuration ghostel-toggle--window-configuration)))))
+          (quit-window))))
+       ((and ghostel-toggle-reset-window-configuration-after-exit
+             ghostel-toggle--window-configuration)
+        (set-window-configuration ghostel-toggle--window-configuration))))))
 
 (add-hook 'kill-buffer-hook #'ghostel-toggle--exit-hook)
 
