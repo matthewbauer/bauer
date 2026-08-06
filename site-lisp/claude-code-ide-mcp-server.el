@@ -116,7 +116,8 @@ call it and what it returns.
 ARGS: A list of plists specifying the arguments, or nil for a function that
 takes no arguments.  Each plist in ARGS should have the following keys:
 - :name - Argument name (string)
-- :type - Argument type (symbol: string, number, integer, boolean, array, object, null)
+- :type - Argument type (symbol: string, number, integer, boolean,
+  array, object, null)
 - :description - Argument description (string)
 - :optional - Whether the argument is optional (boolean, default nil)
 - :enum - For enumerated types, a vector of allowed values
@@ -157,7 +158,7 @@ Returns the tool specification for convenience."
 
 (defun claude-code-ide--tool-format-p (tool-spec)
   "Determine format of TOOL-SPEC.
-Returns 'old for (symbol . plist) format, 'new for plist format."
+Returns \\='old for (symbol . plist) format, \\='new for plist format."
   (cond
    ;; Old format: (function-symbol :description "..." :parameters ...)
    ((and (consp tool-spec)
@@ -216,11 +217,11 @@ Returns a list of plists with :name, :type, :description, :optional."
                 (unless required
                   (setq arg (plist-put arg :optional t)))
                 ;; Handle additional properties
-                (when-let ((enum (plist-get param :enum)))
+                (when-let* ((enum (plist-get param :enum)))
                   (setq arg (plist-put arg :enum enum)))
-                (when-let ((items (plist-get param :items)))
+                (when-let* ((items (plist-get param :items)))
                   (setq arg (plist-put arg :items items)))
-                (when-let ((properties (plist-get param :properties)))
+                (when-let* ((properties (plist-get param :properties)))
                   (setq arg (plist-put arg :properties properties)))
                 arg)))
           parameters))
@@ -273,7 +274,7 @@ Decrements the session counter and stops server if no sessions remain."
   "Get the MCP configuration for the tools server.
 If SESSION-ID is provided, includes it in the URL path.
 Returns an alist suitable for JSON encoding."
-  (when-let ((port (claude-code-ide-mcp-server-get-port)))
+  (when-let* ((port (claude-code-ide-mcp-server-get-port)))
     (let* ((path (if session-id
                      (format "/mcp/%s" session-id)
                    "/mcp"))
@@ -324,7 +325,7 @@ Returns a plist with :project-dir and :buffer, or nil if not found."
   "Update the last active buffer for SESSION-ID to BUFFER.
 This should be called when the user switches to a different buffer
 in the project to ensure MCP tools execute in the correct context."
-  (when-let ((session (gethash session-id claude-code-ide-mcp-server--sessions)))
+  (when-let* ((session (gethash session-id claude-code-ide-mcp-server--sessions)))
     (plist-put session :last-active-buffer buffer)
     (claude-code-ide-debug "Updated last active buffer for session %s to %s"
                            session-id (buffer-name buffer))))

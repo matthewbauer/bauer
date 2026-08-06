@@ -52,7 +52,7 @@ Set to `1.0' or nil to prevent font size manipulation."
           (yellow   (if (eq variant 'light) "#F57F17" "#FFEE58"))
           (yellow-1 (if (eq variant 'light) "#F9A725" "#FFF59D"))
           (brown    (if (eq variant 'light) "#4E342E" "#BCAAA4"))
-          (brown-1  (if (eq variant 'light) "#6D4C41" "#D7CCC8"))
+          (_brown-1 (if (eq variant 'light) "#6D4C41" "#D7CCC8"))
           (orange   (if (eq variant 'light) "#D84315" "#FFCC80"))
           (orange-1 (if (eq variant 'light) "#FF5722" "#FFA726"))
           (red      (if (eq variant 'light) "#D50000" "#E57373"))

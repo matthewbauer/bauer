@@ -21,6 +21,8 @@
 (defvar-local ghci-compilation-package nil)
 (defvar-local ghci-compilation-flake-ref nil)
 
+(declare-function mode-line-notify-send "mode-line-notify")
+
 (defun ghci-compilation-notify ()
   (require 'mode-line-notify)
   (mode-line-notify-send :title "GHCi Ready" :buffer (current-buffer))

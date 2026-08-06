@@ -20,6 +20,19 @@
 (require 'subr-x) ; For when-let*
 (require 'websocket)
 
+(declare-function flymake-diagnostic-beg "flymake" (diag))
+(declare-function flymake-diagnostic-end "flymake" (diag))
+(declare-function flymake-diagnostic-type "flymake" (diag))
+(declare-function flymake-diagnostic-text "flymake" (diag))
+(declare-function flycheck-error-line "ext:flycheck" (err) t)
+(declare-function flycheck-error-column "ext:flycheck" (err) t)
+(declare-function flycheck-error-level "ext:flycheck" (err) t)
+(declare-function flycheck-error-message "ext:flycheck" (err) t)
+(declare-function flycheck-error-checker "ext:flycheck" (err) t)
+
+(defvar diff-font-lock-syntax)
+(defvar diff-font-lock-prettify)
+
 ;;; Customization
 (defgroup monet nil
   "Monet - Claude Code MCP over websockets."
@@ -48,8 +61,10 @@ These settings control which MCP tools are available to Claude Code."
 (defcustom monet-diff-tool 'monet-simple-diff-tool
   "Function to use for creating diff displays.
 The function should have the signature:
-  (old-file-path new-file-path new-file-contents on-accept on-quit &optional session)
-where ON-ACCEPT and ON-QUIT are no-argument callbacks, and SESSION provides context.
+  (old-file-path new-file-path new-file-contents on-accept on-quit
+   &optional session)
+where ON-ACCEPT and ON-QUIT are no-argument callbacks, and SESSION
+provides context.
 It should return the created diff buffer.
 Set to nil to disable diff functionality entirely."
   :type '(choice (function :tag "Diff function")
@@ -71,8 +86,8 @@ where DIFF-BUFFER is the buffer created by `monet-diff-tool'."
 
 (defcustom monet-ediff-split-window-direction 'horizontal
   "Direction for splitting ediff windows in Monet.
-When set to 'horizontal, windows are split side-by-side.
-When set to 'vertical, windows are split top-and-bottom."
+When set to `horizontal', windows are split side-by-side.
+When set to `vertical', windows are split top-and-bottom."
   :type '(choice (const :tag "Split horizontally (side-by-side)" horizontal)
                  (const :tag "Split vertically (top-and-bottom)" vertical))
   :group 'monet-ediff)
@@ -85,7 +100,8 @@ This key will be bound in the ediff control buffer to accept the changes."
 
 (defcustom monet-ediff-quit-key "q"
   "Key binding for quitting ediff without saving.
-This key will be bound in the ediff control buffer to quit without saving changes."
+This key will be bound in the ediff control buffer to quit without
+saving changes."
   :type 'string
   :group 'monet-ediff)
 
@@ -110,9 +126,11 @@ the diff request."
   :group 'monet-tool)
 
 (defcustom monet-do-not-disturb nil
-  "When non-nil, don't display diff buffers in tabs other than the originating tab.
-If the current tab is different from the tab where the Claude session was started,
-the diff buffer will not be displayed (though it remains accessible in the Claude buffer)."
+  "When non-nil, don't display diff buffers in tabs other than the
+originating tab.
+If the current tab is different from the tab where the Claude session
+was started, the diff buffer will not be displayed (though it remains
+accessible in the Claude buffer)."
   :type 'boolean
   :group 'monet-tool)
 
@@ -287,7 +305,8 @@ The MCP response should be a list of content objects."
            (error "Error removing lockfile %s: %s" file (error-message-string err))))))))
 
 (defun monet--create-lockfile (folder port auth-token session-key)
-  "Create lock file for claude running in FOLDER for PORT with AUTH-TOKEN and SESSION-KEY."
+  "Create lock file for claude running in FOLDER for PORT.
+The file records AUTH-TOKEN and SESSION-KEY."
   (condition-case err
       (let* ((dir (monet--get-lockfile-dir))
              (file (expand-file-name (format "%d.lock" port) dir))
@@ -393,6 +412,8 @@ in Emacs to connect to an claude process running outside Emacs." )
 (defvar monet--ping-timer nil
   "Timer for sending periodic keepalive pings.")
 
+(defvar monet--diff-visibility-timer) ; Defined below in diff visibility section
+
 (defun monet--find-session-by-client (client)
   "Find the session that owns the CLIENT websocket."
   (seq-find (lambda (session)
@@ -431,7 +452,7 @@ Searches all sessions for the deferred response."
 (defun monet--cleanup-diff (tab-name session)
   "Clean up diff session for TAB-NAME in SESSION."
   (let ((opened-diffs (monet--session-opened-diffs session)))
-    (when-let ((diff-context (gethash tab-name opened-diffs)))
+    (when-let* ((diff-context (gethash tab-name opened-diffs)))
       ;; Pass the whole context to the cleanup function
       (funcall monet-diff-cleanup-tool diff-context)
       ;; Remove from opened diffs
@@ -454,7 +475,7 @@ Searches all sessions for the deferred response."
   (setq monet--ping-timer
         (run-with-timer 30 30 ; Start after 30s, repeat every 30s
                         (lambda ()
-                          (when-let ((client (monet--session-client session)))
+                          (when-let* ((client (monet--session-client session)))
                             (when (websocket-openp client)
                               (monet--ping client)))))))
 
@@ -647,8 +668,8 @@ Returns the session object."
        nil))))
 
 ;;;###autoload
-(defun monet-start-server-function (key directory)
-  "Start a Monet server with KEY in DIRECTORY.
+(defun monet-start-server-function (key _directory)
+  "Start a Monet server with KEY in _DIRECTORY.
 
 Returns the process environment variables needed to start a Claude
 process that will connect to the Claude server as a list."
@@ -660,7 +681,7 @@ process that will connect to the Claude server as a list."
 ;;;; Initialization handlers
 (defun monet--handle-initialize (session ws id _params)
   "Handle initialize request with ID and PARAMS from WS for SESSION."
-  (when-let ((client (monet--session-client session)))
+  (when-let* ((client (monet--session-client session)))
     ;; Send initialize response
     (monet--send-response
      ws id
@@ -680,12 +701,12 @@ process that will connect to the Claude server as a list."
      client
      "notifications/tools/list_changed")))
 
-(defun monet--handle-ide-connected (session ws id _params)
+(defun monet--handle-ide-connected (session _ws _id _params)
   "Handle ide_connected notification from Claude Code.
 
 SESSION is the monet session.
-WS is the websocket connection.
-ID is the request ID.
+_WS is the websocket connection (unused).
+_ID is the request ID (unused).
 _PARAMS are the notification parameters (unused).
 
 This is sent when Claude Code has successfully connected to the IDE."
@@ -696,7 +717,7 @@ This is sent when Claude Code has successfully connected to the IDE."
   ;; Notifications don't have an id and don't expect a response
 
   ;; Send initial selection state after a short delay
-  (when-let ((client (monet--session-client session)))
+  (when-let* ((client (monet--session-client session)))
     (run-with-timer monet--initial-notification-delay nil
                     (lambda ()
                       ;; Send current selection if we have a file buffer
@@ -789,7 +810,7 @@ Returns deferred response indicator."
                                           (list (cons 'type "text")
                                                 (cons 'text final-contents))))))
             ;; Update the selection after a short delay
-            (when-let ((client (monet--session-client session)))
+            (when-let* ((client (monet--session-client session)))
               (run-with-timer 0.1 nil
                               (lambda ()
                                 (monet--send-selection client))))))
@@ -810,7 +831,7 @@ Returns deferred response indicator."
                               ;; Clean up the diff
                               (monet--cleanup-diff tab-name session)
                               ;; Ping and update selection
-                              (when-let ((client (monet--session-client session)))
+                              (when-let* ((client (monet--session-client session)))
                                 (monet--ping client)
                                 (monet--send-selection client))))))
          (opened-diffs (monet--session-opened-diffs session))
@@ -846,9 +867,7 @@ SESSION is the MCP session."
   "MCP handler for close_tab tool.
 PARAMS contains tab_name.
 SESSION is the MCP session."
-  (let ((tab-name (alist-get 'tab_name params))
-        (current-window-before (selected-window))
-        (current-buffer-before (current-buffer)))
+  (let ((tab-name (alist-get 'tab_name params)))
     (let ((result (monet--close-tab tab-name session)))
       result)))
 
@@ -1025,9 +1044,9 @@ _SESSION is unused."
     (apply #'vector tools)))
 
 ;; Resource definitions
-(defun monet--get-file-resources (&optional cursor)
+(defun monet--get-file-resources (&optional _cursor)
   "Get list of file resources.
-CURSOR is for pagination support (not implemented yet).
+_CURSOR is for pagination support (not implemented yet).
 Returns a list of resource objects."
   (let ((resources '()))
     ;; Add open file buffers as resources
@@ -1078,8 +1097,9 @@ Returns a list of resource objects."
 ;;; Diff Visibility Management
 (defun monet--is-buffer-relevant-to-session-p (buffer session-directory initiating-file)
   "Check if BUFFER is relevant to a session.
-BUFFER is relevant if its file is under SESSION-DIRECTORY or matches INITIATING-FILE."
-  (when-let ((file-name (buffer-file-name buffer)))
+BUFFER is relevant if its file is under SESSION-DIRECTORY or matches
+INITIATING-FILE."
+  (when-let* ((file-name (buffer-file-name buffer)))
     (let ((expanded-file (expand-file-name file-name)))
       (or
        ;; File is under session directory
@@ -1106,7 +1126,7 @@ DIFF-CONTEXT contains the diff information including session context."
 
 (defun monet--hide-diff-window (diff-buffer)
   "Hide the window displaying DIFF-BUFFER if visible."
-  (when-let ((window (get-buffer-window diff-buffer)))
+  (when-let* ((window (get-buffer-window diff-buffer)))
     ;; Store the window's buffer in a property for later restoration
     (with-current-buffer diff-buffer
       (setq-local monet--hidden-window window))
@@ -1116,7 +1136,7 @@ DIFF-CONTEXT contains the diff information including session context."
 
 (defun monet--show-diff-window (diff-buffer)
   "Show DIFF-BUFFER in a window, restoring previous window if possible."
-  (if-let ((window (get-buffer-window diff-buffer)))
+  (if-let* ((window (get-buffer-window diff-buffer)))
       ;; Already visible, do nothing
       nil
     ;; Try to restore to previous window or create new one
@@ -1252,11 +1272,7 @@ This is called from `post-command-hook'."
 (defun monet--send-selection-to-all ()
   "Send selection update to all initialized sessions."
   (when buffer-file-name
-    (let* ((cursor-pos (point))
-           (current-state (if (use-region-p)
-                              `(,cursor-pos ,(region-beginning) ,(region-end))
-                            `(,cursor-pos ,cursor-pos ,cursor-pos)))
-           (selection (monet--get-selection)))
+    (let* ((selection (monet--get-selection)))
       (maphash (lambda (_key session)
                  (when (and (monet--session-initialized session)
                             (monet--session-client session))
@@ -1448,8 +1464,7 @@ DIFF-CONTEXT is a context object containing diff-buffer and temp buffers."
       (with-current-buffer diff-buffer
         (set-buffer-modified-p nil))
       ;; Kill the diff buffer and close its window
-      (let ((diff-window (get-buffer-window diff-buffer))
-            (original-window (selected-window)))
+      (let ((diff-window (get-buffer-window diff-buffer)))
         (when diff-window
           ;; If we're in the diff window, switch to another window first
           (when (eq (selected-window) diff-window)
@@ -1469,7 +1484,7 @@ DIFF-CONTEXT is a context object containing diff-buffer and temp buffers."
           (set-buffer-modified-p nil))
         (kill-buffer old-temp-buffer)))))
 
-(defun monet-ediff-tool (old-file-path new-file-path new-file-contents on-accept on-quit &optional session)
+(defun monet-ediff-tool (old-file-path new-file-path new-file-contents on-accept on-quit &optional _session)
   "Show a diff using ediff.
 
 OLD-FILE-PATH is the path to the original file.
@@ -1477,7 +1492,7 @@ NEW-FILE-PATH is the path where changes will be saved (often same as old).
 NEW-FILE-CONTENTS is the proposed new content.
 ON-ACCEPT is a function called when user accepts (no arguments).
 ON-QUIT is a function called when user quits (no arguments).
-SESSION is the optional monet session associated with this diff.
+_SESSION is the optional monet session associated with this diff (unused).
 
 Returns the diff context object."
   (let* (;; Get the old and new buffers
@@ -1585,7 +1600,6 @@ Returns the diff context object."
       (with-current-buffer control-buffer
         ;; bypass ediff confirmation
         (let ((ctl-buf (current-buffer))
-              (ctl-frm (selected-frame))
               (minibuffer-auto-raise t))
           (setq this-command 'ediff-quit) ; bug#38219
           (set-buffer ctl-buf)
@@ -1600,7 +1614,6 @@ Returns the diff context object."
 
     ;; Switch back to original buffers and restore position
     (let ((original-point (alist-get 'original-point context))
-          (original-mark (alist-get 'original-mark context))
           (new-buffer (alist-get 'new-buffer context)))
       (when (and ediff-buffer (buffer-live-p ediff-buffer))
         (switch-to-buffer ediff-buffer)
@@ -1645,7 +1658,7 @@ SESSION is the monet session for tracking opened diffs."
               ;; Clean up the diff
               (monet--cleanup-diff tab-name session)
               ;; Update the selection
-              (when-let ((client (monet--session-client session)))
+              (when-let* ((client (monet--session-client session)))
                 (run-with-timer 0.1 nil
                                 (lambda ()
                                   ;; Send the selection
@@ -1656,10 +1669,9 @@ SESSION is the monet session for tracking opened diffs."
           ;; This is likely Claude trying to close a file buffer, which we should ignore
           (list `((type . "text")
                 (text . "TAB_NOT_DIFF")))))
-  ;; No tab name provided
-  (t
-   (list `((type . "text")
-           (text . "NO_TAB_SPECIFIED"))))))
+    ;; No tab name provided
+    (list `((type . "text")
+            (text . "NO_TAB_SPECIFIED")))))
 
 (defun monet-default-open-file-tool (uri)
   "Default implementation to open a file specified by URI.
@@ -1742,7 +1754,7 @@ Returns MCP-formatted response with folders list."
         (seen-dirs (make-hash-table :test 'equal)))
 
     ;; First, add current project root if available
-    (when-let ((project (project-current)))
+    (when-let* ((project (project-current)))
       (let* ((project-root (project-root project))
              (folder-name (file-name-nondirectory (directory-file-name project-root)))
              (folder-uri (concat "file://" project-root)))
@@ -1879,14 +1891,14 @@ JSON-STRING is the JSON representation."
         (insert (format "[%s] %s JSON: %s\n" timestamp direction json-string))
         (insert "----------\n")
         ;; Auto-scroll if the log buffer is visible in any window
-        (when-let ((window (get-buffer-window log-buffer)))
+        (when-let* ((window (get-buffer-window log-buffer)))
           (with-selected-window window
             (goto-char (point-max))))))))
 
 ;;;; Logging advice functions
-(defun monet--advice-send-response (ws id result)
+(defun monet--advice-send-response (_ws id result)
   "Log outgoing response before sending.
-WS is the websocket connection.
+_WS is the websocket connection (unused).
 ID is the request ID.
 RESULT is the response result."
   (let* ((data `((jsonrpc . "2.0")
@@ -1908,9 +1920,9 @@ PARAMS are optional notification parameters."
            (notification (json-encode data)))
       (monet--log-message ">>> SEND-NOTIFICATION" data notification))))
 
-(defun monet--advice-send-error (ws id code message &optional data)
+(defun monet--advice-send-error (_ws id code message &optional data)
   "Log outgoing error before sending.
-WS is the websocket connection.
+_WS is the websocket connection (unused).
 ID is the request ID.
 CODE is the error code.
 MESSAGE is the error message.
@@ -1923,10 +1935,10 @@ DATA is optional error data."
          (response (json-encode error-data)))
     (monet--log-message ">>> SEND-ERROR" error-data response)))
 
-(defun monet--advice-on-message (session ws frame)
+(defun monet--advice-on-message (_session _ws frame)
   "Log incoming message after receiving.
-SESSION is the monet session.
-WS is the websocket connection.
+_SESSION is the monet session (unused).
+_WS is the websocket connection (unused).
 FRAME is the websocket frame containing the message."
   (condition-case err
       (let* ((payload (websocket-frame-text frame))
@@ -1985,7 +1997,8 @@ If BASE-KEY already exists in sessions, append <2>, <3>, etc."
 (defun monet--get-session-context ()
   "Get the session context (key . directory) for the current buffer.
 Returns a cons cell of (base-key . directory).
-Uses project root if in a project, otherwise uses file directory or `default-directory'."
+Uses project root if in a project, otherwise uses file directory or
+`default-directory'."
   (let ((project (project-current)))
     (if project
         ;; In a project - use project name and root

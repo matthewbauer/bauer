@@ -56,6 +56,10 @@
 (declare-function ws-send "web-server" (proc msg))
 (declare-function ws-response-header "web-server" (proc code &rest headers))
 
+;; Declare the `process' slot of web-server's request objects so the
+;; byte-compiler does not warn about an unknown slot in `with-slots'.
+(eieio-declare-slots process)
+
 ;;; Server State
 
 (defvar claude-code-ide-mcp-http-server--server nil
@@ -100,7 +104,7 @@ Returns a cons cell of (server . port)."
           (claude-code-ide-debug "MCP server started on port %d" actual-port)
           ;; Set up process sentinel to detect crashes
           (set-process-sentinel process
-                                (lambda (proc event)
+                                (lambda (_proc event)
                                   (claude-code-ide-debug "MCP server process event: %s" event)
                                   (when (string-match-p "\\(exited\\|killed\\|terminated\\)" event)
                                     (claude-code-ide-debug "MCP server died unexpectedly"))))

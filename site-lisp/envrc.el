@@ -117,6 +117,8 @@ Experienced users can set this to a nil value and then include the
   ""
   :type '(set (const :tag "None" none) (const :tag "On" on) (const :tag "Denied" denied) (const :tag "Error" error)))
 
+(defvar envrc--status)
+
 (defun envrc--indicator ()
   ""
   (unless (member envrc--status envrc-hidden-statuses)
@@ -649,7 +651,7 @@ also appear in PAIRS."
           (envrc--clear buf)
           (envrc--debug "[%s] reset environment to default" buf))
       (envrc--debug "[%s] applied merged environment" buf)
-      (let* ((remote (when-let ((fn (buffer-file-name buf)))
+      (let* ((remote (when-let* ((fn (buffer-file-name buf)))
                        (file-remote-p fn)))
              (env (envrc--merged-environment
                    (default-value (if remote
@@ -668,8 +670,9 @@ also appear in PAIRS."
         (when (derived-mode-p 'eshell-mode)
           (if (fboundp 'eshell-set-path)
               (eshell-set-path path)
-            (setq-local eshell-path-env path)))
-        (when-let ((info-path (getenv-internal "INFOPATH" env)))
+            (with-suppressed-warnings ((obsolete eshell-path-env))
+              (setq-local eshell-path-env path))))
+        (when-let* ((info-path (getenv-internal "INFOPATH" env)))
           (setq-local Info-directory-list
                       (seq-filter #'identity (parse-colon-path info-path))))))))
 
@@ -824,7 +827,7 @@ This can be useful if a .envrc has been deleted."
 (defun envrc-show-log ()
   "Open envrc log buffer."
   (interactive)
-  (if-let ((buffer (get-buffer "*envrc*")))
+  (if-let* ((buffer (get-buffer "*envrc*")))
       (pop-to-buffer buffer)
     (message "Envrc log buffer does not exist")))
 

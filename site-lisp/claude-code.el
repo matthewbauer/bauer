@@ -820,7 +820,7 @@ _BACKEND is the terminal backend type (should be \\='vterm)."
   ;; Set timer delay to nil for faster updates (reduces visible flicker duration)
   ;; (setq-local vterm-timer-delay nil)
   ;; Increase process read buffering to batch more updates together
-  (when-let ((proc (get-buffer-process (current-buffer))))
+  (when-let* ((proc (get-buffer-process (current-buffer))))
     (set-process-query-on-exit-flag proc nil)
     ;; Try to make vterm read larger chunks at once
     (process-put proc 'read-output-max 4096))
@@ -916,7 +916,7 @@ _BACKEND is the terminal backend type (should be \\='vterm)."
 Gets or prompts for the Claude buffer, executes BODY within that buffer's
 context, displays the buffer, and shows not-running message if no buffer
 is found."
-  `(if-let ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
+  `(if-let* ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
        (with-current-buffer claude-code-buffer
          ,@body
          (display-buffer claude-code-buffer))
@@ -1175,7 +1175,7 @@ LINE-END is the ending line number for a range.  If nil, format single line."
 
 After sending the command, move point to the end of the buffer.
 Returns the selected Claude buffer or nil."
-  (if-let ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
+  (if-let* ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
       (progn
         (with-current-buffer claude-code-buffer
           ;; Send the command string, without return
@@ -1705,7 +1705,7 @@ With prefix ARG, show all Claude instances across all directories."
       ;; With prefix arg, show all Claude instances
       (claude-code--switch-to-all-instances-helper)
     ;; Without prefix arg, use normal behavior
-    (if-let ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
+    (if-let* ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
         (pop-to-buffer claude-code-buffer)
       (claude-code--show-not-running-message))))
 
@@ -1738,7 +1738,7 @@ directories, allowing you to choose which one to switch to."
 (defun claude-code-kill ()
   "Kill Claude process and close its window."
   (interactive)
-  (if-let ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
+  (if-let* ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
       (if claude-code-confirm-kill
           (when (yes-or-no-p "Kill Claude instance? ")
             (claude-code--kill-buffer claude-code-buffer)
@@ -1886,7 +1886,7 @@ Claude uses Shift-Tab to cycle through:
 
 Sends <escape><escape> to the Claude Code REPL."
   (interactive)
-  (if-let ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
+  (if-let* ((claude-code-buffer (claude-code--get-or-prompt-for-buffer)))
       (with-current-buffer claude-code-buffer
         (claude-code--term-send-string claude-code-terminal-backend "")
         ;; (display-buffer claude-code-buffer)
