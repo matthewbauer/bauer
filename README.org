@@ -705,13 +705,6 @@ Some bauer-specific custom keybindings.
       (browse-url-at-point arg))))
 
 (bind-keys
- ([f12] . next-error)
- ([f11] . previous-error)
- ([shift f12] . previous-error)
- ([mouse-9] . next-buffer)
- ([mouse-8] . previous-buffer))
-
-(bind-keys
  ("C-c I"   . bauer-find-config)
 
  :prefix-map bauer-help
@@ -819,7 +812,6 @@ More keys that have custom functions. TODO: move these above
    ("s-p" . nil)
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
-   ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x 4 C-x ~" . (lambda () (interactive) (find-file-other-window "~")))
    ("C-x 4 C-x /" . (lambda () (interactive) (find-file-other-window "/")))
 
@@ -1196,8 +1188,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     (dired-create-destination-dirs 'ask)
     (dired-hide-details-hide-absolute-location t)
     (dired-mouse-drag-files t)
-    :bind (("C-c J" . dired-double-jump)
-           :map dired-mode-map
+    :bind (:map dired-mode-map
            ("C-c C-c" . compile)
            ("M-@" . shell)
            ("M-*" . eshell)
@@ -1426,6 +1417,7 @@ MMM mode lets you edit multiple languages within one buffer.
 
 #+BEGIN_SRC emacs-lisp
   (use-package mmm-mode
+    :disabled
     :custom (mmm-submode-decoration-level 2)
     :config
     (use-package mmm-auto
@@ -1859,7 +1851,9 @@ Provides links to bugs listed in source code.
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
     :custom (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
-    :hook ((prog-mode text-mode) . bug-reference-prog-mode))
+    :hook
+    (prog-mode . bug-reference-prog-mode)
+    (text-mode . bug-reference-mode))
 #+END_SRC
 
 **** comint
@@ -2103,7 +2097,7 @@ Provides some info for the thing at the point.
     :delight
     :hook ((emacs-lisp-mode
              eval-expression-minibuffer-setup
-             lisp-interactive-mode
+             lisp-interaction-mode
              typescript-mode
              haskell-mode
              python-mode
@@ -2131,7 +2125,7 @@ Setup these modes:
     :hook
     ((prog-mode text-mode org-mode message-mode) . electric-quote-local-mode)
     (prog-mode . electric-indent-local-mode)
-    (prog-mode . electric-layout-mode)
+    (prog-mode . electric-layout-local-mode)
     ((haskell-mode nix-mode) . (lambda () (electric-indent-local-mode -1))))
 #+END_SRC
 
@@ -2156,6 +2150,14 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
   (use-package eshell
     :defines (eshell-history-file-name)
     :custom
+    (eshell-cmpl-autolist t)
+    (eshell-cmpl-cycle-completions nil)
+    (eshell-cmpl-ignore-case t)
+    (eshell-default-target-is-dot t)
+    (eshell-destroy-buffer-when-process-dies t)
+    (eshell-hist-ignoredups 'erase)
+    (eshell-list-files-after-cd t)
+    (eshell-review-quick-commands t)
     (eshell-prompt-function
      (lambda ()
        (concat (when (tramp-tramp-file-p default-directory)
@@ -2184,7 +2186,6 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
            ("C-c e" . eshell))
     :hook
     ;; (eshell-first-time-mode . eshell-read-history)
-    (eshell-first-time-mode . (lambda () (add-hook 'eshell-expand-input-functions #'eshell-spawn-external-command)))
     (kill-emacs . emacs-solo/eshell--save-merged-history)
     (eshell-mode . (lambda () (eshell-read-history)))
     :preface
@@ -2193,7 +2194,7 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
     (autoload #'eshell-isearch-repeat-forward "em-hist")
     (autoload #'eshell-isearch-abort "em-hist")
     (autoload #'eshell-isearch-delete-char "em-hist")
-    (autoload #'eshell-read-history "eshell-read-history")
+    (autoload #'eshell-read-history "em-hist")
     (defvar eshell-isearch-map
       (let ((map (copy-keymap isearch-mode-map)))
         (define-key map [(control ?m)] #'eshell-isearch-return)
@@ -2205,14 +2206,6 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
         (define-key map [delete]       #'eshell-isearch-delete-char)
         map)
       "Keymap used in isearch in Eshell.")
-    (defun eshell-spawn-external-command (beg end)
-      "Parse and expand any history references in current input."
-      (save-excursion
-        (goto-char end)
-        (when (looking-back "&!" beg)
-          (delete-region (match-beginning 0) (match-end 0))
-          (goto-char beg)
-          (insert "spawn "))))
     :preface
 
     ;; MAKE ALL INSTANCES OF ESHELL SHARE/MERGE ITS COMMAND HISTORY
@@ -2246,15 +2239,6 @@ Setup eldoc integration.
 
 #+BEGIN_SRC emacs-lisp
   (use-package esh-help
-    :custom
-    (eshell-cmpl-autolist t)
-    (eshell-cmpl-cycle-completions nil)
-    (eshell-cmpl-ignore-case t)
-    (eshell-default-target-is-dot t)
-    (eshell-destroy-buffer-when-process-dies t)
-    (eshell-hist-ignoredups 'erase)
-    (eshell-list-files-after-cd t)
-    (eshell-review-quick-commands t)
     :autoload esh-help-eldoc-command
     :preface
     (defun esh-help-turn-on ()
@@ -2367,10 +2351,6 @@ Make scripts executable automatically.
                               (forward-line (1- line-number))
                               (when (> col-number 0)
                                 (forward-char (1- col-number))))))))
-    (add-to-list 'save-some-buffers-action-alist
-               (list "d"
-                     (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
-                     "show diff between the buffer and its file"))
   :custom
   (auto-mode-case-fold nil)
   (auto-save-file-name-transforms `((".*"
@@ -2447,7 +2427,7 @@ Make scripts executable automatically.
               ("RET" . icomplete-force-complete-and-exit)
               ("C-j" . exit-minibuffer)) ;; So we can exit commands like `multi-file-replace-regexp-as-diff'
   :hook
-  (after-init-hook . (lambda ()
+  (after-init . (lambda ()
                        (fido-mode -1)
                        (icomplete-vertical-mode 1)))
   :custom
@@ -2498,7 +2478,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
 
   :custom
   (isearch-lazy-count t)
-  (isearch-allow-scroll 'shift))
+  (isearch-allow-scroll t))
 #+END_SRC
 
 **** minibuffer
@@ -2513,14 +2493,13 @@ With prefix arg REGEXP-P, perform a regular expression search."
     (completions-detailed t)
     (completions-group t)
     (minibuffer-visible-completions 'up-down)
-    (completions-cycle-threshold t)
+    (completion-cycle-threshold t)
     (completions-format 'one-column)
     (completions-max-height 15)
     (completions-sort 'historical)
     (minibuffer-prompt-properties
        '(read-only t
          cursor-intangible t
-         point-entered minibuffer-avoid-prompt
          face minibuffer-prompt))
     (read-file-name-completion-ignore-case t)
     :hook
@@ -2632,7 +2611,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
   (proced-tree-flag t)
   (proced-auto-update-flag 'visible)
   (proced-auto-update-interval 1)
-  (proced-descent t)
+  (proced-descend t)
   (proced-filter 'user) ;; We can change interactively with `s'
   :hook (proced-mode . (lambda () (proced-toggle-auto-update 1))))
 #+END_SRC
@@ -2898,10 +2877,12 @@ Optionally, start a server (disabled by default):
                         (setq term-prompt-regexp
                               "^[^#$%>\n]*[#$%>] *")
                         (setq-local transient-mark-mode nil)
+                        (setq-local scroll-margin 0
+                                    hscroll-margin 0)
                         (auto-fill-mode -1)))
     :custom
     (term-input-autoexpand t)
-    (term-input-ignoredup t)
+    (term-input-ignoredups t)
     :preface
     (autoload #'tramp-tramp-file-p "tramp")
     (autoload #'tramp-dissect-file-name "tramp"))
@@ -2913,8 +2894,7 @@ Optionally, start a server (disabled by default):
   (use-package text-mode
     :no-require
     :ensure nil
-    :hooks
-    (text-mode . turn-on-auto-fill)
+    :hook
     (text-mode . (lambda () (setq-local scroll-margin 3))))
 #+END_SRC
 
@@ -3262,7 +3242,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :functions (eglot-alternatives)
     :custom
     (eglot-sync-connect 0)
-    (eglot-events-buffer-size 0) ;; EMACS-31 -- do we still need it?
     (eglot-events-buffer-config '(:size 0 :format full))
     (jsonrpc-event-hook nil)
     (eglot-code-action-indications nil) ;; EMACS-31 -- annoying as hell
@@ -3359,33 +3338,15 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     :no-require
     :interpreter (("Rscript" . r-mode)
                   ("r" . r-mode))
-    :mode (("\\.sp\\'"          . S-mode)
-           ("/R/.*\\.q\\'"      . R-mode)
-           ("\\.[qsS]\\'"       . S-mode)
-           ("\\.ssc\\'"         . S-mode)
-           ("\\.SSC\\'"         . S-mode)
+    :mode (("/R/.*\\.q\\'"      . R-mode)
            ("\\.[rR]\\'"        . R-mode)
-           ("\\.[rR]nw\\'"      . Rnw-mode)
-           ("\\.[sS]nw\\'"      . Snw-mode)
            ("\\.[rR]profile\\'" . R-mode)
            ("NAMESPACE\\'"      . R-mode)
            ("CITATION\\'"       . R-mode)
-           ("\\.omg\\'"         . omegahat-mode)
-           ("\\.hat\\'"         . omegahat-mode)
-           ("\\.lsp\\'"         . XLS-mode)
-           ("\\.do\\'"          . STA-mode)
-           ("\\.ado\\'"         . STA-mode)
            ("\\.[Ss][Aa][Ss]\\'"        . SAS-mode)
-           ("\\.[Ss]t\\'"       . S-transcript-mode)
-           ("\\.Sout"           . S-transcript-mode)
-           ("\\.[Rr]out"        . R-transcript-mode)
-           ("\\.Rd\\'"          . Rd-mode)
            ("\\.[Bb][Uu][Gg]\\'"         . ess-bugs-mode)
            ("\\.[Bb][Oo][Gg]\\'"         . ess-bugs-mode)
            ("\\.[Bb][Mm][Dd]\\'"         . ess-bugs-mode)
-           ("\\.[Jj][Aa][Gg]\\'"         . ess-jags-mode)
-           ("\\.[Jj][Oo][Gg]\\'"         . ess-jags-mode)
-           ("\\.[Jj][Mm][Dd]\\'"         . ess-jags-mode)
            ))
 #+END_SRC
 
@@ -3454,16 +3415,18 @@ didn’t work well enough.
     (defun ghci-compilation-main () (interactive) (ghci-compilation--send-string "main"))
     :bind (("C-x p ." . ghci-compilation)
            ("C-x C-1" . ghci-compilation-transient-menu)
+  	 :package haskell-mode
            :map haskell-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-m" . ghci-compilation-main)
+  	 :package haskell-cabal
            :map haskell-cabal-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-m" . ghci-compilation-main)
            ("C-c C-z" . ghci-compilation-switch-to-buffer))
-    :hook (haskell-mode . (lambda () (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point))))
+    :hook (haskell-mode . (lambda () (add-hook 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point nil t))))
 #+END_SRC
 
 **** Html
@@ -3679,8 +3642,8 @@ disabled
     )
 
   (use-package sh-script
-    :mode (("\\.*shellrc$" . sh-mode)
-           ("\\.*shell_profile" . sh-mode)
+    :mode (("shellrc\\'" . sh-mode)
+           ("shell_profile\\'" . sh-mode)
            ("\\.zsh\\'" . sh-mode)))
 #+END_SRC
 
@@ -3751,6 +3714,9 @@ repositories.
     :group '+highlight-keywords
     :type '(alist :key-type (string :tag "Keyword")
                   :value-type (symbol :tag "Face"))
+    ;; Don't run :set on the default value at load time: it would
+    ;; reject faces from libraries not yet loaded (compilation-info).
+    :initialize #'custom-initialize-default
     :set (lambda (sym val)
            (dolist (face (mapcar #'cdr val))
              (unless (facep face)
@@ -3972,7 +3938,7 @@ Most of these are available in MELPA.
 
     (defun claude-ghci-compilation-rerun-last-command ()
       (claude-code-ide-mcp-server-with-session-context nil
-        (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) t)))
+        (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) nil t)))
 
     (defun agent-shell-new-shell-choose-agent ()
     "Start a new agent shell.
@@ -4190,6 +4156,7 @@ Most of these are available in MELPA.
 (use-package dwim-shell-command
   :functions (dwim-shell-command-on-marked-files)
   :bind (([remap shell-command] . dwim-shell-command)
+         :package dired
          :map dired-mode-map
          ([remap dired-do-async-shell-command] . dwim-shell-command)
          ([remap dired-do-shell-command] . dwim-shell-command)
@@ -4327,8 +4294,7 @@ Fast, configurable indentation guide-bars.
 #+BEGIN_SRC emacs-lisp
   (use-package page-break-lines
     :delight
-    :hook ((doc-mode
-            emacs-lisp-mode
+    :hook ((emacs-lisp-mode
             outline-mode
             prog-mode
             haskell-mode
@@ -4491,7 +4457,17 @@ well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
 store the bash or zsh history. We set the history size to 10000 for good
 measure. VISUAL should point to this editor.
 
-Here we setup =.profile=. First, setup exports. We leave the first part of
+Here we setup =.profile=. First, guard against running twice in the same
+shell: the last block of this file sources =~/.profile=, which in turn
+re-sources =etc/profile= and everything in =profile.d= — without the guard
+every export below (PATH prepends included) would run a second time.
+
+#+BEGIN_SRC shell
+    if [ -n "${__BAUER_SOURCED_MY_PROFILE-}" ]; then return 0; fi
+    __BAUER_SOURCED_MY_PROFILE=1
+#+END_SRC
+
+Now, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
@@ -4512,12 +4488,13 @@ just in case.
 
       # check if Monterey or higher
       # https://scriptingosx.com/2020/09/macos-version-big-sur-update/
-      if [[ $(sw_vers -buildVersion) > 21 ]]; then
-        # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
-        /usr/bin/ssh-add -q --apple-load-keychain 2> /dev/null
-      else
-        /usr/bin/ssh-add -qa 2> /dev/null
-      fi
+      case $(sw_vers -buildVersion) in
+        2[1-9]*|[3-9]*)
+          # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
+          /usr/bin/ssh-add -q --apple-load-keychain 2> /dev/null ;;
+        *)
+          /usr/bin/ssh-add -qA 2> /dev/null ;;
+      esac
     fi
 
     if [ "$(uname -s)" = Darwin ]; then
@@ -4546,7 +4523,7 @@ just in case.
 
     export LESS=FRSMi \
            INPUTRC=@INPUTRC@ \
-           GPG_TTY=$TTY \
+           GPG_TTY=${TTY:-$(tty)} \
            CVS_RSH=ssh
 
     export SYSTEMD_LESS=$LESS
@@ -4648,18 +4625,18 @@ Then setup aliases.
         du='du -ch' \
         gdb='gdb --quiet --args'
 
-  open() {
-    if command -v open > /dev/null; then
-      command open "$@"
-    elif command -v xdg-open > /dev/null; then
-      xdg-open "$@"
-    else
-      echo Can’t find open.
-      exit 1
-    fi
-  }
+  if ! command -v open > /dev/null; then
+    open() {
+      if command -v xdg-open > /dev/null; then
+        xdg-open "$@"
+      else
+        echo "Can’t find open." >&2
+        return 1
+      fi
+    }
+  fi
 
-  take() { mkdir -p $@ && cd ${@:$#} ; }
+  take() { mkdir -p "$@" && cd "${@:$#}" ; }
 
   # set -o noclobber
   set -o notify
@@ -4848,7 +4825,9 @@ Bind to emacs...
   bindkey "^R" history-incremental-search-backward
   bindkey "^S" history-incremental-search-forward
 
-  # unalias run-help
+  # zsh ships a default `run-help=man` alias that would shadow the
+  # run-help function (aliases expand recursively through `help` too).
+  unalias run-help 2>/dev/null || true
   autoload -U run-help
   alias help=run-help
   bindkey "^[h" run-help
@@ -5208,7 +5187,6 @@ Set paths provided by Nix,
    '(sql-ingres-program "@parallel@/bin/sql")
    '(sql-interbase-program "@unixODBC@/bin/isql")
    '(sql-ms-program "@freetds@/bin/osql")
-   '(sql-postgres-program "@freetds@/bin/osql")
    '(sql-sqlite-program "@sqliteInteractive@/bin/sqlite3")
    '(gnutls-program "@gnutls@/bin/gnutls-cli")
    '(pdf2dsc-command "@ghostscript@/bin/pdf2dsc")
@@ -5244,7 +5222,7 @@ Set some defaults that depend on the path variables below,
 #+BEGIN_SRC emacs-lisp
   (set-defaults
    '(imap-ssl-program `(,(concat gnutls-program " --tofu -p %p %s")))
-   '(tls-program (concat gnutls-program " --tofu -p %p %h"))
+   '(tls-program `(,(concat gnutls-program " --tofu -p %p %h")))
    '(preview-pdf2dsc-command
      (concat pdf2dsc-command " %s.pdf %m/preview.dsc"))
    '(preview-dvips-command
@@ -5474,7 +5452,7 @@ Pull private data, which may contain some binary caches we can use.
   fi
 
   if [ -n "${GIST_ID-}" ]; then
-    URL=ssh://git@github.com/"$GIST_ID".git
+    URL=ssh://git@gist.github.com/"$GIST_ID".git
   fi
 
   if [ -z "${URL-}" ]; then
@@ -5730,13 +5708,15 @@ substitution of all the attributes set.
       gpg = gnupg1compat;
       inherit
         pandoc ghostscript
-        sqliteInteractive freetds
+        freetds
         parallel unixODBC ncompress
         texinfoInteractive gnuplot
-        gdb coq rtags gnutls;
-      inherit (haskellPackages) hoogle hlint;
+        gdb coq rtags gnutls
+        cmake nethack;
+      sqliteInteractive = sqlite-interactive;
+      inherit (haskellPackages) hoogle hlint hasktags;
       texlive = myTex;
-      markdown2 = pythonPackages.markdown2;
+      markdown2 = python3Packages.markdown2;
     }))) ''
       substituteAll ${./site-paths.el.in} $out
       substituteInPlace $out \
@@ -5862,7 +5842,7 @@ have the time to do it currently.
                          "site-lisp/claude-code-ide-emacs-tools.el"} \
             $out/share/emacs/site-lisp/claude-code-ide-emacs-tools.el
     install -D ${ensure ./site-lisp/claude-code-ide-mcp.el
-                         "site-lisp/claude-code-ide-mcp"} \
+                         "site-lisp/claude-code-ide-mcp.el"} \
             $out/share/emacs/site-lisp/claude-code-ide-mcp.el
     install -D ${ensure ./site-lisp/claude-code-ide-mcp-handlers.el
                          "site-lisp/claude-code-ide-mcp-handlers.el"} \
@@ -6102,17 +6082,15 @@ Full listing of packages that will be made available.
     bazaar mercurial
 
     # Programming interpreters/compilers
-    myTex rEnv perl python lua coq ocaml
+    myTex rEnv perl python3 lua coq ocaml
     openjdk nodejs gcc gdb
 
-    travis v8
+    jq hub
 
-  ] ++ (lib.optional stdenv.hostPlatform.isDarwin openssh) # use /usr/bin/ ssh
+  ] ++ (lib.optional (!stdenv.hostPlatform.isDarwin) openssh) # use /usr/bin/ssh on darwin
     ++ (with netbsd; [ getent getconf ])
-    ++ (with nodePackages; [ tern heroku node2nix ])
-    ++ (with gitAndTools; [ hub ])
-    ++ (with haskellPackages; [ ghc jq nix-diff cabal2nix cabal-install ])
-    ++ (with unixtools; [ utillinux nettools procps ])
+    ++ (with haskellPackages; [ ghc nix-diff cabal2nix cabal-install ])
+    ++ (with unixtools; [ util-linux nettools procps ])
   ));
 #+END_SRC
 
@@ -6206,7 +6184,7 @@ have been configured to use the paths above.
     passthru = with lib; {
       shellPath = "/bin/zsh";
       run = "/bin/run";
-      sourceFile = "/etc/profile.d/profile";
+      sourceFile = "/etc/profile";
       PATH = makeSearchPath "bin" [bins];
       MANPATH = makeSearchPath "share/man" [manpages];
       INFOPATH = makeSearchPath "share/info" [infopages];
@@ -6629,18 +6607,27 @@ conflicts are not handled, and must be dealt with manually.
 #+BEGIN_SRC shell
   set -e
 
+  # Only pop a stash we created ourselves: an unconditional push/pop pair
+  # would pop a pre-existing, unrelated stash when the tree was clean.
+  STASHED=0
+
   setup() {
-    git stash push
+    if ! git diff-index --quiet HEAD --; then
+      git stash push
+      STASHED=1
+    fi
     git checkout gh-pages
   }
 
   cleanup() {
     git checkout master
-    git stash pop
+    if [ "$STASHED" = 1 ]; then
+      git stash pop
+    fi
   }
 
-  setup
   trap cleanup EXIT
+  setup
 
   git fetch origin
   git reset --hard origin/gh-pages
@@ -6764,7 +6751,7 @@ allow overriding your current =$HOME= files.
   done
 
   if [ -n "$GIST_ID" ]; then
-    URL=ssh://git@github.com/"$GIST_ID".git
+    URL=ssh://git@gist.github.com/"$GIST_ID".git
   fi
 
   if [ -z "$URL" ]; then
@@ -6774,6 +6761,7 @@ allow overriding your current =$HOME= files.
 
   mkdir -p $HOME/.ssh
   echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> "$HOME/.ssh/known_hosts"
+  echo "gist.github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> "$HOME/.ssh/known_hosts"
 
   ssh -T git@github.com 2> /dev/null
   if [ $? -eq 255 ]; then

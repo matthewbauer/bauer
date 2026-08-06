@@ -1,16 +1,27 @@
 #!/usr/bin/env sh
+set -e
+
+# Only pop a stash we created ourselves: an unconditional push/pop pair
+# would pop a pre-existing, unrelated stash when the tree was clean.
+STASHED=0
+
 setup() {
-  git stash push
+  if ! git diff-index --quiet HEAD --; then
+    git stash push
+    STASHED=1
+  fi
   git checkout gh-pages
 }
 
 cleanup() {
   git checkout master
-  git stash pop
+  if [ "$STASHED" = 1 ]; then
+    git stash pop
+  fi
 }
 
-setup
 trap cleanup EXIT
+setup
 
 git fetch origin
 git reset --hard origin/gh-pages

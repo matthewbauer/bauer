@@ -585,7 +585,7 @@ these are the same."
 (defun ghci-compilation-hooks ()
   "Add some hooks."
   (add-hook 'haskell-mode-hook (lambda ()
-                                 (add-to-list 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point)))
+                                 (add-hook 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point nil t)))
   )
 
 ;; (ghci-compilation-bind-keys)

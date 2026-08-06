@@ -13,7 +13,7 @@ if ! command -v nix-env >/dev/null 2>&1; then
       *) curl -L -s https://nixos.org/nix/install | sh -s ;;
     esac
     [ -f $HOME/.profile ] && . $HOME/.profile
-    PATH="$HOME/.nix-profile/bin${PATH-+:$PATH}" # in case above didn't work
+    PATH="$HOME/.nix-profile/bin${PATH:+:$PATH}" # in case above didn't work
 fi
 
 if ! command -v git >/dev/null 2>&1 || \
@@ -33,13 +33,13 @@ fi
 
 if ! [ -f default.nix ]; then
     repo_dir=$HOME/.local/share/bauer
-    mkdir -p $(dirname $repo_dir)
-    if ! [ -d $repo_dir/.git ]; then
-      git clone https://github.com/matthewbauer/bauer $repo_dir
+    mkdir -p $(dirname "$repo_dir")
+    if ! [ -d "$repo_dir"/.git ]; then
+      git clone https://github.com/matthewbauer/bauer "$repo_dir"
     else
-      git -C $repo_dir pull
+      git -C "$repo_dir" pull
     fi
-    cd $repo_dir
+    cd "$repo_dir"
 fi
 
 if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\}$"); then
@@ -47,7 +47,7 @@ if [ -z "${GIST_ID-}" ] && [ -n "$1" ] && (echo "$1" | grep -q "^[0-9a-f]\{5,40\
 fi
 
 if [ -n "${GIST_ID-}" ]; then
-  URL=ssh://git@github.com/"$GIST_ID".git
+  URL=ssh://git@gist.github.com/"$GIST_ID".git
 fi
 
 if [ -z "${URL-}" ]; then

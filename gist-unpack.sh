@@ -6,7 +6,7 @@ fi
 
 FORCE=
 GIST_ID=
-USER=
+GH_USER=
 TOKEN=
 URL=
 while [ $# -gt 0 ]; do
@@ -17,12 +17,12 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -u|--user)
-            if [ -n "$USER" ]; then
+            if [ -n "$GH_USER" ]; then
                 echo Multiple users passed! >&2
                 exit 1
             fi
             shift
-            USER="$1"
+            GH_USER="$1"
             shift
             ;;
         -t|--token)
@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
             GIST_ID="$1"
             shift
             ;;
-        -u|--url)
+        --url)
             if [ -n "$GIST_ID" ] || [ -n "$URL" ]; then
                 echo Multiple URLs or Gist ids passed! >&2
                 exit 1
@@ -73,7 +73,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -n "$GIST_ID" ]; then
-  URL=ssh://git@github.com/"$GIST_ID".git
+  URL=ssh://git@gist.github.com/"$GIST_ID".git
 fi
 
 if [ -z "$URL" ]; then
@@ -82,7 +82,8 @@ if [ -z "$URL" ]; then
 fi
 
 mkdir -p $HOME/.ssh
-echo "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==" >> $HOME/.ssh/known_hosts
+echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> "$HOME/.ssh/known_hosts"
+echo "gist.github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> "$HOME/.ssh/known_hosts"
 
 ssh -T git@github.com 2> /dev/null
 if [ $? -eq 255 ]; then
@@ -91,14 +92,14 @@ if [ $? -eq 255 ]; then
         ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519"
     fi
 
-    if [ -z "$USER" ] && [ -t 1 ]; then
-        echo -n "GitHub Username: "; read USER
+    if [ -z "$GH_USER" ] && [ -t 1 ]; then
+        echo -n "GitHub Username: "; read GH_USER
     fi
-    if [ -z "$USER" ]; then
+    if [ -z "$GH_USER" ]; then
         echo Username cannot be empty. Pass -u with your username to continue.
         exit 1
     fi
-    auth="$USER"
+    auth="$GH_USER"
     if [ -n "$TOKEN" ]; then
         auth="$auth:$TOKEN"
     fi

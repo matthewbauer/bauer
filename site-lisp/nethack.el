@@ -36,17 +36,23 @@
 (defcustom nethack-executable "nethack"
   "Executable to use to run nethack."
   :group 'nethack
-  :type 'string)
+  :type 'file)
 
 ;;;###autoload
 (defun nethack ()
   "Start nethack in terminal."
   (interactive)
-  (set-buffer (make-term "nethack" nethack-executable))
-  (term-mode)
-  (term-char-mode)
-  (term-set-escape-char ?\C-x)
-  (switch-to-buffer "*nethack*"))
+  (let ((buffer (make-term "nethack" nethack-executable)))
+    (with-current-buffer buffer
+      (term-char-mode)
+      ;; A non-zero margin scrolls stale scrollback into view and
+      ;; clips the bottom of the screen whenever the cursor reaches
+      ;; the last line.
+      (setq-local scroll-margin 0
+                  hscroll-margin 0)
+      (let (term-escape-char)
+	(term-set-escape-char ?\C-x)))
+    (switch-to-buffer buffer)))
 
 (provide 'nethack)
 ;;; nethack.el ends here
