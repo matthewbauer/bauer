@@ -377,16 +377,12 @@ Misc. defaults that don’t fit above. TODO: move these above.
    '(custom-file (expand-file-name "settings.el" user-emacs-directory))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
-   '(frame-title-format
-     '(:eval
-       (if (buffer-file-name)
-           (abbreviate-file-name (buffer-file-name))
-         "%b")))
    '(ispell-extra-args '("--sug-mode=ultra"))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
        ("gnu" . "https://elpa.gnu.org/packages/")
        ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+   '(set-message-functions '(inhibit-message set-minibuffer-message))
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
@@ -809,6 +805,7 @@ More keys that have custom functions. TODO: move these above
 #+BEGIN_SRC emacs-lisp
   (bind-keys
    ("s-n" . nil)
+   ("s-m" . nil)
    ("s-p" . nil)
    ("C-x /" . (lambda () (interactive) (find-file "/")))
    ("C-x ~" . (lambda () (interactive) (find-file "~")))
@@ -1187,7 +1184,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     (dired-listing-switches "-alhv")
     (dired-create-destination-dirs 'ask)
     (dired-hide-details-hide-absolute-location t)
-    (dired-mouse-drag-files t)
     :bind (:map dired-mode-map
            ("C-c C-c" . compile)
            ("M-@" . shell)
@@ -1817,10 +1813,8 @@ package, so no download is needed on first use.
                     ("C-<return>" . ghostel-toggle-insert-cd)
                     ("s-n" . ghostel-toggle-forward)
                     ("s-p" . ghostel-toggle-backward))
-    :config
-    (add-to-list 'ghostel-toggle-togglable-buffer-functions
-                 (lambda (buf)
-                   (not (string-prefix-p "*claude" (buffer-name buf))))))
+    :hook ((ghostel-mode . ghostel-toggle--mode-hook)
+  	 (kill-buffer . ghostel-toggle--exit-hook)))
 #+END_SRC
 
 *** Built-ins
@@ -2493,7 +2487,6 @@ With prefix arg REGEXP-P, perform a regular expression search."
     (completions-detailed t)
     (completions-group t)
     (minibuffer-visible-completions 'up-down)
-    (completion-cycle-threshold t)
     (completions-format 'one-column)
     (completions-max-height 15)
     (completions-sort 'historical)
@@ -4504,9 +4497,9 @@ just in case.
     HISTSIZE=50000
     SAVEHIST=10000
 
-    if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ]; then
-      if [ -n "${DISPLAY-}" ]; then
-        export VISUAL='emacsclient -a emacs -c'
+    if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ] || [ -n "${INSIDE_EMACS-}" ] ; then
+      if [ -n "${DISPLAY-}" ] ; then
+        export VISUAL='emacsclient -a emacs -r'
       else
         export VISUAL='emacsclient -a emacs'
       fi
@@ -4916,6 +4909,11 @@ Turn on prompt with colors.
 
   unset RPS1
 
+  # Remove the "export" flag from $HISTFILE so that even when zsh is started
+  # with $HISTFILE in the environment variables, $HISTFILE=~/.zsh_history
+  # will never end up in env (otherwise, a nested bash might clobber our history).
+  typeset +x HISTFILE
+
   # Set to "real" to prevent other zsh instances from deleting useful history
   HISTFILE="$HOME/.zsh_real_history"
   REPORTTIME=4
@@ -4938,7 +4936,7 @@ Vterm
       printf '\e]51;A%s\e\\' "$(whoami)@$(hostname):$(pwd)"
   }
 
-  if [[ "$INSIDE_EMACS" = vterm ]]; then
+  if [[ "${INSIDE_EMACS-}" = vterm ]]; then
       alias clear='printf "\e]51;Evterm-clear-scrollback\e\\"; tput clear'
       chpwd_functions+=(update_vterm_cwd)
       update_vterm_cwd
@@ -6069,9 +6067,12 @@ Full listing of packages that will be made available.
     gzip bzip2 gnumake bashInteractive patch xz
 
     # Helpful core tools
-    curl zsh cacert file lsof pstree which rsync
+    zsh cacert file lsof pstree which rsync
     unzip man less ripgrep
     tree gnutls
+
+    # not included so we use macOS’s builtin, which supports keychain
+    # curl
   ] ++ lib.optionals big ([
     git
 
@@ -6079,7 +6080,7 @@ Full listing of packages that will be made available.
     isync notmuch graphviz indent
     graphviz imagemagick
 
-    bazaar mercurial
+    bazaar jujutsu mercurial
 
     # Programming interpreters/compilers
     myTex rEnv perl python3 lua coq ocaml
@@ -6117,8 +6118,11 @@ the most direct access to. Global directories should only contain system paths.
   INFOPATH = "${infopages}/share/info";
   XDG_DATA_DIRS = lib.makeSearchPathOutput "xdg" "share"
     ([ xdg-data ] ++ global-dirs);
-  TERMINFO_DIRS = lib.makeSearchPathOutput "terminfo" "share/terminfo"
-    ([ pkgs.ncurses ]);
+  TERMINFO_DIRS = lib.concatStringsSep ":"
+    [ (lib.makeSearchPathOutput "terminfo" "share/terminfo" [ pkgs.ncurses ])
+      # ghostty & xterm-ghostty, for ghostel & ssh from Ghostty; ghostel's
+      # elpa package ships a compiled terminfo tree, so no ghostty needed.
+      "${customEmacsPackages.ghostel}/share/emacs/site-lisp/elpa/ghostel-${customEmacsPackages.ghostel.version}/etc/terminfo" ];
 
   INPUTRC = builtins.toFile "inputrc" ''
     $include /etc/inputrc
@@ -6189,6 +6193,7 @@ have been configured to use the paths above.
       MANPATH = makeSearchPath "share/man" [manpages];
       INFOPATH = makeSearchPath "share/info" [infopages];
       XDG_DATA_DIRS = makeSearchPath "share" [xdg-data];
+      inherit TERMINFO_DIRS;
       emacs = myEmacs;
       emacsConfig = default;
       inherit myTex rEnv;
@@ -6606,7 +6611,6 @@ conflicts are not handled, and must be dealt with manually.
 
 #+BEGIN_SRC shell
   set -e
-
   # Only pop a stash we created ourselves: an unconditional push/pop pair
   # would pop a pre-existing, unrelated stash when the tree was clean.
   STASHED=0

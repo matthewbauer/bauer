@@ -38,11 +38,31 @@
   :group 'nethack
   :type 'file)
 
+(defun nethack--sentinel (proc msg)
+  "Handle PROC exiting with MSG, then let `g' restart the game."
+  (term-sentinel proc msg)
+  (let ((buffer (process-buffer proc)))
+    (when (and (buffer-live-p buffer)
+	       (not (term-check-proc buffer)))
+      (with-current-buffer buffer
+	;; `term-raw-map' would signal an error on every key now that
+	;; the process is gone; swap in a map where `g' restarts.
+	(let ((map (make-sparse-keymap)))
+	  (define-key map "g" #'nethack)
+	  (use-local-map map))))))
+
 ;;;###autoload
 (defun nethack ()
-  "Start nethack in terminal."
+  "Start nethack in terminal.
+If a previous game's process has died, restart it in the same buffer."
   (interactive)
-  (let ((buffer (make-term "nethack" nethack-executable)))
+  (let ((buffer (get-buffer "*nethack*")))
+    (when (and buffer (not (term-check-proc buffer)))
+      (with-current-buffer buffer
+	(let ((inhibit-read-only t))
+	  (erase-buffer))))
+    ;; `make-term' reuses the *nethack* buffer when its process is dead.
+    (setq buffer (make-term "nethack" nethack-executable))
     (with-current-buffer buffer
       (term-char-mode)
       ;; A non-zero margin scrolls stale scrollback into view and
@@ -51,7 +71,9 @@
       (setq-local scroll-margin 0
                   hscroll-margin 0)
       (let (term-escape-char)
-	(term-set-escape-char ?\C-x)))
+	(term-set-escape-char ?\C-x))
+      (set-process-sentinel (get-buffer-process buffer)
+			    #'nethack--sentinel))
     (switch-to-buffer buffer)))
 
 (provide 'nethack)
