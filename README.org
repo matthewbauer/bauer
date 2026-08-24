@@ -1291,6 +1291,27 @@ Gnus is an infamous email client & news reader.
     :hook (dired-mode . turn-on-gnus-dired-mode))
 #+END_SRC
 
+**** Jujutsu
+
+[[https://github.com/jj-vcs/jj][GitHub]]
+
+Jujutsu (jj) is a Git-compatible version control system. vc-jj provides a VC
+backend for it, so the usual =vc-= commands (and project.el) work inside jj
+repositories.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package vc-jj
+    :if (locate-file "jj" exec-path)
+    :init (add-to-list 'vc-handled-backends 'JJ))
+#+END_SRC
+
+jjdescription-mode edits =.jjdescription= files, used when jj invokes an
+editor for =jj describe=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package jjdescription)
+#+END_SRC
+
 **** Magit
 
 [[https://magit.vc][Website]]
@@ -1753,6 +1774,7 @@ package, so no download is needed on first use.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghostel
+    :functions ghostel-compile-global-mode
     :bind (("M-@" . maybe-project-ghostel)
            :map ghostel-semi-char-mode-map
            ("s-f" . my-ghostel-self-insert-meta)
@@ -1803,7 +1825,10 @@ package, so no download is needed on first use.
          :title (if (string-empty-p title)
                     (format "%s Bell" (buffer-name))
                   title)
-         :buffer (current-buffer)))))
+         :buffer (current-buffer))))
+    :config
+    (require 'ghostel-compile)
+    (ghostel-compile-global-mode 1))
 
   (use-package ghostel-toggle
     :ensure nil
@@ -2818,6 +2843,38 @@ Optionally, start a server (disabled by default):
     :config (global-so-long-mode))
 #+END_SRC
 
+**** sql
+
+#+BEGIN_SRC emacs-lisp
+  (use-package sql
+    :preface
+    (defun my/sql-interactive-setup ()
+      "Truncate wide result rows and strip libedit input echo."
+      (setq-local truncate-lines t)
+      (when (eq sql-product 'sqlite)
+        (setq-local comint-process-echoes t)))
+    :hook (sql-interactive-mode . my/sql-interactive-setup)
+    :custom
+    (sql-database "~/scratch.sqlite"))
+#+END_SRC
+
+**** sqlite-mode
+
+Major mode for viewing sqlite files.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package sqlite-mode
+    :if (and (fboundp 'sqlite-available-p) (sqlite-available-p))
+    :preface
+    (defun my/sqlite-view-file-magically ()
+      "Runs `sqlite-mode-open-file' on the file name visited by the
+current buffer, killing it."
+      (let ((file-name buffer-file-name))
+        (kill-current-buffer)
+        (sqlite-mode-open-file file-name)))
+    :magic ("SQLite format 3\x00" . my/sqlite-view-file-magically))
+#+END_SRC
+
 **** subword
 
 #+BEGIN_SRC emacs-lisp
@@ -3261,12 +3318,42 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
    ("/BUCK\\'" . bazel-build-mode)))
 #+END_SRC
 
+**** C and C++
+
+#+BEGIN_SRC emacs-lisp
+  (use-package c-ts-mode
+    :ensure nil
+    :if (and (treesit-language-available-p 'c)
+             (treesit-language-available-p 'cpp))
+    :mode (("\\.c\\'" . c-ts-mode)
+           ("\\.\\(?:cc\\|cp\\|cxx\\|cpp\\|CPP\\|c++\\|C\\)\\'" . c++-ts-mode)
+           ("\\.h\\'" . c-or-c++-ts-mode)))
+#+END_SRC
+
 **** CMake
 
 #+BEGIN_SRC emacs-lisp
   (use-package cmake-ts-mode
     :if (treesit-language-available-p 'cmake)
     :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
+#+END_SRC
+
+**** C#
+
+#+BEGIN_SRC emacs-lisp
+  (use-package csharp-ts-mode
+    :ensure nil
+    :if (treesit-language-available-p 'c-sharp)
+    :mode ("\\.cs\\'" . csharp-ts-mode))
+#+END_SRC
+
+**** CSS
+
+#+BEGIN_SRC emacs-lisp
+  (use-package css-ts-mode
+    :ensure nil
+    :if (treesit-language-available-p 'css)
+    :mode ("\\.css\\'" . css-ts-mode))
 #+END_SRC
 
 **** CSV
@@ -3357,7 +3444,8 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
   (use-package go-ts-mode
     :if (treesit-language-available-p 'go)
     :mode (("\\.go\\'" . go-ts-mode)
-           ("/go\\.mod\\'" . go-mod-ts-mode))
+           ("/go\\.mod\\'" . go-mod-ts-mode)
+           ("/go\\.work\\'" . go-work-ts-mode))
     )
 #+END_SRC
 
@@ -3422,12 +3510,46 @@ didn’t work well enough.
     :hook (haskell-mode . (lambda () (add-hook 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point nil t))))
 #+END_SRC
 
-**** Html
+**** HEEx
+
+HEEx embeds Elixir expressions in HTML templates, so both grammars are needed.
 
 #+BEGIN_SRC emacs-lisp
-(use-package sgml-mode
-  :bind (:map html-mode-map
-              ("M-o" . nil)))
+  (use-package heex-ts-mode
+    :ensure nil
+    :if (and (treesit-language-available-p 'heex)
+             (treesit-language-available-p 'elixir))
+    :mode ("\\.[hl]?eex\\'" . heex-ts-mode))
+#+END_SRC
+
+**** HTML
+
+Use the mixed HTML mode when its HTML, CSS, and JavaScript grammars are
+available so embedded style and script elements are parsed too.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package html-ts-mode
+    :ensure nil
+    :if (treesit-language-available-p 'html)
+    :mode ("\\.xhtml\\'" . html-ts-mode))
+
+  (use-package mhtml-ts-mode
+    :ensure nil
+    :if (and (treesit-language-available-p 'html)
+             (treesit-language-available-p 'css)
+             (treesit-language-available-p 'javascript))
+    :mode ("\\.html?\\'" . mhtml-ts-mode)
+    :bind (:map html-mode-map
+                ("M-o" . nil)))
+#+END_SRC
+
+**** Java
+
+#+BEGIN_SRC emacs-lisp
+  (use-package java-ts-mode
+    :ensure nil
+    :if (treesit-language-available-p 'java)
+    :mode ("\\.java\\'" . java-ts-mode))
 #+END_SRC
 
 **** JavaScript
@@ -3508,8 +3630,13 @@ macho-mode to toggle then M-x hexl-mode.
 [[https://jblevins.org/projects/markdown-mode/][Website]]
 
 #+BEGIN_SRC emacs-lisp
-  (use-package markdown-mode
-    :mode (("README\\.md\\'" . gfm-mode)))
+  (use-package markdown-ts-mode
+    :ensure nil
+    :if (and (treesit-language-available-p 'markdown)
+             (treesit-language-available-p 'markdown-inline))
+    :mode (("\\.md\\'" . markdown-ts-mode)
+           ("\\.markdown\\'" . markdown-ts-mode)
+           ("\\.mdx\\'" . markdown-ts-mode)))
 #+END_SRC
 
 **** Nix
@@ -3569,6 +3696,16 @@ disabled
                         (merlin-mode)))))))
 #+END_SRC
 
+**** Python
+
+#+BEGIN_SRC emacs-lisp
+  (use-package python
+    :ensure nil
+    :if (treesit-language-available-p 'python)
+    :mode ("\\.py[iw]?\\'" . python-ts-mode)
+    :interpreter ("python[0-9.]*" . python-ts-mode))
+#+END_SRC
+
 **** PHP
 
 #+BEGIN_SRC emacs-lisp
@@ -3602,6 +3739,16 @@ disabled
     (proof-tidy-response t)
     :demand
     :if (not needs-package-init))
+#+END_SRC
+
+**** Ruby
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ruby-ts-mode
+    :ensure nil
+    :if (treesit-language-available-p 'ruby)
+    :mode ("\\.rbw?\\'" . ruby-ts-mode)
+    :interpreter ("ruby" . ruby-ts-mode))
 #+END_SRC
 
 **** Rust
@@ -3833,6 +3980,35 @@ occasionally block Emacs.
 #+END_SRC
 
 **** set-defaults
+**** sqlite-mode-extras
+
+[[https://github.com/xenodium/sqlite-mode-extras][sqlite-mode-extras]] adds editing commands to the built-in =sqlite-mode=
+table browser: edit fields with RET, tab between columns, add & delete
+rows, and run ad-hoc queries. Loaded whenever =sqlite-mode= is, using
+its suggested key bindings.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package sqlite-mode-extras
+    :ensure nil
+    :demand t
+    :after sqlite-mode
+    :bind (:map sqlite-mode-map
+                ("n" . next-line)
+                ("p" . previous-line)
+                ("b" . sqlite-mode-extras-backtab-dwim)
+                ("f" . sqlite-mode-extras-tab-dwim)
+                ("+" . sqlite-mode-extras-add-row)
+                ("D" . sqlite-mode-extras-delete-row-dwim)
+                ("C" . sqlite-mode-extras-compose-and-execute)
+                ("E" . sqlite-mode-extras-execute)
+                ("S" . sqlite-mode-extras-execute-and-display-select-query)
+                ("DEL" . sqlite-mode-extras-delete-row-dwim)
+                ("g" . sqlite-mode-extras-refresh)
+                ("<backtab>" . sqlite-mode-extras-backtab-dwim)
+                ("<tab>" . sqlite-mode-extras-tab-dwim)
+                ("RET" . sqlite-mode-extras-ret-dwim)))
+#+END_SRC
+
 **** use-package-list
 *** Other
 
@@ -4105,6 +4281,30 @@ Most of these are available in MELPA.
 
 #+BEGIN_SRC emacs-lisp
   (use-package daemons)
+#+END_SRC
+
+**** dape
+
+[[https://github.com/svaante/dape][GitHub]]
+
+Dape provides Debug Adapter Protocol support.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dape
+    :commands dape
+    :custom
+    (dape-buffer-window-arrangement 'right)
+    :bind (:map prog-mode-map
+                ("<f5>" . dape)
+                ("<f7>" . dape-step-in)
+                ("<f8>" . dape-next)
+                ("S-<f8>" . dape-step-out)
+                ("<f9>" . dape-breakpoint-toggle)
+                ("<f10>" . dape-continue))
+    :config
+    (dape-breakpoint-load)
+    (add-hook 'kill-emacs-hook #'dape-breakpoint-save)
+    (dape-breakpoint-global-mode 1))
 #+END_SRC
 
 **** delight
@@ -5666,8 +5866,12 @@ Emacs packages defined in Nixpkgs.
     };
     # use native tuning for better performance
     customEmacsPackages' = pkgs'.emacsPackagesFor (emacsBinary.overrideAttrs (o: {
-      env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + " -Os -march=native -mtune=native"; };
-      patches = (o.patches or []) ++ lib.optional hostPlatform.isDarwin nsColorCachePatch;
+      env = o.env // { NIX_CFLAGS_COMPILE = (o.env.NIX_CFLAGS_COMPILE or "") + " -O2 -mcpu=native"; };
+      configureFlags = o.configureFlags ++ [ "--without-compress-install" ];
+      patches = (o.patches or [])
+        ++ lib.optionals hostPlatform.isDarwin [
+          nsColorCachePatch
+        ];
     }));
   in # override elpaPackages so elpaDevelPackages is picked up
      customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
@@ -5826,6 +6030,9 @@ have the time to do it currently.
     install -D ${ensure ./site-lisp/ghostel-toggle.el
                          "site-lisp/ghostel-toggle.el"} \
             $out/share/emacs/site-lisp/ghostel-toggle.el
+    install -D ${ensure ./site-lisp/sqlite-mode-extras.el
+                         "site-lisp/sqlite-mode-extras.el"} \
+            $out/share/emacs/site-lisp/sqlite-mode-extras.el
 
     install -D ${ensure ./site-lisp/claude-code-ide.el
                          "site-lisp/claude-code-ide.el"} \

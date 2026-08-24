@@ -49,6 +49,7 @@
 	;; the process is gone; swap in a map where `g' restarts.
 	(let ((map (make-sparse-keymap)))
 	  (define-key map "g" #'nethack)
+	  (define-key map "q" (lambda () (interactive) (kill-buffer buffer)))
 	  (use-local-map map))))))
 
 ;;;###autoload
