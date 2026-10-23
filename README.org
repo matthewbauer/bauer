@@ -180,13 +180,13 @@ every time Emacs is started.
 
 ** Increase GC
 
-Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at
-what point Emacs should invoke its garbage collector Some people set it to a
-really large number permanently. This works well until the garbage is actually
+Increasing GC is a common way to speed up Emacs. =gc-cons-threshold= sets at what
+point Emacs should invoke its garbage collector Some people set it to a really
+large number permanently. This works well until the garbage is actually
 collected (then you have to wait a long time). I’ve decided to just set it
 temporarily to a large number so we only garbage collect once on startup. After
-that we reset it to the standard value. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]] for more info on
-this.
+that we reset it to the standard value if it hasn’t changed. Read [[http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/][@bling’s post]]
+for more info on this.
 
 #+BEGIN_SRC emacs-lisp :padline no :comments no
   ;; -*- mode: emacs-lisp; coding: utf-8; lexical-binding: t; -*-
@@ -384,6 +384,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | zone-all-windows-in-frame              | t                            |
 | undelete-frame-mode                    | t                            |
 | treesit-enabled-modes                  | t                            |
+| treesit-auto-install-grammar           | 'never                       |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply #'set-defaults
@@ -1188,7 +1189,9 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 #+BEGIN_SRC emacs-lisp
   (use-package diff-hl
     :defer 2
-    :custom (diff-hl-disable-on-remote t)
+    :custom
+    (diff-hl-disable-on-remote t)
+    (diff-hl-update-async t)
     ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
     :config
     (global-diff-hl-mode)
@@ -1325,7 +1328,7 @@ repositories.
 #+BEGIN_SRC emacs-lisp
   (use-package vc-jj
     :if (locate-file "jj" exec-path)
-    :init (add-to-list 'vc-handled-backends 'JJ))
+    :init (add-to-list 'vc-handled-backends 'JJ t))
 #+END_SRC
 
 jjdescription-mode edits =.jjdescription= files, used when jj invokes an
@@ -2840,6 +2843,7 @@ Automatically clean up stale buffers each night.
   (use-package project
     :custom
     (project-mode-line t)
+    (project-vc-include-untracked nil)
     (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
     (project-switch-commands 'my-vc-status)
     :config
@@ -4189,7 +4193,6 @@ Most of these are available in MELPA.
         (copilot-mode 1)))
     :hook
     ((text-mode prog-mode) . my-copilot-mode-maybe)
-    (org-mode . (lambda () (copilot-mode -1)))
     ;; ((prog-mode) . copilot-nes-mode)
     :custom
     (copilot-indent-offset-warning-disable t)
