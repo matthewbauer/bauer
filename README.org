@@ -566,14 +566,6 @@ Compute statistics (disabled)
   ;; (eval-and-compile (setq use-package-compute-statistics t))
 #+END_SRC
 
-Future work: we should be able to automatically build the autoloads file in Nix.
-This would work like `package-quickstart`, but have the advantage of being
-deterministic (no refresh needed) & avoid the need for package.el.
-`loaddefs-generate-batch` is available to do this, however, we might need to
-call it something different than loaddefs to avoid breaking the Emacs
-installation loaddefs. For now, it doesn’t seem worth it since start time is
-pretty quick (under 1s on my machine).
-
 ** Key bindings
 
 Using bind-key, setup some simple key bindings. None of these should overwrite
@@ -6101,16 +6093,16 @@ TODO: use dump-emacs here to speed up config.
           # startup.
           cat >> "$siteStart" <<EOF
 
-          (advice-add 'package-activate-all :around
-            (defun bauer--package-quickstart (orig &rest args)
-              (advice-remove 'package-activate-all #'bauer--package-quickstart)
-              (let ((package-quickstart-file
-                     (if (or (bound-and-true-p package-quickstart)
-                             (file-expand-wildcards
-                              (expand-file-name "*/*-pkg.el" package-user-dir)))
-                         package-quickstart-file
-                       "$out/share/emacs/site-lisp/package-quickstart.el")))
-                (apply orig args))))
+          (declare-function package--activate-all "package-activate")
+          (defun bauer--package-quickstart (orig &rest args)
+            (advice-remove 'package-activate-all #'bauer--package-quickstart)  
+            (let ((package-quickstart-file "$out/share/emacs/site-lisp/package-quickstart.el"))
+              (apply orig args))
+
+            ;; also load anything installed locally
+            (when (file-expand-wildcards (expand-file-name "*/*-pkg.el" package-user-dir))
+              (package--activate-all)))
+          (advice-add 'package-activate-all :around #'bauer--package-quickstart)
           EOF
 
           $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs -l $siteStart -f batch-byte-compile $out/share/emacs/site-lisp/*.el
