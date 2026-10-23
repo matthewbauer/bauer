@@ -129,6 +129,32 @@ This is totally optional. If this doesn’t bother you, feel free to leave it, a
 it will probably slightly improve your energy usage, since it can suspend Emacs
 when unfocused.
 
+*** Focus Emacs during shutdown
+
+macOS sends Emacs an =ns-power-off= event when logout, restart, or shutdown. Make
+Emacs visible and active before prompting to save so Emacs does not appear
+unresponsive.
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-ns-power-off ()
+    "Focus Emacs before handling a macOS termination request."
+    (interactive)
+    (when-let* ((frames (seq-filter
+                         (lambda (frame)
+                           (eq (framep frame) 'ns))
+                         (frame-list)))
+                (frame (or (seq-find #'frame-visible-p frames)
+                           (car frames))))
+      (make-frame-visible frame)
+      (raise-frame frame)
+      (select-frame-set-input-focus frame))
+
+    (save-buffers-kill-emacs))
+
+  (when (eq window-system 'ns)
+    (global-set-key [ns-power-off] #'my-ns-power-off))
+#+END_SRC
+
 *** Disabling gatekeeper
 
 Terminal apps needs to be manually configured to avoid performance issues. You need to run:
@@ -207,43 +233,46 @@ COLORFGBG method.
     (when (fboundp 'tty-tip-mode) (tty-tip-mode))
 
     (when (string-equal (getenv "TERM_PROGRAM") "iTerm.app")
-      (add-hook 'after-make-frame-functions
-                (lambda (_frame)
-                  ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
-                  (xterm--init-modify-other-keys)
+      (defun setup-iterm (frame)
+        (with-selected-frame frame
+          (unless (display-graphic-p)
+            ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
+            (xterm--init-modify-other-keys)
 
-                  ;; Courtesy https://emacs.stackexchange.com/a/13957, modified per
-                  ;; https://gitlab.com/gnachman/iterm2/-/issues/8382#note_365264207
-                  (defun character-apply-modifiers (c &rest modifiers)
-                    "Apply modifiers to the character C.
-    MODIFIERS must be a list of symbols amongst (meta control shift).
-    Return an event vector."
-                    (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
-                                                              (logand c ?\x1f)
-                                                            (logior (ash 1 26) c))))
-                    (if (memq 'meta modifiers) (setq c (logior (ash 1 27) c)))
-                    (if (memq 'shift modifiers) (setq c (logior (ash 1 25) c)))
-                    (vector c))
-                  (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
-                    (let ((c 32))
-                      (while (<= c 126)
-                        (mapc (lambda (x)
-                                (define-key xterm-function-map (format (car x) c)
-  					  (apply 'character-apply-modifiers c (cdr x))))
-                              '(;; with ?.VT100.formatOtherKeys: 0
-                                ("\e\[27;3;%d~" meta)
-                                ("\e\[27;5;%d~" control)
-                                ("\e\[27;6;%d~" control shift)
-                                ("\e\[27;7;%d~" control meta)
-                                ("\e\[27;8;%d~" control meta shift)
-                                ;; with ?.VT100.formatOtherKeys: 1
-                                ("\e\[%d;3u" meta)
-                                ("\e\[%d;5u" control)
-                                ("\e\[%d;6u" control shift)
-                                ("\e\[%d;7u" control meta)
-                                ("\e\[%d;8u" control meta shift)))
-                        (setq c (1+ c)))))
-                  ))
+            ;; Courtesy https://emacs.stackexchange.com/a/13957, modified per
+            ;; https://gitlab.com/gnachman/iterm2/-/issues/8382#note_365264207
+            (defun character-apply-modifiers (c &rest modifiers)
+              "Apply modifiers to the character C.
+      MODIFIERS must be a list of symbols amongst (meta control shift).
+      Return an event vector."
+              (if (memq 'control modifiers) (setq c (if (and (<= ?a c) (<= c ?z))
+                                                        (logand c ?\x1f)
+                                                      (logior (ash 1 26) c))))
+              (if (memq 'meta modifiers) (setq c (logior (ash 1 27) c)))
+              (if (memq 'shift modifiers) (setq c (logior (ash 1 25) c)))
+              (vector c))
+            (when (and (boundp 'xterm-extra-capabilities) (boundp 'xterm-function-map))
+              (let ((c 32))
+                (while (<= c 126)
+                  (mapc (lambda (x)
+                          (define-key xterm-function-map (format (car x) c)
+                                      (apply 'character-apply-modifiers c (cdr x))))
+                        '(;; with ?.VT100.formatOtherKeys: 0
+                          ("\e\[27;3;%d~" meta)
+                          ("\e\[27;5;%d~" control)
+                          ("\e\[27;6;%d~" control shift)
+                          ("\e\[27;7;%d~" control meta)
+                          ("\e\[27;8;%d~" control meta shift)
+                          ;; with ?.VT100.formatOtherKeys: 1
+                          ("\e\[%d;3u" meta)
+                          ("\e\[%d;5u" control)
+                          ("\e\[%d;6u" control shift)
+                          ("\e\[%d;7u" control meta)
+                          ("\e\[%d;8u" control meta shift)))
+                  (setq c (1+ c)))))
+            )))
+      (setup-iterm (selected-frame))
+      (add-hook 'after-make-frame-functions 'setup-iterm)
 
       ;; ;; xterm--report-background-handler init fails, but we can still
       ;; ;; use COLORFGBG
@@ -307,7 +336,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | help-enable-completion-autoload        | nil                          |
 | help-window-select                     | t                            |
 | help-window-keep-selected              | t                            |
-| highlight-nonselected-windows          | t                            |
 | history-delete-duplicates              | t                            |
 | history-length                         | 300                          |
 | hscroll-margin                         | 2                            |
@@ -355,6 +383,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | zone-all-frames                        | t                            |
 | zone-all-windows-in-frame              | t                            |
 | undelete-frame-mode                    | t                            |
+| treesit-enabled-modes                  | t                            |
 
 #+BEGIN_SRC emacs-lisp :var defaults=defaults
   (apply #'set-defaults
@@ -931,6 +960,8 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
           ([backtab] . corfu-previous))
 
     :config
+    (require 'corfu-history)
+    (require 'corfu-popupinfo)
     (global-corfu-mode t)
     (corfu-history-mode t)
     (corfu-popupinfo-mode t))
@@ -1156,7 +1187,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
   (use-package diff-hl
-    :demand
+    :defer 2
     :custom (diff-hl-disable-on-remote t)
     ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
     :config
@@ -1252,17 +1283,20 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package embark
+    :demand
     :bind (("C-." . embark-act)
-  	 ("C-;" . embark-dwim)
+           ("C-;" . embark-dwim)
            ("C-h B" . embark-bindings))
+    :delight (embark-auto-prefix-help-mode)
     :custom
-    (prefix-help-command #'embark-prefix-help-command))
+    (prefix-help-command #'embark-prefix-help-command)
+    :config
+    (embark-auto-prefix-help-mode)
+    (when (featurep 'which-key) (which-key-mode -1)))
 
   (use-package embark-consult
     ;; comes bundled with Embark; no `:ensure t' necessary
-    :after (embark consult)
-    :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
+    :after (embark consult))
 #+END_SRC
 
 **** flymake
@@ -1278,17 +1312,6 @@ disabled
      (warning "?" compilation-warning)
      (note "i" compilation-info)))
   )
-#+END_SRC
-
-**** Gnus
-
-[[http://www.gnus.org][Website]]
-
-Gnus is an infamous email client & news reader.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gnus
-    :hook (dired-mode . turn-on-gnus-dired-mode))
 #+END_SRC
 
 **** Jujutsu
@@ -1326,31 +1349,6 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
-    ;; (defun my-magit-section--maybe-enable-long-lines-shortcuts ()
-    ;;   (and (fboundp 'long-line-optimizations-p)
-    ;;        (long-line-optimizations-p)
-    ;;        (prog1 t
-    ;;          ;; (message "Enabling long lines shortcuts in %S" (current-buffer))
-    ;;          (kill-local-variable 'redisplay-highlight-region-function)
-    ;;          (kill-local-variable 'redisplay-unhighlight-region-function)
-    ;;          (when magit-show-long-lines-warning
-    ;;            (setq magit-show-long-lines-warning nil)
-    ;;            (display-warning 'magit (format "\
-    ;;   Emacs has enabled redisplay shortcuts
-    ;;   in this buffer because there are lines whose length go beyond
-    ;;   `long-line-threshold' (%s characters).  As a result, section
-    ;;   highlighting and the special appearance of the region has been
-    ;;   disabled.
-    ;; 
-    ;;   These shortcuts remain enabled, even once there no longer are
-    ;;   any long lines in this buffer.  To disable them again, kill
-    ;;   and recreate the buffer.
-    ;; 
-    ;;   This message won't be shown for this session again.  To disable
-    ;;   it for all future sessions, set `magit-show-long-lines-warning'
-    ;;   to nil." (bound-and-true-p long-line-threshold)) :warning)))))
-    ;; :hook ((git-commit-mode . git-commit-save-message)
-    ;;      (git-commit-mode . turn-on-auto-fill))
     :custom
     (magit-commit-show-diff nil)
     (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
@@ -1370,13 +1368,16 @@ line are available in an intuitive Emacs buffer.
     (auto-revert-buffer-list-filter #'magit-auto-revert-repository-buffer-p)
     (magit-clone-set-remote.pushDefault t)
     :if (locate-file "git" exec-path)
-    :bind (("C-x g" . magit-status)
-           ("C-x p v" . magit-status)
-           ("C-x p m" . magit-status)
+    :bind (;; ("C-x g" . magit-status)
+           ;; ("C-x p v" . magit-status)
+           ;; ("C-x p m" . magit-status)
            ("C-x G" . magit-dispatch)
            :package magit
            :map magit-mode-map
            ("C-o" . magit-dired-other-window)
+           :repeat-map magit-section-cycle-repeat-map
+           ("TAB" . magit-section-cycle)
+           ("<tab>" . magit-section-cycle)
            :map magit-blame-read-only-mode-map
            ("RET" . magit-show-commit)
            ("C-o" . magit-show-commit))
@@ -1385,7 +1386,7 @@ line are available in an intuitive Emacs buffer.
 
     ;; don’t add git-commit--da;; bbrev-capf since it’s broken with completion-preview-mode
     ;; (advice-add #'git-commit-setup-capf :override (lambda ()))
-    ;; 
+    ;;
     ;; (advice-add 'magit-branch--read-name :override
     ;;   (defun my-magit-branch--read-name (prompt &optional start-point)
     ;;     (let ((taken (magit-list-local-branch-names))
@@ -1424,6 +1425,56 @@ Magit forge.
 
 #+BEGIN_SRC emacs-lisp
   (use-package git-timemachine)
+#+END_SRC
+
+**** Majutsu
+
+[[https://github.com/0WD0/majutsu][GitHub]]
+
+Majutsu provides a Magit-style interface for Jujutsu repositories. Run
+=M-x majutsu= to open its log or =M-x majutsu-dispatch= to show its commands.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package majutsu
+    :if (locate-file "jj" exec-path)
+    :commands (majutsu majutsu-log majutsu-dispatch)
+    :bind (("C-x g" . my-vc-status)
+           ("C-x p m" . my-vc-status)
+           ("C-x p v" . majutsu-log))
+    :preface
+    (defun my-vc-status ()
+      "Open Majutsu in Jujutsu repositories, Magit otherwise."
+      (interactive)
+      (if (locate-dominating-file default-directory ".jj")
+          (call-interactively #'majutsu-log)
+        (call-interactively #'magit-status)))
+    (defun majutsu-gh-pr-open (bookmarks)
+      "Open the associated GitHub PR of a jujutsu bookmark."
+      (interactive (list (majutsu-read-bookmarks "Bookmark to view PR for: ")))
+      (unless bookmarks
+        (error "No bookmark specified."))
+      (unless (= 1 (length bookmarks))
+        (error "Can only view PRs for one bookmark at a time."))
+      (let ((cmd (concat
+                  "gh pr list --head "
+                  (car bookmarks)
+                  " --json url --jq '.[].url' --limit 1")))
+        (browse-url (shell-command-to-string cmd))))
+    (defun my-majutsu--ignore-working-copy (fn &rest args)
+      "Call FN with ARGS without jj snapshotting the working copy again.
+The log section runs first and already snapshots, so later sections
+can skip the (slow, in large repos) working copy scan."
+      (let ((majutsu-jj-global-arguments
+             (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
+        (apply fn args)))
+    :config
+    (transient-insert-suffix 'majutsu-git-transient '(0 2) ["PRs" ("P" "View PR" majutsu-gh-pr-open)])
+    ;; Only snapshot once per log refresh (in `majutsu-log-insert-logs').
+    (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
+    (advice-add 'majutsu-insert-workspaces :around #'my-majutsu--ignore-working-copy)
+    ;; Rendering the whole default revset is slow in big repos; press
+    ;; `l -n' in the log buffer to change the limit.
+    (put 'majutsu-log-mode 'majutsu-log-default-arguments '("--limit=50")))
 #+END_SRC
 
 **** MMM Mode
@@ -1565,17 +1616,26 @@ outliner but also much much more.
     :functions pcomplete-completions-at-point
     :hook
     (org-mode . (lambda ()
-  		(add-hook 'completion-at-point-functions
+                  (add-hook 'completion-at-point-functions
                             #'pcomplete-completions-at-point nil t)))
     ;; (org-mode . (lambda () (visual-line-mode -1)))
-    (org-mode . visual-wrap-prefix-mode)
     (org-mode . (lambda () (setq-local scroll-margin 3)))
     (message-mode . turn-on-orgtbl)
     ;; (org-mode . (lambda ()
     ;;               (autoload 'org-eldoc-documentation-function "org-eldoc")
     ;;               (setq-local eldoc-documentation-function
     ;;                           #'org-eldoc-documentation-function)))
-    ;;:config
+    :config
+    ;; TODO: report upstream
+    ;; sh-mode is remapped to bash-ts-mode, which redirects back to sh-mode
+    ;; when the guessed shell ($SHELL, zsh) isn't bash. org-src's fontification
+    ;; buffer then never matches its lang mode, so every shell block reruns the
+    ;; mode (and sh-set-shell) on each refontify.
+    (define-derived-mode org-sh-src-mode sh-mode "Shell-script"
+      "`sh-mode' for Org src blocks, not subject to treesit remapping.")
+    (with-eval-after-load 'org-src
+      (dolist (lang '("sh" "shell"))
+        (setf (alist-get lang org-src-lang-modes nil nil #'equal) 'org-sh-src)))
     ;; (org-babel-do-load-languages 'org-babel-load-languages
     ;;                              '((sql . t)
     ;;                                (shell . t)))
@@ -1585,23 +1645,13 @@ outliner but also much much more.
   (use-package org-present)
 #+END_SRC
 
-**** persistent-scratch
-
-Automatically save the scratch buffer.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package persistent-scratch
-    :demand
-    :commands (persistent-scratch-autosave-mode)
-    :config (persistent-scratch-autosave-mode))
-#+END_SRC
-
 **** recentf
 
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
     :custom
     (recentf-max-saved-items 1000)
+    (recentf-show-messages nil)
     :hook (after-init . recentf-mode)
     )
 #+END_SRC
@@ -1750,11 +1800,18 @@ Visualize the undo tree.
 
 #+BEGIN_SRC emacs-lisp
   (use-package vundo
+    :preface
+    (defun my-vundo-highlight-active-mode-line ()
+      "Make the mode line stand out while a Vundo window is selected."
+      ;; Non-selected windows use `mode-line-inactive', so this remap only
+      ;; becomes visible when the cursor is in the Vundo window.
+      (face-remap-add-relative 'mode-line '(:inverse-video t :weight bold)))
+    :hook (vundo-mode . my-vundo-highlight-active-mode-line)
     :bind (("C-x u" . vundo)
            :map vundo-mode-map
            ("C-f" . vundo-forward)
            ("C-b" . vundo-backward)
-  	 ("C-n" . vundo-next)
+           ("C-n" . vundo-next)
            ("C-p" . vundo-previous))
     :custom (vundo-roll-back-on-quit nil)
     :config
@@ -1777,12 +1834,13 @@ package, so no download is needed on first use.
     :functions ghostel-compile-global-mode
     :bind (("M-@" . maybe-project-ghostel)
            :map ghostel-semi-char-mode-map
+           ("M-@" . maybe-project-ghostel)
            ("s-f" . my-ghostel-self-insert-meta)
            ("s-b" . my-ghostel-self-insert-meta)
            ("s-d" . my-ghostel-self-insert-meta)
            ("s-<backspace>" . my-ghostel-self-insert-meta)
-  	 ("M-o" . nil)
-  	 ("C-v" . nil)
+           ("M-o" . nil)
+           ("C-v" . nil)
 
            :package dired
            :map dired-mode-map
@@ -1818,14 +1876,57 @@ package, so no download is needed on first use.
       (let ((key (event-basic-type last-command-event)))
         (ghostel-send-key (if (symbolp key) (symbol-name key) (char-to-string key))
                           "meta")))
-    (defun my-ghostel-notify (title _body)
+    (defun my-ghostel-notify (title body)
       "Show terminal notifications in the mode line, like `vterm-bell-detector'."
       (when (fboundp 'mode-line-notify-send)
         (mode-line-notify-send
-         :title (if (string-empty-p title)
-                    (format "%s Bell" (buffer-name))
-                  title)
+         :title (cond ((not (string-empty-p title)) title)
+                      ((not (string-empty-p body)) body)
+                      (t (format "%s Bell" (buffer-name))))
          :buffer (current-buffer))))
+    (defcustom my-ghostel-long-command-notification-delay 30
+      "Seconds a Ghostel command must run before its completion is announced.
+Set to nil to disable automatic command-completion notifications."
+      :type '(choice (const :tag "Disabled" nil) number)
+      :group 'ghostel)
+    (defvar-local my-ghostel-command-started-at nil
+      "Time at which the current shell command started.")
+    (defun my-ghostel-command-started (buffer)
+      "Record the start time of a shell command in Ghostel BUFFER."
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (setq my-ghostel-command-started-at (current-time)))))
+    (defun my-ghostel-command-finished (buffer status)
+      "Notify when a long-running command finishes in hidden Ghostel BUFFER.
+STATUS is the command's exit status, or nil when the shell omitted it."
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((started-at my-ghostel-command-started-at))
+            (setq my-ghostel-command-started-at nil)
+            (when (and started-at
+                       my-ghostel-long-command-notification-delay
+                       (>= (float-time (time-subtract (current-time) started-at))
+                           my-ghostel-long-command-notification-delay)
+                       (not (get-buffer-window buffer 'visible))
+                       (fboundp 'mode-line-notify-send))
+              ;; The finish hook fires synchronously from ghostel's terminal
+              ;; parser, so defer the notification off the callpath.  The
+              ;; title only varies by outcome, letting `mode-line-notify-send'
+              ;; de-duplicate repeated identical outcomes per buffer.
+              (run-at-time
+               0 nil
+               (lambda ()
+                 (when (buffer-live-p buffer)
+                   (mode-line-notify-send
+                    :title (format "%s: command %s"
+                                   (buffer-name buffer)
+                                   (if (and status (not (zerop status)))
+                                       "failed"
+                                     "finished"))
+                    :buffer buffer)))))))))
+    :init
+    (add-hook 'ghostel-command-start-functions #'my-ghostel-command-started)
+    (add-hook 'ghostel-command-finish-functions #'my-ghostel-command-finished)
     :config
     (require 'ghostel-compile)
     (ghostel-compile-global-mode 1))
@@ -1839,7 +1940,7 @@ package, so no download is needed on first use.
                     ("s-n" . ghostel-toggle-forward)
                     ("s-p" . ghostel-toggle-backward))
     :hook ((ghostel-mode . ghostel-toggle--mode-hook)
-  	 (kill-buffer . ghostel-toggle--exit-hook)))
+           (kill-buffer . ghostel-toggle--exit-hook)))
 #+END_SRC
 
 *** Built-ins
@@ -2048,7 +2149,9 @@ Base mode used for shell and terminal modes.
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
                 ("M-p" . completion-preview-prev-candidate)
-                ("M-i" . completion-preview-insert))
+                ("M-i" . completion-preview-insert-word)
+                ("M-<return>" . completion-preview-insert)
+                ("<tab>" . completion-preview-complete))
     :config
     ;; Claude:
     ;; Re-running a major mode kills the buffer-local
@@ -2068,9 +2171,9 @@ Base mode used for shell and terminal modes.
            ("_log\\'" . conf-mode)
            ("\\.env\\..*\\'" . conf-mode)
            ("\\.env\\'" . conf-mode)
-  	 ("\\.buckconfig\\'" . conf-mode)
-  	 ("\\.buckconfig\\..*\\'" . conf-mode)
-  	 ("/\\.buckconfig\\.d/" . conf-mode))
+           ("\\.buckconfig\\'" . conf-mode)
+           ("\\.buckconfig\\..*\\'" . conf-mode)
+           ("/\\.buckconfig\\.d/" . conf-mode))
     )
 #+END_SRC
 **** delsel
@@ -2142,7 +2245,7 @@ Setup these modes:
   (use-package electric
     :if (>= emacs-major-version 25)
     :hook
-    ((prog-mode text-mode org-mode message-mode) . electric-quote-local-mode)
+    ((prog-mode text-mode) . electric-quote-local-mode)
     (prog-mode . electric-indent-local-mode)
     (prog-mode . electric-layout-local-mode)
     ((haskell-mode nix-mode) . (lambda () (electric-indent-local-mode -1))))
@@ -2369,7 +2472,7 @@ Make scripts executable automatically.
                               (goto-char (point-min))
                               (forward-line (1- line-number))
                               (when (> col-number 0)
-                                (forward-char (1- col-number))))))))
+                                (move-to-column (1- col-number))))))))
   :custom
   (auto-mode-case-fold nil)
   (auto-save-file-name-transforms `((".*"
@@ -2387,6 +2490,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
+    :disabled
     :custom
     (flyspell-highlight-properties nil)
     (flyspell-issue-welcome-flag nil)
@@ -2395,7 +2499,7 @@ Make scripts executable automatically.
              ispell-program-name "aspell")
          exec-path)
     :hook
-    ((org-mode text-mode git-commit-mode) . flyspell-mode)
+    (text-mode . flyspell-mode)
     (prog-mode . flyspell-prog-mode)
     :bind (:map flyspell-mode-map
                 ("C-M-i" . nil)))
@@ -2407,7 +2511,7 @@ Make scripts executable automatically.
   (use-package goto-addr
     :hook
     ((prog-mode conf-mode) . goto-address-prog-mode)
-    ((help-mode org-mode text-mode git-commit-mode shell-mode) . goto-address-mode))
+    ((help-mode text-mode shell-mode) . goto-address-mode))
 #+END_SRC
 
 **** hl-line
@@ -2470,34 +2574,35 @@ Make scripts executable automatically.
 **** isearch
 
 #+BEGIN_SRC emacs-lisp
-(use-package isearch
-  :ensure nil
-  :bind ("C-M-S" . isearch-other-window)
-  :preface
-  (defun isearch-other-window (regexp-p)
-    "Function to isearch-forward in the next window.
+  (use-package isearch
+    :ensure nil
+    :bind ("C-M-S" . isearch-other-window)
+    :preface
+    (defun isearch-other-window (regexp-p)
+      "Function to isearch-forward in the next window.
 
-With prefix arg REGEXP-P, perform a regular expression search."
-    (interactive "P")
-    (unless (one-window-p)
-      (with-selected-window (other-window-for-scrolling)
-        (isearch-forward regexp-p))))
-  :config
-  (defun isearch-copy-selected-word ()
-    "Copy the current `isearch` selection to the kill ring."
-    (interactive)
-    (when isearch-other-end
-      (let ((selection (buffer-substring-no-properties isearch-other-end (point))))
-        (kill-new selection)
-        (isearch-exit))))
+  With prefix arg REGEXP-P, perform a regular expression search."
+      (interactive "P")
+      (unless (one-window-p)
+        (with-selected-window (other-window-for-scrolling)
+          (isearch-forward regexp-p))))
+    :config
+    (defun isearch-copy-selected-word ()
+      "Copy the current `isearch` selection to the kill ring."
+      (interactive)
+      (when isearch-other-end
+        (let ((selection (buffer-substring-no-properties isearch-other-end (point))))
+          (kill-new selection)
+          (isearch-exit))))
 
-  ;; Bind `M-w` in isearch to copy the selected word, so M-s M-. M-w
-  ;; does a great job of 'copying the current word under cursor'.
-  (define-key isearch-mode-map (kbd "M-w") 'isearch-copy-selected-word)
+    ;; Bind `M-w` in isearch to copy the selected word, so M-s M-. M-w
+    ;; does a great job of 'copying the current word under cursor'.
+    (define-key isearch-mode-map (kbd "M-w") 'isearch-copy-selected-word)
 
-  :custom
-  (isearch-lazy-count t)
-  (isearch-allow-scroll t))
+    :custom
+    (isearch-lazy-count t)
+    (isearch-allow-scroll t)
+    (isearch-wrap-pause 'no-ding))
 #+END_SRC
 
 **** minibuffer
@@ -2529,7 +2634,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
     ;; Makes C-g behave (as seen on https://emacsredux.com/blog/2025/06/01/let-s-make-keyboard-quit-smarter/)
     ;;   (define-advice keyboard-quit (:around (quit) quit-current-context)
     ;;     "Quit the current context.
-    ;; 
+    ;;
     ;; When there is an active minibuffer and we are not inside it close
     ;; it.  When we are inside the minibuffer use the regular
     ;; `minibuffer-keyboard-quit' which quits any active region before
@@ -2548,23 +2653,75 @@ With prefix arg REGEXP-P, perform a regular expression search."
     )
 #+END_SRC
 
+**** midnight
+
+Automatically clean up stale buffers each night.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package midnight
+    :ensure nil
+    :demand
+    :custom
+    (clean-buffer-list-delay-general 5)
+    :config
+    (midnight-mode 1)
+    (midnight-delay-set 'midnight-delay 6400))
+#+END_SRC
+
 **** mouse
 
 #+BEGIN_SRC emacs-lisp
-(use-package mouse
-  :ensure nil
-  :hook ((text-mode prog-mode) . context-menu-mode)
-  :custom
-  (context-menu-functions
-   '(context-menu-ffap
-     context-menu-undo
-     context-menu-region
-     context-menu-middle-separator
-     context-menu-local
-     context-menu-minor
-     occur-context-menu
-     Man-context-menu
-     context-menu-buffers)))
+  (use-package mouse
+    :ensure nil
+    :preface
+    (defun my/org-follow-link-from-menu (marker &optional where)
+      "Follow the Org link at MARKER, displaying it according to WHERE."
+      (unless (marker-buffer marker)
+        (user-error "The link's buffer no longer exists"))
+      (switch-to-buffer (marker-buffer marker))
+      (goto-char marker)
+      (pcase where
+        ('other-window (other-window-prefix))
+        ('other-tab (other-tab-prefix)))
+      (org-open-at-point))
+    (defun my/org-link-context-menu (menu click)
+      "Add an Org link submenu to context MENU at CLICK."
+      (when (derived-mode-p 'org-mode)
+        (save-excursion
+          (mouse-set-point click)
+          (when (eq (org-element-type (org-element-context)) 'link)
+            (let ((marker (point-marker))
+                  (follow-menu (make-sparse-keymap "Follow")))
+              (define-key-after follow-menu [org-follow-link-other-window]
+                `(menu-item "Open in Other Window"
+                            (lambda ()
+                              (interactive)
+                              (my/org-follow-link-from-menu
+                               ',marker 'other-window))))
+              (define-key-after follow-menu [org-follow-link-other-tab]
+                `(menu-item "Open in Other Tab"
+                            (lambda ()
+                              (interactive)
+                              (my/org-follow-link-from-menu
+                               ',marker 'other-tab))))
+              (define-key-after menu [org-follow-link]
+                `(menu-item "Follow" ,follow-menu))
+              (define-key-after menu [org-link-separator]
+                menu-bar-separator)))))
+      menu)
+    :hook ((text-mode prog-mode) . context-menu-mode)
+    :custom
+    (context-menu-functions
+     '(my/org-link-context-menu
+       context-menu-ffap
+       context-menu-undo
+       context-menu-region
+       context-menu-middle-separator
+       context-menu-local
+       context-menu-minor
+       occur-context-menu
+       Man-context-menu
+       context-menu-buffers)))
 #+END_SRC
 
 **** mwheel
@@ -2684,7 +2841,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
     :custom
     (project-mode-line t)
     (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
-    (project-switch-commands 'magit-project-status)
+    (project-switch-commands 'my-vc-status)
     :config
     (advice-add #'project-or-external-find-regexp
                 :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
@@ -2732,6 +2889,7 @@ With prefix arg REGEXP-P, perform a regular expression search."
 
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
+    :defer 4
     :custom (savehist-additional-variables '(search-ring
                                              regexp-search-ring
                                              kill-ring
@@ -2743,7 +2901,8 @@ With prefix arg REGEXP-P, perform a regular expression search."
                                              register-alist
                                              mark-ring
                                              global-mark-ring))
-    :hook (after-init . savehist-mode))
+    :config
+    (savehist-mode))
 #+END_SRC
 
 **** saveplace-mode
@@ -2821,7 +2980,7 @@ Optionally, start a server (disabled by default):
     ;; (text-mode . refill-mode)
     :config (column-number-mode)
     :custom
-    (completion-auto-select t)
+    (completion-auto-select 'second-tab)
     (completion-show-help nil)
     (async-shell-command-buffer 'new-buffer)
     ;; (eval-expression-print-level nil)
@@ -3149,6 +3308,7 @@ function.
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :if (>= emacs-major-version 30)
+    :disabled
     :demand
     :delight
     :custom
@@ -3296,10 +3456,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     (jsonrpc-event-hook nil)
     (eglot-code-action-indications nil) ;; EMACS-31 -- annoying as hell
 
-    :config
-    (add-to-list 'eglot-server-programs
-                 `((haskell-mode haskell-ts-mode) . ,(eglot-alternatives
-                                                      '("static-ls" ("haskell-language-server-wrapper" "--lsp")))))
     :bind (:map
            eglot-mode-map
            ("C-c l a" . eglot-code-actions)
@@ -3318,44 +3474,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
    ("/BUCK\\'" . bazel-build-mode)))
 #+END_SRC
 
-**** C and C++
-
-#+BEGIN_SRC emacs-lisp
-  (use-package c-ts-mode
-    :ensure nil
-    :if (and (treesit-language-available-p 'c)
-             (treesit-language-available-p 'cpp))
-    :mode (("\\.c\\'" . c-ts-mode)
-           ("\\.\\(?:cc\\|cp\\|cxx\\|cpp\\|CPP\\|c++\\|C\\)\\'" . c++-ts-mode)
-           ("\\.h\\'" . c-or-c++-ts-mode)))
-#+END_SRC
-
-**** CMake
-
-#+BEGIN_SRC emacs-lisp
-  (use-package cmake-ts-mode
-    :if (treesit-language-available-p 'cmake)
-    :mode (("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode)))
-#+END_SRC
-
-**** C#
-
-#+BEGIN_SRC emacs-lisp
-  (use-package csharp-ts-mode
-    :ensure nil
-    :if (treesit-language-available-p 'c-sharp)
-    :mode ("\\.cs\\'" . csharp-ts-mode))
-#+END_SRC
-
-**** CSS
-
-#+BEGIN_SRC emacs-lisp
-  (use-package css-ts-mode
-    :ensure nil
-    :if (treesit-language-available-p 'css)
-    :mode ("\\.css\\'" . css-ts-mode))
-#+END_SRC
-
 **** CSV
 
 [[https://elpa.gnu.org/packages/csv-mode.html][ELPA]]
@@ -3372,15 +3490,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
                 ("<backtab>" . csv-backward-field)))
 #+END_SRC
 
-**** Dockerfile
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dockerfile-ts-mode
-    :if (treesit-language-available-p 'dockerfile)
-    :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'"
-                  . dockerfile-ts-mode)))
-#+END_SRC
-
 **** ELF
 
 [[https://oremacs.com/2016/08/28/elf-mode/][Website]]
@@ -3395,17 +3504,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 #+BEGIN_SRC emacs-lisp
   (use-package swift-ts-mode
     :mode (("\\.swift\\'" . swift-ts-mode)))
-#+END_SRC
-
-**** Elixir
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elixir-ts-mode
-    :if (treesit-language-available-p 'elixir)
-    :mode (("\\.elixir\\'" . elixir-ts-mode)
-           ("\\.ex\\'" . elixir-ts-mode)
-           ("\\.exs\\'" . elixir-ts-mode)
-           ("mix\\.lock" . elixir-ts-mode)))
 #+END_SRC
 
 **** Emacs speaks statistics
@@ -3436,17 +3534,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package git-modes)
-#+END_SRC
-
-**** Go
-
-#+BEGIN_SRC emacs-lisp
-  (use-package go-ts-mode
-    :if (treesit-language-available-p 'go)
-    :mode (("\\.go\\'" . go-ts-mode)
-           ("/go\\.mod\\'" . go-mod-ts-mode)
-           ("/go\\.work\\'" . go-work-ts-mode))
-    )
 #+END_SRC
 
 **** Haskell
@@ -3482,13 +3569,6 @@ didn’t work well enough.
     ;; (require 'haskell-compile)
     )
 
-  (use-package haskell-ts-mode
-    :disabled
-    :if (treesit-language-available-p 'haskell)
-    :mode (("\\.[gh]s\\'" . haskell-ts-mode)
-           ("\\.hsig\\'" . haskell-ts-mode)
-           ("\\.hsc\\'" . haskell-ts-mode)))
-
   (use-package ghci-compilation
     :ensure nil
     :autoload ghci-compilation-haskell-completion-at-point
@@ -3496,81 +3576,18 @@ didn’t work well enough.
     (defun ghci-compilation-main () (interactive) (ghci-compilation--send-string "main"))
     :bind (("C-x p ." . ghci-compilation)
            ("C-x C-1" . ghci-compilation-transient-menu)
-  	 :package haskell-mode
+           :package haskell-mode
            :map haskell-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-m" . ghci-compilation-main)
-  	 :package haskell-cabal
+           :package haskell-cabal
            :map haskell-cabal-mode-map
            ("C-c C-r" . ghci-compilation-reload)
            ("C-c C-l" . ghci-compilation-add-file)
            ("C-c C-m" . ghci-compilation-main)
            ("C-c C-z" . ghci-compilation-switch-to-buffer))
     :hook (haskell-mode . (lambda () (add-hook 'completion-at-point-functions 'ghci-compilation-haskell-completion-at-point nil t))))
-#+END_SRC
-
-**** HEEx
-
-HEEx embeds Elixir expressions in HTML templates, so both grammars are needed.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package heex-ts-mode
-    :ensure nil
-    :if (and (treesit-language-available-p 'heex)
-             (treesit-language-available-p 'elixir))
-    :mode ("\\.[hl]?eex\\'" . heex-ts-mode))
-#+END_SRC
-
-**** HTML
-
-Use the mixed HTML mode when its HTML, CSS, and JavaScript grammars are
-available so embedded style and script elements are parsed too.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package html-ts-mode
-    :ensure nil
-    :if (treesit-language-available-p 'html)
-    :mode ("\\.xhtml\\'" . html-ts-mode))
-
-  (use-package mhtml-ts-mode
-    :ensure nil
-    :if (and (treesit-language-available-p 'html)
-             (treesit-language-available-p 'css)
-             (treesit-language-available-p 'javascript))
-    :mode ("\\.html?\\'" . mhtml-ts-mode)
-    :bind (:map html-mode-map
-                ("M-o" . nil)))
-#+END_SRC
-
-**** Java
-
-#+BEGIN_SRC emacs-lisp
-  (use-package java-ts-mode
-    :ensure nil
-    :if (treesit-language-available-p 'java)
-    :mode ("\\.java\\'" . java-ts-mode))
-#+END_SRC
-
-**** JavaScript
-
-#+BEGIN_SRC emacs-lisp
-  (use-package typescript-ts-mode
-    :if (treesit-language-available-p 'typescript)
-    :mode (("\\.ts\\'" . typescript-ts-mode)
-           ("\\.tsx\\'" . tsx-ts-mode)))
-
-  (use-package js
-    :mode (("\\(\\.js[mx]?\\|\\.har\\)\\'" . js-ts-mode)
-           ("\\.es6\\'" . js-ts-mode)
-           ("\\.ejs\\'" . js-ts-mode))
-    :interpreter "node")
-
-  (use-package json-ts-mode
-    :if (treesit-language-available-p 'json)
-    :mode (("\\.jshintrc$"    . json-ts-mode)
-           ("\\.json_schema$" . json-ts-mode)
-           ("\\.json$" . json-ts-mode)))
 #+END_SRC
 
 **** LaTeX
@@ -3602,15 +3619,6 @@ Auctex provides some helpful tools for working with LaTeX.
     :bind ("C-c :" . ielm))
 #+END_SRC
 
-**** Lua
-
-#+BEGIN_SRC emacs-lisp
-  (use-package lua-ts-mode
-    :if (treesit-language-available-p 'lua)
-    :mode (("\\.lua\\'" . lua-ts-mode))
-    :interpreter ("\\<lua\\(?:jit\\)?" . lua-ts-mode))
-#+END_SRC
-
 **** Mach-O
 
 View macho binaries read-only. To view in Hexl-mode raw binaries, run M-x
@@ -3625,18 +3633,14 @@ macho-mode to toggle then M-x hexl-mode.
             ("\xCF\xFA\xED\xFE" . macho-mode)))
 #+END_SRC
 
-**** Markdown
-
-[[https://jblevins.org/projects/markdown-mode/][Website]]
+**** Outlin
 
 #+BEGIN_SRC emacs-lisp
-  (use-package markdown-ts-mode
+  (use-package outline
     :ensure nil
-    :if (and (treesit-language-available-p 'markdown)
-             (treesit-language-available-p 'markdown-inline))
-    :mode (("\\.md\\'" . markdown-ts-mode)
-           ("\\.markdown\\'" . markdown-ts-mode)
-           ("\\.mdx\\'" . markdown-ts-mode)))
+    :config
+    (put #'outline-previous-heading 'repeat-map 'outline-navigation-repeat-map)
+    (put #'outline-next-heading 'repeat-map 'outline-navigation-repeat-map))
 #+END_SRC
 
 **** Nix
@@ -3696,27 +3700,6 @@ disabled
                         (merlin-mode)))))))
 #+END_SRC
 
-**** Python
-
-#+BEGIN_SRC emacs-lisp
-  (use-package python
-    :ensure nil
-    :if (treesit-language-available-p 'python)
-    :mode ("\\.py[iw]?\\'" . python-ts-mode)
-    :interpreter ("python[0-9.]*" . python-ts-mode))
-#+END_SRC
-
-**** PHP
-
-#+BEGIN_SRC emacs-lisp
-  (use-package php-ts-mode
-    :if (treesit-language-available-p 'php)
-    :mode (("\\.\\(?:php[s345]?\\|phtml\\)\\'" . php-ts-mode)
-           ("\\.\\(?:php\\|inc\\|stub\\)\\'" . php-ts-mode)
-           ("/\\.php_cs\\(?:\\.dist\\)?\\'" . php-ts-mode))
-    :interpreter ("php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" . php-ts-mode))
-#+END_SRC
-
 **** Proof General
 
 [[https://proofgeneral.github.io][Website]]
@@ -3741,29 +3724,6 @@ disabled
     :if (not needs-package-init))
 #+END_SRC
 
-**** Ruby
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ruby-ts-mode
-    :ensure nil
-    :if (treesit-language-available-p 'ruby)
-    :mode ("\\.rbw?\\'" . ruby-ts-mode)
-    :interpreter ("ruby" . ruby-ts-mode))
-#+END_SRC
-
-**** Rust
-
-#+BEGIN_SRC emacs-lisp
-  (use-package rust-ts-mode
-    :if (treesit-language-available-p 'rust)
-    :mode (("\\.rs\\'" . rust-ts-mode))
-    )
-
-  (use-package toml-ts-mode
-    :if (treesit-language-available-p 'toml)
-    :mode "\\.toml\\'")
-#+END_SRC
-
 **** Scala
 
 [[https://github.com/hvesalai/emacs-scala-mode][GitHub]]
@@ -3771,20 +3731,6 @@ disabled
 #+BEGIN_SRC emacs-lisp
   (use-package scala-mode
     :interpreter ("scala" . scala-mode))
-#+END_SRC
-
-**** Shell
-
-#+BEGIN_SRC emacs-lisp
-  (use-package sh-script
-    :if (treesit-language-available-p 'bash)
-    :mode ("\\.\\(sh\\|bash\\)\\'" . bash-ts-mode)
-    )
-
-  (use-package sh-script
-    :mode (("shellrc\\'" . sh-mode)
-           ("shell_profile\\'" . sh-mode)
-           ("\\.zsh\\'" . sh-mode)))
 #+END_SRC
 
 **** systemd
@@ -3807,15 +3753,6 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package texinfo)
-#+END_SRC
-
-**** YAML
-
-#+BEGIN_SRC emacs-lisp
-  (use-package yaml-ts-mode
-    :if (treesit-language-available-p 'yaml)
-    :mode (("\\.ya?ml\\'" . yaml-ts-mode))
-    )
 #+END_SRC
 
 *** Custom
@@ -4022,7 +3959,8 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell
     :bind ("C-c C-'" . agent-shell-help-menu)
-    :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool)
+    :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool
+                agent-shell--dired-paths-in-region agent-shell--get-files-context agent-shell--buffer-files agent-shell-cwd)
     :hook (agent-shell-mode . (lambda ()
                                 (let ((buffer (current-buffer)))
                                   (agent-shell-subscribe-to
@@ -4042,10 +3980,9 @@ Most of these are available in MELPA.
                                                    :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
                                                    :buffer ,buffer)))))))
     :custom
-    (agent-shell-file-completion-enabled t)
     (agent-shell-session-strategy 'new)
     (agent-shell-buffer-name-format 'kebab-case)
-    (agent-shell-context-sources '(files region error))
+    (agent-shell-context-sources '(region error))
     (agent-shell-mcp-servers
      '((lambda ()
          (require 'claude-code-ide-mcp-server)
@@ -4246,8 +4183,12 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package copilot
     :delight
+    :preface
+    (defun my-copilot-mode-maybe ()
+      (unless (derived-mode-p 'org-mode)
+        (copilot-mode 1)))
     :hook
-    ((text-mode prog-mode) . copilot-mode)
+    ((text-mode prog-mode) . my-copilot-mode-maybe)
     (org-mode . (lambda () (copilot-mode -1)))
     ;; ((prog-mode) . copilot-nes-mode)
     :custom
@@ -4450,14 +4391,16 @@ Fast, configurable indentation guide-bars.
   (use-package ledger-mode
     :autoload ledger-do-report
     :commands (ledger-report-mode)
-    :mode "\\.journal\\'")
+    :mode "\\.journal\\'"
+    :hook (ledger-mode . (lambda () (auto-fill-mode -1))))
 #+END_SRC
 **** mode-line-notify
 
 #+BEGIN_SRC emacs-lisp
   (use-package mode-line-notify
     :ensure nil
-    :hook (after-init . mode-line-notify))
+    :demand
+    :config (mode-line-notify))
 #+END_SRC
 
 **** mwim
@@ -4665,29 +4608,34 @@ MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
 #+BEGIN_SRC shell
-    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/node_modules/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
+    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/npm/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
            INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
            MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
            XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
            TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
 
-    if [ -z "${SSH_CONNECTION-}" ] && [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent > /dev/null; then
-      eval $(ssh-agent) > /dev/null
-    fi
+    case $- in
+      ,*i*)
+        if [ -z "${SSH_AUTH_SOCK-}" ] && command -v ssh-agent >/dev/null 2>&1; then
+          eval "$(ssh-agent -s)" >/dev/null
+        fi
+        ;;
+    esac
 
-    # taken from https://github.com/unixorn/zsh-quickstart-kit/blob/main/zsh/.zshrc
-    if [ "$(uname -s)" = Darwin ]; then
-      #  && [ $(/usr/bin/ssh-add -l | grep -c "The agent has no identities.") -eq 1 ]
-
-      # check if Monterey or higher
-      # https://scriptingosx.com/2020/09/macos-version-big-sur-update/
-      case $(sw_vers -buildVersion) in
-        2[1-9]*|[3-9]*)
-          # Load all ssh keys that have pass phrases stored in macOS keychain using new flags
-          /usr/bin/ssh-add -q --apple-load-keychain 2> /dev/null ;;
-        *)
-          /usr/bin/ssh-add -qA 2> /dev/null ;;
-      esac
+    if [ "$(uname -s)" = Darwin ] && [ -z "${SSH_CONNECTION-}" ] && [ -S "${SSH_AUTH_SOCK-}" ]; then
+      ssh_stamp=${XDG_CACHE_HOME:-$HOME/.cache}/bauer-ssh-agent-loaded
+      if ! [ "$ssh_stamp" -nt "${SSH_AUTH_SOCK-}" ]; then
+        mkdir -p "${ssh_stamp%/*}"
+        # Try to load SSH keys with passphrases from Apple Keychain.
+        # Then, load SSH keys stored completely on Secure Enclave.
+        # If both succeed, we can mark this as loaded, so no one else needs to
+        # try to load them.
+        /usr/bin/ssh-add -q --apple-load-keychain 2>/dev/null &&
+        SSH_ASKPASS=/usr/bin/true SSH_ASKPASS_REQUIRE=force \
+          /usr/bin/ssh-add -q -K -S /usr/lib/ssh-keychain.dylib </dev/null 2>/dev/null &&
+        touch "$ssh_stamp"
+      fi
+      unset ssh_stamp
     fi
 
     if [ "$(uname -s)" = Darwin ]; then
@@ -4724,7 +4672,7 @@ just in case.
     HISTCONTROL=ignoredups:erasedups:ignorespace
     PROMPT_DIRTRIM=4
 
-    if [ -n "${BASH_VERSION-}" ]; then
+    if [ -n "${BASH_VERSION-}" ] && [[ $- == *i* ]]; then
       if [[ $- == *i* ]]; then
         stty -ixon
       fi
@@ -4749,6 +4697,13 @@ just in case.
         . @bash_completion@/share/bash-completion/bash_completion
       fi
 
+      if [ -f @fzf@/share/fzf/completion.bash ]; then
+        . @fzf@/share/fzf/completion.bash
+      fi
+      if [ -f @fzf@/share/fzf/key-bindings.bash ]; then
+        . @fzf@/share/fzf/key-bindings.bash
+      fi
+
       if [ "${TERM-}" = dumb-emacs-ansi ] || [ -n "${INSIDE_EMACS-}" ]; then
         PROMPT_DIRTRIM=0
         if [ -n "${SSH_CONNECTION-}" ]; then
@@ -4769,6 +4724,10 @@ just in case.
         PS1='\[\e]133;D;\$?\a\e]133;A\a\]'"$PS1"'\[\e]133;B\a\]'
       fi
 
+      # Some terminal programs hide the cursor and fail to restore it when
+      # they exit abnormally.  Repair the terminal cursor at every prompt.
+      PS1='\[\e[?25h\]'"$PS1"
+
       alias ...='../..' \
             ....='../../..' \
             .....='../../../..' \
@@ -4782,20 +4741,27 @@ just in case.
   fi
 
   # if command -v npm > /dev/null; then
-  #   npm config set prefix $HOME/.local/share/node_modules
+  #   npm config set prefix $HOME/.local/share/npm
   # fi
+#+END_SRC
+
+Disable macOS saved sessions. This is broken because it tried to write to
+readonly ZDOTDIR.
+
+#+BEGIN_SRC shell
+  export SHELL_SESSIONS_DISABLE=1
 #+END_SRC
 
 Dircolors
 
 #+BEGIN_SRC shell
-  if [ "$TERM" != dumb ] && [ -n "${SHELL-}" ]; then
-    if [ "$TERM" = dumb-emacs-ansi ]; then
-      eval "$(TERM=ansi dircolors)"
-    else
-      eval "$(dircolors)"
+    if [ "$TERM" != dumb ] && [ -n "${SHELL-}" ]; then
+      if [ "$TERM" = dumb-emacs-ansi ]; then
+        eval "$(TERM=ansi dircolors)"
+      else
+        eval "$(dircolors)"
+      fi
     fi
-  fi
 #+END_SRC
 
 Then setup aliases.
@@ -4884,6 +4850,14 @@ fi
 
 This is a profile for use with [[http://www.zsh.org][Zsh]]. It is closely based off of [[https://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]].
 
+Profiling
+
+#+BEGIN_SRC shell
+    if [ -n "${ZSH_DEBUGRC+1}" ]; then
+        zmodload zsh/zprof
+    fi
+#+END_SRC
+
 Setup ZSH profile. First, we just source the global profile.
 
 #+BEGIN_SRC shell
@@ -4964,7 +4938,7 @@ if [ "$TERM" != dumb-emacs-ansi ] && [[ -o interactive ]]; then
 
   autoload -U compinit
 
-  if ! [ -f "$HOME/.zcompdump" ] || [ "$(@coreutils@/bin/date +%j)" != "$(@coreutils@/bin/date +%j -r "$HOME/.zcompdump")" ]; then
+  if ! [ -f "$HOME/.zcompdump" ] || [ "$(@coreutils@/bin/date +%y%m%d)" != "$(@coreutils@/bin/date +%y%m%d -r "$HOME/.zcompdump")" ]; then
     compinit -i -d "$HOME/.zcompdump"
   else
     compinit -i -d "$HOME/.zcompdump" -C
@@ -5053,10 +5027,21 @@ Zstyle completions.
   zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 #+END_SRC
 
+#+BEGIN_SRC shell
+  # shellcheck source=/dev/null
+  . @fzf@/share/fzf/completion.zsh
+  . @fzf@/share/fzf/key-bindings.zsh
+#+END_SRC
+
 Turn on prompt with colors.
 
 #+BEGIN_SRC shell
   PROMPT=
+
+  # Some terminal programs hide the cursor and fail to restore it when they
+  # exit abnormally. Repair the terminal cursor whenever the prompt is drawn.
+  PROMPT+=$'%{\e[?25h%}'
+
   if [ -n "${SSH_CONNECTION-}" ]; then
       PROMPT+='%F{blue}'
       if [ "$TERM" = dumb-emacs-ansi ]; then
@@ -5204,6 +5189,14 @@ direnv
   fi
 #+END_SRC
 
+End profiling
+
+#+BEGIN_SRC shell
+  if [ -n "${ZSH_DEBUGRC+1}" ]; then
+      zprof
+  fi
+#+END_SRC
+
 ** =etc-profile.sh=
 :PROPERTIES:
 :header-args: :tangle etc-profile.sh :tangle-mode (identity #o755) :shebang "#!/usr/bin/env sh"
@@ -5295,7 +5288,7 @@ otherwise zsh will default to 500 and not save at all!
     (setenv "HISTFILE" (eval val))
     (custom-set-default sym val))
 
-  (defcustom history-file (expand-file-name ".zsh_history" (getenv "HOME"))
+  (defcustom history-file (expand-file-name ".history" (getenv "HOME"))
     "The history file to use."
     :type 'string
     :group 'bauer
@@ -6275,7 +6268,7 @@ Full listing of packages that will be made available.
 
     # Helpful core tools
     zsh cacert file lsof pstree which rsync
-    unzip man less ripgrep
+    unzip man less ripgrep fzf
     tree gnutls
 
     # not included so we use macOS’s builtin, which supports keychain
@@ -6370,7 +6363,8 @@ have been configured to use the paths above.
       substituteAll ${./zshrc.sh} $out/etc/.zshrc
       substituteInPlace $out/etc/.zshrc \
         --subst-var-by completions ${zsh-completions} \
-        --subst-var-by coreutils ${pkgs.coreutils}
+        --subst-var-by coreutils ${pkgs.coreutils} \
+        --subst-var-by fzf ${pkgs.fzf}
       ln -s $out/etc/.zshrc $out/etc/zshrc
       makeWrapper ${pkgs.zsh}/bin/zsh $out/bin/zsh --set ZDOTDIR $out/etc
       substituteAll ${./etc-profile.sh} $out/etc/profile
@@ -6410,6 +6404,7 @@ have been configured to use the paths above.
       (runCommand "my-profile" {
         inherit PATH MANPATH XDG_DATA_DIRS INFOPATH TERMINFO_DIRS;
         bash_completion = pkgs.bash-completion;
+        fzf = pkgs.fzf;
       } ''
         mkdir -p $out/etc/profile.d
         substituteAll ${./profile.sh} $out/etc/profile.d/my-profile.sh
@@ -6474,6 +6469,22 @@ ssh-add --apple-use-keychain
 
 Note: only ssh keys with passphrases can be added to the keychain. You can
 temporarily add a password with `ssh-keygen -p -f`.
+
+You can also use Touch ID for ssh keys, stored in the Secure Enclave. To set up:
+
+#+BEGIN_SRC sh
+sc_auth create-ctk-identity -l ssh-key -k p-256-ne -t bio
+#+END_SRC
+
+Then load it into the agent (press enter at the PIN prompt):
+
+#+BEGIN_SRC sh
+ssh-add -K -S /usr/lib/ssh-keychain.dylib
+#+END_SRC
+
+Get the public key to add to servers/GitHub with =ssh-add -L | grep sk-ecdsa=.
+
+Both variants of ssh-add are automatically run in the shell startup when macOS is detected.
 
 *** Git
 

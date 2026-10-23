@@ -23,7 +23,7 @@
     "Word32" "Word64" "Double" "ByteString" "UTCTime" "Day" "Text" "TimeOfDay"
     "UUID" "Maybe"
     )
-  '(("=" . 'font-lock-operator)
+  '(("=" . 'font-lock-operator-face)
     ("'.*'" . font-lock-string-face)
     ("\\[\\(\s?\\w+\\)*\\]" . 'font-lock-type-face)
     ("^\s+\\(\\w+\\)" . 'font-lock-variable-name-face)
