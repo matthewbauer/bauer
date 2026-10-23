@@ -6096,10 +6096,35 @@ TODO: use dump-emacs here to speed up config.
     ++ [default epkgs.delight epkgs.treesit-grammars.with-all-grammars])).overrideAttrs (old: {
       deps = old.deps.overrideAttrs (old2: {
         buildCommand = old2.buildCommand + ''
+          # Activate packages from a quickstart file generated below
+          # instead of having package.el scan every package directory at
+          # startup.
+          cat >> "$siteStart" <<EOF
+
+          (advice-add 'package-activate-all :around
+            (defun bauer--package-quickstart (orig &rest args)
+              (advice-remove 'package-activate-all #'bauer--package-quickstart)
+              (let ((package-quickstart-file
+                     (if (or (bound-and-true-p package-quickstart)
+                             (file-expand-wildcards
+                              (expand-file-name "*/*-pkg.el" package-user-dir)))
+                         package-quickstart-file
+                       "$out/share/emacs/site-lisp/package-quickstart.el")))
+                (apply orig args))))
+          EOF
+
           $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs -l $siteStart -f batch-byte-compile $out/share/emacs/site-lisp/*.el
           $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs -l $siteStart \
             --eval "(add-to-list 'native-comp-eln-load-path \"$out/share/emacs/native-lisp/\")" \
             -f batch-native-compile $out/share/emacs/site-lisp/*.el
+
+          # Generate (and byte-compile) the package quickstart file.
+          $emacs/bin/emacs --batch -L $out/share/emacs/site-lisp/ -l $subdirs \
+            --eval "(progn (require 'package) \
+                      (setq package-user-dir \"/var/empty/nonexistent\" \
+                            package-directory-list '(\"$out/share/emacs/site-lisp/elpa\") \
+                            package-quickstart-file \"$out/share/emacs/site-lisp/package-quickstart.el\") \
+                      (package-quickstart-refresh))"
         '';
       });
     });
