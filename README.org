@@ -1032,7 +1032,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
            ("M-g i" . consult-imenu)
            ("M-g I" . consult-imenu-multi)
            ;; M-s bindings (search-map)
-           ("M-s d" . consult-find)
+           ("M-s d" . consult-fd)
            ("M-s D" . consult-locate)
            ("M-s g" . consult-grep)
            ("M-s G" . consult-git-grep)
@@ -1847,8 +1847,6 @@ package, so no download is needed on first use.
            :map dired-mode-map
            ("M-@" . maybe-project-ghostel))
     :custom
-    ;; bytes, not lines like vterm-max-scrollback; ~10k rows
-    (ghostel-max-scrollback (* 10 1024 1024))
     ;; never try to download/compile the module; nix provides it
     (ghostel-module-auto-install nil)
     (ghostel-notification-function #'my-ghostel-notify)
@@ -3328,7 +3326,6 @@ Show whitespace
 (use-package whitespace
   :custom
   (whitespace-line-column 120)
-  (whitespace-action '(cleanup))
   (whitespace-style '(face trailing lines space-before-tab empty))
   :hook (prog-mode . (lambda () (and (not noninteractive)
                                      (not (eq (aref (buffer-name) 0) ?\ ))
@@ -3834,8 +3831,7 @@ repositories.
                   (lambda ()
                     (when (and buffer-file-name ; only if it's visiting a file
                                (not (string-match-p "^\\*" (buffer-name)))) ; avoid *scratch*, etc.
-                      ;; (message "[emacs-solo-highlight-keywords-mode]: running on buffer %s" (buffer-name))
-                      (run-with-idle-timer 1 nil #'emacs-solo/highlight-keywords-mode-on)))))
+                      (font-lock-add-keywords nil +highlight-keywords--keywords t)))))
 #+END_SRC
 
 **** emacs-solo-olivetti
@@ -4188,7 +4184,12 @@ Most of these are available in MELPA.
     :delight
     :preface
     (defun my-copilot-mode-maybe ()
-      (unless (derived-mode-p 'org-mode)
+      "Enable `copilot-mode' except in Org, read-only and hidden buffers.
+Hidden buffers (names starting with a space) include Org's src-block
+fontification buffers, whose contents would otherwise go to Copilot."
+      (unless (or (derived-mode-p 'org-mode)
+                  buffer-read-only
+                  (string-prefix-p " " (buffer-name)))
         (copilot-mode 1)))
     :hook
     ((text-mode prog-mode) . my-copilot-mode-maybe)
@@ -6296,7 +6297,7 @@ Full listing of packages that will be made available.
 
     # Helpful core tools
     zsh cacert file lsof pstree which rsync
-    unzip man less ripgrep fzf
+    unzip man less ripgrep fd fzf
     tree gnutls
 
     # not included so we use macOS’s builtin, which supports keychain
