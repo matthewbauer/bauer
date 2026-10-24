@@ -1461,9 +1461,11 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     (defun my-vc-status ()
       "Open Majutsu in Jujutsu repositories, Magit otherwise."
       (interactive)
-      (if (locate-dominating-file default-directory ".jj")
-          (call-interactively #'majutsu-log)
-        (call-interactively #'magit-status)))
+      (let ((default-directory (or (bound-and-true-p project-current-directory-override)
+                                   default-directory)))
+        (if (locate-dominating-file default-directory ".jj")
+            (call-interactively #'majutsu-log)
+          (call-interactively #'magit-status))))
     (defun majutsu-gh-pr-open (bookmarks)
       "Open the associated GitHub PR of a jujutsu bookmark."
       (interactive (list (majutsu-read-bookmarks "Bookmark to view PR for: ")))
@@ -1490,9 +1492,49 @@ can skip the (slow, in large repos) working copy scan."
     ;; Only snapshot once per log refresh (in `majutsu-log-insert-logs').
     (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-insert-workspaces :around #'my-majutsu--ignore-working-copy)
+    (advice-add 'majutsu-bug-reference--git-remote-alist :around #'my-majutsu--ignore-working-copy)
+    (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
     ;; Rendering the whole default revset is slow in big repos; press
     ;; `l -n' in the log buffer to change the limit.
     (put 'majutsu-log-mode 'majutsu-log-default-arguments '("--limit=50")))
+#+END_SRC
+
+**** transient
+
+In transient popups (Majutsu, Magit, ...) =C-v= / =C-M-v= only scroll the popup
+itself, which usually fits on screen, and =s-v= / =M-v= aren't bound at all.
+Scroll the popup when it overflows, otherwise the window it was opened from
+(e.g. the Majutsu log), and bind =s-v= / =M-v= too.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package transient
+    :defer t
+    :preface
+    (defun bauer/transient-scroll-window ()
+      "The popup window if its contents overflow, else the original window."
+      (if (and (window-live-p transient--window)
+               ;; Compare pixels: the popup's separator line is ~1px tall.
+               (> (cdr (window-text-pixel-size transient--window))
+                  (window-body-height transient--window t)))
+          transient--window
+        transient--original-window))
+    (defun bauer/transient-scroll (scroll arg)
+      "Call SCROLL with ARG in `bauer/transient-scroll-window'."
+      (with-selected-window (bauer/transient-scroll-window)
+        (funcall scroll arg)))
+    :config
+    (advice-add 'transient-scroll-up :override
+                (lambda (&optional arg)
+                  (bauer/transient-scroll #'scroll-up-command arg))
+                '((name . bauer/transient-scroll)))
+    (advice-add 'transient-scroll-down :override
+                (lambda (&optional arg)
+                  (bauer/transient-scroll #'scroll-down-command arg))
+                '((name . bauer/transient-scroll)))
+    ;; Already treated as scroll commands (stay in the popup) via
+    ;; `transient-predicate-map'.
+    (keymap-set transient-base-map "s-v" #'transient-scroll-down)
+    (keymap-set transient-base-map "M-v" #'transient-scroll-down))
 #+END_SRC
 
 **** MMM Mode
@@ -1631,8 +1673,7 @@ outliner but also much much more.
        ("" "alltt" nil nil)
        ("" "upquote" nil nil)
        ("" "listings" nil nil)))
-    :functions (pcomplete-completions-at-point
-                my/org-offer-links-no-display-override)
+    :functions (pcomplete-completions-at-point)
     :hook
     (org-mode . (lambda ()
                   (add-hook 'completion-at-point-functions
@@ -1644,6 +1685,11 @@ outliner but also much much more.
     ;;               (autoload 'org-eldoc-documentation-function "org-eldoc")
     ;;               (setq-local eldoc-documentation-function
     ;;                           #'org-eldoc-documentation-function)))
+    :preface
+    (defun my/no-display-override (fn &rest args)
+      "Call FN with ARGS without `display-buffer-overriding-action'."
+      (let ((display-buffer-overriding-action (list nil)))
+        (apply fn args)))
     :config
     ;; TODO: report upstream
     ;; sh-mode is remapped to bash-ts-mode, which redirects back to sh-mode
@@ -1655,6 +1701,7 @@ outliner but also much much more.
     (with-eval-after-load 'org-src
       (dolist (lang '("sh" "shell"))
         (setf (alist-get lang org-src-lang-modes nil nil #'equal) 'org-sh-src)))
+    (advice-add 'org-offer-links-in-entry :around #'my/no-display-override)
     ;; (org-babel-do-load-languages 'org-babel-load-languages
     ;;                              '((sql . t)
     ;;                                (shell . t)))
@@ -1764,12 +1811,27 @@ instance spacemacs-theme can be enabled:
 
 #+BEGIN_SRC emacs-lisp
   (use-package treesit-fold
-    :hook
-    ((treesit-fold-mode c-ts-mode c++-ts-mode java-ts-mode
-      go-ts-mode ruby-ts-mode js-ts-mode typescript-ts-mode
-      tsx-ts-mode css-ts-mode html-ts-mode bash-ts-mode
-      cmake-ts-mode dockerfile-ts-mode json-ts-mode
-      toml-ts-mode yaml-ts-mode) . treesit-fold-indicators-mode))
+    :hook (after-init . global-treesit-fold-indicators-mode)
+    :functions (treesit-fold-indicators--size-change@debounce
+                treesit-fold-indicators--render-buffer))
+#+END_SRC
+
+**** kirigami
+
+[[https://github.com/jamescherti/kirigami.el][GitHub]]
+
+Convenient bindings for managing different folding frameworks.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package kirigami
+    :bind (:prefix-map kirigami-prefix-map
+           :prefix "C-c z"
+           ("o" . kirigami-open-fold)
+           ("O" . kirigami-open-fold-rec)
+           ("c" . kirigami-close-fold)
+           ("a" . kirigami-toggle-fold)
+           ("r" . kirigami-open-folds)
+           ("m" . kirigami-close-folds)))
 #+END_SRC
 
 **** try
@@ -2154,8 +2216,7 @@ Base mode used for shell and terminal modes.
       "`compilation-error-regexp-alist-alist' entries for buck2 build output.")
 
     (dolist (entry buck2-compilation-error-regexp-alist-alist)
-      (setf (alist-get (car entry) compilation-error-regexp-alist-alist) (cdr entry))
-      (add-to-list 'compilation-error-regexp-alist (car entry))))
+      (setf (alist-get (car entry) compilation-error-regexp-alist-alist) (cdr entry))))
 #+END_SRC
 
 **** completion-preview-mode
@@ -3024,7 +3085,21 @@ Optionally, start a server (disabled by default):
   (use-package so-long
     :if (>= emacs-major-version 27)
     :demand
-    :config (global-so-long-mode))
+    :functions (so-long-statistics-excessive-p)
+    :preface
+    (defun bauer/so-long-predicate ()
+      "Detect long lines, or a buffer over `bauer/so-long-large-file-size'."
+      (or (> (buffer-size) bauer/so-long-large-file-size)
+          (so-long-statistics-excessive-p)))
+    :config
+    ;; Also treat very large files as "long": huge data files cost
+    ;; font-lock, goto-address and flyspell work even without long lines.
+    (defvar bauer/so-long-large-file-size (* 5 1024 1024)
+      "Buffers larger than this many characters trigger `so-long'.")
+    (setq so-long-predicate #'bauer/so-long-predicate)
+    ;; csv, log and other data modes derive from `text-mode'.
+    (add-to-list 'so-long-target-modes 'text-mode t)
+    (global-so-long-mode))
 #+END_SRC
 
 **** sql
@@ -3072,10 +3147,14 @@ current buffer, killing it."
     :demand
     :preface
     (defun my/tab-bar-tab-name ()
-      "Tab name: project directory if in a project, else current buffer."
-      (if-let* ((project (project-current)))
-          (project-name project)
-        (tab-bar-tab-name-current)))
+      "Using the project name as tab name"
+      (let ((buffer (window-buffer (or (minibuffer-selected-window)
+                                       (and (window-minibuffer-p)
+  					  (get-mru-window))))))
+        (with-current-buffer buffer
+          (if-let* ((project (project-current)))
+              (project-name project)
+            (buffer-name)))))
     (defun my/project-switch-project-tab (orig-fun dir)
       "Switch to an existing tab named after the project at DIR, if any.
     Otherwise fall back to ORIG-FUN (`project-switch-project')."
@@ -3096,9 +3175,9 @@ current buffer, killing it."
     (tab-bar-mode 1)
     (tab-bar-history-mode 1)
     :bind (:repeat-map tab-bar-history-repeat-map
-           ("<left>" . tab-bar-history-back)
-           ("<right>" . tab-bar-history-forward)
-  	 ))
+  		     ("<left>" . tab-bar-history-back)
+  		     ("<right>" . tab-bar-history-forward)
+  		     ))
 #+END_SRC
 
 **** term
@@ -3477,13 +3556,12 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
     (eglot-sync-connect 0)
     (eglot-events-buffer-config '(:size 0 :format full))
     (jsonrpc-event-hook nil)
-    (eglot-code-action-indications nil) ;; EMACS-31 -- annoying as hell
 
     :bind (:map
            eglot-mode-map
-           ("C-c l a" . eglot-code-actions)
-           ("C-c l o" . eglot-code-action-organize-imports)
-           ("C-c l r" . eglot-rename)
+           ("C-c l a" . refactor)
+           ("C-c l o" . refactor-organize-imports)
+           ("C-c l r" . refactor-rename)
            ("C-c l i" . eglot-inlay-hints-mode)
            ("C-c l f" . eglot-format)))
 #+END_SRC
@@ -3586,7 +3664,15 @@ didn’t work well enough.
     ;;              "haskell-doc")
     ;;            (setq-local eldoc-documentation-function
     ;;                        'haskell-doc-current-info)))
-    (haskell-mode . (lambda () (whitespace-mode -1)))
+    (haskell-mode . my-haskell-treesit-parser)
+    :preface
+    (defun my-haskell-treesit-parser ()
+      "Create a tree-sitter parser so `treesit-fold' works in `haskell-mode'.
+Only the parser is created; haskell-mode keeps its own font-lock and
+indentation."
+      (when (and (treesit-available-p)
+                 (treesit-language-available-p 'haskell))
+        (treesit-parser-create 'haskell)))
     :init
     (add-to-list 'completion-ignored-extensions ".hi")
     ;; (require 'haskell-compile)
