@@ -1467,6 +1467,8 @@ can skip the (slow, in large repos) working copy scan."
              (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
         (apply fn args)))
     :config
+    ;; get magit font faces to avoid error
+    (require 'magit)
     (transient-insert-suffix 'majutsu-git-transient '(0 2) ["PRs" ("P" "View PR" majutsu-gh-pr-open)])
     ;; Only snapshot once per log refresh (in `majutsu-log-insert-logs').
     (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
