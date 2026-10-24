@@ -372,26 +372,17 @@ With non-nil MAKE-CD, also `cd' to the current buffer's directory."
     ghostel-toggle-display-action))
 
 (defun ghostel-toggle--new (&optional buffer-name)
-  "Create and return a new Ghostel terminal buffer named BUFFER-NAME.
-Mirrors the buffer setup performed by the `ghostel' command, but lets the
-caller control the buffer name, the working directory and the display
-action so the result integrates with `ghostel-toggle's window handling."
-  (ghostel--load-module t)
+  "Create and return a new Ghostel terminal buffer named BUFFER-NAME."
   (let* ((default-directory default-directory)
          (name (or buffer-name ghostel-buffer-name))
          (display-action (ghostel-toggle--display-action))
-         project-root buffer)
+         project-root)
     (when (and ghostel-toggle-project-root
                (eq (ghostel-toggle--effective-scope) 'project))
       (setq project-root (ghostel-toggle--project-root))
       (when project-root
         (setq default-directory project-root)))
-    (setq buffer (ghostel--create name display-action))
-    (with-current-buffer buffer
-      (setq ghostel--managed-buffer-name (buffer-name))
-      (setq ghostel--buffer-identity (buffer-name))
-      (ghostel--start-process))
-    buffer))
+    (ghostel-create name display-action)))
 
 (defun ghostel-toggle--get-buffer (&optional make-cd ignore-prompt-p)
   "Return a Ghostel buffer to switch to, honoring the effective scope.
