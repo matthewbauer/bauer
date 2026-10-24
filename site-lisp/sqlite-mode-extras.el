@@ -190,7 +190,7 @@ Takes TABLE to query and COLUMN to select from for completions."
                                  (save-excursion
                                    (goto-char start)
                                    (while (and (< (point) end) (not (eobp)))
-                                     (when-let ((row (sqlite-mode-extras--row-property-at-point)))
+                                     (when-let* ((row (sqlite-mode-extras--row-property-at-point)))
                                        (setq rows (cons row rows)))
                                      (forward-line 1)))
                                  rows)
@@ -219,7 +219,7 @@ Takes TABLE to query and COLUMN to select from for completions."
 
 (defun sqlite-mode-extras--point-at-last-column-p ()
   "Return t if point is on a table's last column."
-  (when-let ((last-column (car (car (last (sqlite-mode-extras--table-header-column-details
+  (when-let* ((last-column (car (car (last (sqlite-mode-extras--table-header-column-details
                                            (sqlite-mode-extras--table-header-line)))))))
     (equal (sqlite-mode-extras--resolve-table-column) last-column)))
 
@@ -427,7 +427,7 @@ When BACKWARD is set, navigate to previous column."
     (let ((tables))
       (goto-char (point-min))
       (while (not (eobp))
-        (when-let ((table (sqlite-mode-extras--table-name))
+        (when-let* ((table (sqlite-mode-extras--table-name))
                    (table-exists (sqlite-mode-extras--table-expanded-p)))
           (push table tables))
         (forward-line))
@@ -527,7 +527,7 @@ Set REMOVE to remove query and results."
     (let* ((words (split-string query))
            (from-index (cl-position "from" words :test #'string= :key #'downcase)))
       (when from-index
-        (when-let ((table-name (nth (1+ from-index) words)))
+        (when-let* ((table-name (nth (1+ from-index) words)))
           (replace-regexp-in-string "[^a-zA-Z0-9_]" "" table-name))))))
 
 (defun sqlite-mode-extras-execute-and-display-select-query (&optional query insert-at-point)
@@ -573,7 +573,7 @@ Set INSERT-AT-POINT to insert all results at point (instead of (point-max))"
   "Get all lines starting with SELECT or select from the current buffer."
   (save-excursion
     (goto-char (point-min))
-    (let ((regexp (rx bol (0+ space) (or "SELECT" "select") (one-or-more any)))
+    (let ((regexp (rx bol (0+ space) (or "SELECT" "select") (one-or-more nonl)))
           (matches))
       (while (re-search-forward regexp nil t)
         (push (string-trim (match-string 0)) matches))

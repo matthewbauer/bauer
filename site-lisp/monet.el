@@ -1561,10 +1561,6 @@ Returns the diff context object."
              ;; Put the control buffer in the context
              (setf (alist-get 'control-buffer context) (current-buffer))
 
-             ;; Store the on-accept and on-quit callbacks in local buffer variables
-             (setq-local on-accept-callback on-accept)
-             (setq-local on-quit-callback on-quit)
-
              ;; Set up keybindings using our minor mode for evil-mode compatibility
              (monet--setup-diff-keybindings
               monet-ediff-accept-key
@@ -1575,10 +1571,10 @@ Returns the diff context object."
                 (let ((edited-content
                        (with-current-buffer ediff-buffer-B
                          (buffer-substring-no-properties (point-min) (point-max)))))
-                  (funcall on-accept-callback edited-content)))
+                  (funcall on-accept edited-content)))
               (lambda ()
                 (interactive)
-                (funcall on-quit-callback)))
+                (funcall on-quit)))
 
              ;; Jump to the first difference
              (ignore-errors (ediff-next-difference)))))

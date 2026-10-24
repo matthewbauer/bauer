@@ -229,6 +229,7 @@ COLORFGBG method.
 #+BEGIN_SRC emacs-lisp
   (eval-and-compile
     (autoload #'xterm--init-modify-other-keys "term/xterm"))
+  (declare-function setup-iterm nil (frame))
   (unless (display-graphic-p)
     (when (fboundp 'tty-tip-mode) (tty-tip-mode))
 
@@ -366,6 +367,7 @@ The format of arguments to =set-defaults= is identical to the one used by
 | scroll-preserve-screen-position        | 'always                      |
 | sentence-end-double-space              | nil                          |
 | tab-always-indent                      | 'complete                    |
+| text-mode-ispell-word-completion       | nil                          |
 | truncate-partial-width-windows         | nil                          |
 | undo-limit                             | 1000000                      |
 | undo-strong-limit                      | 1500000                      |
@@ -710,6 +712,13 @@ better navigations.
 Some bauer-specific custom keybindings.
 
 #+BEGIN_SRC emacs-lisp
+(declare-function browse-url-default-browser "browse-url" (url &rest args))
+(declare-function browse-url-file-url "browse-url" (file))
+(declare-function haskell-ident-at-point "haskell-mode" ())
+(declare-function haskell-hoogle "haskell-hoogle" (query &optional info))
+(declare-function webjump-url-fix "webjump" (url))
+(declare-function webjump-url-encode "webjump" (str))
+
 (defun bauer-browse-url-at-point (&optional arg)
   "Like `browse-url-at-point', but open local files as file:/// URLs."
   (interactive "P")
@@ -964,7 +973,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :autoload (cape-wrap-buster)
     :after corfu
     :hook ((completion-at-point-functions . cape-dabbrev)
-           (completion-at-point-functions . cape-dict)
            (completion-at-point-functions . cape-file)
            (completion-at-point-functions . cape-elisp-block)
            (completion-at-point-functions . cape-history)
@@ -992,6 +1000,13 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
   (use-package consult
     :autoload (consult-register-window)
+    :functions (consult-buffer
+                consult--buffer-state consult--file-state consult--file-action
+                consult--project-root consult--buffer-query consult--buffer-pair
+                consult--buffer-file-hash consult--fast-abbreviate-file-name
+                consult--customize-put
+                my/consult--other-tab-for-dir my/consult--state-with-tab
+                my/consult--buffer-state-with-tab my/consult--file-state-with-tab)
     :preface
     (defun maybe-project-buffer (&optional all)
       (interactive "P")
@@ -1181,6 +1196,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 #+BEGIN_SRC emacs-lisp
   (use-package diff-hl
     :defer 2
+    :functions (global-diff-hl-mode diff-hl-margin-mode)
     :custom
     (diff-hl-disable-on-remote t)
     (diff-hl-update-async t)
@@ -1433,6 +1449,7 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
   (use-package majutsu
     :if (locate-file "jj" exec-path)
     :commands (majutsu majutsu-log majutsu-dispatch)
+    :functions (magit-status majutsu-read-bookmarks)
     :bind (("C-x g" . my-vc-status)
            ("C-x p m" . my-vc-status)
            ("C-x p v" . majutsu-log)
@@ -1614,7 +1631,8 @@ outliner but also much much more.
        ("" "alltt" nil nil)
        ("" "upquote" nil nil)
        ("" "listings" nil nil)))
-    :functions pcomplete-completions-at-point
+    :functions (pcomplete-completions-at-point
+                my/org-offer-links-no-display-override)
     :hook
     (org-mode . (lambda ()
                   (add-hook 'completion-at-point-functions
@@ -1699,6 +1717,7 @@ with high contrast. We will only enable it when we are running with GUI Emacs.
   (use-package apropospriate-theme
     :ensure nil
     :if window-system
+    :functions create-apropospriate-theme
     :preface
     (defun apropospriate-change-theme-appearance (&optional appearance)
       (unless appearance
@@ -1832,7 +1851,7 @@ package, so no download is needed on first use.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghostel
-    :functions ghostel-compile-global-mode
+    :functions (ghostel-compile-global-mode ghostel ghostel-project ghostel-send-key)
     :bind (("M-@" . maybe-project-ghostel)
            :map ghostel-semi-char-mode-map
            ("M-@" . maybe-project-ghostel)
@@ -1959,7 +1978,7 @@ investigate how to fix this.
     :custom
     (auto-revert-avoid-polling t)
     ;; (global-auto-revert-non-file-buffers t)
-    (global-auto-revert-ignore-modes '(Buffer-menu-mode))
+    (global-auto-revert-ignore-modes '(Buffer-menu-mode tags-table-mode))
     :config (global-auto-revert-mode t))
 #+END_SRC
 
@@ -2146,6 +2165,7 @@ Base mode used for shell and terminal modes.
     :if (>= emacs-major-version 30)
     :delight
     :hook ((prog-mode text-mode comint-mode) . completion-preview-mode)
+    :functions completion-preview-hide
     :bind (:map completion-preview-active-mode-map
                 ("M-n" . completion-preview-next-candidate)
                 ("M-p" . completion-preview-prev-candidate)
@@ -2534,6 +2554,8 @@ Make scripts executable automatically.
              (size 6 -1 :right) " " (mode 16 16) " " filename)
        (mark " " (name 16 -1) " " filename)))
     (ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
+    ;; *Ibuffer* is global, so no reason to group it in project buffer lists
+    :hook (ibuffer-mode . (lambda () (setq default-directory "~/")))
     :bind (([remap list-buffers] . ibuffer)
            :map ibuffer-mode-map
            ("M-o" . nil)))
@@ -2673,6 +2695,7 @@ Automatically clean up stale buffers each night.
 #+BEGIN_SRC emacs-lisp
   (use-package mouse
     :ensure nil
+    :functions (org-open-at-point org-element-type)
     :preface
     (defun my/org-follow-link-from-menu (marker &optional where)
       "Follow the Org link at MARKER, displaying it according to WHERE."
@@ -2729,6 +2752,7 @@ Automatically clean up stale buffers each night.
 #+BEGIN_SRC emacs-lisp
   (use-package mwheel
     :ensure nil
+    :functions mwheel-scroll@tilt-only-when-truncated
     :custom
     (mouse-wheel-tilt-scroll t)
     :config
@@ -3325,8 +3349,7 @@ Show whitespace
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
   :custom
-  (whitespace-line-column 120)
-  (whitespace-style '(face trailing lines space-before-tab empty))
+  (whitespace-style '(face trailing space-before-tab empty))
   :hook (prog-mode . (lambda () (and (not noninteractive)
                                      (not (eq (aref (buffer-name) 0) ?\ ))
                                      (not (eq (aref (buffer-name) 0) ?*))
@@ -3638,6 +3661,7 @@ macho-mode to toggle then M-x hexl-mode.
 #+BEGIN_SRC emacs-lisp
   (use-package outline
     :ensure nil
+    :functions (outline-previous-heading outline-next-heading)
     :config
     (put #'outline-previous-heading 'repeat-map 'outline-navigation-repeat-map)
     (put #'outline-next-heading 'repeat-map 'outline-navigation-repeat-map))
@@ -3959,7 +3983,8 @@ Most of these are available in MELPA.
   (use-package agent-shell
     :bind ("C-c C-'" . agent-shell-help-menu)
     :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool
-                agent-shell--dired-paths-in-region agent-shell--get-files-context agent-shell--buffer-files agent-shell-cwd)
+                agent-shell--dired-paths-in-region agent-shell--get-files-context agent-shell--buffer-files agent-shell-cwd
+                agent-shell agent-shell-subscribe-to)
     :hook (agent-shell-mode . (lambda ()
                                 (let ((buffer (current-buffer)))
                                   (agent-shell-subscribe-to
@@ -4182,11 +4207,9 @@ Most of these are available in MELPA.
 #+BEGIN_SRC emacs-lisp
   (use-package copilot
     :delight
+    :functions copilot-mode
     :preface
     (defun my-copilot-mode-maybe ()
-      "Enable `copilot-mode' except in Org, read-only and hidden buffers.
-Hidden buffers (names starting with a space) include Org's src-block
-fontification buffers, whose contents would otherwise go to Copilot."
       (unless (or (derived-mode-p 'org-mode)
                   buffer-read-only
                   (string-prefix-p " " (buffer-name)))
@@ -4236,6 +4259,7 @@ Dape provides Debug Adapter Protocol support.
 #+BEGIN_SRC emacs-lisp
   (use-package dape
     :commands dape
+    :functions (dape-breakpoint-load dape-breakpoint-save dape-breakpoint-global-mode)
     :custom
     (dape-buffer-window-arrangement 'right)
     :bind (:map prog-mode-map
@@ -6125,6 +6149,10 @@ TODO: use dump-emacs here to speed up config.
                       (setq package-user-dir \"/var/empty/nonexistent\" \
                             package-directory-list '(\"$out/share/emacs/site-lisp/elpa\") \
                             package-quickstart-file \"$out/share/emacs/site-lisp/package-quickstart.el\") \
+                      (setq byte-compile-log-warning-function \
+                        (lambda (s p &optional f l) \
+                          (unless (eq l :warning) \
+                            (byte-compile--log-warning-for-byte-compile s p f l)))) \
                       (package-quickstart-refresh))"
         '';
       });
