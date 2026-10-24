@@ -150,6 +150,7 @@ for f in *; do
         .gitignore) DEST="$HOME/.config/git/ignore" ;;
         .gitconfig) DEST="$HOME/.config/git/config" ;;
         .gitattributes) DEST="$HOME/.config/git/attributes" ;;
+        jjconfig.toml) DEST="$HOME/.config/jj/config.toml" ;;
         credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
         gnu.emacs.daemon.plist) DEST="$HOME/Library/LaunchAgents/gnu.emacs.daemon.plist" ;;
         *) DEST="$HOME/$f" ;;

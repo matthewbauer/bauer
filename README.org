@@ -1435,7 +1435,11 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     :commands (majutsu majutsu-log majutsu-dispatch)
     :bind (("C-x g" . my-vc-status)
            ("C-x p m" . my-vc-status)
-           ("C-x p v" . majutsu-log))
+           ("C-x p v" . majutsu-log)
+           :package majutsu
+           :repeat-map majutsu-section-cycle-repeat-map
+           ("TAB" . majutsu-section-cycle)
+           ("<tab>" . majutsu-section-cycle))
     :preface
     (defun my-vc-status ()
       "Open Majutsu in Jujutsu repositories, Magit otherwise."
@@ -7070,6 +7074,7 @@ allow overriding your current =$HOME= files.
           .gitignore) DEST="$HOME/.config/git/ignore" ;;
           .gitconfig) DEST="$HOME/.config/git/config" ;;
           .gitattributes) DEST="$HOME/.config/git/attributes" ;;
+          jjconfig.toml) DEST="$HOME/.config/jj/config.toml" ;;
           credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
           gnu.emacs.daemon.plist) DEST="$HOME/Library/LaunchAgents/gnu.emacs.daemon.plist" ;;
           ,*) DEST="$HOME/$f" ;;
