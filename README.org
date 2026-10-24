@@ -3541,6 +3541,36 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
 )
 #+END_SRC
 
+**** etags
+
+#+BEGIN_SRC emacs-lisp
+(use-package etags
+  :ensure nil
+  :custom
+  (tags-revert-without-query t)
+  (tags-add-tables nil)
+  :preface
+  (defun bauer/tags-xref-backend ()
+    "Use the TAGS file at the root of this tree, if there is one."
+    (when-let* ((dir (locate-dominating-file default-directory "TAGS")))
+      (setq-local tags-file-name (expand-file-name "TAGS" dir))
+      'bauer-tags))
+  :init
+  ;; Before dumb-jump, so we try etags if they exist.
+  (add-hook 'xref-backend-functions #'bauer/tags-xref-backend 80)
+  (with-eval-after-load 'xref
+    (cl-defmethod xref-backend-identifier-at-point ((_ (eql 'bauer-tags)))
+      (require 'etags)
+      (xref-backend-identifier-at-point 'etags))
+    (cl-defmethod xref-backend-identifier-completion-table
+      ((_ (eql 'bauer-tags)))
+      (require 'etags)
+      (xref-backend-identifier-completion-table 'etags))
+    (cl-defmethod xref-backend-definitions ((_ (eql 'bauer-tags)) identifier)
+      (require 'etags)
+      (xref-backend-definitions 'etags identifier))))
+#+END_SRC
+
 *** Programming languages
 
 Each =use-package= declaration corresponds to =major modes= in Emacs lingo.
