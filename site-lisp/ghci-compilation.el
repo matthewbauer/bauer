@@ -20,6 +20,10 @@
 (defvar-local ghci-compilation-last-prompt-marker nil)
 (defvar-local ghci-compilation-package nil)
 (defvar-local ghci-compilation-flake-ref nil)
+(defvar-local ghci-compilation--completion-cache nil
+  "Hash table of prefix -> candidates from ghci’s :complete.
+Cleared whenever ghci returns to its prompt after a command, so
+results stay valid across reloads.")
 
 (declare-function mode-line-notify-send "mode-line-notify")
 
@@ -313,6 +317,8 @@ ghci-compilation-last-command-finished-hook. Defaults to 60."
 (defun ghci-compilation-process-output (&optional _)
   "Process output to check if ghci has loaded."
   (when (ghci-compilation--is-prompt)
+    (when ghci-compilation--completion-cache
+      (clrhash ghci-compilation--completion-cache))
     (set-marker ghci-compilation-last-prompt-marker (process-mark (get-buffer-process (current-buffer))))
     (if (not ghci-compilation-has-loaded-prompt)
         (progn
@@ -499,6 +505,32 @@ these are the same."
               (push (concat prefix (nth 0 (split-string-and-unquote line " "))) completions)))
           completions)))))
 
+(defun ghci-compilation--ready-for-query-p (buf)
+  "Return non-nil if ghci in BUF can answer a query without blocking.
+Querying while ghci is busy (e.g. during :reload) would block Emacs
+until ghci finishes, so callers that run on every keystroke (such as
+`completion-preview-mode') must check this first."
+  (and (buffer-live-p buf)
+       (with-current-buffer buf
+         (and ghci-compilation-has-loaded-prompt
+              (process-live-p (get-buffer-process buf))
+              (not (ghci-compilation--is-running-command))
+              (not (and comint-redirect-output-buffer
+                        (not comint-redirect-completed)))))))
+
+(defun ghci-compilation--cached-completions (buf prefix)
+  "Like `ghci-compilation--completions' but cached per PREFIX in BUF."
+  (with-current-buffer buf
+    (unless ghci-compilation--completion-cache
+      (setq ghci-compilation--completion-cache (make-hash-table :test 'equal)))
+    (when (> (hash-table-count ghci-compilation--completion-cache) 1000)
+      (clrhash ghci-compilation--completion-cache))
+    (let ((hit (gethash prefix ghci-compilation--completion-cache 'miss)))
+      (if (eq hit 'miss)
+          (puthash prefix (ghci-compilation--completions buf prefix)
+                   ghci-compilation--completion-cache)
+        hit))))
+
 (defun ghci-compilation-complete-at-point ()
   "Complete at point using ghci’s :complete command."
   (when-let* ((start (comint-line-beginning-position))
@@ -535,22 +567,23 @@ these are the same."
                        haskell-completions-ghc-option-prefix
                        haskell-completions-language-extension-prefix))
               (let* ((is-import (eql typ 'haskell-completions-module-name-prefix))
+                     ;; `ghci-compilation-has-loaded-prompt' is local to
+                     ;; the ghci buffer, so check readiness there rather
+                     ;; than in this source buffer.
                      (candidates
-                      (when ghci-compilation-has-loaded-prompt
-                        (ghci-compilation--completions buffer (if is-import
-                                                                  (concat "import " pfx)
-                                                                pfx))
-                        )))
+                      (when (ghci-compilation--ready-for-query-p buffer)
+                        (ghci-compilation--cached-completions buffer (if is-import
+                                                                         (concat "import " pfx)
+                                                                       pfx)))))
                 (when is-import
                   (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates)))
-                (list beg end candidates))))))
+                (list beg end candidates :exclusive 'no))))))
        (is-blank-import ;; special support for just "import " completion (no module name)
         (let ((candidates
-               (when ghci-compilation-has-loaded-prompt
-                 (ghci-compilation--completions buffer "import ")
-                 )))
+               (when (ghci-compilation--ready-for-query-p buffer)
+                 (ghci-compilation--cached-completions buffer "import "))))
           (setq candidates (mapcar (lambda (candidate) (string-remove-prefix "import " candidate)) candidates))
-          (list (line-end-position) (line-end-position) candidates))
+          (list (line-end-position) (line-end-position) candidates :exclusive 'no))
         )))))
 
 (defun ghci-compilation-main ()
