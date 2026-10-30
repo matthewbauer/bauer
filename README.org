@@ -6003,7 +6003,22 @@ Emacs packages defined in Nixpkgs.
         ];
     }));
   in # override elpaPackages so elpaDevelPackages is picked up
-     customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; });
+     (customEmacsPackages'.overrideScope (eself: esuper: esuper.override { elpaPackages = {}; }))
+     .overrideScope (eself: esuper: {
+       # majutsu isn't on MELPA, so emacs-overlay doesn't update it and
+       # nixpkgs' manual package lags behind.  Pin a newer commit: this
+       # one includes eacfb0d, which fixes Restore rejecting patch
+       # selections ("requires the displayed diff selector").
+       majutsu = esuper.majutsu.overrideAttrs (old: {
+         version = "0.6.0-unstable-2026-10-29";
+         src = pkgs.fetchFromGitHub {
+           owner = "0WD0";
+           repo = "majutsu";
+           rev = "a21d0a9905a0f68d1b969b1199611e13ae9f9c40";
+           hash = "sha256-H8U1y7XKfzefZtWFABvzPHFo3lXrItivneEp0R8xTM4=";
+         };
+       });
+     });
 #+END_SRC
 
 Tex live provides some LaTeX commands for us.
