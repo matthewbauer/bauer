@@ -1504,7 +1504,6 @@ Scroll the popup when it overflows, otherwise the window it was opened from
 
 #+BEGIN_SRC emacs-lisp
   (use-package transient
-    :defer t
     :preface
     (defun bauer/transient-scroll-window ()
       "The popup window if its contents overflow, else the original window."
@@ -2062,9 +2061,6 @@ Base mode used for shell and terminal modes.
     :autoload (comint-write-input-ring comint-read-input-ring)
     :custom (comint-completion-addsuffix nil)
     :preface
-    (defvar comint-input-ring-prefix ": [[:digit:]]+:[[:digit:]]+;"
-      "Possible prefix that may come before history elements. In
-        Zshell with extended_history, this is useful.")
     (defun turn-on-comint-history (file)
       (interactive)
       (setq comint-input-ring-file-name file)
@@ -2085,69 +2081,7 @@ Base mode used for shell and terminal modes.
         (let ((buffer (current-buffer)))
           (mode-line-notify-send
            :title (format "%s Bell" (buffer-name buffer))
-           :buffer buffer))))
-    :config
-    (advice-add #'comint-read-input-ring
-                :override (lambda (&optional silent)
-                            (cond ((or (null comint-input-ring-file-name)
-                                       (equal comint-input-ring-file-name ""))
-                                   nil)
-                                  ((not (file-readable-p comint-input-ring-file-name))
-                                   (or silent
-                                       (message "Cannot read history file %s"
-                                                comint-input-ring-file-name)))
-                                  (t
-                                   (let* ((file comint-input-ring-file-name)
-                                          (count 0)
-                                          ;; Some users set HISTSIZE or `comint-input-ring-size'
-                                          ;; to huge numbers.  Don't allocate a huge ring right
-                                          ;; away; there might not be that much history.
-                                          (ring-size (min 1500 comint-input-ring-size))
-                                          (ring (make-ring ring-size)))
-                                     (with-temp-buffer
-                                       (insert-file-contents file)
-                                       ;; Save restriction in case file is already visited...
-                                       ;; Watch for those date stamps in history files!
-                                       (goto-char (point-max))
-                                       (let (start end history)
-                                         (while (and (< count comint-input-ring-size)
-                                                     (re-search-backward comint-input-ring-separator
-                                                                         nil t)
-                                                     (setq end (match-beginning 0)))
-                                           (setq start
-                                                 (if (re-search-backward comint-input-ring-separator
-                                                                         nil t)
-                                                     (progn
-                                                       (when (looking-at (concat comint-input-ring-separator
-                                                                                 comint-input-ring-prefix))
-                                                         ;; Skip zsh extended_history stamps
-                                                         (re-search-forward comint-input-ring-prefix
-                                                                            nil t))
-                                                       (match-end 0))
-                                                   (progn
-                                                     (goto-char (point-min))
-                                                     (if (looking-at comint-input-ring-prefix)
-                                                         (progn
-                                                           (re-search-forward comint-input-ring-prefix
-                                                                              nil t)
-                                                           (match-end 0))
-                                                       (point-min)))))
-                                           (setq history (buffer-substring start end))
-                                           (goto-char start)
-                                           (when (and (not (string-match comint-input-history-ignore
-                                                                         history))
-                                                      (or (null comint-input-ignoredups)
-                                                          (ring-empty-p ring)
-                                                          (not (string-equal (ring-ref ring 0)
-                                                                             history))))
-                                             (when (= count ring-size)
-                                               (ring-extend ring (min (- comint-input-ring-size ring-size)
-                                                                      ring-size))
-                                               (setq ring-size (ring-size ring)))
-                                             (ring-insert-at-beginning ring history)
-                                             (setq count (1+ count))))))
-                                     (setq comint-input-ring ring
-                                           comint-input-ring-index nil)))))))
+           :buffer buffer)))))
 #+END_SRC
 
 **** compile
@@ -2642,10 +2576,6 @@ Make scripts executable automatically.
   (icomplete-scroll t)
   ;; (icomplete-vertical-in-buffer-adjust-list t)
   ;; (icomplete-vertical-render-prefix-indicator t)
-  :config
-  (if icomplete-in-buffer
-      (advice-add 'completion-at-point
-                  :after #'minibuffer-hide-completions))
   )
 #+END_SRC
 
