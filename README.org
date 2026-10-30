@@ -3988,25 +3988,28 @@ repositories.
     :lighter " Centered"
     :group 'editing
     (if emacs-solo/center-document-mode
-        (add-hook 'window-configuration-change-hook #'emacs-solo/center-document--adjust-margins 'append 'local)
-      (remove-hook 'window-configuration-change-hook #'emacs-solo/center-document--adjust-margins 'local))
+        (progn
+          (add-hook 'window-configuration-change-hook #'emacs-solo/center-document--adjust-margins 'append 'local)
+          (add-hook 'text-scale-mode-hook #'emacs-solo/center-document--adjust-margins nil 'local))
+      (remove-hook 'window-configuration-change-hook #'emacs-solo/center-document--adjust-margins 'local)
+      (remove-hook 'text-scale-mode-hook #'emacs-solo/center-document--adjust-margins 'local))
     (emacs-solo/center-document--adjust-margins))
 
   (defun emacs-solo/center-document--adjust-margins ()
-    ;; Reset margins first before recalculating
-    (set-window-parameter nil 'min-margins nil)
-    (set-window-margins nil nil)
+    (dolist (win (get-buffer-window-list nil nil t))
+      (with-selected-window win
+        ;; Reset margins first before recalculating
+        (set-window-parameter nil 'min-margins nil)
+        (set-window-margins nil nil)
 
-    ;; Adjust margins if the mode is on
-    (when emacs-solo/center-document-mode
-      (let ((margin-width (max 0
-                               (truncate
-                                (/ (- (window-width)
-                                      emacs-solo-center-document-desired-width)
-                                   2.0)))))
-        (when (> margin-width 0)
-          (set-window-parameter nil 'min-margins '(0 . 0))
-          (set-window-margins nil margin-width margin-width)))))
+        ;; Adjust margins if the mode is on, accounting for text scale
+        (when emacs-solo/center-document-mode
+          (let* ((scale (/ (float (default-font-width)) (frame-char-width)))
+                 (desired (* emacs-solo-center-document-desired-width scale))
+                 (margin-width (max 0 (truncate (/ (- (window-width) desired) 2.0)))))
+            (when (> margin-width 0)
+              (set-window-parameter nil 'min-margins '(0 . 0))
+              (set-window-margins nil margin-width margin-width)))))))
 
   :hook
   ((org-mode gnus-group-mode gnus-summary-mode gnus-article-mode gnus-server-mode gnus-browse-mode) . emacs-solo/center-document-mode)
