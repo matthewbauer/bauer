@@ -1811,9 +1811,8 @@ instance spacemacs-theme can be enabled:
 
 #+BEGIN_SRC emacs-lisp
   (use-package treesit-fold
-    :hook (after-init . global-treesit-fold-indicators-mode)
-    :functions (treesit-fold-indicators--size-change@debounce
-                treesit-fold-indicators--render-buffer))
+    :disabled ;; kind of slow on big files
+    :hook (after-init . global-treesit-fold-indicators-mode))
 #+END_SRC
 
 **** kirigami
@@ -4435,8 +4434,7 @@ Dape provides Debug Adapter Protocol support.
 #+BEGIN_SRC emacs-lisp
 (use-package dwim-shell-command
   :functions (dwim-shell-command-on-marked-files)
-  :bind (([remap shell-command] . dwim-shell-command)
-         :package dired
+  :bind (:package dired
          :map dired-mode-map
          ([remap dired-do-async-shell-command] . dwim-shell-command)
          ([remap dired-do-shell-command] . dwim-shell-command)
