@@ -1451,8 +1451,7 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     :commands (majutsu majutsu-log majutsu-dispatch)
     :functions (magit-status majutsu-read-bookmarks)
     :bind (("C-x g" . my-vc-status)
-           ("C-x p m" . my-vc-status)
-           ("C-x p v" . majutsu-log)
+           ("C-x p v" . my-vc-status)
            :package majutsu
            :repeat-map majutsu-section-cycle-repeat-map
            ("TAB" . majutsu-section-cycle)
@@ -1493,10 +1492,7 @@ can skip the (slow, in large repos) working copy scan."
     (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-insert-workspaces :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-bug-reference--git-remote-alist :around #'my-majutsu--ignore-working-copy)
-    (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
-    ;; Rendering the whole default revset is slow in big repos; press
-    ;; `l -n' in the log buffer to change the limit.
-    (put 'majutsu-log-mode 'majutsu-log-default-arguments '("--limit=50")))
+    (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy))
 #+END_SRC
 
 **** transient
@@ -2930,6 +2926,15 @@ Automatically clean up stale buffers each night.
     :config
     (advice-add #'project-or-external-find-regexp
                 :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
+    (defun bauer/project-files-without-fsmonitor (fn &rest args)
+      "Call FN with ARGS with git's fsmonitor disabled."
+      (let ((process-environment
+             (append '("GIT_CONFIG_COUNT=1"
+                       "GIT_CONFIG_KEY_0=core.fsmonitor"
+                       "GIT_CONFIG_VALUE_0=false")
+                     process-environment)))
+        (apply fn args)))
+    (advice-add #'project-files :around #'bauer/project-files-without-fsmonitor)
     (defun emacs-solo/filtered-project-buffer-completer (project files-only)
       "A function that filters special buffers and uses `completing-read`."
       (let* ((project-buffers (project-buffers project))
