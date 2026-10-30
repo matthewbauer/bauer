@@ -1484,6 +1484,19 @@ can skip the (slow, in large repos) working copy scan."
       (let ((majutsu-jj-global-arguments
              (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
         (apply fn args)))
+    (defun my/majutsu-conflict-maybe ()
+      "Enable conflict handling in jj repos when the buffer has conflict markers."
+      (when (and buffer-file-name
+                 (vc-find-root buffer-file-name ".jj")
+                 (save-excursion
+                   (goto-char (point-min))
+                   (re-search-forward "^<<<<<<< " nil t)))
+        (majutsu-conflict-check-enable)))
+    :init
+    ;; `after-revert-hook' catches open buffers that jj rewrites (via
+    ;; auto-revert), since `find-file-hook' doesn't run again for them.
+    (add-hook 'find-file-hook #'my/majutsu-conflict-maybe)
+    (add-hook 'after-revert-hook #'my/majutsu-conflict-maybe)
     :config
     ;; get magit font faces to avoid error
     (require 'magit)
@@ -2940,9 +2953,31 @@ Optionally, start a server (disabled by default):
 
 #+BEGIN_SRC emacs-lisp
   (use-package server
-    :disabled
     :demand
-    :config (unless (server-running-p) (server-start)))
+    :preface
+    (defun bauer/pop-to-pending-server-client ()
+      "Pop the first server client that is waiting."
+      (interactive)
+      (if-let* ((proc (car server-clients))
+  	      (buffer (car (process-get proc 'buffers))))
+          (pop-to-buffer buffer)
+        (message "No pending server clients")))
+    (defvar bauer/pending-server-client-mode-line
+      '(:eval
+        (when server-clients
+          (propertize " [server client]"
+                      'face 'warning
+                      'mouse-face 'mode-line-highlight
+                      'help-echo "mouse-1: switch to the server client buffer"
+                      'local-map (make-mode-line-mouse-map
+                                    'mouse-1 #'bauer/pop-to-pending-server-client))))
+      "Mode line showing waiting server clients.")
+    :config
+    ;; (unless (server-running-p) (server-start))
+    (put 'bauer/pending-server-client-mode-line 'risky-local-variable t)
+    (setq global-mode-string
+            (append (or global-mode-string '(""))
+                    '(bauer/pending-server-client-mode-line))))
 #+END_SRC
 
 **** Shell
@@ -5108,6 +5143,8 @@ Zstyle completions.
   zstyle ':completion:*:approximate:*' max-errors 1 numeric
   zstyle ':completion:*' menu select
   zstyle ':completion::complete:*' gain-privileges 1
+  zstyle -e ':completion::complete:-command-:*' command-path \
+    'if (( $#_comp_priv_prefix )); then reply=( ${(u)^path}(-/N) ${(u)^${path/%\/bin//sbin}}(-/N) ); else reply=(); fi'
   zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
   zstyle ':completion:*:history-words' list no
   zstyle ':completion:*:history-words' remove-all-dups yes

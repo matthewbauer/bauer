@@ -45,6 +45,8 @@ selected window."
                                      (define-key map [mode-line mouse-1] 'mode-line-notify-open)
                                      map)))))
 
+(put 'mode-line-notify-indicator 'risky-local-variable t)
+
 (defun mode-line-notify-send (&rest params)
   "Send a notification to the mode line."
   (interactive)
@@ -69,12 +71,12 @@ selected window."
 
   (if mode-line-notify
       (progn
-        (setq-default mode-line-misc-info
-                      (push '(:eval mode-line-notify-indicator) mode-line-misc-info))
+        (setq global-mode-string
+              (append (or global-mode-string '(""))
+                      '(mode-line-notify-indicator)))
         (add-hook 'window-buffer-change-functions 'mode-line-buffer-change))
-    (progn
-      (setq-default mode-line-misc-info
-                    (delete '(:eval mode-line-notify-indicator) mode-line-misc-info))
-      (remove-hook 'window-buffer-change-functions 'mode-line-buffer-change))))
+    (setq global-mode-string
+          (delq 'mode-line-notify-indicator global-mode-string))
+    (remove-hook 'window-buffer-change-functions 'mode-line-buffer-change)))
 
 (provide 'mode-line-notify)
