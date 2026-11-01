@@ -2206,10 +2206,6 @@ Base mode used for shell and terminal modes.
     :autoload (comint-write-input-ring comint-read-input-ring)
     :custom (comint-completion-addsuffix nil)
     :preface
-    (defun turn-on-comint-history (file)
-      (interactive)
-      (setq comint-input-ring-file-name file)
-      (comint-read-input-ring 'silent))
     (defun save-history ()
       (interactive)
       (dolist (buffer (buffer-list))
@@ -3091,7 +3087,7 @@ Optionally, start a server (disabled by default):
       "Pop the first server client that is waiting."
       (interactive)
       (if-let* ((proc (car server-clients))
-  	      (buffer (car (process-get proc 'buffers))))
+                (buffer (car (process-get proc 'buffers))))
           (pop-to-buffer buffer)
         (message "No pending server clients")))
     (defvar bauer/pending-server-client-mode-line
@@ -3129,9 +3125,6 @@ Optionally, start a server (disabled by default):
     (shell-mode . (lambda () (setq-local comint-prompt-read-only t)))
     (shell-mode . (lambda () (setq-local comint-input-ignoredups t)))
     (shell-mode . (lambda () (setq-local comint-process-echoes t)))
-    ;; (shell-mode . (lambda ()
-    ;;            (turn-on-comint-history (expand-file-name "sh-history"
-    ;;            user-emacs-directory))))
     (shell-mode . (lambda () (setq-local truncate-lines nil)))
     (shell-mode . (lambda () (add-to-list 'comint-output-filter-functions 'comint-bell-detector)))
     :config
@@ -3251,7 +3244,7 @@ current buffer, killing it."
       "Using the project name as tab name"
       (let ((buffer (window-buffer (or (minibuffer-selected-window)
                                        (and (window-minibuffer-p)
-  					  (get-mru-window))))))
+                                            (get-mru-window))))))
         (with-current-buffer buffer
           (if-let* ((project (project-current)))
               (project-name project)
@@ -3276,9 +3269,8 @@ current buffer, killing it."
     (tab-bar-mode 1)
     (tab-bar-history-mode 1)
     :bind (:repeat-map tab-bar-history-repeat-map
-  		     ("<left>" . tab-bar-history-back)
-  		     ("<right>" . tab-bar-history-forward)
-  		     ))
+                       ("<left>" . tab-bar-history-back)
+                       ("<right>" . tab-bar-history-forward)))
 #+END_SRC
 
 **** term
@@ -3794,13 +3786,13 @@ didn’t work well enough.
     ;;            (autoload 'haskell-doc-current-info
     ;;              "haskell-doc")
     ;;            (setq-local eldoc-documentation-function
-    ;;                        'haskell-doc-current-info)))
-    (haskell-mode . my-haskell-treesit-parser)
+    ;;                         'haskell-doc-current-info)))
+    ;; (haskell-mode . my-haskell-treesit-parser)
     :preface
     (defun my-haskell-treesit-parser ()
       "Create a tree-sitter parser so `treesit-fold' works in `haskell-mode'.
-Only the parser is created; haskell-mode keeps its own font-lock and
-indentation."
+  Only the parser is created; haskell-mode keeps its own font-lock and
+  indentation."
       (when (and (treesit-available-p)
                  (treesit-language-available-p 'haskell))
         (treesit-parser-create 'haskell)))
@@ -6423,10 +6415,6 @@ TODO: use dump-emacs here to speed up config.
                       (setq package-user-dir \"/var/empty/nonexistent\" \
                             package-directory-list '(\"$out/share/emacs/site-lisp/elpa\") \
                             package-quickstart-file \"$out/share/emacs/site-lisp/package-quickstart.el\") \
-                      (setq byte-compile-log-warning-function \
-                        (lambda (s p &optional f l) \
-                          (unless (eq l :warning) \
-                            (byte-compile--log-warning-for-byte-compile s p f l)))) \
                       (package-quickstart-refresh))"
         '';
       });
