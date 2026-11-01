@@ -143,6 +143,7 @@ for f in *; do
     DEST=
     case "$f" in
         settings.el) DEST="$HOME/.config/emacs/settings.el" ;;
+        init.el|early-init.el) DEST="$HOME/.config/emacs/$f" ;;
         .sshconfig) DEST="$HOME/.ssh/config" ;;
         .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
         nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
@@ -151,6 +152,7 @@ for f in *; do
         .gitconfig) DEST="$HOME/.config/git/config" ;;
         .gitattributes) DEST="$HOME/.config/git/attributes" ;;
         jjconfig.toml) DEST="$HOME/.config/jj/config.toml" ;;
+        ghconfig.yml) DEST="$HOME/.config/gh/config.yml" ;;
         credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
         gnu.emacs.daemon.plist) DEST="$HOME/Library/LaunchAgents/gnu.emacs.daemon.plist" ;;
         *) DEST="$HOME/$f" ;;
@@ -174,6 +176,12 @@ for f in *; do
     fi
     mkdir -p "$(dirname "$DEST")"
     if [ -n "$CONCAT" ]; then
+        # Appending again on every run would duplicate the file, so skip
+        # it if this exact content is already in the destination.
+        if [ -f "$DEST" ] && [[ "$(cat "$DEST")" == *"$(cat "$f")"* ]]; then
+            echo Skipping "$f", already in "$DEST" >&2
+            continue
+        fi
         cat "$f" >> "$DEST"
     else
         cp "$f" "$DEST"

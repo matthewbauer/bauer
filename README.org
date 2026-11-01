@@ -169,6 +169,21 @@ Toggle your newly added terminal manually.
 
 Restart your terminal.
 
+*** Keyboard
+
+macOS's keyboard defaults get in the way of Emacs-style editing. These make key
+repeat fast (=KeyRepeat= is in units of 15 ms, so 2 is 30 ms between repeats;
+=InitialKeyRepeat= 30 waits 450 ms before repeating). They also make holding a
+key repeat it instead of opening the accent picker:
+
+#+BEGIN_SRC shell
+  defaults write -g KeyRepeat -int 2
+  defaults write -g InitialKeyRepeat -int 30
+  defaults write -g ApplePressAndHoldEnabled -bool false
+#+END_SRC
+
+Log out and back in for the key repeat settings to take effect.
+
 * Emacs init file
 :PROPERTIES:
 :header-args: :tangle yes :comments link
@@ -454,6 +469,8 @@ set in the Emacs process.
    '("EDITOR" "emacsclient -a emacs")
    '("NODE_NO_READLINE" "1")
    '("PAGER" "cat")
+   ;; jj ignores PAGER and only reads JJ_PAGER
+   '("JJ_PAGER" "cat")
    '("PS1" "\\W > ")
    )
 #+END_SRC
@@ -1278,7 +1295,6 @@ disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
-    :disabled
     :delight
     :custom (dtrt-indent-verbosity 0)
     :hook (prog-mode . dtrt-indent-mode))
@@ -1423,7 +1439,80 @@ Magit forge.
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit
-    :bind ("C-c g g" . forge-browse))
+    :functions (ghub--req-url)
+    :bind ("C-c g g" . forge-browse)
+    :preface
+    (defvar my/ghub-gh-token-ttl 900
+      "Seconds to cache the token returned by `gh auth token'.")
+
+    (defvar my/ghub-gh-token-cache nil
+      "(TIME . TOKEN) from the last successful `gh auth token', or nil.")
+
+    (defun my/ghub-gh-token-clear ()
+      "Forget the cached gh token, e.g. after manually running `gh auth refresh'."
+      (interactive)
+      (setq my/ghub-gh-token-cache nil))
+
+    (defun my/ghub-gh-token--fetch ()
+      "Run `gh auth token'.  Return (TOKEN . nil) or (nil . ERROR-MESSAGE)."
+      (if (not (executable-find "gh"))
+          (cons nil "gh is not installed (not found in exec-path)")
+        (let ((errfile (make-temp-file "gh-auth-token-err")))
+          (unwind-protect
+              (with-temp-buffer
+                (let* ((status (call-process "gh" nil (list t errfile) nil
+                                             "auth" "token" "--hostname" "github.com"))
+                       (token (string-trim (buffer-string))))
+                  (if (and (eql status 0) (not (string-empty-p token)))
+                      (cons token nil)
+                    (let ((stderr (with-temp-buffer
+                                    (insert-file-contents errfile)
+                                    (string-trim (buffer-string)))))
+                      (cons nil (format "gh auth token %s: %s"
+                                        (if (eql status 0) "printed nothing"
+                                          (format "failed (exit %s)" status))
+                                        (if (string-empty-p stderr) "no output" stderr)))))))
+            (delete-file errfile)))))
+
+    (defun my/ghub-gh-token (orig host username package &optional nocreate forge)
+      "`:around' advice for `ghub--token' to prefer gh's token for github.com."
+      (if (not (and (memq forge '(nil github))
+                    (equal host "api.github.com")))
+          (funcall orig host username package nocreate forge)
+        (let (gh-error)
+          (unless (and my/ghub-gh-token-cache
+                       (< (float-time (time-since (car my/ghub-gh-token-cache)))
+                          my/ghub-gh-token-ttl))
+            (setq my/ghub-gh-token-cache nil)
+            (pcase-let ((`(,token . ,err) (my/ghub-gh-token--fetch)))
+              (if token
+                  (setq my/ghub-gh-token-cache (cons (current-time) token))
+                (setq gh-error err))))
+          (cond ((cdr my/ghub-gh-token-cache))
+                ;; gh failed: use an auth-source token if there is one...
+                ((funcall orig host username package t forge))
+                (nocreate nil)
+                ;; ...otherwise report gh's actual error, not ghub's PAT docs.
+                (t (error "No GitHub token for %s: %s.  Run `gh auth login' \
+  (or add a %s^%s auth-source entry)"
+                          host gh-error username package))))))
+
+    (defun my/ghub-gh-token--check-response (status req)
+      "`:before' advice for `ghub--handle-response' to catch a rejected gh token."
+      (when (and my/ghub-gh-token-cache
+                 (pcase (plist-get status :error) (`(error http 401 . ,_) t))
+                 (equal (url-host (ghub--req-url req)) "api.github.com"))
+        (my/ghub-gh-token-clear)
+        (display-warning
+         'ghub
+         (format-message "GitHub rejected the token from `gh auth token' (401 Bad credentials); \
+  it was probably revoked or rotated.  Run `gh auth status' to check, then \
+  `gh auth refresh -h github.com' or `gh auth login' and retry.")
+         :error)))
+    :config
+    ;; allow ghub to use gh’s token for github.com.
+    (advice-add 'ghub--token :around #'my/ghub-gh-token)
+    (advice-add 'ghub--handle-response :before #'my/ghub-gh-token--check-response))
 #+END_SRC
 
 ***** git-timemachine
@@ -1487,6 +1576,9 @@ can skip the (slow, in large repos) working copy scan."
                    (re-search-forward "^<<<<<<< " nil t)))
         (majutsu-conflict-check-enable)))
     :init
+    ;; Only called from the hooks below, so use-package doesn't create an
+    ;; autoload for it, and package autoloads aren't loaded at startup.
+    (autoload 'majutsu-conflict-check-enable "majutsu-conflict")
     ;; `after-revert-hook' catches open buffers that jj rewrites (via
     ;; auto-revert), since `find-file-hook' doesn't run again for them.
     (add-hook 'find-file-hook #'my/majutsu-conflict-maybe)
@@ -1932,7 +2024,6 @@ package, so no download is needed on first use.
     ;; never try to download/compile the module; nix provides it
     (ghostel-module-auto-install nil)
     (ghostel-notification-function #'my-ghostel-notify)
-    (ghostel-environment '("PAGER=less")) ; override PAGER=cat
     :preface
     (defun maybe-project-ghostel (&optional arg)
       "Switch to a ghostel buffer in the current project, if one exists.
@@ -2028,6 +2119,53 @@ STATUS is the command's exit status, or nil when the shell omitted it."
 
 These are available automatically, so these =use-package= blocks just
 configure them.
+
+**** auth-source
+
+auth-source is how Emacs looks up passwords and API tokens: forge, smtpmail,
+TRAMP, chatgpt-shell and others all go through it. By default, this reads
+=~/.authinfo=, =~/.authinfo.gpg= and =~/.netrc=.
+
+On macOS you can also keep credentials in the login Keychain. To opt in, put
+this in your =custom-file=, or set it with =M-x customize-variable=:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (setq auth-sources '(macos-keychain-internet))
+#+END_SRC
+
+The login keychain unlocks when you log in, so there are no passphrase prompts.
+Each Keychain item maps to an auth-source entry, using the following mapping:
+
+| auth-source key | Keychain attribute | =security= flag                                 |
+|-----------------+--------------------+-----------------------------------------------|
+| =:host=           | server             | =-s=                                            |
+| =:user=           | account            | =-a=                                            |
+| =:port=           | port or protocol   | =-P= if numeric, else =-r= with the first 4 chars |
+
+Add an item with =security=. Always put =-w= last, with no value, so it prompts for
+the secret outside of your shell history:
+
+#+BEGIN_SRC sh :tangle no
+  security add-internet-password -s smtp.gmail.com -a you@gmail.com -P 587 -r smtp -w
+#+END_SRC
+
+If a package looks up a =:port=, the item needs that port or protocol too. For
+example, smtpmail searches with =:port 587=, so the item needs =-P 587=. An item
+with no port only matches lookups that don't pass a =:port=. If you also want Git
+CLI to be supported, =-r= is necessary for smtp.
+
+Things to know:
+
+- Use =macos-keychain-internet=, not =macos-keychain-generic=. The generic
+  backend matches =:host= against the item's 4-character "creator" code, so
+  hostnames never match.
+- The backend is read-only. Emacs can't save new credentials to it, so add them
+  with =security= or Keychain Access. =auth-source-save-behavior= only works for
+  file backends such as =~/.authinfo.gpg=.
+- iCloud Keychain (the Passwords app) isn't visible to the =security= command,
+  so Emacs can't read items stored there.
+- To debug a lookup, run =(setq auth-source-debug t)= and then
+  =(auth-source-search :host "api.github.com" :max 1)=.
 
 **** autorevert
 
@@ -4934,6 +5072,25 @@ if [ "${TERM-}" = dumb ] && [ -n "${INSIDE_EMACS-}" ]; then
 fi
 #+END_SRC
 
+We set =PAGER=cat= and =JJ_PAGER=cat= (see Set environment) for buffers that
+can't run a pager, such as =M-x shell= and compilation. Terminal emulators in
+Emacs (term, ansi-term, eat, vterm, ghostel) are real terminals: they set
+=INSIDE_EMACS= and a real =TERM=, so pagers work there. Undo the override for
+those. A bare =unset JJ_PAGER= lets jj fall back to its own default,
+=less -FRX=.
+
+#+BEGIN_SRC shell
+if [ -n "${INSIDE_EMACS-}" ]; then
+    case "${TERM-}" in
+      ''|dumb|dumb-emacs-ansi) ;;
+      *)
+        [ "${PAGER-}" = cat ] && export PAGER=less
+        [ "${JJ_PAGER-}" = cat ] && unset JJ_PAGER
+        ;;
+    esac
+fi
+#+END_SRC
+
 Last, we source the HOME profile to make sure it is used by zsh.
 
 #+BEGIN_SRC shell
@@ -5328,15 +5485,32 @@ single user mode. We need @out@ to come after $HOME so that it gets the last
 word in these settings.
 
 #+BEGIN_SRC shell
-if [ -n "${BASH_VERSION-}" ]; then
-    shopt -s nullglob
-fi
-for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
-  if [ -r "$i" ] && [ "${i##*/}" != nix-daemon.sh ]; then
-    # shellcheck source=/dev/null
-    . "$i"
+  # Save current nullglob setting and turn it on just for scope
+  __old_nullglob=
+  if [ -n "${BASH_VERSION-}" ]; then
+      shopt -q nullglob && __old_nullglob=1
+      shopt -s nullglob
+  elif [ -n "${ZSH_VERSION-}" ]; then
+      [[ -o null_glob ]] && __old_nullglob=1
+      setopt null_glob
   fi
-done
+
+  for i in "$HOME"/.nix-profile/etc/profile.d/*.sh @out@/etc/profile.d/*.sh; do
+    if [ -r "$i" ] && [ "${i##*/}" != nix-daemon.sh ]; then
+      # shellcheck source=/dev/null
+      . "$i"
+    fi
+  done
+
+  # Restore old nullglob setting
+  if [ -z "$__old_nullglob" ]; then
+    if [ -n "${BASH_VERSION-}" ]; then
+        shopt -u nullglob
+    elif [ -n "${ZSH_VERSION-}" ]; then
+        unsetopt null_glob
+    fi
+  fi
+  unset __old_nullglob
 #+END_SRC
 
 * Bootstrapping
@@ -5784,8 +5958,8 @@ Source the profile.
       echo '[ -f "$HOME/.nix-profile/etc/profile" ] && . "$HOME/.nix-profile/etc/profile"' >> "$HOME/.profile"
   fi
 
-  if ! [ -f "$HOME/.zshenv" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshenv"; then
-      echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshenv"
+  if ! [ -f "$HOME/.zshrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/zshrc"\?' "$HOME/.zshrc"; then
+      echo '[ -f "$HOME/.nix-profile/etc/zshrc" ] && source "$HOME/.nix-profile/etc/zshrc"' >> "$HOME/.zshrc"
   fi
 
   if ! [ -f "$HOME/.bashrc" ] || ! grep -q '\(source\|\.\) "\?$HOME/.nix-profile/etc/profile"\?' "$HOME/.bashrc"; then
@@ -6431,20 +6605,14 @@ Full listing of packages that will be made available.
     # not included so we use macOS’s builtin, which supports keychain
     # curl
   ] ++ lib.optionals big ([
-    git
+    git jq jujutsu watchman
 
     # Useful tools
-    isync notmuch graphviz indent
-    graphviz imagemagick
-
-    bazaar jujutsu mercurial
+    graphviz indent imagemagick
 
     # Programming interpreters/compilers
     myTex rEnv perl python3 lua coq ocaml
     openjdk nodejs gcc gdb
-
-    jq hub
-
   ] ++ (lib.optional (!stdenv.hostPlatform.isDarwin) openssh) # use /usr/bin/ssh on darwin
     ++ (with netbsd; [ getent getconf ])
     ++ (with haskellPackages; [ ghc nix-diff cabal2nix cabal-install ])
@@ -6645,31 +6813,117 @@ Both variants of ssh-add are automatically run in the shell startup when macOS i
 
 *** Git
 
-*** General
-
-Useful settings:
+Like Emacs, some of Git’s defaults are questionable. I have some curated
+settings that I think are pretty good to always use:
 
 #+BEGIN_SRC sh
-git config --global merge.conflictStyle diff3
-git config --global pull.rebase true
-git config --global rerere.enabled true
-git config --global rerere.autoUpdate true
-git config --global push.default simple
-git config --global push.autoSetupRemote true
+  git config --global merge.conflictStyle zdiff3
+  git config --global pull.rebase true
+  git config --global rebase.autoStash true
+  git config --global rerere.enabled true
+  git config --global fetch.prune true
+  git config --global push.autoSetupRemote true
+  git config --global diff.algorithm histogram
 #+END_SRC
 
-*** Mono-repos performance
+Note that some other online guides have "defaults" that are probably not what
+you want! Or at least, they come with tradeoffs that aren’t well articulated.
+
+**** Mono-repos performance
 
 There are a few useful things to help manage large mono-repos. Unfortunately,
 they need to be enabled per-repo:
 
 #+BEGIN_SRC sh
-git config features.manyFiles true
-git config core.fsmonitor true
-git fsmonitor--daemon start
-git maintenance start
+  git config feature.manyFiles true
+  git config core.fsmonitor true
+  git maintenance start
 #+END_SRC
 
+For repos shared with many other users, it may also help to fetch fewer refs.
+It’s pretty straightforward to configure this provided you always name your
+branches with a prefix (replace "you" with your first name):
+
+#+BEGIN_SRC sh
+  git config --replace-all remote.origin.fetch '+refs/heads/main:refs/remotes/origin/main'
+  git config --add remote.origin.fetch '+refs/heads/you/*:refs/remotes/origin/you/*'
+  git config remote.origin.tagOpt --no-tags
+#+END_SRC
+
+The downside is that other people's branches no longer show up after a fetch.
+To check out a coworker's branch, fetch it explicitly:
+
+#+BEGIN_SRC sh
+  git fetch origin their/branch:refs/remotes/origin/their/branch
+#+END_SRC
+
+**** GitHub CLI (gh)
+
+=gh= is optional, but if you do want it, consider taking these additional steps to
+improve authentication with GitHub.
+
+First, log in through the browser. An extra =user= scope is needed for Forge to work:
+
+#+BEGIN_SRC sh
+  gh auth login --hostname github.com --git-protocol https --web --scopes user
+#+END_SRC
+
+If you're already logged in, add the scope instead:
+
+#+BEGIN_SRC sh
+  gh auth refresh --hostname github.com --scopes user
+#+END_SRC
+
+To let Git get HTTPS credentials straight from =gh=:
+
+#+BEGIN_SRC sh
+for h in https://github.com https://gist.github.com; do
+  git config --global --replace-all "credential.$h.helper" ''
+  git config --global --add         "credential.$h.helper" '!gh auth git-credential'
+done
+#+END_SRC
+
+The =gh auth setup-git= command does the same thing, but it embeds the Nix store
+which is usually not desirable.
+
+Git & Forge will now pick up gh’s auth token automatically.
+
+*** Jujutsu (Jj)
+
+I’ve started the switch to jj. Still learning, but overall the config should
+work okay out of the box. Some special tweaks may be needed for very large repos.
+
+To install run:
+
+#+BEGIN_SRC sh
+  nix profile install nixpkgs#jujutsu
+  nix profile install nixpkgs#watchman
+#+END_SRC
+
+To opt into Jj on an existing Git repo, you can run:
+
+#+BEGIN_SRC sh
+  jj git init --colocate
+#+END_SRC
+
+**** Mono-repos performance
+
+Jj fetches using Git’s fetch rules (unless =remotes.<name>.fetch-bookmarks= is
+set), so narrowing them as described in the Git Mono-repos performance section
+applies to jj too.
+
+In very large repos, you may benefit from Jj’s watchman integration:
+
+#+BEGIN_SRC sh
+  jj config set --repo fsmonitor.backend watchman
+#+END_SRC
+
+From time to time, you may also want to garbage-collect. This prunes old refs
+and operations that have been obsolete for more than two weeks:
+
+#+BEGIN_SRC sh
+  jj util gc
+#+END_SRC
 
 ** Optional packages
 
@@ -6677,28 +6931,29 @@ You might like these packages that I use a lot. They aren’t a requirement to u
 this environment though:
 
 #+BEGIN_SRC sh
-nix profile install nixpkgs#direnv
-nix profile install nixpkgs#opencode
-nix profile install nixpkgs#ghostscript
-nix profile install nixpkgs#gitleaks
-nix profile install nixpkgs#pwgen
-nix profile install nixpkgs#hunspell
-nix profile install nixpkgs#hunspellDicts.en_US
-nix profile install nixpkgs#git
-nix profile install nixpkgs#graphviz
-nix profile install nixpkgs#imagemagick
-nix profile install nixpkgs#python
-nix profile install nixpkgs#openssh
-nix profile install nixpkgs#gcc
-nix profile install nixpkgs#gdb
-nix profile install nixpkgs#ghc
-nix profile install nixpkgs#jq
-nix profile install nixpkgs#cabal-install
-nix profile install nixpkgs#nodejs
-nix profile install nixpkgs#nix-diff
-nix profile install nixpkgs#nethack
+  nix profile install nixpkgs#direnv
+  nix profile install nixpkgs#opencode
+  nix profile install nixpkgs#ghostscript
+  nix profile install nixpkgs#gitleaks
+  nix profile install nixpkgs#pwgen
+  nix profile install nixpkgs#hunspell
+  nix profile install nixpkgs#hunspellDicts.en_US
+  nix profile install nixpkgs#git
+  nix profile install nixpkgs#graphviz
+  nix profile install nixpkgs#imagemagick
+  nix profile install nixpkgs#python3
+  nix profile install nixpkgs#openssh
+  nix profile install nixpkgs#gcc
+  nix profile install nixpkgs#gdb
+  nix profile install nixpkgs#ghc
+  nix profile install nixpkgs#jq
+  nix profile install nixpkgs#cabal-install
+  nix profile install nixpkgs#nodejs
+  nix profile install nixpkgs#nix-diff
+  nix profile install nixpkgs#nethack
+  nix profile install nixpkgs#hledger
+  nix profile install nixpkgs#sqlite
 #+END_SRC
-
 
 ** =update.sh=
 :PROPERTIES:
@@ -6779,7 +7034,6 @@ Mark generated files.
 #+BEGIN_SRC gitattributes :padline no
 .gitattributes linguist-generated=true
 .gitignore     linguist-generated=true
-.travis.yml    linguist-generated=true
 LICENSE        linguist-generated=true
 bootstrap.sh   linguist-generated=true
 config.nix     linguist-generated=true
@@ -7200,6 +7454,7 @@ allow overriding your current =$HOME= files.
       DEST=
       case "$f" in
           settings.el) DEST="$HOME/.config/emacs/settings.el" ;;
+          init.el|early-init.el) DEST="$HOME/.config/emacs/$f" ;;
           .sshconfig) DEST="$HOME/.ssh/config" ;;
           .ssh_authorized_keys) DEST="$HOME/.ssh/authorized_keys" ;;
           nix.conf) DEST="$HOME/.config/nix/nix.conf" ;;
@@ -7208,6 +7463,7 @@ allow overriding your current =$HOME= files.
           .gitconfig) DEST="$HOME/.config/git/config" ;;
           .gitattributes) DEST="$HOME/.config/git/attributes" ;;
           jjconfig.toml) DEST="$HOME/.config/jj/config.toml" ;;
+          ghconfig.yml) DEST="$HOME/.config/gh/config.yml" ;;
           credentials|.aws_credentials) DEST="$HOME/.aws/credentials" ;;
           gnu.emacs.daemon.plist) DEST="$HOME/Library/LaunchAgents/gnu.emacs.daemon.plist" ;;
           ,*) DEST="$HOME/$f" ;;
@@ -7231,6 +7487,12 @@ allow overriding your current =$HOME= files.
       fi
       mkdir -p "$(dirname "$DEST")"
       if [ -n "$CONCAT" ]; then
+          # Appending again on every run would duplicate the file, so skip
+          # it if this exact content is already in the destination.
+          if [ -f "$DEST" ] && [[ "$(cat "$DEST")" == *"$(cat "$f")"* ]]; then
+              echo Skipping "$f", already in "$DEST" >&2
+              continue
+          fi
           cat "$f" >> "$DEST"
       else
           cp "$f" "$DEST"
