@@ -992,12 +992,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :config
     (marginalia-mode))
 
-  (use-package jinx
-    :demand
-    :disabled
-    :config
-    (global-jinx-mode))
-
   (use-package consult
     :autoload (consult-register-window)
     :functions (consult-buffer
@@ -3772,15 +3766,7 @@ macho-mode to toggle then M-x hexl-mode.
   (use-package nix-drv-mode
     :ensure nil)
 #+END_SRC
-***** nix-update
 
-disabled
-
-#+BEGIN_SRC emacs-lisp
-(use-package nix-update
-  :disabled
-  :bind (("C-. u" . nix-update-fetch)))
-#+END_SRC
 **** OCaml
 
 [[https://github.com/ocaml/tuareg][GitHub]]
@@ -4444,15 +4430,6 @@ Miscellaneous games
   (use-package mines)
   (use-package gnugo)
   (use-package 2048-game)
-#+END_SRC
-
-**** git-attr
-
-#+BEGIN_SRC emacs-lisp
-  (use-package git-attr-linguist
-    :disabled
-    :ensure git-attr
-    :hook (find-file . git-attr-linguist))
 #+END_SRC
 
 **** htmlize
