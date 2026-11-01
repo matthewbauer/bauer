@@ -5286,6 +5286,22 @@ Zstyle completions.
   # shellcheck source=/dev/null
   . @fzf@/share/fzf/completion.zsh
   . @fzf@/share/fzf/key-bindings.zsh
+
+  # fzf takes over C-t for its file picker.
+  # transpose works fine with emacs.  Move the picker to M-i ("insert
+  # file"), which zsh leaves unbound and ghostel passes through.
+  if (( $+widgets[fzf-file-widget] )); then
+    bindkey -M emacs '^T' transpose-chars
+    bindkey -M emacs '^[i' fzf-file-widget
+  fi
+
+  # fzf also takes over M-c (capitalize-word) for its cd picker.  Move the
+  # picker to M-j ("jump"), which zsh leaves unbound and ghostel passes
+  # through; C-x and C-c prefixes stay with Emacs in ghostel.
+  if (( $+widgets[fzf-cd-widget] )); then
+    bindkey -M emacs '^[c' capitalize-word
+    bindkey -M emacs '^[j' fzf-cd-widget
+  fi
 #+END_SRC
 
 Turn on prompt with colors.
@@ -6161,6 +6177,23 @@ Emacs packages defined in Nixpkgs.
            hash = "sha256-H8U1y7XKfzefZtWFABvzPHFo3lXrItivneEp0R8xTM4=";
          };
        });
+
+       # cleanup some extra directories provided by copilot we don’t
+       # TODO: upstream to nixpkgs
+       copilot = esuper.copilot.override {
+         copilot-language-server = pkgs.copilot-language-server.overrideAttrs (old: {
+           postInstall = (old.postInstall or "") + (let
+             host = pkgs.stdenv.hostPlatform;
+             platform = if host.isDarwin then "darwin"
+                        else if host.isWindows then "win32" else "linux";
+             arch = if host.isAarch64 then "arm64" else "x64";
+           in ''
+             find "$out/share/copilot-language-server/node_modules/@github" \
+               -mindepth 1 -maxdepth 1 -name 'copilot-sdk-*-*' \
+               ! -name "copilot-sdk-${platform}-${arch}" -exec rm -rf {} +
+           '');
+         });
+       };
      });
 #+END_SRC
 
@@ -6579,6 +6612,11 @@ why this is necessary, but nXML complains otherwise.
 
 Full listing of packages that will be made available.
 
+We specifically exclude a few common tools on macOS where Apple’s builtin
+version comes with a special Keychain integration (curl, ssh, and git). Git
+requires Xcode developer tools, but you can always install the Nixpkgs one
+manually.
+
 #+BEGIN_SRC nix
   userPackages = (with pkgs; [
     # From common-path.nix
@@ -6588,12 +6626,10 @@ Full listing of packages that will be made available.
     # Helpful core tools
     zsh cacert file lsof pstree which rsync
     unzip man less ripgrep fd fzf
-    tree gnutls
-
-    # not included so we use macOS’s builtin, which supports keychain
-    # curl
-  ] ++ lib.optionals big ([
-    git jq jujutsu watchman
+    tree gnutls getopt
+  ] ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [ git openssh curl ] # use builtin on darwin
+    ++ lib.optionals big ([
+    jq jujutsu watchman
 
     # Useful tools
     graphviz indent imagemagick
@@ -6601,7 +6637,7 @@ Full listing of packages that will be made available.
     # Programming interpreters/compilers
     myTex rEnv perl python3 lua coq ocaml
     openjdk nodejs gcc gdb
-  ] ++ (lib.optional (!stdenv.hostPlatform.isDarwin) openssh) # use /usr/bin/ssh on darwin
+  ]
     ++ (with netbsd; [ getent getconf ])
     ++ (with haskellPackages; [ ghc nix-diff cabal2nix cabal-install ])
     ++ (with unixtools; [ util-linux nettools procps ])
