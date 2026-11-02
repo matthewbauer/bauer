@@ -182,7 +182,14 @@ key repeat it instead of opening the accent picker:
   defaults write -g ApplePressAndHoldEnabled -bool false
 #+END_SRC
 
-Log out and back in for the key repeat settings to take effect.
+You may also want to disable some shortcuts that override the Emacs ones. This
+should do that for =M-s-d=:
+
+#+BEGIN_SRC sh
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+#+END_SRC
+
+Log out and back in for these settings to take effect.
 
 * Emacs init file
 :PROPERTIES:
@@ -6814,13 +6821,6 @@ This includes some extra files that are checked in, as well as some tips. They
 mostly deal with maintainence and advanced usage of BAUER.
 
 ** Helpful tips
-
-On macOS, you may want to disable some shortcuts that override the Emacs ones. I
-believe this will do that for M-s-d
-
-#+BEGIN_SRC sh
-  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
-#+END_SRC
 
 *** SSH
 
