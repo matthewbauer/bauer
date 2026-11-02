@@ -2016,6 +2016,9 @@ package, so no download is needed on first use.
            ("s-<backspace>" . my-ghostel-self-insert-meta)
            ("M-o" . nil)
            ("C-v" . nil)
+           ;; C-x stays with Emacs, except C-x C-e: pass it to the shell
+           ;; for zsh's edit-command-line (which opens in this Emacs).
+           ("C-x C-e" . bauer/ghostel-send-C-x-C-e)
 
            :package dired
            :map dired-mode-map
@@ -2025,6 +2028,11 @@ package, so no download is needed on first use.
     (ghostel-module-auto-install nil)
     (ghostel-notification-function #'my-ghostel-notify)
     :preface
+    (defun bauer/ghostel-send-C-x-C-e ()
+      "Send C-x C-e to the terminal, e.g. for zsh's `edit-command-line'."
+      (interactive)
+      (ghostel-send-key "x" "ctrl")
+      (ghostel-send-key "e" "ctrl"))
     (defun maybe-project-ghostel (&optional arg)
       "Switch to a ghostel buffer in the current project, if one exists.
        If in a project but none exists (or with prefix ARG), create a new
@@ -5204,6 +5212,8 @@ Bind to emacs...
 #+BEGIN_SRC shell
   bindkey -e
 
+  WORDCHARS=${WORDCHARS//[\/=]} # treat / and = as a word boundary
+
   autoload -U tetris
   zle -N tetris
 
@@ -5239,8 +5249,14 @@ Bind to emacs...
   zle -N edit-command-line
   bindkey "^X^E" edit-command-line
 
+  # Manipulate $VISUAL so -q is passed in,
+  # overwriting edits.
+  zstyle -e ':zle:edit-command-line' editor \
+    'reply=( "${(@Q)${(z)${VISUAL:-${EDITOR:-vi}}}}" )
+     [[ ${reply[1]:t} == emacsclient ]] && reply[2,1]=(-q)'
+
   bindkey "^[m" copy-prev-shell-word
-  bindkey '^[w' kill-region
+  bindkey '^[w' copy-region-as-kill
   bindkey '^[[Z' reverse-menu-complete
   bindkey "^R" history-incremental-search-backward
   bindkey "^S" history-incremental-search-forward
@@ -5251,6 +5267,10 @@ Bind to emacs...
   autoload -U run-help
   alias help=run-help
   bindkey "^[h" run-help
+
+  fancy-ctrl-z() { if [[ $#BUFFER -eq 0 ]]; then BUFFER=fg; zle accept-line; else zle push-input; zle clear-screen; fi }
+  zle -N fancy-ctrl-z
+  bindkey '^Z' fancy-ctrl-z
 #+END_SRC
 
 Zstyle completions.
