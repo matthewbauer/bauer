@@ -337,7 +337,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | blink-cursor-mode                      | nil                          |
 | bookmark-save-flag                     | 1                            |
 | calendar-view-holidays-initially-flag  | t                            |
-| case-fold-search                       | t                            |
 | checkdoc-spellcheck-documentation-flag | t                            |
 | comment-empty-lines                    | t                            |
 | comment-multi-line                     | t                            |
@@ -609,7 +608,6 @@ used as key bindings.
 
 #+BEGIN_SRC emacs-lisp
   (require 'bauer)
-  (require 'files)
 #+END_SRC
 
 Define some helper functions.
@@ -727,7 +725,6 @@ better navigations.
 | C-c \ u         | my-unescape-quotes              |
 | C-c \ e         | my-escape-quotes                |
 | M-j             | duplicate-dwim                  |
-| RET             | newline-and-indent              |
 
 #+BEGIN_SRC emacs-lisp :var keybinds=keybinds
   (mapc (lambda (x) (bind-key (car x) (intern (cadr x)))) keybinds)
@@ -1234,10 +1231,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     :custom
     (dired-auto-revert-buffer t)
     (dired-dwim-target t)
-    (dired-guess-shell-alist-user
-     `(("\\.\\(png\\|jpe?g\\|tiff\\)" ,(if (eq system-type 'darwin) "open" "xdg-open"))
-       ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
-       (".*" ,(if (eq system-type 'darwin) "open" "xdg-open"))))
     (dired-hide-details-hide-symlink-targets nil)
     (dired-omit-verbose nil)
     (dired-omit-files "^\\.\\|^#.*#$")
@@ -1297,8 +1290,6 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 [[https://github.com/jscheid/dtrt-indent][GitHub]]
 
 This mode will try to detect your indentation.
-
-disabled
 
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
@@ -1724,43 +1715,12 @@ outliner but also much much more.
     (org-special-ctrl-a/e t)
     (org-support-shift-select t)
     (org-tags-column 0)
-    (org-latex-listings-langs
-     '((emacs-lisp "Lisp")
-       (lisp "Lisp")
-       (clojure "Lisp")
-       (c "C")
-       (cc "C++")
-       (fortran "fortran")
-       (perl "Perl")
-       (cperl "Perl")
-       (python "Python")
-       (ruby "Ruby")
-       (html "HTML")
-       (xml "XML")
-       (tex "TeX")
-       (latex "[LaTeX]TeX")
-       (shell-script "bash")
-       (gnuplot "Gnuplot")
-       (ocaml "Caml")
-       (caml "Caml")
-       (sql "SQL")
-       (sqlite "sql")
-       (makefile "make")
-       (R "r")
-       (nix "{}")
-       (nil "{}")
-       (yaml "{}")
-       (gitattributes "{}")
-       (gitignore "{}")
-       (shell "{}")
-       (gitconfig "{}")))
     (org-latex-default-packages-alist
      '(("utf8" "inputenc" t
         ("pdflatex"))
        ("T1" "fontenc" t
         ("pdflatex"))
        ("" "graphicx" t nil)
-       ("" "grffile" t nil)
        ("" "longtable" nil nil)
        ("" "wrapfig" nil nil)
        ("" "rotating" nil nil)
@@ -2477,24 +2437,7 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
     (kill-emacs . emacs-solo/eshell--save-merged-history)
     (eshell-mode . (lambda () (eshell-read-history)))
     :preface
-    (autoload #'eshell-isearch-return "em-hist")
-    (autoload #'eshell-isearch-repeat-backward "em-hist")
-    (autoload #'eshell-isearch-repeat-forward "em-hist")
-    (autoload #'eshell-isearch-abort "em-hist")
-    (autoload #'eshell-isearch-delete-char "em-hist")
     (autoload #'eshell-read-history "em-hist")
-    (defvar eshell-isearch-map
-      (let ((map (copy-keymap isearch-mode-map)))
-        (define-key map [(control ?m)] #'eshell-isearch-return)
-        (define-key map [return]       #'eshell-isearch-return)
-        (define-key map [(control ?r)] #'eshell-isearch-repeat-backward)
-        (define-key map [(control ?s)] #'eshell-isearch-repeat-forward)
-        (define-key map [(control ?g)] #'eshell-isearch-abort)
-        (define-key map [backspace]    #'eshell-isearch-delete-char)
-        (define-key map [delete]       #'eshell-isearch-delete-char)
-        map)
-      "Keymap used in isearch in Eshell.")
-    :preface
 
     ;; MAKE ALL INSTANCES OF ESHELL SHARE/MERGE ITS COMMAND HISTORY
     ;;
@@ -2533,8 +2476,6 @@ Setup eldoc integration.
       (interactive)
       (setq-local eldoc-documentation-function
                   #'esh-help-eldoc-command)
-      (setq eldoc-documentation-function
-            #'esh-help-eldoc-command)
       (eldoc-mode))
     :hook (eshell-mode . esh-help-turn-on))
 #+END_SRC
@@ -3069,11 +3010,7 @@ Automatically clean up stale buffers each night.
     :custom (savehist-additional-variables '(search-ring
                                              regexp-search-ring
                                              kill-ring
-                                             comint-input-ring
                                              kmacro-ring
-                                             sr-history-registry
-                                             file-name-history
-                                             tablist-name-filter
                                              register-alist
                                              mark-ring
                                              global-mark-ring))
@@ -3645,7 +3582,6 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
          )
   :custom
   (xref-search-program 'ripgrep)
-  (xref-show-definitions-function #'xref-show-definitions-completing-read)
 )
 #+END_SRC
 
@@ -3785,7 +3721,6 @@ didn’t work well enough.
   (use-package haskell-mode
     :custom
     (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
-    (haskell-mode-hook nil)
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook
     (haskell-mode . subword-mode)
@@ -5719,7 +5654,6 @@ Set paths provided by Nix,
    '(makeindex-command "@texlive@/bin/makeindex")
    '(chktex-command "@texlive@/bin/chktex")
    '(lacheck-command "@texlive@/bin/lacheck")
-   '(dvipdfmx-command "@texlive@/bin/dvipdfmx")
    '(dvips-command "@texlive@/bin/dvips")
    '(dvipng-command "@texlive@/bin/dvipng")
    '(ps2pdf-command "@ghostscript@/bin/ps2pdf")
