@@ -1530,7 +1530,9 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
   (use-package majutsu
     :if (locate-file "jj" exec-path)
     :commands (majutsu majutsu-log majutsu-dispatch)
-    :functions (magit-status majutsu-read-bookmarks)
+    :functions (magit-status majutsu-read-bookmarks majutsu-diff-arguments
+                majutsu-diff-revset majutsu-jjdescription--change-id
+                majutsu-jjdescription--bind-repository-root)
     :bind (("C-x g" . my-vc-status)
            ("C-x p v" . my-vc-status)
            :package majutsu
@@ -1565,6 +1567,22 @@ can skip the (slow, in large repos) working copy scan."
       (let ((majutsu-jj-global-arguments
              (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
         (apply fn args)))
+    (defun my-majutsu-jjdescription-show-diff ()
+      "Show the diff for the JJ change being described.
+Upstream calls `majutsu-diff-revset' without diff arguments, so jj
+emits its default color-words output while the buffer uses the git
+washer, leaving only the revision header.  It also snapshots the
+working copy while jj is still waiting on this editor, which can make
+the change divergent."
+      (interactive)
+      (let ((default-directory
+             (or (majutsu-jjdescription--bind-repository-root)
+                 (user-error "No repository associated with this JJ description buffer")))
+            (majutsu-jj-global-arguments
+             (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
+        (pcase-let ((`(,args ,_range ,filesets) (majutsu-diff-arguments)))
+          (majutsu-diff-revset (or (majutsu-jjdescription--change-id) "@")
+                               args nil filesets))))
     (defun my/majutsu-conflict-maybe ()
       "Enable conflict handling in jj repos when the buffer has conflict markers."
       (when (and buffer-file-name
@@ -1589,7 +1607,9 @@ can skip the (slow, in large repos) working copy scan."
     (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-insert-workspaces :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-bug-reference--git-remote-alist :around #'my-majutsu--ignore-working-copy)
-    (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy))
+    (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
+    (advice-add 'majutsu-jjdescription-show-diff :override
+                #'my-majutsu-jjdescription-show-diff))
 #+END_SRC
 
 **** transient
@@ -4138,7 +4158,8 @@ Most of these are available in MELPA.
     :bind ("C-c C-'" . agent-shell-help-menu)
     :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool
                 agent-shell--dired-paths-in-region agent-shell--get-files-context agent-shell--buffer-files agent-shell-cwd
-                agent-shell agent-shell-subscribe-to)
+                agent-shell agent-shell-subscribe-to
+                agent-shell--save-tool-call agent-shell--raw-input-command)
     :hook (agent-shell-mode . (lambda ()
                                 (let ((buffer (current-buffer)))
                                   (agent-shell-subscribe-to
@@ -4224,6 +4245,21 @@ Most of these are available in MELPA.
       (claude-code-ide-mcp-server-with-session-context nil
         (ghci-compilation--send-string (with-current-buffer (ghci-compilation--find-most-likely-buffer) (comint-previous-input-string 0)) nil t)))
 
+    (defun my-agent-shell--command-from-title (state tool-call-id &rest _)
+      "Use the title as the command of execute tool calls lacking rawInput.
+pi-acp sends bash commands only as the tool call title, which
+agent-shell truncates to one line, so the full command was never
+shown.  With :command set it is rendered as a console block in the
+tool call body and recorded in the transcript."
+      (let ((tool-call (map-nested-elt state `(:tool-calls ,tool-call-id))))
+        (when-let* (((equal (map-elt tool-call :kind) "execute"))
+                    ((not (agent-shell--raw-input-command
+                           (map-elt tool-call :raw-input))))
+                    (title (map-elt tool-call :title))
+                    ((not (equal title (map-elt tool-call :command)))))
+          (agent-shell--save-tool-call
+           state tool-call-id (list (cons :command title))))))
+
     (defun agent-shell-new-shell-choose-agent ()
     "Start a new agent shell.
 
@@ -4234,6 +4270,8 @@ Most of these are available in MELPA.
     :config
     (require 'claude-code-ide-mcp-server)
     (require 'agent-shell-worktree)
+    (advice-add 'agent-shell--save-tool-call :after
+                #'my-agent-shell--command-from-title)
 
     (transient-append-suffix 'agent-shell-help-menu "N"
       '("w" "New shell in git worktree" agent-shell-new-worktree-shell))
