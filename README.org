@@ -4800,22 +4800,6 @@ just in case.
       ,*) uname_s=$(uname -s) ;;
     esac
 
-    if [ "$uname_s" = Darwin ] && [ -z "${SSH_CONNECTION-}" ] && [ -S "${SSH_AUTH_SOCK-}" ]; then
-      ssh_stamp=${XDG_CACHE_HOME:-$HOME/.cache}/bauer-ssh-agent-loaded
-      if ! [ "$ssh_stamp" -nt "${SSH_AUTH_SOCK-}" ]; then
-        mkdir -p "${ssh_stamp%/*}"
-        # Try to load SSH keys with passphrases from Apple Keychain.
-        # Then, load SSH keys stored completely on Secure Enclave.
-        # If both succeed, we can mark this as loaded, so no one else needs to
-        # try to load them.
-        /usr/bin/ssh-add -q --apple-load-keychain 2>/dev/null &&
-        SSH_ASKPASS=/usr/bin/true SSH_ASKPASS_REQUIRE=force \
-          /usr/bin/ssh-add -q -K -S /usr/lib/ssh-keychain.dylib </dev/null 2>/dev/null &&
-        touch "$ssh_stamp"
-      fi
-      unset ssh_stamp
-    fi
-
     if [ "$uname_s" = Darwin ]; then
       # launchd sets TMPDIR to DARWIN_USER_TEMP_DIR; only ask getconf
       # when it's missing (e.g. a scrubbed sudo environment).
@@ -6764,30 +6748,53 @@ You can generate a new key with:
 ssh-keygen
 #+END_SRC
 
-Then add it to macOS keychain with:
+**** Apple Keychain
 
-#+BEGIN_SRC sh
-ssh-add --apple-use-keychain
+Your key’s passphrase can be added to Apple Keychain with the following
+in =~/.ssh/config=:
+
+#+BEGIN_SRC text
+  IgnoreUnknown UseKeychain
+  UseKeychain yes
 #+END_SRC
 
-Note: only ssh keys with passphrases can be added to the keychain. You can
-temporarily add a password with `ssh-keygen -p -f`.
+Note: if your SSH key does not already have a passphrase, you can add it in place
+with =ssh-keygen -p -f ~/.ssh/id_ed25519=.
 
-You can also use Touch ID for ssh keys, stored in the Secure Enclave. To set up:
+**** Apple Secure Enclave
+
+You can also store your keys in Secure Enclave. To set up:
 
 #+BEGIN_SRC sh
 sc_auth create-ctk-identity -l ssh-key -k p-256-ne -t bio
 #+END_SRC
 
-Then load it into the agent (press enter at the PIN prompt):
+Note that this will not work in clamshell mode, so if it fails you may have to
+open your laptop lid. You can also pass =-t none= for no Touch ID requirement.
+
+Then load it into your SSH configuration as =~/.ssh/id_ecdsa_sk_rk= (press enter at the PIN prompt):
 
 #+BEGIN_SRC sh
-ssh-add -K -S /usr/lib/ssh-keychain.dylib
+(cd ~/.ssh && ssh-keygen -w /usr/lib/ssh-keychain.dylib -K -N "")
 #+END_SRC
 
-Get the public key to add to servers/GitHub with =ssh-add -L | grep sk-ecdsa=.
+This will generate something that looks like a private key. But it’s not a real
+private key, just a reference to what’s stored in the secure enclave. You can see
+the public key for adding to servers/GitHub in =~/.ssh/id_ecdsa_sk_rk.pub=.
 
-Both variants of ssh-add are automatically run in the shell startup when macOS is detected.
+To have SSH automatically detect these SSH keys, add this towards the top of your
+=~/.ssh/config=:
+
+#+BEGIN_SRC text
+  IdentityFile ~/.ssh/id_ed25519
+  IdentityFile ~/.ssh/id_ecdsa
+  IdentityFile ~/.ssh/id_rsa
+
+  Match exec "test -e /usr/lib/ssh-keychain.dylib"
+    SecurityKeyProvider /usr/lib/ssh-keychain.dylib
+    IdentityFile ~/.ssh/id_ecdsa_sk_rk
+  Match all
+#+END_SRC
 
 *** Git
 
