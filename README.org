@@ -4797,11 +4797,10 @@ bootstrap="$HOME/.nix-profile/etc/profile"
 
 Set some Nix variables that never seem to get set correctly. There are a few bug
 that break how this works. Also need to set some common exports that are needed.
-Lots of common variables need to know about the =.nix-profile= directory. We
-leave the first MANPATH separator empty so it uses the default PATH lookup as
-well. CVS_RSH is needed if your ever need to do cvs. HISTFILE sets where to
-store the bash or zsh history. We set the history size to 10000 for good
-measure. VISUAL should point to this editor.
+Lots of common variables need to know about the =.nix-profile= directory. We leave
+the first MANPATH separator empty so it uses the default PATH lookup as well.
+HISTFILE sets where to store the bash or zsh history. We set the history size to
+50000 for good measure. VISUAL should point to this editor.
 
 Here we setup =.profile=. First, guard against running twice in the same
 shell: the last block of this file sources =~/.profile=, which in turn
@@ -4847,7 +4846,7 @@ just in case.
     unset uname_s
 
     HISTSIZE=50000
-    SAVEHIST=10000
+    SAVEHIST=50000
 
     if [ -z "${TERM-}" ] || [ "$TERM" = dumb ] || [ "$TERM" = dumb-emacs-ansi ] || [ "$TERM" = eterm-color ] || [ -n "${INSIDE_EMACS-}" ] ; then
       if [ -n "${DISPLAY-}" ] ; then
@@ -4868,10 +4867,9 @@ just in case.
 
     export LESS=FRSMi \
            INPUTRC=@INPUTRC@ \
-           GPG_TTY=${TTY:-$(tty)} \
-           CVS_RSH=ssh
+           GPG_TTY=${TTY:-$(tty)}
 
-    export SYSTEMD_LESS=$LESS
+    export SYSTEMD_LESS=${LESS}XK
 
     HISTCONTROL=ignoredups:erasedups:ignorespace
     PROMPT_DIRTRIM=4
@@ -4959,13 +4957,17 @@ readonly ZDOTDIR.
 Dircolors
 
 #+BEGIN_SRC shell
-    if [ "$TERM" != dumb ] && [ -n "${SHELL-}" ]; then
-      if [ "$TERM" = dumb-emacs-ansi ]; then
-        eval "$(TERM=ansi dircolors)"
-      else
-        eval "$(dircolors)"
+  case $- in
+    ,*i*)
+      if [ "${TERM-}" != dumb ]; then
+        if [ "${TERM-}" = dumb-emacs-ansi ]; then
+          eval "$(TERM=ansi dircolors -b)"
+        else
+          eval "$(dircolors -b)"
+        fi
       fi
-    fi
+    ;;
+  esac
 #+END_SRC
 
 Then setup aliases.
@@ -5050,6 +5052,7 @@ if [ -n "${INSIDE_EMACS-}" ]; then
       *)
         [ "${PAGER-}" = cat ] && export PAGER=less
         [ "${JJ_PAGER-}" = cat ] && unset JJ_PAGER
+        unset NODE_NO_READLINE
         ;;
     esac
 fi
@@ -5349,10 +5352,10 @@ Turn on prompt with colors.
 
   unset RPS1
 
-  # Remove the "export" flag from $HISTFILE so that even when zsh is started
-  # with $HISTFILE in the environment variables, $HISTFILE=~/.zsh_history
-  # will never end up in env (otherwise, a nested bash might clobber our history).
-  typeset +x HISTFILE
+  # Remove the "export" flag from history env vars so that sub shells
+  # don’t pick up the setting if they aren’t relevant (otherwise, a
+  # nested bash might clobber our history).
+  typeset +x HISTFILE HISTSIZE SAVEHIST
 
   # Set to "real" to prevent other zsh instances from deleting useful history
   HISTFILE="$HOME/.zsh_real_history"
@@ -5558,8 +5561,7 @@ Setup =man-path=.
                     (split-string "@MANPATH@" ":")))
 #+END_SRC
 
-Setup history and stuff. This gets messy, but we need to make sure these are set
-otherwise zsh will default to 500 and not save at all!
+Setup history and stuff.
 
 #+BEGIN_SRC emacs-lisp
   (defun bauer-set-history-file (sym val)
@@ -5578,8 +5580,6 @@ otherwise zsh will default to 500 and not save at all!
 
   (defun bauer-set-history-size (sym val)
     "Setter for history-size."
-    (setenv "HISTSIZE" (format "%i" val))
-    (setenv "SAVEHIST" (format "%i" val))
     (setq eshell-history-size val
           comint-input-ring-size val)
     (custom-set-default sym val))
@@ -7528,7 +7528,7 @@ allow overriding your current =$HOME= files.
 #+END_SRC
 
 ** LICENSE
-   Copyright © 2018-2020 Matthew Bauer
+   Copyright © 2018-2026 Matthew Bauer
 
    This program is free software: you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
