@@ -1302,7 +1302,6 @@ This mode will try to detect your indentation.
 
 #+BEGIN_SRC emacs-lisp
   (use-package embark
-    :demand
     :bind (("C-." . embark-act)
            ("C-;" . embark-dwim)
            ("C-h B" . embark-bindings))
@@ -1363,7 +1362,7 @@ line are available in an intuitive Emacs buffer.
 
 #+BEGIN_SRC emacs-lisp
   (use-package magit
-    :functions (magit-commit-diff magit-toplevel magit-section--maybe-enable-long-lines-shortcuts)
+    :functions (magit-toplevel)
     :preface
     (defun magit-dired-other-window ()
       (interactive)
@@ -1390,7 +1389,6 @@ line are available in an intuitive Emacs buffer.
     :bind (;; ("C-x g" . magit-status)
            ;; ("C-x p v" . magit-status)
            ;; ("C-x p m" . magit-status)
-           ("C-x G" . magit-dispatch)
            :package magit
            :map magit-mode-map
            ("C-o" . magit-dired-other-window)
@@ -1432,13 +1430,12 @@ line are available in an intuitive Emacs buffer.
     )
 #+END_SRC
 
-Magit forge.
+Ghub, the GitHub API client used by Forge.  Prefer the token from =gh auth
+token= for github.com, falling back to auth-source.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package forge
-    :after magit
+  (use-package ghub
     :functions (ghub--req-url)
-    :bind ("C-c g g" . forge-browse)
     :preface
     (defvar my/ghub-gh-token-ttl 900
       "Seconds to cache the token returned by `gh auth token'.")
@@ -1513,6 +1510,38 @@ Magit forge.
     (advice-add 'ghub--handle-response :before #'my/ghub-gh-token--check-response))
 #+END_SRC
 
+Magit forge.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package forge
+    :after magit
+    :bind ("C-c g g" . forge-browse)
+    :preface
+    (defvar majutsu-buffer-blob-root)
+    (defvar majutsu-buffer-blob-path)
+    (defvar majutsu-buffer-blob-commit-id)
+    (defun my/forge-majutsu-blob (fn &rest args)
+      "Call FN with ARGS treating a Majutsu blob buffer like a Magit blob.
+Forge only knows about `magit-buffer-file-name' and `buffer-file-name',
+so in `majutsu-blob-mode' it would browse the repository instead of the
+file at the blob's commit."
+      (if (and (bound-and-true-p majutsu-blob-mode)
+               majutsu-buffer-blob-root
+               majutsu-buffer-blob-path
+               majutsu-buffer-blob-commit-id)
+          (let ((magit-buffer-file-name
+                 (expand-file-name majutsu-buffer-blob-path majutsu-buffer-blob-root))
+                (magit-buffer-revision majutsu-buffer-blob-commit-id)
+                (magit-buffer-revision-oid majutsu-buffer-blob-commit-id))
+            (apply fn args))
+        (apply fn args)))
+    :config
+    ;; forge-browse, forge-browse-blob and forge-copy-url-at-point-as-kill
+    ;; in Majutsu blob buffers.
+    (advice-add 'forge--browse-target :around #'my/forge-majutsu-blob)
+    (advice-add 'forge--browse-blob-args :around #'my/forge-majutsu-blob))
+#+END_SRC
+
 ***** git-timemachine
 
 #+BEGIN_SRC emacs-lisp
@@ -1529,12 +1558,14 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
 #+BEGIN_SRC emacs-lisp
   (use-package majutsu
     :if (locate-file "jj" exec-path)
-    :commands (majutsu majutsu-log majutsu-dispatch)
+    :commands (majutsu majutsu-log majutsu-dispatch majutsu-fix)
     :functions (magit-status majutsu-read-bookmarks majutsu-diff-arguments
                 majutsu-diff-revset majutsu-jjdescription--change-id
-                majutsu-jjdescription--bind-repository-root majutsu-get)
+                majutsu-jjdescription--bind-repository-root majutsu-get
+                majutsu-jj-lines majutsu-diff--revisions majutsu-start-jj majutsu-read-revset)
     :bind (("C-x g" . my-vc-status)
            ("C-x p v" . my-vc-status)
+           ("C-x J" . majutsu-dispatch)
            :package majutsu
            :repeat-map majutsu-section-cycle-repeat-map
            ("TAB" . majutsu-section-cycle)
@@ -1613,6 +1644,51 @@ the change divergent."
         (pcase-let ((`(,args ,_range ,filesets) (majutsu-diff-arguments)))
           (majutsu-diff-revset (or (majutsu-jjdescription--change-id) "@")
                                args nil filesets))))
+    (defvar-local my-majutsu-diff--working-copy nil
+      "Non-nil if this diff buffer's new side is the working-copy commit (@).")
+    (defun my-majutsu-diff--compute-working-copy ()
+      "Return non-nil if the diff's new/right side resolves to exactly @.
+Unlike upstream, which compares the literal string \"@\", this asks jj,
+so `-r <change-id of @>' counts too."
+      (let ((rev (cdr (majutsu-diff--revisions))))
+        (or (equal rev "@")
+            (equal (ignore-errors
+                     (majutsu-jj-lines "--ignore-working-copy" "log" "--no-graph"
+                                       "-r" rev "-T" "current_working_copy ++ \"\\n\""))
+                   '("true")))))
+    (defun my-majutsu-diff--update-working-copy ()
+      "Cache whether the diff shows @ and show it in the header line.
+Runs from `majutsu-diff-sections-hook', so on every diff refresh; it
+doesn't insert a section."
+      (setq my-majutsu-diff--working-copy (my-majutsu-diff--compute-working-copy))
+      (setq header-line-format
+            (if my-majutsu-diff--working-copy
+                (propertize " Working copy (@)" 'face 'success)
+              (propertize (format " Not the working copy: %s (read-only)"
+                                  (cdr (majutsu-diff--revisions)))
+                          'face 'warning))))
+    (defun my-majutsu-diff--visit-workspace-p (&rest _)
+      "Use the jj-resolved working-copy check."
+      my-majutsu-diff--working-copy)
+    (defun my-majutsu-diff--require-working-copy (&optional force-workspace)
+      "Refuse to visit the workspace file from a diff that isn't of @.
+Visiting read-only blobs from historical diffs is still allowed; only
+FORCE-WORKSPACE (`majutsu-diff-visit-workspace-file') would open the
+live file, whose lines don't correspond to this diff."
+      (when (and force-workspace (not my-majutsu-diff--working-copy))
+        (user-error "Diff is not of the working copy (@); run `jj edit' or `jj new' first")))
+    (defun majutsu-fix-execute (args)
+      "Run `jj fix' with ARGS from `majutsu-fix'.
+Without a --source, fix the revision at point (and its descendants),
+or jj's default (`revsets.fix', else reachable(@, mutable())) if
+there is none."
+      (interactive (list (transient-args 'majutsu-fix)))
+      (let ((rev (and (not (transient-arg-value "--source=" args))
+                      (magit-section-value-if 'jj-commit))))
+        (majutsu-start-jj (append (list "fix")
+                                  (and rev (list (concat "--source=" rev)))
+                                  args)
+                          "Fix completed")))
     (defun my/majutsu-conflict-maybe ()
       "Enable conflict handling in jj repos when the buffer has conflict markers."
       (when (and buffer-file-name
@@ -1633,6 +1709,19 @@ the change divergent."
     ;; get magit font faces to avoid error
     (require 'magit)
     (transient-insert-suffix 'majutsu-git-transient '(0 2) ["PRs" ("P" "View PR" majutsu-gh-pr-open)])
+    (transient-define-prefix majutsu-fix ()
+      "Run `jj fix' to apply configured formatters/fixers."
+      ["Arguments"
+       ("-s" "Source (and descendants)" "--source="
+        :prompt "Source revset: " :reader (lambda (prompt _initial history)
+                                            (majutsu-read-revset prompt :history history)))
+       ("-a" "All lines, not just modified ones" "--all-lines")
+       ("-u" "Include unchanged files" "--include-unchanged-files")
+       ("-i" "Ignore immutable" "--ignore-immutable")]
+      ["Fix"
+       ("F" "Fix (revision at point, else revsets.fix)" majutsu-fix-execute)])
+    (transient-insert-suffix 'majutsu-dispatch "a" '("F" "Fix" majutsu-fix))
+    (keymap-set majutsu-mode-map "F" #'majutsu-fix)
     ;; Only snapshot once per log refresh (in `majutsu-log-insert-logs').
     (advice-add 'majutsu-log-insert-status :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-insert-workspaces :around #'my-majutsu--ignore-working-copy)
@@ -1640,7 +1729,14 @@ the change divergent."
     (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-jjdescription-show-diff :override
                 #'my-majutsu-jjdescription-show-diff)
-    (advice-add 'majutsu-read-bookmark-names :around #'my-majutsu--bookmark-prefix))
+    (advice-add 'majutsu-read-bookmark-names :around #'my-majutsu--bookmark-prefix)
+    ;; Show whether a diff is of @, and only visit workspace files from @ diffs.
+    (add-hook 'majutsu-diff-sections-hook
+              #'my-majutsu-diff--update-working-copy -90)
+    (advice-add 'majutsu-diff--visit-workspace-p :override
+                #'my-majutsu-diff--visit-workspace-p)
+    (advice-add 'majutsu-diff-visit-file :before
+                #'my-majutsu-diff--require-working-copy))
 #+END_SRC
 
 **** transient
@@ -3679,7 +3775,6 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
-    :functions (eglot-alternatives)
     :custom
     (eglot-sync-connect 0)
     (eglot-events-buffer-config '(:size 0 :format full))
@@ -4191,7 +4286,7 @@ Most of these are available in MELPA.
   (use-package agent-shell
     :bind ("C-c C-'" . agent-shell-help-menu)
     :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool
-                agent-shell--dired-paths-in-region agent-shell--get-files-context agent-shell--buffer-files agent-shell-cwd
+                agent-shell-cwd
                 agent-shell agent-shell-subscribe-to
                 agent-shell--save-tool-call agent-shell--raw-input-command)
     :hook (agent-shell-mode . (lambda ()
