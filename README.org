@@ -1532,7 +1532,7 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     :commands (majutsu majutsu-log majutsu-dispatch)
     :functions (magit-status majutsu-read-bookmarks majutsu-diff-arguments
                 majutsu-diff-revset majutsu-jjdescription--change-id
-                majutsu-jjdescription--bind-repository-root)
+                majutsu-jjdescription--bind-repository-root majutsu-get)
     :bind (("C-x g" . my-vc-status)
            ("C-x p v" . my-vc-status)
            :package majutsu
@@ -1549,23 +1549,53 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
             (call-interactively #'majutsu-log)
           (call-interactively #'magit-status))))
     (defun majutsu-gh-pr-open (bookmarks)
-      "Open the associated GitHub PR of a jujutsu bookmark."
+      "Open the GitHub PR of a jujutsu bookmark.
+If no PR exists yet, push the bookmark and open the PR creation page."
       (interactive (list (majutsu-read-bookmarks "Bookmark to view PR for: ")))
       (unless bookmarks
-        (error "No bookmark specified."))
+        (user-error "No bookmark specified"))
       (unless (= 1 (length bookmarks))
-        (error "Can only view PRs for one bookmark at a time."))
-      (let ((cmd (concat
-                  "gh pr list --head "
-                  (car bookmarks)
-                  " --json url --jq '.[].url' --limit 1")))
-        (browse-url (shell-command-to-string cmd))))
+        (user-error "Can only view PRs for one bookmark at a time"))
+      (let* ((bookmark (car bookmarks))
+             (url (string-trim
+                   (with-output-to-string
+                     (with-current-buffer standard-output
+                       (unless (zerop (call-process
+                                       "gh" nil t nil "pr" "list"
+                                       "--head" bookmark "--state" "all"
+                                       "--json" "url" "--jq" ".[].url"
+                                       "--limit" "1"))
+                         (error "gh pr list failed: %s" (buffer-string))))))))
+        (if (not (string-empty-p url))
+            (browse-url url)
+          (message "No PR for %s; pushing..." bookmark)
+          (with-temp-buffer
+            (unless (zerop (call-process "jj" nil t nil
+                                         "git" "push" "--bookmark" bookmark))
+              (error "jj git push failed: %s" (string-trim (buffer-string)))))
+          (with-temp-buffer
+            (unless (zerop (call-process "gh" nil t nil "pr" "create"
+                                         "--head" bookmark "--web"))
+              (error "gh pr create failed: %s" (string-trim (buffer-string))))))))
     (defun my-majutsu--ignore-working-copy (fn &rest args)
       "Call FN with ARGS without jj snapshotting the working copy again.
 The log section runs first and already snapshots, so later sections
 can skip the (slow, in large repos) working copy scan."
       (let ((majutsu-jj-global-arguments
              (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
+        (apply fn args)))
+    (defun my-majutsu--bookmark-prefix (fn &rest args)
+      "Call FN with ARGS, pre-filling the bookmark prefix for new bookmarks.
+The prefix comes from the repo's jj `majutsu.bookmark-prefix' config, e.g.
+  jj config set --repo majutsu.bookmark-prefix matthew/
+Repos without it (or with it empty) get no pre-fill."
+      (if-let* (((memq this-command '(majutsu-bookmark-create majutsu-bookmark-set)))
+                (prefix (majutsu-get "majutsu.bookmark-prefix")))
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (when (string-empty-p (minibuffer-contents))
+                  (insert prefix)))
+            (apply fn args))
         (apply fn args)))
     (defun my-majutsu-jjdescription-show-diff ()
       "Show the diff for the JJ change being described.
@@ -1609,7 +1639,8 @@ the change divergent."
     (advice-add 'majutsu-bug-reference--git-remote-alist :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-jjdescription-show-diff :override
-                #'my-majutsu-jjdescription-show-diff))
+                #'my-majutsu-jjdescription-show-diff)
+    (advice-add 'majutsu-read-bookmark-names :around #'my-majutsu--bookmark-prefix))
 #+END_SRC
 
 **** transient
@@ -2973,6 +3004,9 @@ Automatically clean up stale buffers each night.
     :config
     (advice-add #'project-or-external-find-regexp
                 :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
+    ;; Disabled fsmonitor so that git ls-files is consistently fast.
+    ;; Git won’t write to the fsmonitor cache in ls-files, but it will
+    ;; recompute the cache which takes some time in large repos.
     (defun bauer/project-files-without-fsmonitor (fn &rest args)
       "Call FN with ARGS with git's fsmonitor disabled."
       (let ((process-environment
