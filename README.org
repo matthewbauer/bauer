@@ -3277,7 +3277,41 @@ Optionally, start a server (disabled by default):
                       'local-map (make-mode-line-mouse-map
                                     'mouse-1 #'bauer/pop-to-pending-server-client))))
       "Mode line showing waiting server clients.")
+    (defun bauer/server-edit-abort ()
+      "Abort editing the current buffer for its waiting clients.
+Unlike `server-edit-abort', only this buffer's clients are aborted, not
+every client.  emacsclient exits non-zero, so callers like git abort."
+      (interactive)
+      (if server-buffer-clients
+          (dolist (proc (copy-sequence server-buffer-clients))
+            ;; A client may already be gone; don't let it stop the rest.
+            (when (process-live-p proc)
+              (ignore-errors
+                (server-send-string
+                 proc (concat "-error " (server-quote-arg "Aborted by the user") "\n"))))
+            ;; Forget the client, or the buffer keeps listing it as
+            ;; waiting after emacsclient has exited.
+            (ignore-errors (server-delete-client proc)))
+        (message "This buffer has no clients")))
+    (defun bauer/server-buffer-binding (command)
+      "Return a binding for COMMAND active only in buffers with waiting clients.
+Elsewhere the key falls through to the major mode or global binding."
+      `(menu-item "" ,command :filter ,(lambda (cmd) (and server-buffer-clients cmd))))
+    (defvar bauer/server-edit-keys-mode-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "C-c C-c") (bauer/server-buffer-binding #'server-edit))
+        ;; Matches C-x C-e in ghostel, which sends zsh's edit-command-line here.
+        (define-key map (kbd "C-x C-e") (bauer/server-buffer-binding #'server-edit))
+        (define-key map (kbd "C-c C-k") (bauer/server-buffer-binding #'bauer/server-edit-abort))
+        map)
+      "Keys for buffers an emacsclient is waiting on.")
+    (define-minor-mode bauer/server-edit-keys-mode
+      "C-c C-c or C-x C-e finishes and C-c C-k aborts emacsclient buffers.
+The keys only apply while `server-buffer-clients' is non-nil, i.e. a
+client (e.g. git via $EDITOR) is waiting on the buffer."
+      :global t)
     :config
+    (bauer/server-edit-keys-mode)
     ;; (unless (server-running-p) (server-start))
     (put 'bauer/pending-server-client-mode-line 'risky-local-variable t)
     (setq global-mode-string
