@@ -1925,7 +1925,8 @@ outliner but also much much more.
     :custom
     (recentf-max-saved-items 1000)
     (recentf-show-messages nil)
-    :hook (after-init . recentf-mode)
+    :demand
+    :config (recentf-mode)
     )
 #+END_SRC
 
@@ -3177,7 +3178,7 @@ needs =:commands=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
-    :defer 4
+    :demand
     :custom (savehist-additional-variables '(search-ring
                                              regexp-search-ring
                                              kill-ring
@@ -3194,7 +3195,8 @@ needs =:commands=.
 #+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :if (>= emacs-major-version 25)
-    :hook (after-init . save-place-mode)
+    :demand
+    :config (save-place-mode)
     :custom (save-place-limit 600))
 #+END_SRC
 
@@ -4973,7 +4975,7 @@ something has changed.
 #+BEGIN_SRC shell
     if [ "${__BAUER_ENV-}" != @out@ ]; then
       export __BAUER_ENV=@out@
-      export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/npm/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
+      export PATH="$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/npm/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
              INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
              MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
              XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
