@@ -59,6 +59,18 @@ selected window."
     (setq mode-line-notify--data (append mode-line-notify--data (list params)))
     (force-mode-line-update t)))
 
+(defun mode-line-notify-dismiss (buffer &optional tag)
+  "Dismiss pending notifications for BUFFER.
+With TAG, only dismiss notifications sent with that :tag."
+  (let ((remaining (seq-remove (lambda (data)
+                                 (and (eq (plist-get data :buffer) buffer)
+                                      (or (null tag)
+                                          (eq (plist-get data :tag) tag))))
+                               mode-line-notify--data)))
+    (unless (equal remaining mode-line-notify--data)
+      (setq mode-line-notify--data remaining)
+      (force-mode-line-update t))))
+
 (defun mode-line-buffer-change (_frame)
   (setq mode-line-notify--data
 	(seq-remove (lambda (data) (and (plist-get data :buffer)

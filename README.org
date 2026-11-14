@@ -2120,7 +2120,8 @@ package, so no download is needed on first use.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ghostel
-    :functions (ghostel-compile-global-mode ghostel ghostel-project ghostel-send-key)
+    :functions (ghostel-compile-global-mode ghostel ghostel-project ghostel-send-key
+                mode-line-notify-send mode-line-notify-dismiss)
     :bind (("M-@" . maybe-project-ghostel)
            :map ghostel-semi-char-mode-map
            ("M-@" . maybe-project-ghostel)
@@ -2178,6 +2179,52 @@ package, so no download is needed on first use.
                       ((not (string-empty-p body)) body)
                       (t (format "%s Bell" (buffer-name))))
          :buffer (current-buffer))))
+    (defvar ghostel-program-status)
+    (defun my-ghostel-status-attention (records)
+      "Return the most urgent record in RECORDS that needs attention, or nil.
+RECORDS is `ghostel-program-status', an alist of (ID . RECORD)."
+      (seq-find #'identity
+                (mapcar (lambda (state)
+                          (seq-find (lambda (record)
+                                      (eq (plist-get record :state) state))
+                                    (mapcar #'cdr records)))
+                        '(blocked error done))))
+    (defun my-ghostel-status-notify (_id old new)
+      "Mirror Ghostel program status (OSC 7501) into `mode-line-notify'.
+A member of `ghostel-program-status-functions', called with record
+ID changing from OLD to NEW.  Pending status notifications for the
+buffer are replaced while it holds a blocked, error or done record and
+dismissed once none is left (work resumed, input acknowledged, cleared)."
+      (when (fboundp 'mode-line-notify-send)
+        (let* ((buffer (current-buffer))
+               (state (plist-get new :state))
+               (urgent (my-ghostel-status-attention ghostel-program-status))
+               (title
+                (and urgent
+                     ;; A record entered an attention state, or one was
+                     ;; removed and another attention record remains.
+                     (or (null new)
+                         (and (memq state '(blocked error done))
+                              (not (eq state (plist-get old :state)))))
+                     (let ((kind (plist-get urgent :kind))
+                           (msg (plist-get urgent :msg)))
+                       (concat (buffer-name buffer) ": "
+                               (symbol-name (plist-get urgent :state))
+                               (and kind (format " (%s)" kind))
+                               (and msg (not (string-empty-p msg))
+                                    (concat " - " msg)))))))
+          ;; Runs on ghostel's terminal output path, so defer the work.
+          ;; Dismissal and sending share one timer to keep them ordered.
+          (when (or title (not urgent))
+            (run-at-time
+             0 nil
+             (lambda ()
+               (when (buffer-live-p buffer)
+                 (mode-line-notify-dismiss buffer 'ghostel-status)
+                 (when title
+                   (mode-line-notify-send :title title
+                                          :buffer buffer
+                                          :tag 'ghostel-status)))))))))
     (defcustom my-ghostel-long-command-notification-delay 30
       "Seconds a Ghostel command must run before its completion is announced.
 Set to nil to disable automatic command-completion notifications."
@@ -2222,6 +2269,11 @@ STATUS is the command's exit status, or nil when the shell omitted it."
     (add-hook 'ghostel-command-start-functions #'my-ghostel-command-started)
     (add-hook 'ghostel-command-finish-functions #'my-ghostel-command-finished)
     :config
+    ;; Route OSC 7501 program status (e.g. pi) to mode-line-notify instead
+    ;; of the stock notifier, which would go through `my-ghostel-notify'
+    ;; titled only by the app name and so collapse across buffers.
+    (remove-hook 'ghostel-program-status-functions #'ghostel-status-notify)
+    (add-hook 'ghostel-program-status-functions #'my-ghostel-status-notify)
     (require 'ghostel-compile)
     (ghostel-compile-global-mode 1))
 
