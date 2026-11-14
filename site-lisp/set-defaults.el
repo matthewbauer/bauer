@@ -44,7 +44,11 @@
 ;; This code is based off of custom-set-variables’ defun.
 (defun set-defaults (&rest args)
   "Set defaults in the same way as ’custom-set-variables’.
-ARGS are a list in the form of (SYMBOL VALUE)."
+ARGS are a list in the form of (SYMBOL VALUE).
+
+VALUE becomes the variable’s standard value.  The current value is
+only changed when the user has not saved one (e.g. in ‘custom-file’),
+so this can run before or after ‘custom-file’ is loaded."
   (dolist (entry args)
     (let* ((symbol (indirect-variable (nth 0 entry))))
       (unless (or (get symbol 'standard-value)
@@ -68,8 +72,9 @@ ARGS are a list in the form of (SYMBOL VALUE)."
       (put symbol 'standard-value (list value))
       ;; (put symbol 'force-value t)
 
-      (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
-        (funcall set symbol (eval value))))))
+      (unless (get symbol 'saved-value)
+        (let ((set (or (get symbol 'custom-set) 'custom-set-default)))
+          (funcall set symbol (eval value t)))))))
 
 (defun append-envs (sep &rest env)
   "Append environment variables with SEP from ENV alist."

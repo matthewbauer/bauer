@@ -332,25 +332,18 @@ The format of arguments to =set-defaults= is identical to the one used by
 | Default Variable                       | Default Value                |
 |----------------------------------------+------------------------------|
 | apropos-do-all                         | t                            |
-| auth-source-save-behavior              | t                            |
 | auto-window-vscroll                    | nil                          |
 | blink-cursor-mode                      | nil                          |
 | bookmark-save-flag                     | 1                            |
 | calendar-view-holidays-initially-flag  | t                            |
 | checkdoc-spellcheck-documentation-flag | t                            |
-| comment-empty-lines                    | t                            |
-| comment-multi-line                     | t                            |
-| completion-ignore-case                 | t                            |
 | cursor-in-non-selected-windows         | nil                          |
 | custom-search-field                    | nil                          |
-| delete-by-moving-to-trash              | t                            |
 | delete-pair-push-mark                  | t                            |
 | ediff-keep-variants                    | nil                          |
 | ediff-show-clashes-only                | t                            |
 | ediff-split-window-function            | #'split-window-horizontally  |
 | ediff-window-setup-function            | #'ediff-setup-windows-plain  |
-| enable-recursive-minibuffers           | t                            |
-| epg-pinentry-mode                      | 'loopback                    |
 | fast-but-imprecise-scrolling           | t                            |
 | frame-inhibit-implied-resize           | t                            |
 | frame-resize-pixelwise                 | t                            |
@@ -358,19 +351,14 @@ The format of arguments to =set-defaults= is identical to the one used by
 | help-enable-completion-autoload        | nil                          |
 | help-window-select                     | t                            |
 | help-window-keep-selected              | t                            |
-| history-delete-duplicates              | t                            |
-| history-length                         | 300                          |
 | hscroll-margin                         | 2                            |
 | hscroll-step                           | 1                            |
 | imenu-auto-rescan                      | t                            |
 | indicate-buffer-boundaries             | 'left                        |
 | indicate-empty-lines                   | t                            |
-| ispell-quietly                         | t                            |
-| ispell-silently-savep                  | t                            |
 | jit-lock-chunk-size                    | 4096                         |
 | jit-lock-defer-time                    | 0                            |
 | jit-lock-stealth-time                  | 1.25                         |
-| kill-buffer-delete-auto-save-files     | t                            |
 | load-prefer-newer                      | t                            |
 | mac-command-modifier                   | 'meta                        |
 | mac-option-modifier                    | 'super                       |
@@ -379,7 +367,6 @@ The format of arguments to =set-defaults= is identical to the one used by
 | ns-pop-up-frames                       | nil                          |
 | nxml-sexp-element-flag                 | t                            |
 | nxml-slash-auto-complete-flag          | t                            |
-| read-buffer-completion-ignore-case     | t                            |
 | reb-re-syntax                          | 'string                      |
 | redisplay-skip-fontification-on-input  | t                            |
 | register-use-preview                   | t                            |
@@ -387,21 +374,15 @@ The format of arguments to =set-defaults= is identical to the one used by
 | scroll-conservatively                  | 101                          |
 | scroll-preserve-screen-position        | 'always                      |
 | sentence-end-double-space              | nil                          |
-| tab-always-indent                      | 'complete                    |
-| text-mode-ispell-word-completion       | nil                          |
-| truncate-partial-width-windows         | nil                          |
 | undo-limit                             | 1000000                      |
 | undo-strong-limit                      | 1500000                      |
 | undo-outer-limit                       | 24000000                     |
 | uniquify-after-kill-buffer-p           | t                            |
 | uniquify-buffer-name-style             | 'post-forward-angle-brackets |
 | use-package-always-defer               | t                            |
-| window-combination-resize              | t                            |
 | woman-imenu                            | t                            |
 | word-wrap                              | t                            |
 | x-stretch-cursor                       | t                            |
-| ibuffer-human-readable-size            | t                            |
-| kill-region-dwim                       | 'emacs-word                  |
 | view-lossage-auto-refresh              | t                            |
 | zone-all-frames                        | t                            |
 | zone-all-windows-in-frame              | t                            |
@@ -426,16 +407,13 @@ Misc. defaults that don’t fit above. TODO: move these above.
     (make-directory (expand-file-name "undo-fu-session/" user-emacs-directory) t))
 
   (set-defaults
-   '(crm-prompt "%p")
    '(custom-file (expand-file-name "settings.el" user-emacs-directory))
    '(find-ls-option '("-print0 | xargs -P4 -0 ls -ldN" . "-ldN"))
    '(find-ls-subdir-switches "-ldN")
-   '(ispell-extra-args '("--sug-mode=ultra"))
    '(package-archives
      '(("melpa" . "https://melpa.org/packages/")
        ("gnu" . "https://elpa.gnu.org/packages/")
        ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-   '(set-message-functions '(inhibit-message set-minibuffer-message))
    '(tramp-default-proxies-alist
      '(((regexp-quote (system-name)) nil nil)
        (nil "\\`root\\'" "/ssh:%h:")
@@ -548,6 +526,23 @@ Actually require =use-package=,
     (require 'delight)
     (require 'bind-key)
     (require 'use-package))
+#+END_SRC
+
+Add a =:defaults= keyword to =use-package=. It takes the same arguments as =:custom= but goes
+through =set-defaults=, so the values become the variables’ standard values and
+never override anything the user saved in =custom-file=.
+
+#+BEGIN_SRC emacs-lisp
+  (eval-and-compile
+    (unless (memq :defaults use-package-keywords)
+      (setq use-package-keywords
+            (mapcan (lambda (k) (if (eq k :custom) (list k :defaults) (list k)))
+                    use-package-keywords)))
+    (defalias 'use-package-normalize/:defaults #'use-package-normalize/:custom)
+    (defun use-package-handler/:defaults (name _keyword args rest state)
+      (use-package-concat
+       `((set-defaults ,@(mapcar (lambda (def) `'(,(car def) ,(cadr def))) args)))
+       (use-package-process-keywords name rest state))))
 #+END_SRC
 
 Now let’s handle the case where all of the packages are already provided.
@@ -955,7 +950,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
   (use-package orderless
-    :custom
+    :defaults
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles partial-completion))))
     (completion-category-defaults '((eglot (styles orderless))
@@ -965,16 +960,17 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (use-package vertico
     :commands (vertico-mode)
     :demand
-    :custom (vertico-preselect 'directory)
+    :defaults (vertico-preselect 'directory)
     :config
     (vertico-mode))
 
   (use-package corfu
     :demand
     :commands (global-corfu-mode corfu-history-mode corfu-popupinfo-mode)
-    :custom
+    :defaults
     (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
     (corfu-preselect 'prompt) ;; Always preselect the prompt
+    (tab-always-indent 'complete)
     :bind
     (:map corfu-map
           ("TAB" . corfu-next)
@@ -1087,7 +1083,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult--default-completion-list-preview-setup)
 
-    :custom
+    :defaults
     (register-preview-delay 0.5)
     (register-preview-function #'consult-register-format)
     (xref-show-definitions-function #'consult-xref)
@@ -1212,7 +1208,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
   (use-package diff-hl
     :defer 2
     :functions (global-diff-hl-mode diff-hl-margin-mode)
-    :custom
+    :defaults
     (diff-hl-disable-on-remote t)
     (diff-hl-update-async t)
     ;; :hook (dired-mode . diff-hl-dired-mode-unless-remote)
@@ -1228,7 +1224,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 #+BEGIN_SRC emacs-lisp
   (use-package dired
     :ensure nil
-    :custom
+    :defaults
     (dired-auto-revert-buffer t)
     (dired-dwim-target t)
     (dired-hide-details-hide-symlink-targets nil)
@@ -1246,7 +1242,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
   (use-package wdired
     :commands (wdired-change-to-wdired-mode)
-    :custom
+    :defaults
     (wdired-allow-to-change-permissions t)
     (wdired-create-parent-directories t))
 #+END_SRC
@@ -1265,7 +1261,7 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
 
 #+BEGIN_SRC emacs-lisp
   (use-package dired-subtree
-    :custom (dired-subtree-use-backgrounds nil)
+    :defaults (dired-subtree-use-backgrounds nil)
     :bind (:package dired
                     :map dired-mode-map
                     ("<tab>" . dired-subtree-toggle)
@@ -1294,7 +1290,7 @@ This mode will try to detect your indentation.
 #+BEGIN_SRC emacs-lisp
   (use-package dtrt-indent
     :delight
-    :custom (dtrt-indent-verbosity 0)
+    :defaults (dtrt-indent-verbosity 0)
     :hook (prog-mode . dtrt-indent-mode))
 #+END_SRC
 
@@ -1306,7 +1302,7 @@ This mode will try to detect your indentation.
            ("C-;" . embark-dwim)
            ("C-h B" . embark-bindings))
     :delight (embark-auto-prefix-help-mode)
-    :custom
+    :defaults
     (prefix-help-command #'embark-prefix-help-command)
     :config
     (embark-auto-prefix-help-mode)
@@ -1321,7 +1317,7 @@ This mode will try to detect your indentation.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flymake
-  :custom
+  :defaults
   (flymake-show-diagnostics-at-end-of-line nil)
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
   (flymake-indicator-type 'margins)
@@ -1367,7 +1363,7 @@ line are available in an intuitive Emacs buffer.
     (defun magit-dired-other-window ()
       (interactive)
       (dired-other-window (magit-toplevel)))
-    :custom
+    :defaults
     (magit-commit-show-diff nil)
     (magit-blame-disable-modes '(fci-mode view-mode yascroll-bar-mode))
     (magit-process-find-password-functions '(magit-process-password-auth-source))
@@ -1784,7 +1780,7 @@ MMM mode lets you edit multiple languages within one buffer.
 #+BEGIN_SRC emacs-lisp
   (use-package mmm-mode
     :disabled
-    :custom (mmm-submode-decoration-level 2)
+    :defaults (mmm-submode-decoration-level 2)
     :config
     (use-package mmm-auto
       :ensure nil))
@@ -1847,7 +1843,7 @@ outliner but also much much more.
   (use-package org
     :bind (("C-c l" . org-store-link))
     :ensure org-contrib
-    :custom
+    :defaults
     (org-agenda-tags-column 0)
     (org-auto-align-tags nil)
     (org-confirm-babel-evaluate nil)
@@ -1922,7 +1918,7 @@ outliner but also much much more.
 
 #+BEGIN_SRC emacs-lisp
   (use-package recentf
-    :custom
+    :defaults
     (recentf-max-saved-items 1000)
     (recentf-show-messages nil)
     :demand
@@ -2059,7 +2055,7 @@ Simple undo/redo on top of Emacs’ built-in undo.
 
 #+BEGIN_SRC emacs-lisp
   (use-package undo-fu
-    :custom
+    :defaults
     (undo-fu-allow-undo-in-region t)
     :bind (([remap undo] . undo-fu-only-undo)
            ([remap undo-redo] . undo-fu-only-redo)
@@ -2076,7 +2072,7 @@ Persist undo history across sessions.
 #+BEGIN_SRC emacs-lisp
   (use-package undo-fu-session
     :demand
-    :custom
+    :defaults
     (undo-fu-session-directory (expand-file-name "undo-fu-session/" user-emacs-directory))
     :config (undo-fu-session-global-mode))
 #+END_SRC
@@ -2102,7 +2098,7 @@ Visualize the undo tree.
            ("C-b" . vundo-backward)
            ("C-n" . vundo-next)
            ("C-p" . vundo-previous))
-    :custom (vundo-roll-back-on-quit nil)
+    :defaults (vundo-roll-back-on-quit nil)
     :config
     (setq vundo-glyph-alist vundo-unicode-symbols)
     ;; Show the tree right below the current window, not in a
@@ -2138,7 +2134,7 @@ package, so no download is needed on first use.
            :package dired
            :map dired-mode-map
            ("M-@" . maybe-project-ghostel))
-    :custom
+    :defaults
     ;; never try to download/compile the module; nix provides it
     (ghostel-module-auto-install nil)
     (ghostel-notification-functions '(my-ghostel-notify))
@@ -2341,6 +2337,17 @@ Things to know:
 - To debug a lookup, run =(setq auth-source-debug t)= and then
   =(auth-source-search :host "api.github.com" :max 1)=.
 
+=epg-pinentry-mode= makes GnuPG ask for passphrases (e.g. for
+=~/.authinfo.gpg=) in the minibuffer.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package auth-source
+    :ensure nil
+    :defaults
+    (auth-source-save-behavior t)
+    (epg-pinentry-mode 'loopback))
+#+END_SRC
+
 **** autorevert
 
 Autorevert mode makes files update when they have changed on disk. Unfortunately
@@ -2350,7 +2357,7 @@ investigate how to fix this.
 #+BEGIN_SRC emacs-lisp
   (use-package autorevert
     :demand
-    :custom
+    :defaults
     (auto-revert-avoid-polling t)
     ;; (global-auto-revert-non-file-buffers t)
     (global-auto-revert-ignore-modes '(Buffer-menu-mode tags-table-mode))
@@ -2364,7 +2371,7 @@ Provides links to bugs listed in source code.
 #+BEGIN_SRC emacs-lisp
   (use-package bug-reference
     :disabled
-    :custom (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
+    :defaults (bug-reference-bug-regexp "\\(\\(?:[Ii]ssue \\|[Ff]ixe[ds] \\|[Rr]esolve[ds]? \\|[Cc]lose[ds]?\\|[Pp]\\(?:ull [Rr]equest\\|[Rr]\\) \\|(\\)#\\([0-9]+\\))?\\)")
     :hook
     (prog-mode . bug-reference-prog-mode)
     (text-mode . bug-reference-mode))
@@ -2378,7 +2385,7 @@ Base mode used for shell and terminal modes.
   (use-package comint
     :ensure nil
     :autoload (comint-write-input-ring comint-read-input-ring)
-    :custom (comint-completion-addsuffix nil)
+    :defaults (comint-completion-addsuffix nil)
     :preface
     (defun save-history ()
       (interactive)
@@ -2407,7 +2414,7 @@ Base mode used for shell and terminal modes.
            :map compilation-mode-map
            ("o" . compile-goto-error))
     :hook (compilation-filter . ansi-color-compilation-filter)
-    :custom
+    :defaults
     (compilation-always-kill t)
     (compilation-ask-about-save nil)
     (compilation-context-lines t)
@@ -2515,7 +2522,7 @@ Base mode used for shell and terminal modes.
 (use-package diff-mode
   :bind (:map diff-mode-map
               ("M-o" . other-window))
-  :custom
+  :defaults
   (diff-default-read-only t)
   (diff-font-lock-syntax 'hunk-also))
 #+END_SRC
@@ -2550,7 +2557,7 @@ Provides some info for the thing at the point.
              python-mode
              eshell-mode
              org-mode) . eldoc-mode)
-    :custom
+    :defaults
     (eldoc-idle-delay 0.4)
     (eldoc-help-at-pt t)
     (eldoc-echo-area-use-multiline-p nil)
@@ -2596,7 +2603,7 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
     :defines (eshell-history-file-name)
-    :custom
+    :defaults
     (eshell-cmpl-autolist t)
     (eshell-cmpl-cycle-completions nil)
     (eshell-cmpl-ignore-case t)
@@ -2722,7 +2729,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ffap
-    :custom
+    :defaults
     (ffap-machine-p-known 'reject)
     (ffap-url-unwrap-local nil)
     :bind (([S-mouse-3] . ffap-at-mouse)
@@ -2779,7 +2786,7 @@ Make scripts executable automatically.
                               (forward-line (1- line-number))
                               (when (> col-number 0)
                                 (move-to-column (1- col-number))))))))
-  :custom
+  :defaults
   (auto-mode-case-fold nil)
   (auto-save-file-name-transforms `((".*"
                                        ,(expand-file-name "auto-save/"
@@ -2789,7 +2796,9 @@ Make scripts executable automatically.
                                                 user-emacs-directory))))
   (delete-old-versions t)
   (version-control t)
-  (find-file-visit-truename t))
+  (find-file-visit-truename t)
+  (delete-by-moving-to-trash t)
+  (kill-buffer-delete-auto-save-files t))
 #+END_SRC
 
 **** Flyspell
@@ -2797,7 +2806,7 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
     :disabled
-    :custom
+    :defaults
     (flyspell-highlight-properties nil)
     (flyspell-issue-welcome-flag nil)
     :if (locate-file
@@ -2809,6 +2818,15 @@ Make scripts executable automatically.
     (prog-mode . flyspell-prog-mode)
     :bind (:map flyspell-mode-map
                 ("C-M-i" . nil)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ispell
+    :ensure nil
+    :defaults
+    (ispell-quietly t)
+    (ispell-silently-savep t)
+    (ispell-extra-args '("--sug-mode=ultra")))
 #+END_SRC
 
 **** goto-addr
@@ -2829,7 +2847,7 @@ Make scripts executable automatically.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer
-    :custom
+    :defaults
     (ibuffer-default-display-maybe-show-predicates t)
     (ibuffer-expert t)
     (ibuffer-show-empty-filter-groups nil)
@@ -2840,6 +2858,7 @@ Make scripts executable automatically.
              (size 6 -1 :right) " " (mode 16 16) " " filename)
        (mark " " (name 16 -1) " " filename)))
     (ibuffer-never-show-predicates '("\\*magit-\\(diff\\|process\\):"))
+    (ibuffer-human-readable-size t)
     ;; *Ibuffer* is global, so no reason to group it in project buffer lists
     :hook (ibuffer-mode . (lambda () (setq default-directory "~/")))
     :bind (([remap list-buffers] . ibuffer)
@@ -2861,7 +2880,7 @@ Make scripts executable automatically.
   (after-init . (lambda ()
                        (fido-mode -1)
                        (icomplete-vertical-mode 1)))
-  :custom
+  :defaults
   ;; (icomplete-delay-completions-threshold 0)
   ;; (icomplete-compute-delay 0)
   (icomplete-show-matches-on-no-input t)
@@ -2903,7 +2922,7 @@ Make scripts executable automatically.
     ;; does a great job of 'copying the current word under cursor'.
     (define-key isearch-mode-map (kbd "M-w") 'isearch-copy-selected-word)
 
-    :custom
+    :defaults
     (isearch-lazy-count t)
     (isearch-allow-scroll t)
     (isearch-wrap-pause 'no-ding))
@@ -2914,7 +2933,7 @@ Make scripts executable automatically.
 #+BEGIN_SRC emacs-lisp
   (use-package minibuffer
     :ensure nil
-    :custom
+    :defaults
     (completion-auto-help t)
     (completion-eager-update t)
     (completion-eager-display t)
@@ -2929,6 +2948,11 @@ Make scripts executable automatically.
          cursor-intangible t
          face minibuffer-prompt))
     (read-file-name-completion-ignore-case t)
+    (read-buffer-completion-ignore-case t)
+    (completion-ignore-case t)
+    (enable-recursive-minibuffers t)
+    (set-message-functions '(inhibit-message set-minibuffer-message))
+    (crm-prompt "%p")
     :hook
     (minibuffer-setup . cursor-intangible-mode)
     ;; (minibuffer-setup . (lambda () (setq truncate-lines t)))
@@ -2965,7 +2989,7 @@ Automatically clean up stale buffers and collect Lisp garbage each night.
   (use-package midnight
     :ensure nil
     :demand
-    :custom
+    :defaults
     (clean-buffer-list-delay-general 5)
     :hook (midnight . garbage-collect)
     :config
@@ -2977,7 +3001,7 @@ Automatically clean up stale buffers and collect Lisp garbage each night.
 garbage collection each night (=system-tidy-repos-maintenance=) and prefetching
 each hour (=system-tidy-repos-prefetch=). It also does Nix garbage collection
 each night using =system-tidy-nix-gc-command=. Both are nil here by default (see
-the =set-defaults= above), so they are disabled; set them in your =custom-file=.
+=:defaults= below), so they are disabled; set them in your =custom-file=.
 
 =:hook= autoloads the hooked commands; the prefetch command, run from a timer,
 needs =:commands=.
@@ -2988,7 +3012,7 @@ needs =:commands=.
     :commands system-tidy-repos-prefetch
     :hook ((midnight . system-tidy-repos-maintenance)
            (midnight . system-tidy-nix-gc))
-    :custom
+    :defaults
     (system-tidy-nix-gc-command nil) ; disable by default
     :init
     (run-at-time 300 3600 #'system-tidy-repos-prefetch))
@@ -3037,7 +3061,7 @@ needs =:commands=.
                 menu-bar-separator)))))
       menu)
     :hook ((text-mode prog-mode) . context-menu-mode)
-    :custom
+    :defaults
     (context-menu-functions
      '(my/org-link-context-menu
        context-menu-ffap
@@ -3057,7 +3081,7 @@ needs =:commands=.
   (use-package mwheel
     :ensure nil
     :functions mwheel-scroll@tilt-only-when-truncated
-    :custom
+    :defaults
     (mouse-wheel-tilt-scroll t)
     :config
     (define-advice mwheel-scroll
@@ -3109,7 +3133,7 @@ needs =:commands=.
 #+BEGIN_SRC emacs-lisp
 (use-package proced
   :functions (proced-toggle-auto-update)
-  :custom
+  :defaults
   (proced-enable-color-flag t)
   (proced-tree-flag t)
   (proced-auto-update-flag 'visible)
@@ -3130,6 +3154,9 @@ needs =:commands=.
            ;; (c++-mode . prettify-symbols-c++)
            ;; ((js-mode js2-mode) . prettify-symbols-js)
     (prog-mode . (lambda () (setq-local scroll-margin 3)))
+    :defaults
+    (comment-empty-lines t)
+    (comment-multi-line t)
     :preface
     (defun prettify-symbols-prog ()
       (push '("<=" . ?≤) prettify-symbols-alist)
@@ -3166,7 +3193,7 @@ needs =:commands=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package project
-    :custom
+    :defaults
     (project-mode-line t)
     (project-vc-include-untracked nil)
     (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
@@ -3222,7 +3249,7 @@ needs =:commands=.
            ("d" . delete-frame))
     :config
     (repeat-mode)
-    :custom
+    :defaults
     (repeat-exit-timeout 0.8))
 #+END_SRC
 
@@ -3231,13 +3258,15 @@ needs =:commands=.
 #+BEGIN_SRC emacs-lisp
   (use-package savehist
     :demand
-    :custom (savehist-additional-variables '(search-ring
+    :defaults (savehist-additional-variables '(search-ring
                                              regexp-search-ring
                                              kill-ring
                                              kmacro-ring
                                              register-alist
                                              mark-ring
                                              global-mark-ring))
+    (history-length 300)
+    (history-delete-duplicates t)
     :config
     (savehist-mode))
 #+END_SRC
@@ -3249,7 +3278,7 @@ needs =:commands=.
     :if (>= emacs-major-version 25)
     :demand
     :config (save-place-mode)
-    :custom (save-place-limit 600))
+    :defaults (save-place-limit 600))
 #+END_SRC
 
 **** server
@@ -3323,7 +3352,7 @@ client (e.g. git via $EDITOR) is waiting on the buffer."
 
 #+BEGIN_SRC emacs-lisp
   (use-package shell
-    :custom
+    :defaults
     (dirtrack-list '("^[^:]*:\\(?:\\[[0-9]+m\\)*\\([^\\$# ]+\\)" 1))
     (shell-completion-execonly nil)
     (shell-input-autoexpand nil)
@@ -3370,7 +3399,7 @@ client (e.g. git via $EDITOR) is waiting on the buffer."
     (text-mode . auto-fill-mode)
     ;; (text-mode . refill-mode)
     :config (column-number-mode)
-    :custom
+    :defaults
     (completion-auto-select 'second-tab)
     (completion-show-help nil)
     (async-shell-command-buffer 'new-buffer)
@@ -3381,7 +3410,8 @@ client (e.g. git via $EDITOR) is waiting on the buffer."
     (read-extended-command-predicate #'command-completion-default-include-p)
     (kill-do-not-save-duplicates t)
     (kill-whole-line t)
-    (backward-delete-char-untabify-method 'hungry))
+    (backward-delete-char-untabify-method 'hungry)
+    (kill-region-dwim 'emacs-word))
 #+END_SRC
 
 **** so-long
@@ -3418,7 +3448,7 @@ client (e.g. git via $EDITOR) is waiting on the buffer."
       (when (eq sql-product 'sqlite)
         (setq-local comint-process-echoes t)))
     :hook (sql-interactive-mode . my/sql-interactive-setup)
-    :custom
+    :defaults
     (sql-database "~/scratch.sqlite"))
 #+END_SRC
 
@@ -3472,7 +3502,7 @@ current buffer, killing it."
         (if tab
             (tab-bar-switch-to-tab name)
           (funcall orig-fun dir))))
-    :custom
+    :defaults
     (tab-bar-show 1)
     (tab-bar-tab-name-function #'my/tab-bar-tab-name)
     :config
@@ -3497,7 +3527,7 @@ current buffer, killing it."
                         (setq-local scroll-margin 0
                                     hscroll-margin 0)
                         (auto-fill-mode -1)))
-    :custom
+    :defaults
     (term-input-autoexpand t)
     (term-input-ignoredups t)
     :preface
@@ -3512,14 +3542,16 @@ current buffer, killing it."
     :no-require
     :ensure nil
     :hook
-    (text-mode . (lambda () (setq-local scroll-margin 3))))
+    (text-mode . (lambda () (setq-local scroll-margin 3)))
+    :defaults
+    (text-mode-ispell-word-completion nil))
 #+END_SRC
 
 **** Time
 
 #+BEGIN_SRC emacs-lisp
 (use-package time
-  :custom
+  :defaults
   (world-clock-time-format "%A %d %B %r %Z")
   (world-clock-sort-order "%FT%T")
   (display-time-day-and-date t))
@@ -3701,7 +3733,7 @@ current buffer, killing it."
 
 #+BEGIN_SRC emacs-lisp
   (use-package view
-    :custom (view-read-only t)
+    :defaults (view-read-only t)
     :hook (view-mode . (lambda () (whitespace-mode -1))))
 #+END_SRC
 
@@ -3719,7 +3751,7 @@ function.
     :disabled
     :demand
     :delight
-    :custom
+    :defaults
     (which-key-idle-delay 0.4)
     (which-key-idle-secondary-delay 0.4)
     :config (which-key-mode))
@@ -3731,7 +3763,7 @@ Show whitespace
 
 #+BEGIN_SRC emacs-lisp
 (use-package whitespace
-  :custom
+  :defaults
   (whitespace-style '(face trailing space-before-tab empty))
   :hook (prog-mode . (lambda () (and (not noninteractive)
                                      (not (eq (aref (buffer-name) 0) ?\ ))
@@ -3744,6 +3776,9 @@ Show whitespace
 #+BEGIN_SRC emacs-lisp
 (use-package window
   :ensure nil
+  :defaults
+  (window-combination-resize t)
+  (truncate-partial-width-windows nil)
   :bind (("C-x 2" . split-window-below-last-buffer)
          ("C-x 3" . split-window-right-last-buffer))
   :config
@@ -3792,7 +3827,7 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
     (cl-letf (((symbol-function 'switch-to-buffer)
                #'pop-to-buffer))
       (funcall pgm)))
-  :custom
+  :defaults
   (scroll-error-top-bottom t)
   (switch-to-buffer-in-dedicated-window 'pop)
   (switch-to-buffer-obey-display-actions t)
@@ -3839,7 +3874,7 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
          ("E" . emacs-solo/xref-to-grep-compilation)
          ("RET" . xref-goto-xref-same-window)
          )
-  :custom
+  :defaults
   (xref-search-program 'ripgrep)
 )
 #+END_SRC
@@ -3849,7 +3884,7 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
 #+BEGIN_SRC emacs-lisp
 (use-package etags
   :ensure nil
-  :custom
+  :defaults
   (tags-revert-without-query t)
   (tags-add-tables nil)
   :preface
@@ -3884,7 +3919,7 @@ Eglot is builtin to Emacs and can work with any language with an LSP backend.
 
 #+BEGIN_SRC emacs-lisp
   (use-package eglot
-    :custom
+    :defaults
     (eglot-sync-connect 0)
     (eglot-events-buffer-config '(:size 0 :format full))
     (jsonrpc-event-hook nil)
@@ -3977,7 +4012,7 @@ didn’t work well enough.
 
 #+BEGIN_SRC emacs-lisp
   (use-package haskell-mode
-    :custom
+    :defaults
     (haskell-hoogle-url "https://hoogle.haskell.org/?hoogle=%s")
     :mode (("\\.cabal\\'" . haskell-cabal-mode))
     :hook
@@ -4037,7 +4072,7 @@ Auctex provides some helpful tools for working with LaTeX.
 
 #+BEGIN_SRC emacs-lisp
   (use-package tex-mode
-    :custom
+    :defaults
     (TeX-auto-save t)
     (TeX-auto-untabify t)
     (TeX-electric-escape t)
@@ -4143,7 +4178,7 @@ disabled
   (use-package proof-site
     :ensure proofgeneral
     :disabled
-    :custom
+    :defaults
     (proof-auto-action-when-deactivating-scripting 'retract)
     (proof-autosend-enable nil)
     (proof-electric-terminator-enable t)
@@ -4203,7 +4238,7 @@ repositories.
   :ensure nil
   :commands (claude-code-ide)
   ;; :bind ("C-c C-'" . claude-code-ide-menu)
-  :custom (claude-code-ide-enable-mcp-server t))
+  :defaults (claude-code-ide-enable-mcp-server t))
 #+END_SRC
 
 **** dired-column
@@ -4416,7 +4451,7 @@ Most of these are available in MELPA.
                                                   (mode-line-notify-send
                                                    :title (format "%s Agent Shell Permission Request" (buffer-name ,buffer))
                                                    :buffer ,buffer)))))))
-    :custom
+    :defaults
     (agent-shell-session-strategy 'new)
     (agent-shell-buffer-name-format 'kebab-case)
     (agent-shell-context-sources '(region error))
@@ -4647,7 +4682,7 @@ tool call body and recorded in the transcript."
     :hook
     ((text-mode prog-mode) . my-copilot-mode-maybe)
     ;; ((prog-mode) . copilot-nes-mode)
-    :custom
+    :defaults
     (copilot-indent-offset-warning-disable t)
     (copilot-max-char-warning-disable t)
     (copilot-idle-delay 0.1)
@@ -4726,7 +4761,7 @@ after 5 seconds of idle. =M-x my-minuet-mode= toggles a single buffer.
     (add-hook 'text-mode-hook #'my-minuet-mode-maybe 90)
     (add-hook 'prog-mode-hook #'my-minuet-mode-maybe 90)
     (run-with-idle-timer 5 t #'my-minuet-sync)
-    :custom
+    :defaults
     (minuet-provider 'openai-fim-compatible)
     ;; recipe defaults for local models: one candidate, small context
     (minuet-n-completions 1)
@@ -4790,7 +4825,7 @@ Dape provides Debug Adapter Protocol support.
   (use-package dape
     :commands dape
     :functions (dape-breakpoint-load dape-breakpoint-save dape-breakpoint-global-mode)
-    :custom
+    :defaults
     (dape-buffer-window-arrangement 'right)
     :bind (:map prog-mode-map
                 ("<f5>" . dape)
@@ -4918,7 +4953,7 @@ Fast, configurable indentation guide-bars.
 #+BEGIN_SRC emacs-lisp
   (use-package indent-bars
     :hook ((python-base-mode yaml-ts-mode) . indent-bars-mode)
-    :custom
+    :defaults
     (indent-bars-treesit-support t))
 #+END_SRC
 
