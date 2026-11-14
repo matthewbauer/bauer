@@ -4662,6 +4662,106 @@ tool call body and recorded in the transcript."
     (add-to-list 'copilot-indentation-alist '(org-mode 2)))
 #+END_SRC
 
+**** minuet
+
+[[https://github.com/milanglacier/minuet-ai.el][GitHub]]
+
+Local code completion as an alternative to Copilot. This follows minuet’s
+llama.cpp recipe: Qwen2.5-Coder served by =llama-server= on port 8012, using
+Qwen’s fill-in-the-middle tokens since llama.cpp ignores the =suffix= field.
+Run the server yourself, e.g. =llama-server --fim-qwen-7b-default= (or
+=--fim-qwen-30b-default= for Qwen3-Coder 30B-A3B); =llama-cpp= is in
+=userPackages=. While it is up, Copilot buffers switch to minuet, and they
+switch back once it stops. The server is checked when a buffer opens and
+after 5 seconds of idle. =M-x my-minuet-mode= toggles a single buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package minuet
+    :commands (minuet-auto-suggestion-mode minuet-show-suggestion)
+    :preface
+    (defvar my-llama-server-port 8012
+      "Port of the llama.cpp server used by minuet.")
+    (defun my-llama-server-running-p ()
+      "Return non-nil if llama-server accepts connections."
+      (condition-case nil
+          (progn
+            (delete-process
+             (make-network-process :name "llama-server-probe"
+                                   :host "127.0.0.1"
+                                   :service my-llama-server-port))
+            t)
+        (error nil)))
+    (define-minor-mode my-minuet-mode
+      "Use local minuet completion instead of Copilot in this buffer."
+      :lighter nil
+      (cond
+       ((not my-minuet-mode)
+        (minuet-auto-suggestion-mode -1)
+        (when (fboundp 'my-copilot-mode-maybe) (my-copilot-mode-maybe)))
+       ((my-llama-server-running-p)
+        (when (bound-and-true-p copilot-mode) (copilot-mode -1))
+        (minuet-auto-suggestion-mode 1))
+       (t
+        (setq my-minuet-mode nil)
+        (message "llama-server is not running on port %d"
+                 my-llama-server-port))))
+    (defun my-minuet-mode-maybe ()
+      "Switch a Copilot buffer to minuet if llama-server is running."
+      (when (and (bound-and-true-p copilot-mode) (my-llama-server-running-p))
+        (my-minuet-mode 1)))
+    (defvar my-minuet--server-up nil)
+    (defun my-minuet-sync ()
+      "Move buffers between Copilot and minuet as llama-server starts or stops."
+      (let ((up (my-llama-server-running-p)))
+        (unless (eq up my-minuet--server-up)
+          (setq my-minuet--server-up up)
+          (dolist (buf (buffer-list))
+            (with-current-buffer buf
+              (cond ((and up (bound-and-true-p copilot-mode))
+                     (my-minuet-mode 1))
+                    ((and (not up) my-minuet-mode)
+                     (my-minuet-mode -1))))))))
+    :init
+    ;; depth 90 so this runs after `my-copilot-mode-maybe'
+    (add-hook 'text-mode-hook #'my-minuet-mode-maybe 90)
+    (add-hook 'prog-mode-hook #'my-minuet-mode-maybe 90)
+    (run-with-idle-timer 5 t #'my-minuet-sync)
+    :custom
+    (minuet-provider 'openai-fim-compatible)
+    ;; recipe defaults for local models: one candidate, small context
+    (minuet-n-completions 1)
+    (minuet-context-window 512)
+    :bind (:map minuet-active-mode-map
+                ("<tab>" . minuet-accept-suggestion)
+                ("TAB" . minuet-accept-suggestion)
+                ("C-<tab>" . minuet-accept-suggestion-word)
+                ("C-TAB" . minuet-accept-suggestion-word)
+                ("C-n" . minuet-next-suggestion)
+                ("C-p" . minuet-previous-suggestion)
+                ("C-g" . minuet-dismiss-suggestion))
+    :config
+    (plist-put minuet-openai-fim-compatible-options
+               :end-point (format "http://127.0.0.1:%d/v1/completions"
+                                  my-llama-server-port))
+    (plist-put minuet-openai-fim-compatible-options :name "Llama.cpp")
+    ;; minuet requires a non-empty env var name; llama.cpp ignores the key
+    (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+    (plist-put minuet-openai-fim-compatible-options :model "PLACEHOLDER")
+    (minuet-set-nested-plist minuet-openai-fim-compatible-options nil
+                             :template :suffix)
+    (minuet-set-optional-options
+     minuet-openai-fim-compatible-options
+     :prompt
+     (lambda (ctx)
+       (format "<|fim_prefix|>%s\n%s<|fim_suffix|>%s<|fim_middle|>"
+               (plist-get ctx :language-and-tab)
+               (plist-get ctx :before-cursor)
+               (plist-get ctx :after-cursor)))
+     :template)
+    (minuet-set-optional-options minuet-openai-fim-compatible-options
+                                 :max_tokens 56))
+#+END_SRC
+
 **** copy-as-format
 
 [[https://github.com/sshaw/copy-as-format][GitHub]]
