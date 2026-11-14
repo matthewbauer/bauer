@@ -1437,11 +1437,10 @@ token= for github.com, falling back to auth-source.
   (use-package ghub
     :functions (ghub--req-url)
     :preface
-    (defvar my/ghub-gh-token-ttl 900
-      "Seconds to cache the token returned by `gh auth token'.")
-
     (defvar my/ghub-gh-token-cache nil
-      "(TIME . TOKEN) from the last successful `gh auth token', or nil.")
+      "Token from the last successful `gh auth token', or nil.
+Kept until GitHub rejects it with a 401 (see
+`my/ghub-gh-token--check-response').")
 
     (defun my/ghub-gh-token-clear ()
       "Forget the cached gh token, e.g. after manually running `gh auth refresh'."
@@ -1449,25 +1448,24 @@ token= for github.com, falling back to auth-source.
       (setq my/ghub-gh-token-cache nil))
 
     (defun my/ghub-gh-token--fetch ()
-      "Run `gh auth token'.  Return (TOKEN . nil) or (nil . ERROR-MESSAGE)."
-      (if (not (executable-find "gh"))
-          (cons nil "gh is not installed (not found in exec-path)")
-        (let ((errfile (make-temp-file "gh-auth-token-err")))
-          (unwind-protect
-              (with-temp-buffer
-                (let* ((status (call-process "gh" nil (list t errfile) nil
-                                             "auth" "token" "--hostname" "github.com"))
-                       (token (string-trim (buffer-string))))
-                  (if (and (eql status 0) (not (string-empty-p token)))
-                      (cons token nil)
-                    (let ((stderr (with-temp-buffer
-                                    (insert-file-contents errfile)
-                                    (string-trim (buffer-string)))))
-                      (cons nil (format "gh auth token %s: %s"
-                                        (if (eql status 0) "printed nothing"
-                                          (format "failed (exit %s)" status))
-                                        (if (string-empty-p stderr) "no output" stderr)))))))
-            (delete-file errfile)))))
+      "Run `gh auth token'.  Return (TOKEN . nil) or (nil . ERROR-MESSAGE).
+Assumes gh is in `exec-path'."
+      (let ((errfile (make-temp-file "gh-auth-token-err")))
+        (unwind-protect
+            (with-temp-buffer
+              (let* ((status (call-process "gh" nil (list t errfile) nil
+                                           "auth" "token" "--hostname" "github.com"))
+                     (token (string-trim (buffer-string))))
+                (if (and (eql status 0) (not (string-empty-p token)))
+                    (cons token nil)
+                  (let ((stderr (with-temp-buffer
+                                  (insert-file-contents errfile)
+                                  (string-trim (buffer-string)))))
+                    (cons nil (format "gh auth token %s: %s"
+                                      (if (eql status 0) "printed nothing"
+                                        (format "failed (exit %s)" status))
+                                      (if (string-empty-p stderr) "no output" stderr)))))))
+          (delete-file errfile))))
 
     (defun my/ghub-gh-token (orig host username package &optional nocreate forge)
       "`:around' advice for `ghub--token' to prefer gh's token for github.com."
@@ -1475,15 +1473,16 @@ token= for github.com, falling back to auth-source.
                     (equal host "api.github.com")))
           (funcall orig host username package nocreate forge)
         (let (gh-error)
-          (unless (and my/ghub-gh-token-cache
-                       (< (float-time (time-since (car my/ghub-gh-token-cache)))
-                          my/ghub-gh-token-ttl))
-            (setq my/ghub-gh-token-cache nil)
+          (cond
+           (my/ghub-gh-token-cache)
+           ((not (executable-find "gh"))
+            (setq gh-error "gh is not installed (not found in exec-path)"))
+           (t
             (pcase-let ((`(,token . ,err) (my/ghub-gh-token--fetch)))
               (if token
-                  (setq my/ghub-gh-token-cache (cons (current-time) token))
-                (setq gh-error err))))
-          (cond ((cdr my/ghub-gh-token-cache))
+                  (setq my/ghub-gh-token-cache token)
+                (setq gh-error err)))))
+          (cond (my/ghub-gh-token-cache)
                 ;; gh failed: use an auth-source token if there is one...
                 ((funcall orig host username package t forge))
                 (nocreate nil)
