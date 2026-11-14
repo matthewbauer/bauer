@@ -2906,7 +2906,7 @@ Make scripts executable automatically.
 
 **** midnight
 
-Automatically clean up stale buffers each night.
+Automatically clean up stale buffers and collect Lisp garbage each night.
 
 #+BEGIN_SRC emacs-lisp
   (use-package midnight
@@ -2914,9 +2914,31 @@ Automatically clean up stale buffers each night.
     :demand
     :custom
     (clean-buffer-list-delay-general 5)
+    :hook (midnight . garbage-collect)
     :config
     (midnight-mode 1)
     (midnight-delay-set 'midnight-delay 6400))
+#+END_SRC
+
+[[./site-lisp/system-tidy.el][system-tidy]] can do some regular maintenance on the repos in =system-tidy-repos=:
+garbage collection each night (=system-tidy-repos-maintenance=) and prefetching
+each hour (=system-tidy-repos-prefetch=). It also does Nix garbage collection
+each night using =system-tidy-nix-gc-command=. Both are nil here by default (see
+the =set-defaults= above), so they are disabled; set them in your =custom-file=.
+
+=:hook= autoloads the hooked commands; the prefetch command, run from a timer,
+needs =:commands=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package system-tidy
+    :ensure nil
+    :commands system-tidy-repos-prefetch
+    :hook ((midnight . system-tidy-repos-maintenance)
+           (midnight . system-tidy-nix-gc))
+    :custom
+    (system-tidy-nix-gc-command nil) ; disable by default
+    :init
+    (run-at-time 300 3600 #'system-tidy-repos-prefetch))
 #+END_SRC
 
 **** mouse
@@ -4944,12 +4966,19 @@ Now, setup exports. We leave the first part of
 MANPATH empty so it resolves using the PATH-based method. Fallbacks are provided
 just in case.
 
+To prevent child shells from getting duplicates, we set =__BAUER_ENV= on first
+run, and check on subsequent. This still allows the profile to be in effect if
+something has changed.
+
 #+BEGIN_SRC shell
-    export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/npm/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
-           INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
-           MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
-           XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
-           TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+    if [ "${__BAUER_ENV-}" != @out@ ]; then
+      export __BAUER_ENV=@out@
+      export PATH="$HOME/bin":"$HOME/.nix-profile/bin":$PREFIX/bin:"$HOME/.local/share/npm/bin":"$HOME/.local/bin":@PATH@${PATH:+:$PATH} \
+             INFOPATH="$HOME/.nix-profile/share/info":@INFOPATH@${INFOPATH:+:$INFOPATH} \
+             MANPATH=:"$HOME/.nix-profile/share/man":@MANPATH@${MANPATH:+:$MANPATH} \
+             XDG_DATA_DIRS="$HOME/.nix-profile/share":@XDG_DATA_DIRS@${XDG_DATA_DIRS:+:$XDG_DATA_DIRS} \
+             TERMINFO_DIRS=@TERMINFO_DIRS@${TERMINFO_DIRS:+:$TERMINFO_DIRS}
+    fi
 
     case $- in
       ,*i*)
@@ -6495,6 +6524,9 @@ have the time to do it currently.
     install -D ${ensure ./site-lisp/mode-line-notify.el
                          "site-lisp/mode-line-notify.el"} \
             $out/share/emacs/site-lisp/mode-line-notify.el
+    install -D ${ensure ./site-lisp/system-tidy.el
+                         "site-lisp/system-tidy.el"} \
+            $out/share/emacs/site-lisp/system-tidy.el
     install -D ${ensure ./site-lisp/apropospriate-theme.el
                          "site-lisp/apropospriate-theme.el"} \
             $out/share/emacs/site-lisp/apropospriate-theme.el
@@ -6988,8 +7020,17 @@ they need to be enabled per-repo:
 #+BEGIN_SRC sh
   git config feature.manyFiles true
   git config core.fsmonitor true
+#+END_SRC
+
+For automatic maintenance, you have two options. One is the builtin =git
+maintenance= task:
+
+#+BEGIN_SRC sh
   git maintenance start
 #+END_SRC
+
+Or, you can add the repo to =system-tidy-repos= for background maintenance (see
+[[./site-lisp/system-tidy.el][system-tidy]]).
 
 For repos shared with many other users, it may also help to fetch fewer refs.
 It’s pretty straightforward to configure this provided you always name your
