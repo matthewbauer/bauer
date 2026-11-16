@@ -5,7 +5,7 @@
 ;; Author: Matthew Bauer <mjbauer95@gmail.com>
 ;; Version: 0.1
 ;; URL: https://github.com/matthewbauer/bauer
-;; Package-Requires: ((emacs "28.1"))
+;; Package-Requires: ((emacs "28.1") (magit-section "4.0.0"))
 ;; Keywords: tools, vc
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -60,12 +60,17 @@
 ;; autoloads the hooked commands; the prefetch command, which isn't on a
 ;; hook, needs :commands.
 ;;
-;; The commands share one queue, logged in *system-tidy*, so two steps
-;; never run at once: maintenance and Nix gc wait for anything running,
-;; and prefetch is skipped while anything is running.
+;; The commands share one queue, so two steps never run at once:
+;; maintenance and Nix gc wait for anything running, and prefetch is
+;; skipped while anything is running.
+;;
+;; Steps are logged in *system-tidy*.
 
 ;;; Code:
 
+(require 'ansi-color)
+(require 'cl-lib)
+(require 'magit-section)
 (require 'map)
 
 (defgroup system-tidy nil
@@ -175,12 +180,104 @@ so it can include lists of arguments.  It runs with the current
     (unless (system-tidy--busy-p)
       (system-tidy--next))))
 
-(defun system-tidy--log (format-string &rest args)
-  "Append FORMAT-STRING formatted with ARGS to `system-tidy--buffer'."
-  (with-current-buffer (get-buffer-create system-tidy--buffer)
-    (save-excursion
-      (goto-char (point-max))
-      (insert (apply #'format format-string args)))))
+(define-derived-mode system-tidy-log-mode magit-section-mode "System-Tidy"
+  "Mode for the log of system-tidy steps, one section per step."
+  :interactive nil)
+
+(defun system-tidy--log-buffer ()
+  "Return `system-tidy--buffer', creating it if needed."
+  (or (get-buffer system-tidy--buffer)
+      (with-current-buffer (get-buffer-create system-tidy--buffer)
+        (system-tidy-log-mode)
+        (let ((inhibit-read-only t)
+              (magit-insert-section--parent nil)
+              (magit-insert-section--oldroot nil))
+          (magit-insert-section (system-tidy-log)
+				(insert "\n")))
+        (current-buffer))))
+
+(defvar system-tidy--step-count 0
+  "Number of steps run, to give each section its own identity.
+Otherwise `magit-section-cached-visibility' would treat all steps as
+one section.")
+
+(defun system-tidy--insert-step (dir shown)
+  "Insert a section for the step running SHOWN in DIR, and return it.
+Its heading starts with \"run\", replaced by `system-tidy--finish-step'."
+  (with-current-buffer (system-tidy--log-buffer)
+    (let ((inhibit-read-only t)
+          (magit-insert-section--parent magit-root-section)
+          (magit-insert-section--oldroot nil))
+      (save-excursion
+        ;; Before the root section's final newline.
+        (goto-char (1- (point-max)))
+        (magit-insert-section (system-tidy-step
+                               (cl-incf system-tidy--step-count))
+			      (magit-insert-heading
+			       "run "
+			       (propertize (format-time-string "%F %T") 'font-lock-face 'shadow)
+			       " "
+			       (propertize shown 'font-lock-face 'magit-section-heading)
+			       "  "
+			       (propertize (abbreviate-file-name dir) 'font-lock-face 'shadow))
+			      ;; The body, before which output is inserted.
+			      (insert "\n"))))))
+
+(defun system-tidy--output-marker (section)
+  "Return a marker where output of SECTION's step goes."
+  (with-current-buffer (marker-buffer (oref section start))
+    (copy-marker (1- (oref section end)))))
+
+(defun system-tidy--insert-output (section marker string)
+  "Insert STRING, output of SECTION's step, at MARKER, and advance it.
+ANSI colors are applied, and \\r rewrites the line, as for progress
+bars."
+  (when (buffer-live-p (marker-buffer marker))
+    (with-current-buffer (marker-buffer marker)
+      (let ((inhibit-read-only t)
+            (parts (split-string
+                    (ansi-color-apply (string-replace "\r\n" "\n" string))
+                    "\r")))
+        (save-excursion
+          (goto-char marker)
+          (insert (propertize (pop parts) 'magit-section section))
+          (dolist (part parts)
+            (delete-region (line-beginning-position) (point))
+            (insert (propertize part 'magit-section section)))
+          (set-marker marker (point)))))))
+
+(defun system-tidy--finish-step (section status elapsed)
+  "Show STATUS and ELAPSED seconds in the heading of SECTION.
+STATUS is the exit code, or a short string if the step didn't run."
+  ;; The log buffer may have been killed.
+  (when-let* ((buffer (marker-buffer (oref section start))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t)
+            (start (oref section start))
+            (face (if (eql status 0) 'success 'error)))
+	(save-excursion
+          (goto-char (1- (oref section content)))
+          (insert (propertize (format "  %.1fs" elapsed)
+                              'font-lock-face 'shadow
+                              'magit-section section))
+          (goto-char start)
+          (delete-char 3)
+          ;; Keep START before the new text.
+          (set-marker-insertion-type start nil)
+          (insert (propertize (format "%3s" status)
+                              'font-lock-face face
+                              'magit-section section))
+          (set-marker-insertion-type start t))
+	(cond
+	 ;; No output: drop the empty body, which can't be folded anyway.
+	 ((= (oref section end) (1+ (oref section content)))
+          (save-excursion
+            (goto-char (oref section content))
+            (delete-char 1))
+          (oset section content nil))
+	 ((and (eql status 0)
+               (not (get-buffer-window (current-buffer) t)))
+          (magit-section-hide section)))))))
 
 (defun system-tidy--next ()
   "Start the next queued step, if any."
@@ -191,9 +288,9 @@ so it can include lists of arguments.  It runs with the current
     (pcase-let* ((`(,dir ,process-environment . ,command) step)
                  (default-directory dir)
                  (shown (combine-and-quote-strings command))
-                 (start (current-time)))
-      (system-tidy--log "\n== %s %s: %s\n"
-                        (format-time-string "%F %T") dir shown)
+                 (start (current-time))
+                 (section (system-tidy--insert-step dir shown))
+                 (output (system-tidy--output-marker section)))
       (condition-case err
           (make-process
            :name "system-tidy"
@@ -201,12 +298,15 @@ so it can include lists of arguments.  It runs with the current
            :command command
            :connection-type 'pipe
            :noquery t
+           :filter
+           (lambda (_proc string)
+             (system-tidy--insert-output section output string))
            :sentinel
            (lambda (proc _event)
              (unless (process-live-p proc)
                (let ((status (process-exit-status proc)))
-                 (system-tidy--log "== exit %d after %.1fs\n" status
-                                   (float-time (time-since start)))
+                 (system-tidy--finish-step section status
+                                           (float-time (time-since start)))
                  (unless (zerop status)
                    (display-warning
                     'system-tidy
@@ -217,8 +317,10 @@ so it can include lists of arguments.  It runs with the current
         ;; E.g. a missing program or directory.  Like a failed step,
         ;; report it and go on with the rest.
         (error
-         (system-tidy--log "== could not start: %s\n"
-                           (error-message-string err))
+         (system-tidy--insert-output
+          section output (concat (error-message-string err) "\n"))
+         (system-tidy--finish-step section "err"
+                                   (float-time (time-since start)))
          (display-warning
           'system-tidy
           (format "%s could not start in %s: %s"
