@@ -1017,7 +1017,8 @@ A better version of ‘completing-read’ that isn’t as heavy duty as company.
                 consult--buffer-file-hash consult--fast-abbreviate-file-name
                 consult--customize-put
                 my/consult--other-tab-for-dir my/consult--state-with-tab
-                my/consult--buffer-state-with-tab my/consult--file-state-with-tab)
+                my/consult--buffer-state-with-tab my/consult--file-state-with-tab
+                project-name)
     :preface
     (defun maybe-project-buffer (&optional all)
       (interactive "P")
@@ -1302,6 +1303,7 @@ This mode will try to detect your indentation.
            ("C-;" . embark-dwim)
            ("C-h B" . embark-bindings))
     :delight (embark-auto-prefix-help-mode)
+    :functions (embark-auto-prefix-help-mode)
     :defaults
     (prefix-help-command #'embark-prefix-help-command)
     :config
@@ -1557,7 +1559,12 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     :functions (magit-status majutsu-read-bookmarks majutsu-diff-arguments
                 majutsu-diff-revset majutsu-jjdescription--change-id
                 majutsu-jjdescription--bind-repository-root majutsu-get
-                majutsu-jj-lines majutsu-diff--revisions majutsu-start-jj majutsu-read-revset)
+                majutsu-jj-lines majutsu-diff--revisions majutsu-start-jj majutsu-read-revset
+                majutsu-conflict-check-enable magit-section-value-if
+                transient-args transient-arg-value
+                ;; called by the `transient-define-prefix' expansion
+                transient-setup transient-prefix transient--set-layout
+                transient--suffix-only transient--default-infix-command)
     :bind (("C-x g" . my-vc-status)
            ("C-x p v" . my-vc-status)
            ("C-x J" . majutsu-dispatch)
@@ -1743,6 +1750,7 @@ Scroll the popup when it overflows, otherwise the window it was opened from
 
 #+BEGIN_SRC emacs-lisp
   (use-package transient
+    :functions (transient-scroll-down)
     :preface
     (defun bauer/transient-scroll-window ()
       "The popup window if its contents overflow, else the original window."
@@ -2117,7 +2125,8 @@ package, so no download is needed on first use.
 #+BEGIN_SRC emacs-lisp
   (use-package ghostel
     :functions (ghostel-compile-global-mode ghostel ghostel-project ghostel-send-key
-                mode-line-notify-send mode-line-notify-dismiss)
+                mode-line-notify-send mode-line-notify-dismiss
+                ghostel-status-notify)
     :bind (("M-@" . maybe-project-ghostel)
            :map ghostel-semi-char-mode-map
            ("M-@" . maybe-project-ghostel)
@@ -2603,6 +2612,7 @@ Emacs shell provides a shell written in Elisp. Run eshell by typing =C-c e= or =
 #+BEGIN_SRC emacs-lisp
   (use-package eshell
     :defines (eshell-history-file-name)
+    :functions (ring-elements)
     :defaults
     (eshell-cmpl-autolist t)
     (eshell-cmpl-cycle-completions nil)
@@ -3198,9 +3208,7 @@ needs =:commands=.
     (project-vc-include-untracked nil)
     (project-compilation-buffer-name-function #'project-prefixed-buffer-name)
     (project-switch-commands 'my-vc-status)
-    :config
-    (advice-add #'project-or-external-find-regexp
-                :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
+    :preface
     ;; Disabled fsmonitor so that git ls-files is consistently fast.
     ;; Git won’t write to the fsmonitor cache in ls-files, but it will
     ;; recompute the cache which takes some time in large repos.
@@ -3212,6 +3220,9 @@ needs =:commands=.
                        "GIT_CONFIG_VALUE_0=false")
                      process-environment)))
         (apply fn args)))
+    :config
+    (advice-add #'project-or-external-find-regexp
+                :before (lambda (regexp) (when (length< regexp 2) (error "search term too short"))))
     (advice-add #'project-files :around #'bauer/project-files-without-fsmonitor)
     (defun emacs-solo/filtered-project-buffer-completer (project files-only)
       "A function that filters special buffers and uses `completing-read`."
@@ -3338,7 +3349,8 @@ Elsewhere the key falls through to the major mode or global binding."
       "C-c C-c or C-x C-e finishes and C-c C-k aborts emacsclient buffers.
 The keys only apply while `server-buffer-clients' is non-nil, i.e. a
 client (e.g. git via $EDITOR) is waiting on the buffer."
-      :global t)
+      :global t
+      :group 'server)
     :config
     (bauer/server-edit-keys-mode)
     ;; (unless (server-running-p) (server-start))
@@ -3422,15 +3434,15 @@ client (e.g. git via $EDITOR) is waiting on the buffer."
     :demand
     :functions (so-long-statistics-excessive-p)
     :preface
+    ;; Also treat very large files as "long": huge data files cost
+    ;; font-lock, goto-address and flyspell work even without long lines.
+    (defvar bauer/so-long-large-file-size (* 5 1024 1024)
+      "Buffers larger than this many characters trigger `so-long'.")
     (defun bauer/so-long-predicate ()
       "Detect long lines, or a buffer over `bauer/so-long-large-file-size'."
       (or (> (buffer-size) bauer/so-long-large-file-size)
           (so-long-statistics-excessive-p)))
     :config
-    ;; Also treat very large files as "long": huge data files cost
-    ;; font-lock, goto-address and flyspell work even without long lines.
-    (defvar bauer/so-long-large-file-size (* 5 1024 1024)
-      "Buffers larger than this many characters trigger `so-long'.")
     (setq so-long-predicate #'bauer/so-long-predicate)
     ;; csv, log and other data modes derive from `text-mode'.
     (add-to-list 'so-long-target-modes 'text-mode t)
@@ -3838,6 +3850,7 @@ Use CURRENT-PREFIX-ARG to show an identical buffer."
 
 #+BEGIN_SRC emacs-lisp
 (use-package xref
+  :functions (xref-item-location xref-item-summary xref-goto-xref)
   :preface
   (defun emacs-solo/xref-to-grep-compilation ()
     "Export the current Xref results to a grep-like buffer (Emacs 30+)."
@@ -4432,7 +4445,9 @@ Most of these are available in MELPA.
     :functions (ghci-compilation--send-string ghci-compilation--find-most-likely-buffer ghci-compilation-get-last-output--marker ghci-compilation-reload-nix claude-code-ide-make-tool
                 agent-shell-cwd
                 agent-shell agent-shell-subscribe-to
-                agent-shell--save-tool-call agent-shell--raw-input-command)
+                agent-shell--save-tool-call agent-shell--raw-input-command
+                comint-previous-input-string map-nested-elt
+                claude-code-ide-mcp-server-get-session-context)
     :hook (agent-shell-mode . (lambda ()
                                 (let ((buffer (current-buffer)))
                                   (agent-shell-subscribe-to
@@ -4713,6 +4728,7 @@ after 5 seconds of idle. =M-x my-minuet-mode= toggles a single buffer.
 #+BEGIN_SRC emacs-lisp
   (use-package minuet
     :commands (minuet-auto-suggestion-mode minuet-show-suggestion)
+    :functions (minuet-set-optional-options)
     :preface
     (defvar my-llama-server-port 8012
       "Port of the llama.cpp server used by minuet.")
@@ -6216,6 +6232,9 @@ Set some defaults that depend on the path variables below,
               "schema/schemas.xml" data-directory)))
    )
 
+  (defvar grep-find-template)
+  (defvar grep-template)
+  (defvar grep-use-null-device)
   (setq grep-command (concat ripgrep-executable " -nS --no-heading ")
         grep-find-command `(,(concat ripgrep-executable " -n --no-heading -e '' $(git rev-parse --show-toplevel || pwd)") . 86)
         grep-find-template (concat ripgrep-executable " --color=auto --null --line-number --with-filename --no-heading --regexp <R> <D>")
