@@ -190,7 +190,8 @@ so it can include lists of arguments.  It runs with the current
   (when-let* ((step (pop system-tidy--queue)))
     (pcase-let* ((`(,dir ,process-environment . ,command) step)
                  (default-directory dir)
-                 (shown (combine-and-quote-strings command)))
+                 (shown (combine-and-quote-strings command))
+                 (start (current-time)))
       (system-tidy--log "\n== %s %s: %s\n"
                         (format-time-string "%F %T") dir shown)
       (condition-case err
@@ -204,7 +205,8 @@ so it can include lists of arguments.  It runs with the current
            (lambda (proc _event)
              (unless (process-live-p proc)
                (let ((status (process-exit-status proc)))
-                 (system-tidy--log "== exit %d\n" status)
+                 (system-tidy--log "== exit %d after %.1fs\n" status
+                                   (float-time (time-since start)))
                  (unless (zerop status)
                    (display-warning
                     'system-tidy
