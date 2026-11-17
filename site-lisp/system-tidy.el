@@ -130,8 +130,18 @@ A live process in it means steps are running.")
 
 (defvar system-tidy--queue nil
   "Steps waiting to run.
-Each is (DIRECTORY ENVIRONMENT . COMMAND), ENVIRONMENT being the
-`process-environment' to run COMMAND with.")
+Each is (DIRECTORY ENVIRONMENT QUIET . COMMAND), ENVIRONMENT being
+the `process-environment' to run COMMAND with, and QUIET is regexp of errors to ignore.")
+
+(defconst system-tidy--offline-regexp
+  (regexp-opt '("Could not resolve host"     ; https and ssh
+                "Network is unreachable"
+                "timed out"
+                "Connection refused"
+                "Connection reset"
+                "closed by remote host"
+                "Broken pipe"))
+  "Output of a failed git fetch that means the network was down.")
 
 (defvar system-tidy--report nil
   "Non-nil to say when the queue is done.  Set by interactive calls.")
@@ -163,16 +173,18 @@ INTERACTIVE means tell the user what happened, and when it's done."
     (when interactive
       (system-tidy--report nil))))
 
-(defun system-tidy--run (dir &rest command)
+(defun system-tidy--run (dir quiet &rest command)
   "Run COMMAND in DIR in the background, after the steps already queued.
 DIR nil means the current `default-directory'.  COMMAND is flattened,
 so it can include lists of arguments.  It runs with the current
 `process-environment'.  Steps run one at a time, in order, logged to
-`system-tidy--buffer'; failures are reported with `display-warning'."
+`system-tidy--buffer'; failures are reported with `display-warning',
+unless QUIET is a regexp that matches their output."
   (let ((dir (file-name-as-directory (or dir default-directory))))
     (setq system-tidy--queue
           (append system-tidy--queue
                   (list `(,dir ,process-environment
+                               ,quiet
                                ,@(flatten-tree command)))))
     (unless (system-tidy--busy-p)
       (system-tidy--next))))
@@ -282,7 +294,7 @@ STATUS is the exit code, or a short string if the step didn't run."
     (setq system-tidy--report nil)
     (message "system-tidy: finished; see %s" system-tidy--buffer))
   (when-let* ((step (pop system-tidy--queue)))
-    (pcase-let* ((`(,dir ,process-environment . ,command) step)
+    (pcase-let* ((`(,dir ,process-environment ,quiet . ,command) step)
                  (default-directory dir)
                  (shown (combine-and-quote-strings command))
                  (start (current-time))
@@ -301,10 +313,19 @@ STATUS is the exit code, or a short string if the step didn't run."
            :sentinel
            (lambda (proc _event)
              (unless (process-live-p proc)
-               (let ((status (process-exit-status proc)))
+               (let* ((status (process-exit-status proc))
+                      ;; Before `system-tidy--finish-step', which can
+                      ;; drop an empty body.
+                      (quiet
+                       (and quiet
+                            (buffer-live-p (marker-buffer output))
+                            (with-current-buffer (marker-buffer output)
+                              (string-match-p
+                               quiet (buffer-substring-no-properties
+                                      (oref section content) output))))))
                  (system-tidy--finish-step section status
                                            (float-time (time-since start)))
-                 (unless (zerop status)
+                 (unless (or (zerop status) quiet)
                    (display-warning
                     'system-tidy
                     (format "%s failed in %s (exit %d); see %s"
@@ -338,10 +359,10 @@ INTERACTIVE (non-nil interactively) means report progress."
           (display-warning 'system-tidy
                            (format "Not a jj or git repo: %s" repo)))
         (when jj
-          (system-tidy--run repo
+          (system-tidy--run repo nil
                             "jj" "--ignore-working-copy" "util" "gc"))
         (when git
-          (system-tidy--run repo
+          (system-tidy--run repo nil
                             "git" "maintenance" "run"
                             "--task=loose-objects" "--task=incremental-repack"
                             "--task=pack-refs"))))
@@ -372,24 +393,24 @@ Nix GC root is then created for the latest shell closure."
     (let ((process-environment
            (cons (concat "GIT_INDEX_FILE=" (expand-file-name "index" dir))
                  process-environment)))
-      (system-tidy--run repo
+      (system-tidy--run repo nil
                         "git" (concat "--work-tree=" source)
                         "read-tree" "--reset" "-u"
                         (format "refs/prefetch/remotes/%s/%s" remote branch)))
     (pcase nix
       ('nix-develop
-       (system-tidy--run source
+       (system-tidy--run source nil
                          "nix" "develop" "--profile" root "--command" "true")
        ;; Older generations would keep their shells alive too.
-       (system-tidy--run source
+       (system-tidy--run source nil
                          "nix-env" "--profile" root
                          "--delete-generations" "old"))
       (_
-       (system-tidy--run source
+       (system-tidy--run source nil
                          "nix-build" "shell.nix" "-A" "inputDerivation"
                          "-o" root)))
     (when after-build
-      (system-tidy--run repo after-build root))))
+      (system-tidy--run repo nil after-build root))))
 
 ;;;###autoload
 (defun system-tidy-repos-prefetch (&optional interactive)
@@ -407,7 +428,8 @@ running.  INTERACTIVE (non-nil interactively) means report progress."
          ;; Fail rather than prompt for credentials on Emacs's terminal.
          (let ((process-environment
                 (cons "GIT_TERMINAL_PROMPT=0" process-environment)))
-           (system-tidy--run repo
+           ;; Being offline isn't worth a warning.
+           (system-tidy--run repo system-tidy--offline-regexp
                              "git" "maintenance" "run"
                              "--task=prefetch" "--task=commit-graph")))
        (pcase-let (((map :shell :branches :after-build) nix))
@@ -423,7 +445,7 @@ interactively) means report progress."
   (interactive (list t))
   (let ((was-busy (system-tidy--busy-p)))
     (when system-tidy-nix-gc-command
-      (system-tidy--run nil system-tidy-nix-gc-command))
+      (system-tidy--run nil nil system-tidy-nix-gc-command))
     (when interactive
       (system-tidy--report was-busy))))
 
