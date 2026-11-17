@@ -25,24 +25,18 @@
 ;;; Commentary:
 
 ;; system-tidy runs some maintenance tasks for you.  The commands are
-;; intended to be run periodically, from `midnight-hook' (daily) and an
-;; hourly timer:
+;; intended to be run periodically, from `midnight-hook' or a periodic timer:
 ;;
-;; - `system-tidy-repos-maintenance' (daily), for each repo in
-;;   `system-tidy-repos':
+;; - `system-tidy-repos-maintenance', for each repo in `system-tidy-repos':
 ;;   - `jj util gc' for jj
 ;;   - `git maintenance run' for git
-;; - `system-tidy-repos-prefetch' (hourly), for each repo in
-;;   `system-tidy-repos':
+;; - `system-tidy-repos-prefetch', for each repo in `system-tidy-repos':
 ;;   - prefetch from origin, so a later fetch has little to download,
 ;;     and update git's commit-graph
-;;   - with :nix, keep the Nix dev shells of some branches built
-;; - `system-tidy-nix-gc' (daily), Nix store garbage collection with
-;;   `system-tidy-nix-gc-command', e.g. `nix-collect-garbage'
-;;
-;; Repo tasks are opt-in: `system-tidy-repos' is empty by default.
-;; `system-tidy-nix-gc' runs `nix-collect-garbage' by default; set
-;; `system-tidy-nix-gc-command' to nil to turn it off.
+;;   - with :nix, keep the Nix dev shells of some branches built, and
+;;     optionally run a command on each after it's built
+;; - `system-tidy-nix-gc' Nix store garbage collection based on
+;;   `system-tidy-nix-gc-command'
 ;;
 ;; Example setup with `use-package':
 ;;
@@ -50,21 +44,16 @@
 ;;     :commands system-tidy-repos-prefetch
 ;;     :hook ((midnight . system-tidy-repos-maintenance)
 ;;            (midnight . system-tidy-nix-gc))
-;;     :init (run-at-time 300 3600 #'system-tidy-repos-prefetch)
+;;     :init
+;;     (run-at-time 300 3600 #'system-tidy-repos-prefetch)
+;;     (require 'midnight-mode)
+;;     (midnight-mode)
 ;;     :custom
 ;;     (system-tidy-repos '(("~/src/big-repo"
 ;;                           :nix (:branches ("main@origin")))
 ;;                          "~/src/other-repo")))
 ;;
-;; `midnight-hook' only runs with `midnight-mode' enabled.  :hook
-;; autoloads the hooked commands; the prefetch command, which isn't on a
-;; hook, needs :commands.
-;;
-;; The commands share one queue, so two steps never run at once:
-;; maintenance and Nix gc wait for anything running, and prefetch is
-;; skipped while anything is running.
-;;
-;; Steps are logged in *system-tidy*.
+;; Runs are logged in *system-tidy*.
 
 ;;; Code:
 
@@ -87,6 +76,11 @@ updated by `system-tidy-repos-prefetch':
              \"NAME@REMOTE\", or just \"NAME\" for NAME@origin. Each
              must be in REMOTE's configured fetch refspec, so that it
              is prefetched.
+  :after-build
+             Command, a list of strings, run in the repo after each
+             shell build, with the shell's GC root appended.  For
+             example, to copy things out of the shell's closure.  It
+             also runs when the build failed, with the previous root.
 
 For example:
 
@@ -114,7 +108,10 @@ performance."
                                                   (const nix-develop)))
                                   (:branches
                                    (repeat :tag "Remote branches"
-                                           (string :tag "NAME@REMOTE")))))))))
+                                           (string :tag "NAME@REMOTE")))
+                                  (:after-build
+                                   (repeat :tag "Command"
+                                           (string :tag "Argument")))))))))
            (directory :tag "Directory"))))
 
 (defcustom system-tidy-nix-gc-command '("nix-collect-garbage")
@@ -351,9 +348,11 @@ INTERACTIVE (non-nil interactively) means report progress."
     (when interactive
       (system-tidy--report was-busy))))
 
-(defun system-tidy--dev-shell (repo remote-branch nix)
+(defun system-tidy--dev-shell (repo remote-branch nix after-build)
   "Queue steps to build the NIX dev shell of REMOTE-BRANCH in REPO.
 REMOTE-BRANCH is \"NAME@REMOTE\" or just \"NAME\" (for origin).
+AFTER-BUILD, if non-nil, is a command run in REPO afterwards with the
+GC root appended.
 This checks out the prefetched branch into a dedicated directory, since
 evaluating the shell can need the whole source tree.  It uses its own
 index rather than a git worktree, so it doesn't show up in REPO.  A
@@ -388,7 +387,9 @@ Nix GC root is then created for the latest shell closure."
       (_
        (system-tidy--run source
                          "nix-build" "shell.nix" "-A" "inputDerivation"
-                         "-o" root)))))
+                         "-o" root)))
+    (when after-build
+      (system-tidy--run repo after-build root))))
 
 ;;;###autoload
 (defun system-tidy-repos-prefetch (&optional interactive)
@@ -409,9 +410,10 @@ running.  INTERACTIVE (non-nil interactively) means report progress."
            (system-tidy--run repo
                              "git" "maintenance" "run"
                              "--task=prefetch" "--task=commit-graph")))
-       (pcase-let (((map :shell :branches) nix))
+       (pcase-let (((map :shell :branches :after-build) nix))
          (dolist (b branches)
-           (system-tidy--dev-shell repo b (or shell 'nix-shell))))))))
+           (system-tidy--dev-shell repo b (or shell 'nix-shell)
+                                   after-build)))))))
 
 ;;;###autoload
 (defun system-tidy-nix-gc (&optional interactive)
