@@ -2289,6 +2289,12 @@ STATUS is the command's exit status, or nil when the shell omitted it."
                     :map ghostel-semi-char-mode-map
                     ("C-<return>" . ghostel-toggle-insert-cd)
                     ("s-n" . ghostel-toggle-forward)
+                    ("s-p" . ghostel-toggle-backward)
+                    ;; ghostel-compile buffers use `compilation-mode-map'
+                    ;; (via `ghostel-compile-view-mode-map') instead.
+                    :package compile
+                    :map compilation-mode-map
+                    ("s-n" . ghostel-toggle-forward)
                     ("s-p" . ghostel-toggle-backward))
     :hook ((ghostel-mode . ghostel-toggle--mode-hook)
            (kill-buffer . ghostel-toggle--exit-hook)))

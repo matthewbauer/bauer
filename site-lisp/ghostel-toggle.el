@@ -501,6 +501,12 @@ Falls back to the directory's base name when outside any project."
 When another managed terminal remains, its window switches to the next
 terminal in cycling order; only the last terminal's exit tears the
 window down."
+  ;; ghostel-compile buffers join the list while in `ghostel-mode' but
+  ;; finish in a `compilation-mode' derivative, so drop them here too.
+  (when (and (memq (current-buffer) ghostel-toggle--buffer-list)
+             (not (ghostel-toggle-togglable-buffer-p (current-buffer))))
+    (setq ghostel-toggle--buffer-list
+          (delq (current-buffer) ghostel-toggle--buffer-list)))
   (when (ghostel-toggle-togglable-buffer-p (current-buffer))
     (let* ((index (cl-position (current-buffer) ghostel-toggle--buffer-list))
            (rest (delq (current-buffer) ghostel-toggle--buffer-list))
