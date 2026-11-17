@@ -1557,14 +1557,14 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
     :if (locate-file "jj" exec-path)
     :commands (majutsu majutsu-log majutsu-dispatch majutsu-fix)
     :functions (magit-status majutsu-read-bookmarks majutsu-diff-arguments
-                majutsu-diff-revset majutsu-jjdescription--change-id
-                majutsu-jjdescription--bind-repository-root majutsu-get
-                majutsu-jj-lines majutsu-diff--revisions majutsu-start-jj majutsu-read-revset
-                majutsu-conflict-check-enable magit-section-value-if
-                transient-args transient-arg-value
-                ;; called by the `transient-define-prefix' expansion
-                transient-setup transient-prefix transient--set-layout
-                transient--suffix-only transient--default-infix-command)
+                             majutsu-diff-revset majutsu-jjdescription--change-id
+                             majutsu-jjdescription--bind-repository-root majutsu-get
+                             majutsu-start-jj majutsu-read-revset
+                             majutsu-conflict-check-enable magit-section-value-if
+                             transient-args transient-arg-value
+                             ;; called by the `transient-define-prefix' expansion
+                             transient-setup transient-prefix transient--set-layout
+                             transient--suffix-only transient--default-infix-command)
     :bind (("C-x g" . my-vc-status)
            ("C-x p v" . my-vc-status)
            ("C-x J" . majutsu-dispatch)
@@ -1583,7 +1583,7 @@ Majutsu provides a Magit-style interface for Jujutsu repositories. Run
           (call-interactively #'magit-status))))
     (defun majutsu-gh-pr-open (bookmarks)
       "Open the GitHub PR of a jujutsu bookmark.
-If no PR exists yet, push the bookmark and open the PR creation page."
+  If no PR exists yet, push the bookmark and open the PR creation page."
       (interactive (list (majutsu-read-bookmarks "Bookmark to view PR for: ")))
       (unless bookmarks
         (user-error "No bookmark specified"))
@@ -1612,16 +1612,16 @@ If no PR exists yet, push the bookmark and open the PR creation page."
               (error "gh pr create failed: %s" (string-trim (buffer-string))))))))
     (defun my-majutsu--ignore-working-copy (fn &rest args)
       "Call FN with ARGS without jj snapshotting the working copy again.
-The log section runs first and already snapshots, so later sections
-can skip the (slow, in large repos) working copy scan."
+  The log section runs first and already snapshots, so later sections
+  can skip the (slow, in large repos) working copy scan."
       (let ((majutsu-jj-global-arguments
              (cons "--ignore-working-copy" majutsu-jj-global-arguments)))
         (apply fn args)))
     (defun my-majutsu--bookmark-prefix (fn &rest args)
       "Call FN with ARGS, pre-filling the bookmark prefix for new bookmarks.
-The prefix comes from the repo's jj `majutsu.bookmark-prefix' config, e.g.
-  jj config set --repo majutsu.bookmark-prefix matthew/
-Repos without it (or with it empty) get no pre-fill."
+  The prefix comes from the repo's jj `majutsu.bookmark-prefix' config, e.g.
+    jj config set --repo majutsu.bookmark-prefix matthew/
+  Repos without it (or with it empty) get no pre-fill."
       (if-let* (((memq this-command '(majutsu-bookmark-create majutsu-bookmark-set)))
                 (prefix (majutsu-get "majutsu.bookmark-prefix")))
           (minibuffer-with-setup-hook
@@ -1632,11 +1632,11 @@ Repos without it (or with it empty) get no pre-fill."
         (apply fn args)))
     (defun my-majutsu-jjdescription-show-diff ()
       "Show the diff for the JJ change being described.
-Upstream calls `majutsu-diff-revset' without diff arguments, so jj
-emits its default color-words output while the buffer uses the git
-washer, leaving only the revision header.  It also snapshots the
-working copy while jj is still waiting on this editor, which can make
-the change divergent."
+  Upstream calls `majutsu-diff-revset' without diff arguments, so jj
+  emits its default color-words output while the buffer uses the git
+  washer, leaving only the revision header.  It also snapshots the
+  working copy while jj is still waiting on this editor, which can make
+  the change divergent."
       (interactive)
       (let ((default-directory
              (or (majutsu-jjdescription--bind-repository-root)
@@ -1646,44 +1646,11 @@ the change divergent."
         (pcase-let ((`(,args ,_range ,filesets) (majutsu-diff-arguments)))
           (majutsu-diff-revset (or (majutsu-jjdescription--change-id) "@")
                                args nil filesets))))
-    (defvar-local my-majutsu-diff--working-copy nil
-      "Non-nil if this diff buffer's new side is the working-copy commit (@).")
-    (defun my-majutsu-diff--compute-working-copy ()
-      "Return non-nil if the diff's new/right side resolves to exactly @.
-Unlike upstream, which compares the literal string \"@\", this asks jj,
-so `-r <change-id of @>' counts too."
-      (let ((rev (cdr (majutsu-diff--revisions))))
-        (or (equal rev "@")
-            (equal (ignore-errors
-                     (majutsu-jj-lines "--ignore-working-copy" "log" "--no-graph"
-                                       "-r" rev "-T" "current_working_copy ++ \"\\n\""))
-                   '("true")))))
-    (defun my-majutsu-diff--update-working-copy ()
-      "Cache whether the diff shows @ and show it in the header line.
-Runs from `majutsu-diff-sections-hook', so on every diff refresh; it
-doesn't insert a section."
-      (setq my-majutsu-diff--working-copy (my-majutsu-diff--compute-working-copy))
-      (setq header-line-format
-            (if my-majutsu-diff--working-copy
-                (propertize " Working copy (@)" 'face 'success)
-              (propertize (format " Not the working copy: %s (read-only)"
-                                  (cdr (majutsu-diff--revisions)))
-                          'face 'warning))))
-    (defun my-majutsu-diff--visit-workspace-p (&rest _)
-      "Use the jj-resolved working-copy check."
-      my-majutsu-diff--working-copy)
-    (defun my-majutsu-diff--require-working-copy (&optional force-workspace)
-      "Refuse to visit the workspace file from a diff that isn't of @.
-Visiting read-only blobs from historical diffs is still allowed; only
-FORCE-WORKSPACE (`majutsu-diff-visit-workspace-file') would open the
-live file, whose lines don't correspond to this diff."
-      (when (and force-workspace (not my-majutsu-diff--working-copy))
-        (user-error "Diff is not of the working copy (@); run `jj edit' or `jj new' first")))
     (defun majutsu-fix-execute (args)
       "Run `jj fix' with ARGS from `majutsu-fix'.
-Without a --source, fix the revision at point (and its descendants),
-or jj's default (`revsets.fix', else reachable(@, mutable())) if
-there is none."
+  Without a --source, fix the revision at point (and its descendants),
+  or jj's default (`revsets.fix', else reachable(@, mutable())) if
+  there is none."
       (interactive (list (transient-args 'majutsu-fix)))
       (let ((rev (and (not (transient-arg-value "--source=" args))
                       (magit-section-value-if 'jj-commit))))
@@ -1694,10 +1661,7 @@ there is none."
     (defun my/majutsu-conflict-maybe ()
       "Enable conflict handling in jj repos when the buffer has conflict markers."
       (when (and buffer-file-name
-                 (vc-find-root buffer-file-name ".jj")
-                 (save-excursion
-                   (goto-char (point-min))
-                   (re-search-forward "^<<<<<<< " nil t)))
+                 (vc-find-root buffer-file-name ".jj"))
         (majutsu-conflict-check-enable)))
     :init
     ;; Only called from the hooks below, so use-package doesn't create an
@@ -1731,14 +1695,7 @@ there is none."
     (advice-add 'majutsu-remote-candidate-data :around #'my-majutsu--ignore-working-copy)
     (advice-add 'majutsu-jjdescription-show-diff :override
                 #'my-majutsu-jjdescription-show-diff)
-    (advice-add 'majutsu-read-bookmark-names :around #'my-majutsu--bookmark-prefix)
-    ;; Show whether a diff is of @, and only visit workspace files from @ diffs.
-    (add-hook 'majutsu-diff-sections-hook
-              #'my-majutsu-diff--update-working-copy -90)
-    (advice-add 'majutsu-diff--visit-workspace-p :override
-                #'my-majutsu-diff--visit-workspace-p)
-    (advice-add 'majutsu-diff-visit-file :before
-                #'my-majutsu-diff--require-working-copy))
+    (advice-add 'majutsu-read-bookmark-names :around #'my-majutsu--bookmark-prefix))
 #+END_SRC
 
 **** transient
